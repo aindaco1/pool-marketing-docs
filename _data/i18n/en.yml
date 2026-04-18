@@ -1,5 +1,16 @@
 native_name: English
 
+pages:
+  home:
+    title: The Pool
+    description: Free and forkable crowdfunding platform starter with no-account backer flows, paid crowdsourcing support, and thorough developer docs.
+  support:
+    title: Support The Pool
+    description: Support the ongoing development and maintenance of The Pool.
+  confirmation:
+    title: Thanks for supporting The Pool.
+    description: Confirmation page for supporters helping fund the ongoing development of The Pool.
+
 nav:
   home: Home
   search: Search
@@ -23,6 +34,7 @@ home:
     paid: "Supports <strong>paid crowdsourcing</strong>, reward tiers, add-ons, and ongoing support."
   download_cta: Download full repo
   docs_cta: Explore the docs
+  demo_cta: Demo
   stats:
     stack_label: Stack
     stack_value: Jekyll + Stripe + Cloudflare Worker + Resend + Pages CMS
@@ -40,7 +52,7 @@ home:
     caption: Reserved space for a short product walkthrough.
     fallback: Your browser does not support WebM video.
   positioning_heading: Built for creatives who crowdfund.
-  positioning_intro: "Fork it for <em>films, albums, community-backed tools, paid submissions</em> ... whatever you want."
+  positioning_intro: "For <em>films, albums, community-backed tools, paid submissions</em> ... whatever you want."
   positioning_cards:
     free_title: 100% free and forkable
     free_body: "There is <strong>no license fee, no SaaS lock-in,</strong> and no closed platform dependency <em>between you and your campaigns.</em>"
@@ -57,7 +69,7 @@ home:
     crowd_body: "Use <strong>tiers, custom amounts, support items, diary updates,</strong> and <strong>community decisions</strong> to keep your audience engaged."
     crowd_link: Explore creator workflows
   platform_heading: What ships in the starter
-  platform_intro: "The current codebase already covers the parts that usually turn a crowdfunding build into <strong>custom product work</strong>."
+  platform_intro: ""
   platform_cards:
     checkout_title: First-party Stripe checkout
     checkout_body: "<strong>A browser-owned cart, Worker-verified totals, on-site payment UI, saved payment methods,</strong> and <strong>deferred charging</strong> after a successful campaign."
@@ -83,6 +95,9 @@ support:
   body_prefix: "The Pool is <strong>supported and maintained</strong> by the kind folks at "
   body_link: Dust Wave
   body_suffix: ". If you get value out of the project, please consider <strong>supporting the platform's ongoing development</strong>."
+  dust_wave_prefix: "If you'd like to support Dust Wave directly, you can also back a project on Dust Wave's own implementation of The Pool at "
+  dust_wave_link: pool.dustwave.xyz
+  dust_wave_suffix: "."
   one_off_cta: Support The Pool!
   monthly_cta: Support The Pool monthly!
 

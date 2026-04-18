@@ -5,6 +5,16 @@
   flex-direction: column;
 }
 
+.pool-docs-layout a:focus-visible,
+.pool-docs-layout button:focus-visible,
+.pool-docs-layout select:focus-visible,
+.pool-docs-layout input:focus-visible,
+.pool-docs-layout summary:focus-visible,
+.pool-docs-layout [tabindex]:focus-visible {
+  outline: 3px solid #000;
+  outline-offset: 3px;
+}
+
 .pool-docs-header {
   width: min(1120px, calc(100% - 2rem));
   margin: 0 auto;
@@ -568,13 +578,18 @@
 }
 
 .pool-site-footer__language select {
-  min-height: 2.75rem;
-  padding: 0.5rem 0.75rem;
+  min-height: 2.4rem;
+  padding: 0.45rem 0.72rem;
   border: 2px solid #000;
   border-radius: 0;
   background: #fff;
   color: #000;
-  font: inherit;
+  font-family: "Inter", system-ui, -apple-system, blinkmacsystemfont, "Segoe UI", sans-serif;
+  font-size: 0.63rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  text-transform: uppercase;
 }
 
 .sr-only {

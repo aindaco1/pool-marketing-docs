@@ -1,0 +1,13 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% if page.title == site.title %}{{ site.title }}{% else %}{{ page.title }} | {{ site.title }}{% endif %}</title>
+{% seo title=false %}
+{% include head_custom.html %}
+{% if include.include_stripe %}
+  {% if site.support_publishable_key != "" %}
+    {% if site.support_monthly_buy_button_id != "" or site.support_one_off_buy_button_id != "" %}
+<script async src="https://js.stripe.com/v3/buy-button.js"></script>
+    {% endif %}
+  {% endif %}
+{% endif %}
+<link rel="stylesheet" href="{{ '/assets/css/home.css' | relative_url }}?v={{ site.time | date: '%s' }}">

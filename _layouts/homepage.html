@@ -1,20 +1,9 @@
 <!DOCTYPE html>
-<html lang="{{ site.lang | default: 'en' }}" data-default-lang="{{ site.lang | default: 'en' }}">
+<html lang="{{ site.lang | default: 'en' }}" data-default-lang="{{ site.lang | default: 'en' }}" data-page-lang="{{ site.lang | default: 'en' }}">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% if page.title == site.title %}{{ site.title }}{% else %}{{ page.title }} | {{ site.title }}{% endif %}</title>
-  <meta name="theme-color" content="#000000">
-  {% seo title=false %}
-  {% include head_custom.html %}
-  {% if site.support_publishable_key != "" %}
-  {% if site.support_monthly_buy_button_id != "" or site.support_one_off_buy_button_id != "" %}
-  <script async src="https://js.stripe.com/v3/buy-button.js"></script>
-  {% endif %}
-  {% endif %}
-  <link rel="stylesheet" href="{{ '/assets/css/home.css' | relative_url }}?v={{ site.time | date: '%s' }}">
+  {% include marketing_page_head.html include_stripe=true %}
 </head>
-<body class="pool-homepage">
+<body class="pool-homepage" data-page-title-key="pages.home.title" data-page-description-key="pages.home.description">
   <a class="skip-link" href="#main-content" data-i18n="ui.skip_to_content">Skip to main content</a>
   {% include icons/icons.html %}
 
@@ -31,10 +20,15 @@
 
         <div class="hero__media" aria-label="Product demo">
           <section class="hero-demo" aria-label="Product demo">
-            <div class="hero-demo__frame">
-              {% if site.demo_video_url != "" %}
-              <video class="hero-demo__video" controls playsinline preload="metadata"{% if site.demo_video_poster != "" %} poster="{{ site.demo_video_poster }}"{% endif %}>
+            <div class="hero-demo__frame{% unless site.demo_video_url != '' or site.demo_video_fallback_url != '' %} hero-demo__frame--placeholder{% endunless %}">
+              {% if site.demo_video_url != "" or site.demo_video_fallback_url != "" %}
+              <video class="hero-demo__video" autoplay muted loop playsinline preload="metadata"{% if site.demo_video_poster != "" %} poster="{{ site.demo_video_poster }}"{% endif %}>
+                {% if site.demo_video_url != "" %}
                 <source src="{{ site.demo_video_url }}" type="video/webm">
+                {% endif %}
+                {% if site.demo_video_fallback_url != "" %}
+                <source src="{{ site.demo_video_fallback_url }}" type="video/mp4">
+                {% endif %}
                 <p data-i18n="home.demo.fallback">Your browser does not support WebM video.</p>
               </video>
               {% else %}
@@ -47,6 +41,7 @@
         <div class="hero__actions">
           <a class="pool-button pool-button--primary" href="https://github.com/aindaco1/pool/archive/refs/heads/main.zip" data-i18n="home.download_cta">Download full repo</a>
           <a class="pool-button pool-button--secondary" href="{{ '/docs/' | relative_url }}" data-i18n="home.docs_cta">Explore the docs</a>
+          <a class="pool-button pool-button--secondary" href="https://pool.dustwave.xyz" target="_blank" rel="noopener noreferrer" data-i18n="home.demo_cta">Demo</a>
         </div>
 
         <ul class="hero__points" aria-label="Platform highlights">
@@ -138,7 +133,11 @@
     <section class="feature-band" aria-labelledby="platform-heading">
       <div class="feature-band__intro">
         <h2 id="platform-heading" data-i18n="home.platform_heading">What ships in the starter</h2>
+        {% assign platform_intro_lang = site.lang | default: 'en' %}
+        {% assign platform_intro = site.data.i18n[platform_intro_lang].home.platform_intro %}
+        {% if platform_intro != blank %}
         <p data-i18n-html="home.platform_intro">The current codebase already covers the parts that usually turn a crowdfunding build into <strong>custom product work</strong>.</p>
+        {% endif %}
       </div>
 
       <div class="stack-grid">

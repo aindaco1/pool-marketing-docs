@@ -1,15 +1,9 @@
 <!DOCTYPE html>
-<html lang="{{ site.lang | default: 'en' }}" data-default-lang="{{ site.lang | default: 'en' }}">
+<html lang="{{ site.lang | default: 'en' }}" data-default-lang="{{ site.lang | default: 'en' }}" data-page-lang="{{ site.lang | default: 'en' }}">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% if page.title == site.title %}{{ site.title }}{% else %}{{ page.title }} | {{ site.title }}{% endif %}</title>
-  <meta name="theme-color" content="#000000">
-  {% seo title=false %}
-  {% include head_custom.html %}
-  <link rel="stylesheet" href="{{ '/assets/css/home.css' | relative_url }}?v={{ site.time | date: '%s' }}">
+  {% include marketing_page_head.html %}
 </head>
-<body class="pool-homepage">
+<body class="pool-homepage" data-page-title-key="pages.confirmation.title" data-page-description-key="pages.confirmation.description">
   <a class="skip-link" href="#main-content" data-i18n="ui.skip_to_content">Skip to main content</a>
   {% include icons/icons.html %}
 

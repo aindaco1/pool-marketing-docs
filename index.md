@@ -1,6 +1,6 @@
 ---
 title: The Pool
-description: Forkable crowdfunding platform starter for developers who want low-cost project funding, no-account backer flows, and thorough implementation docs.
+description: Free and forkable crowdfunding platform starter with no-account backer flows, paid crowdsourcing support, and thorough developer docs.
 layout: homepage
 nav_enabled: false
 nav_exclude: true

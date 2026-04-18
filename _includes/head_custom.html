@@ -5,5 +5,22 @@
 <link rel="stylesheet" href="https://use.typekit.net/hoj2yet.css">
 <link rel="icon" type="image/png" href="{{ '/assets/images/defaults/favicon.png' | relative_url }}">
 <meta name="theme-color" content="#000000">
+{% assign page_url = page.url | default: '/' %}
+{% assign site_origin = site.url | append: site.baseurl %}
+{% if page_url contains '/docs/' %}
+  {% if page_url contains '/es/docs/' %}
+    {% assign english_alt_url = page_url | remove_first: '/es' %}
+    {% assign spanish_alt_url = page_url %}
+  {% else %}
+    {% assign english_alt_url = page_url %}
+    {% assign spanish_alt_url = '/es' | append: page_url %}
+  {% endif %}
+{% else %}
+  {% assign english_alt_url = page_url %}
+  {% assign spanish_alt_url = site_origin | append: page_url | append: '?lang=es' %}
+{% endif %}
+<link rel="alternate" hreflang="en" href="{% if page_url contains '/docs/' %}{{ english_alt_url | absolute_url }}{% else %}{{ site_origin | append: english_alt_url }}{% endif %}">
+<link rel="alternate" hreflang="es" href="{% if page_url contains '/docs/' %}{{ spanish_alt_url | absolute_url }}{% else %}{{ spanish_alt_url }}{% endif %}">
+<link rel="alternate" hreflang="x-default" href="{% if page_url contains '/docs/' %}{{ english_alt_url | absolute_url }}{% else %}{{ site_origin | append: english_alt_url }}{% endif %}">
 <script id="site-translations" type="application/json">{{ site.data.i18n | jsonify }}</script>
 <script defer src="{{ '/assets/js/site.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>

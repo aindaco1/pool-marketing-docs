@@ -1,5 +1,16 @@
 native_name: Español
 
+pages:
+  home:
+    title: The Pool
+    description: Starter gratuito y forkeable de crowdfunding con flujos sin cuenta para backers, soporte para crowdsourcing pagado y documentación técnica completa.
+  support:
+    title: Apoya a The Pool
+    description: Apoya el desarrollo y mantenimiento continuo de The Pool.
+  confirmation:
+    title: Gracias por apoyar a The Pool.
+    description: Página de confirmación para supporters que ayudan a financiar el desarrollo continuo de The Pool.
+
 nav:
   home: Inicio
   search: Buscar
@@ -23,6 +34,7 @@ home:
     paid: "Soporta <strong>crowdsourcing pagado</strong>, niveles de recompensa, add-ons y apoyo continuo."
   download_cta: Descargar el repositorio completo
   docs_cta: Explorar la documentación
+  demo_cta: Demo
   stats:
     stack_label: Stack
     stack_value: Jekyll + Stripe + Cloudflare Worker + Resend + Pages CMS
@@ -40,7 +52,7 @@ home:
     caption: Espacio reservado para un recorrido corto del producto.
     fallback: Tu navegador no soporta video WebM.
   positioning_heading: Hecho para creativos que hacen crowdfunding.
-  positioning_intro: "Haz un fork para <em>películas, álbumes, herramientas financiadas por la comunidad y convocatorias pagadas</em>... lo que quieras."
+  positioning_intro: "Para <em>películas, álbumes, herramientas financiadas por la comunidad y convocatorias pagadas</em>... lo que quieras."
   positioning_cards:
     free_title: 100% gratis y forkeable
     free_body: "No hay <strong>licencia paga ni SaaS obligatorio,</strong> y no existe una dependencia cerrada <em>entre tu fork y tus campañas.</em>"
@@ -57,7 +69,7 @@ home:
     crowd_body: "Usa <strong>tiers, montos personalizados, support items, diary updates</strong> y <strong>community decisions</strong> para mantener a tu audiencia involucrada."
     crowd_link: Explorar workflows de creadores
   platform_heading: Lo que ya trae el starter
-  platform_intro: "El codebase actual ya cubre las partes que normalmente convierten un build de crowdfunding en <strong>trabajo de producto completamente custom</strong>."
+  platform_intro: ""
   platform_cards:
     checkout_title: Checkout propio con Stripe
     checkout_body: "<strong>Un carrito propio del navegador, totales verificados por el Worker, UI de pago dentro del sitio y métodos guardados,</strong> además de <strong>cobro diferido</strong> después de una campaña exitosa."
@@ -82,6 +94,9 @@ support:
   body_prefix: "The Pool es <strong>apoyado y mantenido</strong> por la buena gente de "
   body_link: Dust Wave
   body_suffix: ". Si el proyecto te aporta valor, por favor considera <strong>apoyar el desarrollo continuo de la plataforma</strong>."
+  dust_wave_prefix: "Si quieres apoyar directamente a Dust Wave, también puedes respaldar un proyecto en la propia implementación de The Pool de Dust Wave en "
+  dust_wave_link: pool.dustwave.xyz
+  dust_wave_suffix: "."
   one_off_cta: Apoya a The Pool!
   monthly_cta: Apoya a The Pool mensualmente!
 

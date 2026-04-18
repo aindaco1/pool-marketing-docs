@@ -7,7 +7,8 @@ theme: just-the-docs
 lang: en
 logo: "/assets/images/defaults/dust-wave-square.png"
 permalink: pretty
-demo_video_url: ""
+demo_video_url: "/assets/videos/hero-demo.webm"
+demo_video_fallback_url: "/assets/videos/hero-demo.mp4"
 demo_video_poster: ""
 support_monthly_payment_link_url: "https://buy.stripe.com/3cI28s9VzgUub2L86Q1oI0d"
 support_monthly_payment_link_id: "plink_1TNGPAK9nUOzi4tvQf2Ywmmn"

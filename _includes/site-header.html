@@ -41,9 +41,9 @@
     </button>
 
     <nav id="site-primary-nav" class="{% if include.docs %}pool-docs-actions{% else %}marketing-header__nav{% endif %}" aria-label="Primary" data-site-menu>
-      <a class="{% if is_docs_page %}is-active{% endif %}" href="{{ '/docs/' | relative_url }}" data-i18n="nav.docs">Developer Docs</a>
+      <a class="{% if is_docs_page %}is-active{% endif %}" href="{{ '/docs/' | relative_url }}" {% if is_docs_page %}aria-current="page"{% endif %} data-i18n="nav.docs">Developer Docs</a>
       <a href="https://github.com/aindaco1/pool" target="_blank" rel="noopener" data-i18n="nav.repo">GitHub Repo</a>
-      <a class="{% if is_support_page %}is-active {% endif %}{% if include.docs %}pool-support-button pool-docs-support{% else %}marketing-header__support{% endif %}" href="{{ '/support/' | relative_url }}" data-i18n="nav.support">Support The Pool</a>
+      <a class="{% if is_support_page %}is-active {% endif %}{% if include.docs %}pool-support-button pool-docs-support{% else %}marketing-header__support{% endif %}" href="{{ '/support/' | relative_url }}" {% if is_support_page %}aria-current="page"{% endif %} data-i18n="nav.support">Support The Pool</a>
     </nav>
 
     {% if include.docs %}

@@ -25,6 +25,20 @@ html {
   scroll-behavior: smooth;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 body {
   margin: 0;
   background: var(--pool-bg);
@@ -55,6 +69,16 @@ img {
 
 a {
   color: var(--pool-heading);
+}
+
+a:focus-visible,
+button:focus-visible,
+select:focus-visible,
+input:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible {
+  outline: 3px solid #000;
+  outline-offset: 3px;
 }
 
 .skip-link {
@@ -363,21 +387,32 @@ a {
   grid-area: media;
 }
 
+@media (min-width: 50.01rem) {
+  .hero__media {
+    align-self: center;
+  }
+}
+
 .hero-demo {
   display: block;
 }
 
 .hero-demo__frame {
+  display: block;
+  border: 2px solid var(--pool-border);
+  background: #fff;
+}
+
+.hero-demo__frame--placeholder {
   display: grid;
   aspect-ratio: 1 / 1;
-  border: 2px solid var(--pool-border);
   background: linear-gradient(135deg, rgba(245, 245, 245, 0.92) 0%, rgba(255, 255, 255, 0.98) 55%, rgba(245, 245, 245, 1) 100%);
 }
 
 .hero-demo__video {
+  display: block;
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: auto;
 }
 
 .hero-demo__placeholder {
@@ -510,6 +545,10 @@ a {
 
 .support-options--support-page {
   margin-top: 0.25rem;
+  grid-template-columns: repeat(2, max-content);
+  justify-content: center;
+  column-gap: 1.5rem;
+  row-gap: 1rem;
   justify-items: stretch;
   align-items: start;
 }
@@ -614,13 +653,18 @@ a {
 }
 
 .pool-site-footer__language select {
-  min-height: 2.9rem;
-  padding: 0.65rem 0.75rem;
+  min-height: 2.4rem;
+  padding: 0.45rem 0.72rem;
   border: 2px solid var(--pool-border);
   border-radius: 0;
   background: var(--pool-surface);
   color: var(--pool-heading);
-  font: inherit;
+  font-family: "Inter", system-ui, -apple-system, blinkmacsystemfont, "Segoe UI", sans-serif;
+  font-size: 0.63rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  text-transform: uppercase;
 }
 
 .sr-only {

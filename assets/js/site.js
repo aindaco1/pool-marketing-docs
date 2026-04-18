@@ -306,10 +306,40 @@
     scheduleFit();
   }
 
+  function syncHeroVideoMotionPreference() {
+    var videos = document.querySelectorAll(".hero-demo__video[autoplay]");
+    if (!videos.length || !window.matchMedia) return;
+
+    var mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    function updatePlayback() {
+      videos.forEach(function (video) {
+        if (mediaQuery.matches) {
+          video.pause();
+          return;
+        }
+
+        var playPromise = video.play();
+        if (playPromise && typeof playPromise.catch === "function") {
+          playPromise.catch(function () {});
+        }
+      });
+    }
+
+    updatePlayback();
+
+    if (typeof mediaQuery.addEventListener === "function") {
+      mediaQuery.addEventListener("change", updatePlayback);
+    } else if (typeof mediaQuery.addListener === "function") {
+      mediaQuery.addListener(updatePlayback);
+    }
+  }
+
   initSiteMenu();
   expandDocsNavByDefault();
   stabilizeDocsNavScroll();
   fitSupportBuyButtons();
+  syncHeroVideoMotionPreference();
 
   var translationsNode = document.getElementById("site-translations");
   if (!translationsNode) return;
@@ -362,6 +392,7 @@
 
   function applyTranslations(lang) {
     document.documentElement.lang = lang;
+    document.documentElement.dataset.pageLang = lang;
 
     document.querySelectorAll("[data-i18n]").forEach(function (node) {
       var value = getValue(lang, node.getAttribute("data-i18n"));
@@ -377,11 +408,25 @@
       }
     });
 
-    var titleKeyNode = document.querySelector("[data-i18n-title]");
-    if (titleKeyNode) {
-      var titleValue = getValue(lang, titleKeyNode.getAttribute("data-i18n-title"));
+    var titleKey = document.body && document.body.dataset.pageTitleKey;
+    if (titleKey) {
+      var titleValue = getValue(lang, titleKey);
       if (typeof titleValue === "string") {
         document.title = titleValue + " | The Pool";
+      }
+    }
+
+    var descriptionKey = document.body && document.body.dataset.pageDescriptionKey;
+    if (descriptionKey) {
+      var descriptionValue = getValue(lang, descriptionKey);
+      if (typeof descriptionValue === "string") {
+        document
+          .querySelectorAll(
+            'meta[name="description"], meta[property="og:description"], meta[name="twitter:description"]'
+          )
+          .forEach(function (meta) {
+            meta.setAttribute("content", descriptionValue);
+          });
       }
     }
 
