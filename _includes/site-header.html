@@ -33,7 +33,11 @@
       aria-controls="site-primary-nav"
       data-site-menu-toggle
     >
-      <svg viewBox="0 0 24 24" class="icon" aria-hidden="true"><use xlink:href="#svg-menu"></use></svg>
+      <span class="{% if include.docs %}pool-docs-header__menu-icon{% else %}marketing-header__menu-icon{% endif %}" aria-hidden="true">
+        <span></span>
+        <span></span>
+        <span></span>
+      </span>
     </button>
 
     <nav id="site-primary-nav" class="{% if include.docs %}pool-docs-actions{% else %}marketing-header__nav{% endif %}" aria-label="Primary" data-site-menu>

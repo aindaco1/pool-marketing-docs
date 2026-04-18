@@ -162,6 +162,18 @@ a {
   color: currentColor;
 }
 
+.marketing-header__menu-icon {
+  display: inline-grid;
+  gap: 0.28rem;
+}
+
+.marketing-header__menu-icon span {
+  display: block;
+  width: 1.1rem;
+  height: 2px;
+  background: currentColor;
+}
+
 .marketing-header__nav a,
 .pool-button,
 .marketing-header__support {

@@ -15,7 +15,7 @@ ui:
 home:
   eyebrow: DIY your own crowdfunding campaign
   title: The Pool is a free crowdfunding platform to fund your projects.
-  subtitle: "<strong>Open-source starter</strong> for <em>all-or-nothing campaigns</em>, paid crowdsourcing, backer updates, and no-account supporter flows."
+  subtitle: "<strong>Open-source starter</strong> for <em>all-or-nothing campaigns</em>, <em>paid crowdsourcing</em>, <em>backer updates</em>, and <em>no-account supporter flows</em>."
   points:
     free: "<strong>100% free</strong> to use, fork, and rebrand."
     low_cost: "Designed around <strong>GitHub Pages, Cloudflare, and Resend</strong> free tiers."
@@ -43,7 +43,7 @@ home:
   positioning_intro: "Fork it for <em>films, albums, community-backed tools, paid submissions</em> ... whatever you want."
   positioning_cards:
     free_title: 100% free and forkable
-    free_body: There is no license fee, no SaaS lock-in, and no closed platform dependency between you and your campaigns.
+    free_body: "There is <strong>no license fee, no SaaS lock-in,</strong> and no closed platform dependency <em>between you and your campaigns.</em>"
     free_link: See the fork surface
     low_cost_title: Low-cost by design
     low_cost_body_mid_1: serves the static site,
@@ -54,28 +54,28 @@ home:
     no_account_body: "Supporters can back a campaign and manage their pledge through <strong>email magic links</strong>. <em>No accounts needed!</em>"
     no_account_link: Inspect pledge management
     crowd_title: Crowdsourcing Ready
-    crowd_body: Use tiers, custom amounts, support items, diary updates, and community decisions to keep your audience engaged.
+    crowd_body: "Use <strong>tiers, custom amounts, support items, diary updates,</strong> and <strong>community decisions</strong> to keep your audience engaged."
     crowd_link: Explore creator workflows
   platform_heading: What ships in the starter
   platform_intro: "The current codebase already covers the parts that usually turn a crowdfunding build into <strong>custom product work</strong>."
   platform_cards:
     checkout_title: First-party Stripe checkout
-    checkout_body: A browser-owned cart, Worker-verified totals, on-site payment UI, saved payment methods, and deferred charging after a successful campaign.
+    checkout_body: "<strong>A browser-owned cart, Worker-verified totals, on-site payment UI, saved payment methods,</strong> and <strong>deferred charging</strong> after a successful campaign."
     checkout_link: Review the pledge worker
     funding_title: All-or-nothing funding model
-    funding_body: Campaign state, deadline handling, post-campaign support, and the funding logic needed to save cards now and charge later.
+    funding_body: "<strong>Campaign state, deadline handling, post-campaign support,</strong> and the <strong>funding logic</strong> needed to save cards now and charge later."
     funding_link: Read the platform overview
     merch_title: Add-ons, shipping, and tips
-    merch_body: Campaign add-ons, platform merch, USPS-backed shipping quotes, and a platform tip model that stays consistent across checkout, emails, and reports.
+    merch_body: "<strong>Campaign add-ons, platform merch, USPS-backed shipping quotes,</strong> and a <strong>platform tip</strong> model that stays consistent across checkout, emails, and reports."
     merch_link: See merch and add-ons
     community_title: Backer updates and community features
-    community_body: Production diary entries, announcement emails, community decisions, and supporter-facing flows for campaigns that keep evolving after launch.
+    community_body: "<strong>Production diary entries, announcement emails, community decisions,</strong> and <strong>supporter-facing flows</strong> for campaigns that keep evolving after launch."
     community_link: Explore campaign workflows
     customization_title: Fork-first customization
-    customization_body: Structured config, design tokens, i18n routing, embed support, and a CMS path so forks can adapt the platform without rewriting core behavior.
+    customization_body: "<strong>Structured config, design tokens, i18n routing, embed support,</strong> and a <strong>CMS path</strong> so forks can adapt the platform without rewriting core behavior."
     customization_link: Open customization docs
     operations_title: Security, accessibility, and testing
-    operations_body: "Security hardening, accessibility work, smoke checks, Playwright coverage, SEO baselines, and operational docs for running a <strong>safer implementation</strong>."
+    operations_body: "<strong>Security hardening, accessibility work, smoke checks, Playwright coverage, SEO baselines,</strong> and <strong>operational docs</strong> for running a <strong>safer implementation</strong>."
     operations_link: Review operations docs
 support:
   eyebrow: Support The Pool

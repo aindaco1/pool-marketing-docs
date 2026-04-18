@@ -15,7 +15,7 @@ ui:
 home:
   eyebrow: Haz tu propia campaña de crowdfunding
   title: The Pool es una plataforma gratuita de crowdfunding para financiar tus proyectos.
-  subtitle: "<strong>Starter de código abierto</strong> para <em>campañas todo o nada</em>, crowdsourcing pagado, actualizaciones para backers y flujos de apoyo sin cuentas."
+  subtitle: "<strong>Starter de código abierto</strong> para <em>campañas todo o nada</em>, <em>crowdsourcing pagado</em>, <em>actualizaciones para backers</em> y <em>flujos de apoyo sin cuentas</em>."
   points:
     free: "<strong>100% gratis</strong> para usar, hacer fork y rebrandear."
     low_cost: "Diseñado alrededor de los <strong>free tiers de GitHub Pages, Cloudflare y Resend</strong>."
@@ -43,7 +43,7 @@ home:
   positioning_intro: "Haz un fork para <em>películas, álbumes, herramientas financiadas por la comunidad y convocatorias pagadas</em>... lo que quieras."
   positioning_cards:
     free_title: 100% gratis y forkeable
-    free_body: No hay licencia paga, no hay SaaS obligatorio y no existe una dependencia cerrada entre tu fork y tus campañas.
+    free_body: "No hay <strong>licencia paga ni SaaS obligatorio,</strong> y no existe una dependencia cerrada <em>entre tu fork y tus campañas.</em>"
     free_link: Ver superficie de fork
     low_cost_title: Bajo costo por diseño
     low_cost_body_mid_1: sirve el sitio estático,
@@ -54,28 +54,28 @@ home:
     no_account_body: "Los supporters pueden apoyar una campaña y gestionar su pledge mediante <strong>magic links por email</strong>. <em>¡No hacen falta cuentas!</em>"
     no_account_link: Inspeccionar gestión de pledges
     crowd_title: Listo para crowdsourcing
-    crowd_body: Usa tiers, montos personalizados, support items, diary updates y community decisions para mantener a tu audiencia involucrada.
+    crowd_body: "Usa <strong>tiers, montos personalizados, support items, diary updates</strong> y <strong>community decisions</strong> para mantener a tu audiencia involucrada."
     crowd_link: Explorar workflows de creadores
   platform_heading: Lo que ya trae el starter
   platform_intro: "El codebase actual ya cubre las partes que normalmente convierten un build de crowdfunding en <strong>trabajo de producto completamente custom</strong>."
   platform_cards:
     checkout_title: Checkout propio con Stripe
-    checkout_body: Un carrito propio del navegador, totales verificados por el Worker, UI de pago dentro del sitio, métodos guardados y cobro diferido después de una campaña exitosa.
+    checkout_body: "<strong>Un carrito propio del navegador, totales verificados por el Worker, UI de pago dentro del sitio y métodos guardados,</strong> además de <strong>cobro diferido</strong> después de una campaña exitosa."
     checkout_link: Revisar el worker de pledges
     funding_title: Modelo todo o nada
-    funding_body: Estado de campaña, manejo de deadlines, apoyo post-campaña y la lógica necesaria para guardar tarjetas ahora y cobrar después.
+    funding_body: "<strong>Estado de campaña, manejo de deadlines y apoyo post-campaña,</strong> junto con la <strong>lógica de financiamiento</strong> necesaria para guardar tarjetas ahora y cobrar después."
     funding_link: Leer el resumen de la plataforma
     merch_title: Add-ons, envíos y propinas
-    merch_body: Add-ons por campaña, merch de plataforma, cotizaciones respaldadas por USPS y un modelo de propina de plataforma consistente entre checkout, emails y reportes.
+    merch_body: "<strong>Add-ons por campaña, merch de plataforma y cotizaciones respaldadas por USPS,</strong> además de un modelo de <strong>propina de plataforma</strong> consistente entre checkout, emails y reportes."
     merch_link: Ver merch y add-ons
     community_title: Actualizaciones para backers y funciones de comunidad
-    community_body: Entradas de production diary, announcement emails, community decisions y flujos visibles para supporters en campañas que siguen creciendo después del lanzamiento.
+    community_body: "<strong>Entradas de production diary, announcement emails, community decisions</strong> y <strong>flujos visibles para supporters</strong> en campañas que siguen creciendo después del lanzamiento."
     community_link: Explorar workflows de campaña
     customization_title: Personalización pensada para forks
-    customization_body: Config estructurada, design tokens, rutas i18n, soporte de embeds y una vía con CMS para adaptar la plataforma sin reescribir el comportamiento central.
+    customization_body: "<strong>Config estructurada, design tokens, rutas i18n y soporte de embeds</strong>, además de una <strong>vía con CMS</strong> para adaptar la plataforma sin reescribir el comportamiento central."
     customization_link: Abrir documentación de personalización
     operations_title: Seguridad, accesibilidad y pruebas
-    operations_body: "Hardening de seguridad, trabajo de accesibilidad, smoke checks, cobertura con Playwright, bases SEO y documentación operativa para correr una <strong>implementación más segura</strong>."
+    operations_body: "<strong>Hardening de seguridad, trabajo de accesibilidad, smoke checks, cobertura con Playwright y bases SEO,</strong> además de <strong>documentación operativa</strong> para correr una <strong>implementación más segura</strong>."
     operations_link: Revisar documentación de operaciones
 support:
   title: Apoya a The Pool
