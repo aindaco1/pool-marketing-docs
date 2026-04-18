@@ -1,0 +1,96 @@
+native_name: Español
+
+nav:
+  home: Inicio
+  search: Buscar
+  docs: Documentación para desarrolladores
+  repo: Repositorio en GitHub
+  support: Apoyar a The Pool
+
+ui:
+  skip_to_content: Saltar al contenido principal
+  back_to_top: Volver arriba
+  search_docs: Buscar en la documentación
+
+home:
+  eyebrow: Haz tu propia campaña de crowdfunding
+  title: The Pool es una plataforma gratuita de crowdfunding para financiar tus proyectos.
+  subtitle: "<strong>Starter de código abierto</strong> para <em>campañas todo o nada</em>, crowdsourcing pagado, actualizaciones para backers y flujos de apoyo sin cuentas."
+  points:
+    free: "<strong>100% gratis</strong> para usar, hacer fork y rebrandear."
+    low_cost: "Diseñado alrededor de los <strong>free tiers de GitHub Pages, Cloudflare y Resend</strong>."
+    no_account: "Los backers pueden pledgear y gestionar su apoyo <strong>sin crear una cuenta</strong>."
+    paid: "Soporta <strong>crowdsourcing pagado</strong>, niveles de recompensa, add-ons y apoyo continuo."
+  download_cta: Descargar el repositorio completo
+  docs_cta: Explorar la documentación
+  stats:
+    stack_label: Stack
+    stack_value: Jekyll + Stripe + Cloudflare Worker + Resend + Pages CMS
+    hosting_label: Operación de bajo costo
+    hosting_value: Hosting estático primero, llamadas dinámicas solo para pagos y estado en vivo
+    supporter_label: Flujo del backer
+    supporter_value: Checkout propio, magic links y cero cuentas para supporters
+    license_label: Costo
+    license_value: Gratis para hacer fork, optimizado para los free tiers de los servicios
+  demo:
+    eyebrow: Espacio para demo
+    title: Espacio para un walkthrough .webm
+    body: Coloca aquí una demo corta de páginas de campaña, checkout o Manage Pledge para mostrar cómo funciona tu fork de punta a punta.
+    placeholder: Walkthrough de campaña .webm
+    caption: Espacio reservado para un recorrido corto del producto.
+    fallback: Tu navegador no soporta video WebM.
+  positioning_heading: Hecho para creativos que hacen crowdfunding.
+  positioning_intro: "Haz un fork para <em>películas, álbumes, herramientas financiadas por la comunidad y convocatorias pagadas</em>... lo que quieras."
+  positioning_cards:
+    free_title: 100% gratis y forkeable
+    free_body: No hay licencia paga, no hay SaaS obligatorio y no existe una dependencia cerrada entre tu fork y tus campañas.
+    free_link: Ver superficie de fork
+    low_cost_title: Bajo costo por diseño
+    low_cost_body_mid_1: sirve el sitio estático,
+    low_cost_body_mid_2: resuelve las pocas rutas dinámicas y
+    low_cost_body_end: se encarga del correo.
+    low_cost_link: Revisar el modelo de hosting
+    no_account_title: Apoyo sin cuenta
+    no_account_body: "Los supporters pueden apoyar una campaña y gestionar su pledge mediante <strong>magic links por email</strong>. <em>¡No hacen falta cuentas!</em>"
+    no_account_link: Inspeccionar gestión de pledges
+    crowd_title: Listo para crowdsourcing
+    crowd_body: Usa tiers, montos personalizados, support items, diary updates y community decisions para mantener a tu audiencia involucrada.
+    crowd_link: Explorar workflows de creadores
+  platform_heading: Lo que ya trae el starter
+  platform_intro: "El codebase actual ya cubre las partes que normalmente convierten un build de crowdfunding en <strong>trabajo de producto completamente custom</strong>."
+  platform_cards:
+    checkout_title: Checkout propio con Stripe
+    checkout_body: Un carrito propio del navegador, totales verificados por el Worker, UI de pago dentro del sitio, métodos guardados y cobro diferido después de una campaña exitosa.
+    checkout_link: Revisar el worker de pledges
+    funding_title: Modelo todo o nada
+    funding_body: Estado de campaña, manejo de deadlines, apoyo post-campaña y la lógica necesaria para guardar tarjetas ahora y cobrar después.
+    funding_link: Leer el resumen de la plataforma
+    merch_title: Add-ons, envíos y propinas
+    merch_body: Add-ons por campaña, merch de plataforma, cotizaciones respaldadas por USPS y un modelo de propina de plataforma consistente entre checkout, emails y reportes.
+    merch_link: Ver merch y add-ons
+    community_title: Actualizaciones para backers y funciones de comunidad
+    community_body: Entradas de production diary, announcement emails, community decisions y flujos visibles para supporters en campañas que siguen creciendo después del lanzamiento.
+    community_link: Explorar workflows de campaña
+    customization_title: Personalización pensada para forks
+    customization_body: Config estructurada, design tokens, rutas i18n, soporte de embeds y una vía con CMS para adaptar la plataforma sin reescribir el comportamiento central.
+    customization_link: Abrir documentación de personalización
+    operations_title: Seguridad, accesibilidad y pruebas
+    operations_body: "Hardening de seguridad, trabajo de accesibilidad, smoke checks, cobertura con Playwright, bases SEO y documentación operativa para correr una <strong>implementación más segura</strong>."
+    operations_link: Revisar documentación de operaciones
+support:
+  title: Apoya a The Pool
+  body_prefix: "The Pool es <strong>apoyado y mantenido</strong> por la buena gente de "
+  body_link: Dust Wave
+  body_suffix: ". Si el proyecto te aporta valor, por favor considera <strong>apoyar el desarrollo continuo de la plataforma</strong>."
+  one_off_cta: Apoya a The Pool!
+  monthly_cta: Apoya a The Pool mensualmente!
+
+footer:
+  copyright: "(ɔ) 2026 DUST WAVE"
+  language_label: Idioma
+
+confirmation:
+  title: Gracias por apoyar a The Pool.
+  body: Tu apoyo ayuda a financiar el desarrollo continuo de The Pool -- mantiene la plataforma documentada, cuidada y disponible para futuros proyectos.
+  more_info_prefix: Más información sobre les creadores de The Pool
+  more_info_link: aquí.

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="{{ site.lang | default: 'en' }}" data-default-lang="{{ site.lang | default: 'en' }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% if page.title == site.title %}{{ site.title }}{% else %}{{ page.title }} | {{ site.title }}{% endif %}</title>
+  <meta name="theme-color" content="#000000">
+  {% seo title=false %}
+  {% include head_custom.html %}
+  {% if site.support_publishable_key != "" %}
+  {% if site.support_monthly_buy_button_id != "" or site.support_one_off_buy_button_id != "" %}
+  <script async src="https://js.stripe.com/v3/buy-button.js"></script>
+  {% endif %}
+  {% endif %}
+  <link rel="stylesheet" href="{{ '/assets/css/home.css' | relative_url }}?v={{ site.time | date: '%s' }}">
+</head>
+<body class="pool-homepage">
+  <a class="skip-link" href="#main-content" data-i18n="ui.skip_to_content">Skip to main content</a>
+  {% include icons/icons.html %}
+
+  {% include site-header.html %}
+
+  <main id="main-content">
+    <section class="hero" aria-labelledby="home-title">
+      <div class="hero__grid">
+        <div class="hero__intro">
+          <div class="hero__eyebrow" data-i18n="home.eyebrow">DIY your own crowdfunding campaign</div>
+          <h1 id="home-title" data-i18n="home.title">The Pool is a free crowdfunding platform to fund your projects.</h1>
+          <p class="hero__lede" data-i18n-html="home.subtitle"><strong>Open-source starter</strong> for <em>all-or-nothing campaigns</em>, paid crowdsourcing, backer updates, and no-account supporter flows.</p>
+        </div>
+
+        <div class="hero__media" aria-label="Product demo">
+          <section class="hero-demo" aria-label="Product demo">
+            <div class="hero-demo__frame">
+              {% if site.demo_video_url != "" %}
+              <video class="hero-demo__video" controls playsinline preload="metadata"{% if site.demo_video_poster != "" %} poster="{{ site.demo_video_poster }}"{% endif %}>
+                <source src="{{ site.demo_video_url }}" type="video/webm">
+                <p data-i18n="home.demo.fallback">Your browser does not support WebM video.</p>
+              </video>
+              {% else %}
+              <div class="hero-demo__placeholder" aria-hidden="true"></div>
+              {% endif %}
+            </div>
+          </section>
+        </div>
+
+        <div class="hero__actions">
+          <a class="pool-button pool-button--primary" href="https://github.com/aindaco1/pool/archive/refs/heads/main.zip" data-i18n="home.download_cta">Download full repo</a>
+          <a class="pool-button pool-button--secondary" href="{{ '/docs/' | relative_url }}" data-i18n="home.docs_cta">Explore the docs</a>
+        </div>
+
+        <ul class="hero__points" aria-label="Platform highlights">
+          <li data-i18n-html="home.points.free"><strong>100% free</strong> to use, fork, and rebrand.</li>
+          <li data-i18n-html="home.points.low_cost">Designed around <strong>GitHub Pages, Cloudflare, and Resend</strong> free tiers.</li>
+          <li data-i18n-html="home.points.no_account">Backers can pledge and manage support with <strong>no account required</strong>.</li>
+          <li data-i18n-html="home.points.paid">Supports <strong>paid crowdsourcing</strong>, reward tiers, add-ons, and ongoing support.</li>
+        </ul>
+
+        <dl class="hero__stats hero__stats--desktop" aria-label="Project highlights">
+          <div>
+            <dt data-i18n="home.stats.stack_label">Stack</dt>
+            <dd data-i18n="home.stats.stack_value">Jekyll + Stripe + Cloudflare Worker + Resend + Pages CMS</dd>
+          </div>
+          <div>
+            <dt data-i18n="home.stats.hosting_label">Low-cost ops</dt>
+            <dd data-i18n="home.stats.hosting_value">Static hosting first, dynamic calls only for payments and live state</dd>
+          </div>
+          <div>
+            <dt data-i18n="home.stats.supporter_label">Backer flow</dt>
+            <dd data-i18n="home.stats.supporter_value">First-party checkout, magic links, no supporter accounts</dd>
+          </div>
+          <div>
+            <dt data-i18n="home.stats.license_label">Cost</dt>
+            <dd data-i18n="home.stats.license_value">Free to fork, optimized for services' free tiers</dd>
+          </div>
+        </dl>
+      </div>
+    </section>
+
+    <section class="feature-band" aria-labelledby="why-pool">
+      <div class="feature-band__intro">
+        <h2 id="why-pool" data-i18n="home.positioning_heading">Built for creatives who crowdfund.</h2>
+        <p data-i18n-html="home.positioning_intro">Fork it for <em>films, albums, community-backed tools, paid submissions</em> ... whatever you want.</p>
+      </div>
+
+      <div class="feature-grid feature-grid--four">
+        <article class="feature-card">
+          <h3 data-i18n="home.positioning_cards.free_title">100% free and forkable</h3>
+          <p data-i18n="home.positioning_cards.free_body">There is no license fee, no SaaS lock-in, and no closed platform dependency between you and your campaigns.</p>
+          <a href="{{ '/docs/development/customization-guide/' | relative_url }}" data-i18n="home.positioning_cards.free_link">See the fork surface</a>
+        </article>
+        <article class="feature-card">
+          <h3 data-i18n="home.positioning_cards.low_cost_title">Low-cost by design</h3>
+          <p>
+            <a href="https://pages.github.com/" target="_blank" rel="noopener">GitHub Pages</a>
+            <span data-i18n="home.positioning_cards.low_cost_body_mid_1">serves the static site,</span>
+            <a href="https://www.cloudflare.com/" target="_blank" rel="noopener">Cloudflare</a>
+            <span data-i18n="home.positioning_cards.low_cost_body_mid_2">handles the few dynamic paths, and</span>
+            <a href="https://resend.com/" target="_blank" rel="noopener">Resend</a>
+            <span data-i18n="home.positioning_cards.low_cost_body_end">takes care of email.</span>
+          </p>
+          <a href="{{ '/docs/overview/platform/' | relative_url }}" data-i18n="home.positioning_cards.low_cost_link">Review the hosting model</a>
+        </article>
+        <article class="feature-card">
+          <h3 data-i18n="home.positioning_cards.no_account_title">No-account support</h3>
+          <p data-i18n-html="home.positioning_cards.no_account_body">Supporters can back a campaign and manage their pledge through <strong>email magic links</strong>. <em>No accounts needed!</em></p>
+          <a href="{{ '/docs/operations/worker/' | relative_url }}" data-i18n="home.positioning_cards.no_account_link">Inspect pledge management</a>
+        </article>
+        <article class="feature-card">
+          <h3 data-i18n="home.positioning_cards.crowd_title">Crowdsourcing Ready</h3>
+          <p data-i18n="home.positioning_cards.crowd_body">Use tiers, custom amounts, support items, diary updates, and community decisions to keep your audience engaged.</p>
+          <a href="{{ '/docs/development/workflows/' | relative_url }}" data-i18n="home.positioning_cards.crowd_link">Explore creator workflows</a>
+        </article>
+      </div>
+    </section>
+
+    <section class="hero-stats-band" aria-label="Project highlights">
+      <dl class="hero__stats hero__stats--mobile" aria-label="Project highlights">
+        <div>
+          <dt data-i18n="home.stats.stack_label">Stack</dt>
+          <dd data-i18n="home.stats.stack_value">Jekyll + Stripe + Cloudflare Worker + Resend + Pages CMS</dd>
+        </div>
+        <div>
+          <dt data-i18n="home.stats.hosting_label">Low-cost ops</dt>
+          <dd data-i18n="home.stats.hosting_value">Static hosting first, dynamic calls only for payments and live state</dd>
+        </div>
+        <div>
+          <dt data-i18n="home.stats.supporter_label">Backer flow</dt>
+          <dd data-i18n="home.stats.supporter_value">First-party checkout, magic links, no supporter accounts</dd>
+        </div>
+        <div>
+          <dt data-i18n="home.stats.license_label">Cost</dt>
+          <dd data-i18n="home.stats.license_value">Free to fork, optimized for services' free tiers</dd>
+        </div>
+      </dl>
+    </section>
+
+    <section class="feature-band" aria-labelledby="platform-heading">
+      <div class="feature-band__intro">
+        <h2 id="platform-heading" data-i18n="home.platform_heading">What ships in the starter</h2>
+        <p data-i18n-html="home.platform_intro">The current codebase already covers the parts that usually turn a crowdfunding build into <strong>custom product work</strong>.</p>
+      </div>
+
+      <div class="stack-grid">
+        <article class="feature-card">
+          <h3 data-i18n="home.platform_cards.checkout_title">First-party Stripe checkout</h3>
+          <p data-i18n="home.platform_cards.checkout_body">A browser-owned cart, Worker-verified totals, on-site payment UI, saved payment methods, and deferred charging after a successful campaign.</p>
+          <a href="{{ '/docs/operations/worker/' | relative_url }}" data-i18n="home.platform_cards.checkout_link">Review the pledge worker</a>
+        </article>
+        <article class="feature-card">
+          <h3 data-i18n="home.platform_cards.funding_title">All-or-nothing funding model</h3>
+          <p data-i18n="home.platform_cards.funding_body">Campaign state, deadline handling, post-campaign support, and the funding logic needed to save cards now and charge later.</p>
+          <a href="{{ '/docs/overview/platform/' | relative_url }}" data-i18n="home.platform_cards.funding_link">Read the platform overview</a>
+        </article>
+        <article class="feature-card">
+          <h3 data-i18n="home.platform_cards.merch_title">Add-ons, shipping, and tips</h3>
+          <p data-i18n="home.platform_cards.merch_body">Campaign add-ons, platform merch, USPS-backed shipping quotes, and a platform tip model that stays consistent across checkout, emails, and reports.</p>
+          <a href="{{ '/docs/development/add-on-products/' | relative_url }}" data-i18n="home.platform_cards.merch_link">See merch and add-ons</a>
+        </article>
+        <article class="feature-card">
+          <h3 data-i18n="home.platform_cards.community_title">Backer updates and community features</h3>
+          <p data-i18n="home.platform_cards.community_body">Production diary entries, announcement emails, community decisions, and supporter-facing flows for campaigns that keep evolving after launch.</p>
+          <a href="{{ '/docs/development/workflows/' | relative_url }}" data-i18n="home.platform_cards.community_link">Explore campaign workflows</a>
+        </article>
+        <article class="feature-card">
+          <h3 data-i18n="home.platform_cards.customization_title">Fork-first customization</h3>
+          <p data-i18n="home.platform_cards.customization_body">Structured config, design tokens, i18n routing, embed support, and a CMS path so forks can adapt the platform without rewriting core behavior.</p>
+          <a href="{{ '/docs/development/customization-guide/' | relative_url }}" data-i18n="home.platform_cards.customization_link">Open customization docs</a>
+        </article>
+        <article class="feature-card">
+          <h3 data-i18n="home.platform_cards.operations_title">Security, accessibility, and testing</h3>
+          <p data-i18n-html="home.platform_cards.operations_body">Security hardening, accessibility work, smoke checks, Playwright coverage, SEO baselines, and operational docs for running a <strong>safer implementation</strong>.</p>
+          <a href="{{ '/docs/operations/security/' | relative_url }}" data-i18n="home.platform_cards.operations_link">Review operations docs</a>
+        </article>
+      </div>
+    </section>
+
+  </main>
+
+  {% include site-footer.html %}
+</body>
+</html>

@@ -1,0 +1,87 @@
+title: The Pool
+description: Open-source crowdfunding platform starter for developers who want to fork, customize, and launch their own project-funding site.
+url: "https://thepool.fund"
+baseurl: ""
+repository: aindaco1/pool-marketing-docs
+theme: just-the-docs
+lang: en
+logo: "/assets/images/defaults/dust-wave-square.png"
+permalink: pretty
+demo_video_url: ""
+demo_video_poster: ""
+support_monthly_payment_link_url: "https://buy.stripe.com/3cI28s9VzgUub2L86Q1oI0d"
+support_monthly_payment_link_id: "plink_1TNGPAK9nUOzi4tvQf2Ywmmn"
+support_monthly_buy_button_id: "buy_btn_1TNGWPK9nUOzi4tvz5hn0eTw"
+support_publishable_key: "pk_live_51N48NKK9nUOzi4tvVuw9UdqVYGLyre50ex4s4giogLQDgUfejp0lfSxV6ZXRdiqN8RY7t0IDIRjiWQ192hcXWVSl00Htn02Ci3"
+support_one_off_payment_link_url: ""
+support_one_off_payment_link_id: ""
+support_one_off_buy_button_id: "buy_btn_1TNGf8K9nUOzi4tvJ2pAnMx7"
+
+defaults:
+  - scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: "default"
+  - scope:
+      path: "index.md"
+    values:
+      layout: "homepage"
+      nav_enabled: false
+      sitemap: true
+  - scope:
+      path: "confirmation.md"
+    values:
+      layout: "confirmation"
+      nav_enabled: false
+      sitemap: true
+  - scope:
+      path: "docs"
+      type: "pages"
+    values:
+      layout: "default"
+
+exclude:
+  - .sass-cache/
+  - .jekyll-cache/
+  - vendor/
+  - node_modules/
+  - tmp/
+  - Gemfile.lock
+
+search_enabled: true
+search:
+  heading_level: 2
+  previews: 2
+  preview_words_before: 3
+  preview_words_after: 5
+  tokenizer_separator: /[\s/]+/
+  rel_url: true
+  button: false
+
+heading_anchors: true
+enable_copy_code_button: true
+nav_enabled: true
+nav_sort: case_sensitive
+nav_error_report: false
+
+back_to_top: true
+back_to_top_text: "Back to top"
+gh_edit_link: false
+last_edit_timestamp: false
+color_scheme: pool
+
+plugins:
+  - jekyll-seo-tag
+  - jekyll-sitemap
+  - jekyll-include-cache
+
+kramdown:
+  syntax_highlighter_opts:
+    block:
+      line_numbers: false
+
+sass:
+  quiet_deps: true
+  silence_deprecations:
+    - import

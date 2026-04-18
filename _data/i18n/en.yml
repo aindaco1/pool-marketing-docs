@@ -1,0 +1,100 @@
+native_name: English
+
+nav:
+  home: Home
+  search: Search
+  docs: Developer Docs
+  repo: GitHub Repo
+  support: Support The Pool
+
+ui:
+  skip_to_content: Skip to main content
+  back_to_top: Back to top
+  search_docs: Search the docs
+
+home:
+  eyebrow: DIY your own crowdfunding campaign
+  title: The Pool is a free crowdfunding platform to fund your projects.
+  subtitle: "<strong>Open-source starter</strong> for <em>all-or-nothing campaigns</em>, paid crowdsourcing, backer updates, and no-account supporter flows."
+  points:
+    free: "<strong>100% free</strong> to use, fork, and rebrand."
+    low_cost: "Designed around <strong>GitHub Pages, Cloudflare, and Resend</strong> free tiers."
+    no_account: "Backers can pledge and manage support with <strong>no account required</strong>."
+    paid: "Supports <strong>paid crowdsourcing</strong>, reward tiers, add-ons, and ongoing support."
+  download_cta: Download full repo
+  docs_cta: Explore the docs
+  stats:
+    stack_label: Stack
+    stack_value: Jekyll + Stripe + Cloudflare Worker + Resend + Pages CMS
+    hosting_label: Low-cost ops
+    hosting_value: Static hosting first, dynamic calls only for payments and live state
+    supporter_label: Backer flow
+    supporter_value: First-party checkout, magic links, no supporter accounts
+    license_label: Cost
+    license_value: Free to fork, optimized for services' free tiers
+  demo:
+    eyebrow: Demo slot
+    title: Room for a live .webm walkthrough
+    body: Drop in a short demo of campaign pages, checkout, or Manage Pledge to show how your fork works end to end.
+    placeholder: Campaign walkthrough .webm
+    caption: Reserved space for a short product walkthrough.
+    fallback: Your browser does not support WebM video.
+  positioning_heading: Built for creatives who crowdfund.
+  positioning_intro: "Fork it for <em>films, albums, community-backed tools, paid submissions</em> ... whatever you want."
+  positioning_cards:
+    free_title: 100% free and forkable
+    free_body: There is no license fee, no SaaS lock-in, and no closed platform dependency between you and your campaigns.
+    free_link: See the fork surface
+    low_cost_title: Low-cost by design
+    low_cost_body_mid_1: serves the static site,
+    low_cost_body_mid_2: handles the few dynamic paths, and
+    low_cost_body_end: takes care of email.
+    low_cost_link: Review the hosting model
+    no_account_title: No-account support
+    no_account_body: "Supporters can back a campaign and manage their pledge through <strong>email magic links</strong>. <em>No accounts needed!</em>"
+    no_account_link: Inspect pledge management
+    crowd_title: Crowdsourcing Ready
+    crowd_body: Use tiers, custom amounts, support items, diary updates, and community decisions to keep your audience engaged.
+    crowd_link: Explore creator workflows
+  platform_heading: What ships in the starter
+  platform_intro: "The current codebase already covers the parts that usually turn a crowdfunding build into <strong>custom product work</strong>."
+  platform_cards:
+    checkout_title: First-party Stripe checkout
+    checkout_body: A browser-owned cart, Worker-verified totals, on-site payment UI, saved payment methods, and deferred charging after a successful campaign.
+    checkout_link: Review the pledge worker
+    funding_title: All-or-nothing funding model
+    funding_body: Campaign state, deadline handling, post-campaign support, and the funding logic needed to save cards now and charge later.
+    funding_link: Read the platform overview
+    merch_title: Add-ons, shipping, and tips
+    merch_body: Campaign add-ons, platform merch, USPS-backed shipping quotes, and a platform tip model that stays consistent across checkout, emails, and reports.
+    merch_link: See merch and add-ons
+    community_title: Backer updates and community features
+    community_body: Production diary entries, announcement emails, community decisions, and supporter-facing flows for campaigns that keep evolving after launch.
+    community_link: Explore campaign workflows
+    customization_title: Fork-first customization
+    customization_body: Structured config, design tokens, i18n routing, embed support, and a CMS path so forks can adapt the platform without rewriting core behavior.
+    customization_link: Open customization docs
+    operations_title: Security, accessibility, and testing
+    operations_body: "Security hardening, accessibility work, smoke checks, Playwright coverage, SEO baselines, and operational docs for running a <strong>safer implementation</strong>."
+    operations_link: Review operations docs
+support:
+  eyebrow: Support The Pool
+  title: Support The Pool
+  body_prefix: "The Pool is <strong>supported and maintained</strong> by the kind folks at "
+  body_link: Dust Wave
+  body_suffix: ". If you get value out of the project, please consider <strong>supporting the platform's ongoing development</strong>."
+  one_off_cta: Support The Pool!
+  monthly_cta: Support The Pool monthly!
+
+footer:
+  copyright: "(ɔ) 2026 DUST WAVE"
+  language_label: Language
+
+confirmation:
+  eyebrow: Support received
+  title: Thanks for supporting The Pool.
+  body: Your support helps fund the ongoing development of The Pool -- it keeps the platform maintained, documented, and available for future projects.
+  more_info_prefix: More info about the creators of The Pool
+  more_info_link: here.
+  home_cta: Back to homepage
+  docs_cta: Browse developer docs

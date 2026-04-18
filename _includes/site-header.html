@@ -1,0 +1,49 @@
+{% assign is_docs_page = false %}
+{% if page.url == '/docs/' or page.url contains '/docs/' %}
+  {% assign is_docs_page = true %}
+{% endif %}
+{% assign is_support_page = false %}
+{% if page.url == '/support/' %}
+  {% assign is_support_page = true %}
+{% endif %}
+
+<header class="{% if include.docs %}pool-docs-header{% else %}marketing-header{% endif %}">
+  <div{% if include.docs %} id="main-header"{% endif %} class="{% if include.docs %}main-header{% else %}marketing-header__inner marketing-header__inner--shared{% endif %}" data-site-header>
+    <a class="{% if include.docs %}pool-docs-toolbar__brand{% else %}marketing-header__brand{% endif %}" href="{{ '/' | relative_url }}">
+      <img
+        src="{{ '/assets/images/defaults/dust-wave-square.png' | relative_url }}"
+        alt=""
+        width="56"
+        height="56"
+      >
+      <span class="{% if include.docs %}pool-docs-toolbar__title{% else %}marketing-header__title{% endif %}">{{ site.title }}</span>
+    </a>
+
+    {% if include.docs %}
+      {% if site.search_enabled != false %}
+        {% include components/search_header.html %}
+      {% endif %}
+    {% endif %}
+
+    <button
+      class="{% if include.docs %}pool-docs-header__menu{% else %}marketing-header__menu{% endif %}"
+      type="button"
+      aria-label="Menu"
+      aria-expanded="false"
+      aria-controls="site-primary-nav"
+      data-site-menu-toggle
+    >
+      <svg viewBox="0 0 24 24" class="icon" aria-hidden="true"><use xlink:href="#svg-menu"></use></svg>
+    </button>
+
+    <nav id="site-primary-nav" class="{% if include.docs %}pool-docs-actions{% else %}marketing-header__nav{% endif %}" aria-label="Primary" data-site-menu>
+      <a class="{% if is_docs_page %}is-active{% endif %}" href="{{ '/docs/' | relative_url }}" data-i18n="nav.docs">Developer Docs</a>
+      <a href="https://github.com/aindaco1/pool" target="_blank" rel="noopener" data-i18n="nav.repo">GitHub Repo</a>
+      <a class="{% if is_support_page %}is-active {% endif %}{% if include.docs %}pool-support-button pool-docs-support{% else %}marketing-header__support{% endif %}" href="{{ '/support/' | relative_url }}" data-i18n="nav.support">Support The Pool</a>
+    </nav>
+
+    {% if include.docs %}
+      <button id="menu-button" class="pool-docs-jtd-menu-fallback" type="button" tabindex="-1" aria-hidden="true" hidden></button>
+    {% endif %}
+  </div>
+</header>

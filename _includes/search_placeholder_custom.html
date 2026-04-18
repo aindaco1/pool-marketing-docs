@@ -1,0 +1,2 @@
+{% assign placeholder_lang = page.lang | default: site.lang | default: 'en' %}
+{{ site.data.i18n[placeholder_lang].ui.search_docs | default: site.data.i18n.en.ui.search_docs | default: 'Search the docs' }}

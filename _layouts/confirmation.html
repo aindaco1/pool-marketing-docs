@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="{{ site.lang | default: 'en' }}" data-default-lang="{{ site.lang | default: 'en' }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% if page.title == site.title %}{{ site.title }}{% else %}{{ page.title }} | {{ site.title }}{% endif %}</title>
+  <meta name="theme-color" content="#000000">
+  {% seo title=false %}
+  {% include head_custom.html %}
+  <link rel="stylesheet" href="{{ '/assets/css/home.css' | relative_url }}?v={{ site.time | date: '%s' }}">
+</head>
+<body class="pool-homepage">
+  <a class="skip-link" href="#main-content" data-i18n="ui.skip_to_content">Skip to main content</a>
+  {% include icons/icons.html %}
+
+  {% include site-header.html %}
+
+  <main id="main-content">
+    <section class="confirmation-panel" aria-labelledby="confirmation-title">
+      <h1 id="confirmation-title" data-i18n="confirmation.title">Thanks for supporting The Pool.</h1>
+      <p class="confirmation-panel__lede" data-i18n="confirmation.body">Your support helps fund the ongoing development of The Pool -- it keeps the platform maintained, documented, and available for future projects.</p>
+      <p class="confirmation-panel__lede">
+        <span data-i18n="confirmation.more_info_prefix">More info about the creators of The Pool</span>
+        <a href="https://dustwave.xyz" target="_blank" rel="noopener noreferrer" data-i18n="confirmation.more_info_link">here.</a>
+      </p>
+    </section>
+  </main>
+
+  {% include site-footer.html %}
+</body>
+</html>

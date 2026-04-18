@@ -1,0 +1,225 @@
+---
+title: "Internationalization"
+parent: "Development"
+nav_order: 6
+render_with_liquid: false
+---
+
+# Internationalization (i18n)
+
+This document records the current localization structure for The Pool and the supported workflow for adding languages in a fork.
+
+The immediate shipped secondary locale is Spanish, but the real goal is to make future localization straightforward without custom code for the shared site-owned surfaces.
+
+## What Exists Now
+
+The current i18n model covers:
+
+- structured locale config in [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml)
+- shared translation catalogs in [`_data/i18n/`](https://github.com/your-org/your-project/tree/main/_data/i18n)
+- locale-aware URL helpers and a shared footer language switcher
+- localized public routes for:
+  - `/`
+  - `/about/`
+  - `/terms/`
+  - `/campaigns/:slug/`
+  - `/embed/campaign/`
+  - `/pledge-success/`
+  - `/pledge-cancelled/`
+  - `/manage/`
+  - `/community/`
+  - supporter community pages
+- localized site-owned runtime copy for cart, checkout, Manage Pledge, community flows, campaign countdowns, hero-video/loading states, supporter-community teaser chrome, diary tabs, production-phase controls, gallery labels, live-stats status text, and the campaign embed builder/widget
+- localized campaign-add-on section labels in both cart and Manage Pledge, plus hosted-checkout next-step copy
+- localized campaign footer switching and localized campaign date formatting for public campaign chrome
+- localized Worker supporter emails and localized `/manage/` / `/community/:slug/` links based on persisted `preferredLang`
+- localized Worker campaign share-card routes such as `/share/campaign/:slug.svg?lang=es`
+
+English remains the default locale. Spanish is the seeded secondary locale.
+
+## Config Model
+
+The canonical locale config lives in [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml):
+
+```yml
+i18n:
+  default_lang: en
+  supported_langs:
+    - en
+    - es
+  language_labels:
+    en: English
+    es: Español
+  pages:
+    home:
+      en: /
+      es: /es/
+    about:
+      en: /about/
+      es: /es/about/
+    terms:
+      en: /terms/
+      es: /es/terms/
+    manage:
+      en: /manage/
+      es: /es/manage/
+    community_index:
+      en: /community/
+      es: /es/community/
+    pledge_success:
+      en: /pledge-success/
+      es: /es/pledge-success/
+    pledge_cancelled:
+      en: /pledge-cancelled/
+      es: /es/pledge-cancelled/
+```
+
+This model intentionally keeps localization predictable for forks:
+
+- one default language
+- one supported-language list
+- one display-label map
+- one curated route map for shared locale-aware pages
+
+Campaign pages are the main exception: they are generated from the campaign collection, so their localized routes are derived from campaign slugs and generated `localized_paths` rather than hand-written `i18n.pages` entries.
+
+## Translation Sources
+
+### 1. Shared UI and runtime copy
+
+Shared site-owned strings live in one YAML file per locale:
+
+- [/_data/i18n/en.yml](https://github.com/your-org/your-project/blob/main/_data/i18n/en.yml)
+- [/_data/i18n/es.yml](https://github.com/your-org/your-project/blob/main/_data/i18n/es.yml)
+
+This includes:
+
+- nav labels
+- buttons
+- status labels
+- progress/meta text
+- cart / checkout / Manage Pledge runtime copy
+- campaign add-on section labels and hosted-checkout helper copy
+- community runtime copy
+- campaign countdown / hero-video / supporter-community / diary / production-phase / gallery / live-stats copy
+- campaign embed builder/widget copy
+- Worker supporter email copy
+
+English is the canonical source file and fallback locale.
+
+### 2. Long-form authored pages
+
+Long-form page copy should use localized source files rather than trying to force every paragraph into YAML.
+
+Examples:
+
+- [about.md](/docs/overview/about-the-pool/)
+- [es/about.md](/docs/overview/about-the-pool/)
+- [terms.md](/docs/overview/terms-and-guidelines/)
+- [es/terms.md](/docs/overview/terms-and-guidelines/)
+
+That same pattern should be used for future content-heavy pages.
+
+## Routing Model
+
+The site uses a static locale-prefix model:
+
+- default language stays on canonical URLs
+  - `/`
+  - `/about/`
+  - `/terms/`
+  - `/manage/`
+  - `/community/`
+- non-default languages live under a locale prefix
+  - `/es/`
+  - `/es/about/`
+  - `/es/terms/`
+  - `/es/campaigns/{slug}/`
+  - `/es/embed/campaign/`
+  - `/es/manage/`
+  - `/es/community/`
+
+This keeps the Jekyll/GitHub Pages deployment model simple and predictable.
+
+Campaign collection routes are now generated in both locales, so the footer language switcher can remain available on campaign pages instead of disappearing or linking back to the default-language route.
+
+## Helpers and Runtime Plumbing
+
+Shared locale helpers:
+
+- [/_includes/t.html](https://github.com/your-org/your-project/blob/main/_includes/t.html)
+- [/_includes/localized-url.html](https://github.com/your-org/your-project/blob/main/_includes/localized-url.html)
+- [/_includes/language-switcher.html](https://github.com/your-org/your-project/blob/main/_includes/language-switcher.html)
+- [/_includes/localized-date.html](https://github.com/your-org/your-project/blob/main/_includes/localized-date.html)
+- [/_includes/localized-datetime.html](https://github.com/your-org/your-project/blob/main/_includes/localized-datetime.html)
+
+Runtime locale payloads:
+
+- [/assets/i18n.json](https://github.com/your-org/your-project/blob/main/assets/i18n.json)
+- [/_includes/runtime-messages-json.html](https://github.com/your-org/your-project/blob/main/_includes/runtime-messages-json.html)
+- [assets/js/pool-config.js](https://github.com/your-org/your-project/blob/main/assets/js/pool-config.js)
+
+Important current behavior:
+
+- the footer language switcher is the shared locale switch surface
+- it preserves the current query string and hash
+- tokenized URLs such as `/manage/?t=...` can switch to `/es/manage/?t=...` without dropping pledge access
+- Stripe is initialized with the current locale where supported, so Stripe-owned field labels and validation can localize too
+- public campaign templates now route shared chrome strings through locale data instead of hardcoded English where practical, including the hero video CTA/loading state, supporter-community teaser copy, diary chrome, production-phase labels, gallery accessibility labels, campaign sidebar pledge copy, and localized campaign dates
+- campaign pages now expose localized footer language switching through generated campaign `localized_paths`
+- the hosted campaign embed builder and widget pull their builder/runtime strings from the shared locale catalog and preserve locale-aware campaign return links
+
+## Worker Email Behavior
+
+Worker supporter emails reuse the same locale catalog and persisted `preferredLang`.
+
+Relevant files:
+
+- [worker/src/email.js](https://github.com/your-org/your-project/blob/main/worker/src/email.js)
+- [worker/src/index.js](https://github.com/your-org/your-project/blob/main/worker/src/index.js)
+
+Practical behavior:
+
+- if no locale preference is captured, emails fall back to English
+- if a supporter pledges or manages from `/es/...`, the Worker can persist `preferredLang=es`
+- supporter emails and magic-link URLs then use the Spanish route model, such as `/es/manage/?t=...`
+- campaign share cards can also be requested in a locale-aware way, such as `/share/campaign/sunder.svg?lang=es`
+
+## What a Locale YAML File Does and Does Not Do
+
+Adding a new locale YAML file is enough for:
+
+- shared site chrome
+- shared runtime/browser messages
+- Worker supporter-email copy
+
+It is not enough for a fully translated site by itself.
+
+Full language support also needs:
+
+- the language added to `i18n.supported_langs`
+- its label added to `i18n.language_labels`
+- localized routes added to `i18n.pages`
+- localized source pages for any long-form content you actually want translated
+
+## Recommended Fork Workflow
+
+1. Copy [/_data/i18n/en.yml](https://github.com/your-org/your-project/blob/main/_data/i18n/en.yml) to `/_data/i18n/{lang}.yml`.
+2. Add the language to the `i18n` block in [/_config.yml](https://github.com/your-org/your-project/blob/main/_config.yml).
+3. Add localized public-page routes to `i18n.pages`.
+4. Add localized source pages for long-form content such as `/about/`, `/terms/`, `/manage/`, or curated community index pages where needed.
+5. Verify generated collection routes such as `/es/campaigns/{slug}/` and any locale-aware embed routes your deployment exposes.
+6. Run the local stack and verify both the shared UI copy and localized routes:
+
+```bash
+npm run podman:doctor
+./scripts/dev.sh --podman
+```
+
+## Current Boundaries
+
+Still intentionally out of scope for this model:
+
+- automatic translation of creator-authored campaign bodies, diary entries, or community post content
+- locale-specific tax, shipping, or pricing rules
+- an in-repo machine-translation pipeline

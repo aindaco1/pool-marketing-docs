@@ -1,0 +1,20 @@
+<div class="pool-site-footer{% if include.compact %} pool-site-footer--compact{% endif %}">
+  <div class="pool-site-footer__inner">
+    <div class="pool-site-footer__brand">
+      <a href="{{ '/' | relative_url }}" class="pool-site-footer__logo" aria-label="The Pool home">
+        <img src="{{ '/assets/images/defaults/dust-wave-square.png' | relative_url }}" alt="" width="32" height="32">
+      </a>
+      <span data-i18n="footer.copyright">(ɔ) 2026 DUST WAVE</span>
+    </div>
+
+    <div class="pool-site-footer__language">
+      <label class="sr-only" for="footer-language-switcher" data-i18n="footer.language_label">Language</label>
+      <select id="footer-language-switcher" data-language-switcher aria-label="Language">
+        {% for pair in site.data.i18n %}
+          {% assign locale = pair[1] %}
+          <option value="{{ pair[0] }}">{{ locale.native_name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+</div>
