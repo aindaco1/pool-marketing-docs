@@ -130,6 +130,26 @@
     });
   }
 
+  function stabilizeInitialDocsMobileLoad() {
+    if (!document.body.classList.contains("pool-docs-layout")) return;
+    if (!window.matchMedia || !window.matchMedia("(max-width: 50rem)").matches) return;
+    if (window.location.hash) return;
+
+    function resetToTop() {
+      window.requestAnimationFrame(function () {
+        window.requestAnimationFrame(function () {
+          window.scrollTo(0, 0);
+        });
+      });
+    }
+
+    resetToTop();
+    window.addEventListener("load", resetToTop, { once: true });
+    [150, 500, 1000].forEach(function (delay) {
+      window.setTimeout(resetToTop, delay);
+    });
+  }
+
   function fitSupportBuyButtons() {
     var container = document.querySelector(".support-options--support-page");
     if (!container) return;
@@ -338,6 +358,7 @@
   initSiteMenu();
   expandDocsNavByDefault();
   stabilizeDocsNavScroll();
+  stabilizeInitialDocsMobileLoad();
   fitSupportBuyButtons();
   syncHeroVideoMotionPreference();
 
