@@ -1,6 +1,16 @@
 (function () {
   var docsNavScrollResetKey = "pool-docs-reset-scroll";
 
+  function isDocsPath(pathname) {
+    if (!pathname) return false;
+    return (
+      pathname === "/docs" ||
+      pathname.indexOf("/docs/") === 0 ||
+      pathname === "/es/docs" ||
+      pathname.indexOf("/es/docs/") === 0
+    );
+  }
+
   function initSiteMenu() {
     var headers = document.querySelectorAll("[data-site-header]");
     if (!headers.length) return;
@@ -79,7 +89,7 @@
   function stabilizeDocsNavScroll() {
     function markDocsScrollReset(url) {
       if (!url || url.origin !== window.location.origin) return;
-      if (!url.pathname.startsWith("/docs/")) return;
+      if (!isDocsPath(url.pathname)) return;
       if (url.hash) return;
       window.sessionStorage.setItem(docsNavScrollResetKey, "1");
     }

@@ -25,6 +25,7 @@
 }
 
 .main-header {
+  --pool-docs-control-width: clamp(28rem, 42vw, 34rem);
   display: grid;
   grid-template-columns: minmax(14rem, auto) minmax(0, 1fr);
   grid-template-areas:
@@ -204,34 +205,42 @@
 
 .site-nav,
 .nav-list .nav-list-item .nav-list-link {
-  font-size: 0.95rem;
+  font-size: 0.76rem;
 }
 
 .site-nav {
   display: none;
   width: 100%;
-  padding: 0.5rem 0 1rem;
+  padding: 0.35rem 0 0;
   border: 2px solid #000;
   background: #fff;
   font-family: "Inter", system-ui, -apple-system, blinkmacsystemfont, "Segoe UI", sans-serif;
 }
 
 .nav-list .nav-list-item .nav-list-link {
-  padding: 0.78rem 0.95rem;
+  padding: 0.36rem 0.56rem;
   border-top: 1px solid #d9dfe5;
   font-family: "Inter", system-ui, -apple-system, blinkmacsystemfont, "Segoe UI", sans-serif;
-  font-size: 0.95rem;
+  font-size: 0.76rem;
   font-weight: 700;
-  line-height: 1.35;
+  line-height: 1.06;
   letter-spacing: -0.01em;
   color: #252930;
 }
 
 .nav-list .nav-list .nav-list-item .nav-list-link,
 .nav-list .nav-list .nav-list-item > .nav-list-expander {
-  font-size: 0.88rem;
+  font-size: 0.68rem;
   font-weight: 600;
   letter-spacing: 0;
+}
+
+.site-nav > .nav-list {
+  padding-bottom: 0.5rem;
+}
+
+.site-nav > .nav-list > .nav-list-item > .nav-list-link[href="/docs/"] {
+  border-top: 0;
 }
 
 .nav-list .nav-list-item > .nav-list-expander {
@@ -387,14 +396,24 @@
 }
 
 @media (min-width: 50.01rem) {
+  .pool-docs-actions {
+    width: min(100%, var(--pool-docs-control-width));
+    justify-content: flex-end;
+    justify-self: end;
+  }
+
+  .pool-docs-actions a {
+    flex: 0 1 auto;
+  }
+
   .search,
   .search-active .search {
     position: relative !important;
     top: auto !important;
     left: auto !important;
     right: auto !important;
-    width: 100% !important;
-    max-width: 18rem !important;
+    width: min(100%, var(--pool-docs-control-width)) !important;
+    max-width: min(100%, var(--pool-docs-control-width)) !important;
     height: auto !important;
     padding: 0 !important;
     justify-self: end !important;
@@ -773,8 +792,22 @@
   }
 
   .site-nav {
-    display: block;
-    padding-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: 100%;
+    overflow: hidden;
+    box-sizing: border-box;
+  }
+
+  .site-nav > .nav-list {
+    flex: 1 1 auto;
+    max-height: 100%;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
   }
 
   .pool-docs-header__menu {
@@ -782,9 +815,17 @@
   }
 
   .side-bar {
+    display: flex;
+    flex-direction: column;
     position: sticky;
     top: 1rem;
     align-self: start;
+    height: calc(100vh - 2rem);
+    height: calc(100dvh - 2rem);
+    max-height: calc(100vh - 2rem);
+    max-height: calc(100dvh - 2rem);
+    min-height: 0;
+    overflow: hidden;
   }
 }
 
