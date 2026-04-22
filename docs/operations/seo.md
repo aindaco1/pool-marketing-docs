@@ -1,7 +1,7 @@
 ---
 title: "SEO"
 parent: "Operations"
-nav_order: 9
+nav_order: 10
 render_with_liquid: false
 ---
 
@@ -24,8 +24,11 @@ The current baseline includes:
 - alternate-language metadata on localized public pages and localized campaign pages
 - canonical URLs on public layouts
 - locale-aware Open Graph metadata on public layouts
+- campaign pages now use `og:type=article` plus bounded article publish/modified timestamps derived from campaign content dates
+- explicit language/app-name metadata on public layouts
 - page-level descriptions on core public routes
 - Open Graph and Twitter card metadata
+- secure social-image tags where the page image is already HTTPS
 - social image alt metadata
 - state-aware campaign social titles and descriptions
 - Worker-generated campaign share-card SVG images for social previews
@@ -33,7 +36,8 @@ The current baseline includes:
 - generated [`sitemap.xml`](/sitemap.xml)
 - explicit `noindex,nofollow` on tokenized or supporter-only layouts
 - conservative `Organization` / `WebSite` JSON-LD
-- conservative campaign `CreativeWork` plus breadcrumb JSON-LD
+- conservative campaign `CreativeWork` plus breadcrumb JSON-LD, both aligned with the active page language where supported
+- campaign `CreativeWork` JSON-LD now also includes `headline`, `mainEntityOfPage`, `isPartOf`, and published/modified timestamps so public campaign pages read more like real editorial landing pages than anonymous blobs
 - a public community hub that links back to public campaign pages instead of pushing crawlers into supporter-only routes
 
 The main implementation files are:
@@ -116,9 +120,13 @@ Public metadata also derives a few safe values automatically:
 
 - `og:locale` from the active page language
 - `og:locale:alternate` from the supported translated languages for that page
+- `language`, `application-name`, and `apple-mobile-web-app-title` from the active site/page identity
 - `og:image:alt` / `twitter:image:alt` from explicit image alt text when present, otherwise the page title
+- `og:image:secure_url` when the chosen social image already resolves to HTTPS
+- `article:published_time` / `article:modified_time` on campaign pages when campaign dates are available
 - campaign preview copy from campaign state (`upcoming`, `live`, `funded`, `ended`)
 - campaign preview images from the Worker share-card route rather than directly from the hero image alone
+- `WebSite.availableLanguage`, localized breadcrumb roots, and campaign `CreativeWork.inLanguage` from the configured locale model
 
 Forks can override part of that behavior in a bounded way:
 
@@ -168,6 +176,7 @@ When checking a deployment manually:
 - JSON-LD validates cleanly
 - localized pages keep coherent canonical and alternate links
 - localized campaign pages keep coherent canonical and alternate links
+- localized pages keep coherent JSON-LD language and breadcrumb roots
 - metadata additions do not create accessibility or performance regressions
 
 ## Notes

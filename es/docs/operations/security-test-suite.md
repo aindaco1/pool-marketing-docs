@@ -49,7 +49,7 @@ npm run test:premerge
 
 `npm run test:premerge` ahora incluye la auditoría secreta automáticamente ante las suites Worker, Smoke y Browser.
 
-Para que las pruebas de limitación de velocidad funcionen localmente, asegúrese de que el espacio de nombres `RATELIMIT` KV esté configurado en `wrangler.toml`:
+Para que las pruebas de limitación de velocidad funcionen localmente, asegúrese de que el espacio de nombres `RATELIMIT` KV esté configurado en `wrangler.toml`. El Trabajador ahora trata esa vinculación como se requiere:
 
 ```toml
 # In [[kv_namespaces]] section (production)
@@ -94,10 +94,13 @@ preview_id = "YOUR_RATELIMIT_PREVIEW_ID"
 - Cargas útiles XSS en campos de usuario
 
 ### 5. Limitación de tasa (`rate-limiting.test.ts`)
-- Las solicitudes de ráfaga a `/checkout-intent/start` no deberían cerrarse limpiamente
-- Votar intentos de spam (límite de 30 solicitudes/min)
+- Las ráfagas públicas de `/stats/:slug` deben permanecer sin límites para que la viralidad de la campaña no se trate como abuso
+- Las solicitudes de ráfaga a `/checkout-intent/start` deberían llegar al depósito de escritura obligatorio
+- Las lecturas y escrituras de Manage Pledge deberían alcanzar sus propios niveles más altos pero obligatorios.
+- Votar intentos de spam (límite de 45 solicitudes/min)
 - Simulación de fuerza bruta del administrador (límite de 5 solicitudes/min)
-- Resiliencia DoS y prevención del agotamiento de recursos
+- La prevención del agotamiento de recursos debería rechazar los cuerpos de caja de gran tamaño con `413`
+- Resiliencia DoS y seguridad de operaciones concurrentes
 - Seguridad de operación concurrente
 
 ## Configuración

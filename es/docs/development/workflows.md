@@ -12,7 +12,7 @@ The Pool utiliza un **sistema de gestión de promesas basado en correo electrón
 
 ## Diferenciadores clave
 
-- **Sin cuentas**: solo correo electrónico + información de pago (sin registro)
+- **Sin cuentas** — Solo correo electrónico + información de pago (sin registro)
 - **Administración de enlaces mágicos**: cancele, modifique o actualice el método de pago mediante un enlace de correo electrónico relacionado con el pedido
 - **Todo o nada**: tarjetas guardadas ahora, cobradas solo si se alcanza el objetivo
 - **Sugerencia de plataforma opcional**: 0% a 15% La propina del grupo (5% predeterminado) se agrega a los totales pero se excluye del progreso de la campaña.
@@ -194,7 +194,7 @@ El Trabajador no confía en los nombres de niveles, cantidades, cantidades de ar
 
 - El texto de campaña de formato largo se desinfecta antes de renderizar Markdown y luego se procesa posteriormente para neutralizar esquemas de enlaces inseguros.
 - Las incrustaciones estructuradas solo se representan cuando su `src` se resuelve en un origen/ruta de proveedor aprobado exacto.
-- Las auditorías de contenido de campaña aún protegen a `_campaigns/*.md`, pero la capa de procesamiento aplica las mismas reglas para que las forks y las fuentes de contenido futuras no dependan únicamente de las auditorías.
+- Las auditorías de contenido de campaña aún protegen a `_campaigns/*.md`, pero la capa de procesamiento aplica las mismas reglas para que las bifurcaciones y las fuentes de contenido futuras no dependan únicamente de las auditorías.
 
 ### `POST /webhooks/stripe`
 Manejar `checkout.session.completed`:
@@ -344,11 +344,59 @@ Envíe un correo electrónico de anuncio personalizado con un enlace CTA opciona
 **Respuesta:** `{ success, campaignSlug, subject, sent, failed, errors }`
 
 **Campos:**
-- `subject` (obligatorio) — Línea de asunto del correo electrónico (con el prefijo 📢 emoji)
-- `heading` (opcional): encabezado del correo electrónico (el valor predeterminado es el asunto si se omite)
+- `subject` (obligatorio): cuerpo de la línea de asunto del correo electrónico; la entrega lo formatea como `{Subject} | {Campaign Title}`
+- `heading` (opcional): encabezado del correo electrónico (el asunto predeterminado es si se omite)
 - `body` (obligatorio) — Texto del cuerpo del mensaje
 - `ctaLabel` + `ctaUrl` (opcional): agrega un botón destacado que vincula a la URL
 - `dryRun` (opcional): devuelve la lista de destinatarios sin enviar
+
+### `POST /admin/report/campaign-runner`
+Obtenga una vista previa o envíe manualmente un informe de ejecución de campaña para una campaña.
+
+**Encabezados:** `Authorization: Bearer ADMIN_SECRET`
+**Pedido:**
+```json
+{
+  "campaignSlug": "hand-relations",
+  "reportType": "pledge",
+  "dryRun": true,
+  "markAsSent": false
+}
+```
+
+**Campos:**
+- `campaignSlug` (obligatorio): campaña para informar
+- `reportType` (opcional) — `pledge` o `fulfillment` (`pledge` por defecto)
+- `dryRun` (opcional): devuelve destinatarios, recuentos de filas, nombre de archivo y estado del marcador sin enviar
+- `markAsSent` (opcional): en envíos en vivo, escribe el marcador del informe coincidente para que la ejecución programada no duplique inmediatamente el correo electrónico; El valor predeterminado es `true` cuando `dryRun` es falso.
+
+Los destinatarios todavía provienen del campo principal de la campaña `runner_report_emails`.
+Para `reportType: "fulfillment"`, el Trabajador también puede enviar un correo electrónico de cumplimiento de plataforma por separado a `platform.support_email` cuando existan filas de complementos de plataforma.
+
+**Ejemplo de ensayo:**
+```bash
+curl -X POST http://localhost:8787/admin/report/campaign-runner \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer YOUR_ADMIN_SECRET' \
+  -d '{"campaignSlug":"hand-relations","reportType":"pledge","dryRun":true}'
+```
+
+**Ejemplo de envío manual:**
+```bash
+curl -X POST http://localhost:8787/admin/report/campaign-runner \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer YOUR_ADMIN_SECRET' \
+  -d '{"campaignSlug":"hand-relations","reportType":"fulfillment","dryRun":false,"markAsSent":true}'
+```
+
+**Notas operativas:**
+- realice primero un ensayo al validar destinatarios, forma CSV o personalización del prefijo del asunto
+- use `reportType=pledge` para el libro de contabilidad diario de la campaña en vivo y `reportType=fulfillment` para la exportación única posterior a la fecha límite.
+- Los temas de los informes son concisos y no contienen emojis para facilitar la entrega, utilizando el prefijo configurado más el tipo de informe y el título de la campaña.
+- Los correos electrónicos de compromiso y los correos electrónicos de cumplimiento utilizan intencionalmente diferentes contenidos de resumen/cuerpo para que los envíos de cumplimiento se centren en el trabajo de entrega en lugar de en las estadísticas del impulso de la campaña.
+- Los simulacros de cumplimiento ahora exponen `campaignRowCount`, `platformRowCount` y `platformRecipient` para que los operadores puedan confirmar ambas audiencias de cumplimiento antes de enviar.
+- Envíos en vivo de cumplimiento divididos por cumplimiento: los destinatarios del corredor de campaña solo obtienen filas de la campaña, mientras que `support_email` obtiene la porción de la plataforma cuando está presente
+- mantenga `markAsSent=false` solo para envíos deliberados de estilo de vista previa que no deben suprimir el siguiente informe programado
 
 ### `POST /admin/recover-checkout`
 Recupere un webhook de Stripe perdido creando manualmente una contribución a partir de una sesión de pago completada.
@@ -394,7 +442,7 @@ Página de inicio del enlace mágico para la gestión de promesas:
 - Agrupa proyectos en secciones **Activo** y **Cerrado**
 - Ordena las tarjetas activas primero con las campañas más recientes
 - Muestra el desglose completo: subtotal, propina opcional de The Pool, impuesto sobre las ventas configurado y monto de envío almacenado para la promesa, más el total.
-- Lee etiquetas de precios y tarifas de la configuración compartida para que la interfaz de usuario del carrito, los totales de trabajadores, los correos electrónicos y los informes permanezcan alineados para las forks.
+- Lee etiquetas de precios y tarifas de la configuración compartida para que la interfaz de usuario del carrito, los totales de trabajadores, los correos electrónicos y los informes permanezcan alineados para las bifurcaciones.
 
 **Estados de la tarjeta de compromiso:**
 
@@ -415,10 +463,10 @@ Página de inicio del enlace mágico para la gestión de promesas:
 ### `/community/:slug/`
 Página de la comunidad exclusiva para seguidores:
 - Siempre verifica con Worker API (no confía únicamente en las cookies)
-- En caso de éxito: establece una cookie `supporter_{slug}` no confidencial para la optimización de UX y almacena el token de portador sin formato solo en `sessionStorage`.
+- En caso de éxito: establece una cookie `supporter_{slug}` no confidencial para la optimización de UX y almacena el token de portador sin formato solo en `sessionStorage`
 - En caso de error (compromiso cancelado, token caducado): borra el estado del token de sesión, muestra acceso denegado CTA
 - Muestra decisiones de votación/encuesta exclusivas de los patrocinadores.
-- La API `/votes` devuelve 403 para promesas canceladas (acceso de doble verificación)
+- La API `/votes` devuelve 403 para promesas canceladas (verifica el acceso dos veces)
 - `/votes` solo acepta ID de decisión definidos por la campaña y valores de opciones definidos por la campaña.
 - Las decisiones cerradas siguen siendo legibles pero rechazan nuevos votos
 - Los votos se ingresan por **correo electrónico** (no por ID de pedido): los partidarios con múltiples promesas aún obtienen un voto por decisión.
@@ -515,7 +563,7 @@ async function sendSupporterEmail(env, { email, campaignSlug, campaignTitle, amo
     body: JSON.stringify({
       from: 'The Pool <pledges@example.com>',
       to: email,
-      subject: `Your pledge to ${campaignTitle}`,
+      subject: `Pledge confirmed | ${campaignTitle}`,
       html: `
         <h1>Thanks for backing ${campaignTitle}!</h1>
         <p><strong>Pledge amount:</strong> $${(amount / 100).toFixed(0)}</p>
@@ -537,42 +585,42 @@ async function sendSupporterEmail(env, { email, campaignSlug, campaignTitle, amo
 
 Todos los correos electrónicos muestran cantidades exactas con 2 decimales (sin redondeo).
 
-**Confirmación de compromiso** (enviada después de que la sesión de Stripe en el modo de configuración se complete con éxito)
-- Asunto: "Su compromiso con {Título de la campaña}"
-- Contiene: desglose completo (subtotal, propina opcional de The Pool, impuestos, envío si es físico, total), artículos prometidos, enlace de administración, enlace comunitario
+**Confirmación de compromiso** (enviada después de que la sesión de Stripe en el modo de configuración se complete exitosamente)
+- Asunto: "Compromiso confirmado | {Título de la campaña}"
+- Contiene: desglose completo (subtotal, propina opcional de The Pool, impuestos, envío si es físico, total), artículos de compromiso, enlace de administración, enlace de la comunidad
 - Incluye: CTA de Instagram (si la campaña tiene URL de Instagram)
 - El enlace de la comunidad se muestra solo si la campaña tiene decisiones activas.
 
 **Compromiso modificado** (se envía cuando el colaborador cambia su compromiso)
-- Asunto: "Compromiso actualizado para {Título de la campaña}"
+- Asunto: "Compromiso actualizado | {Título de la campaña}"
 - Contiene: subtotal anterior, subtotal nuevo, monto modificado (+/-), propina opcional de The Pool, impuestos, envío (si es físico), total nuevo, artículos de compromiso actualizados
 - Incluye: CTA de Instagram (si la campaña tiene URL de Instagram)
 - El enlace de la comunidad se muestra solo si la campaña tiene decisiones activas.
 
 **Cargo exitoso** (se envía cuando la promesa se cobra en el momento de la liquidación)
-- Asunto: "Pago confirmado para {Título de la campaña}"
+- Asunto: "Pago confirmado | {Título de la campaña}"
 - Contiene: desglose completo (subtotal + propina + impuestos + envío + total cobrado), artículos prometidos
 - El enlace de la comunidad se muestra solo si la campaña tiene decisiones activas.
 - Nota: No hay CTA de Instagram (la campaña ha finalizado)
 
 **Error en el pago** (se envía cuando falla el cargo fuera de sesión)
-- Asunto: "Acción necesaria: actualizar el pago de {Título de la campaña}"
+- Asunto: "Actualizar método de pago | {Título de la campaña}"
 - Contiene: desglose completo (subtotal + propina + impuestos + envío + monto adeudado), artículos prometidos, enlace de administración para actualizar la tarjeta
 - Nota: No hay CTA de Instagram (la campaña ha finalizado)
 
 **Compromiso cancelado** (se envía cuando el colaborador cancela su compromiso)
-- Asunto: "Compromiso cancelado para {Título de la campaña}"
+- Asunto: "Compromiso cancelado | {Título de la campaña}"
 - Contiene: desglose que incluye propina opcional, no se cobró a la tarjeta de confirmación, enlace para ver la campaña (se puede volver a realizar la promesa)
 - Nota: El colaborador se elimina de futuras actualizaciones por correo electrónico de la campaña.
 
 **Actualización del diario** (se envía cuando se agrega una nueva entrada del diario a la campaña)
-- Asunto: "📝 {Título del diario} — {Título de la campaña}"
+- Asunto: "{Título del diario} | {Título de la campaña}"
 - Contiene: título del diario, extracto en texto plano (200 caracteres + puntos suspensivos), botón "Leer actualización completa" que enlaza con el diario de la campaña.
 - Incluye: enlaces de acceso de seguidores (comunidad + administración), CTA de Instagram (si la campaña tiene URL de Instagram)
 - Nota: Los extractos eliminan el formato de rebajas; el contenido completo está en la página de la campaña
 
 **Anuncio** (enviado a través de transmisión administrativa con enlace CTA opcional)
-- Asunto: "📢 {Asunto} — {Título de la campaña}"
+- Asunto: "{Asunto} | {Título de la campaña}"
 - Contiene: encabezado personalizado, cuerpo del mensaje, botón CTA resaltado opcional (etiqueta personalizada + URL)
 - Incluye: enlaces de acceso de seguidores (comunidad + administración), CTA de Instagram (si la campaña tiene URL de Instagram)
 - Punto final: `POST /admin/broadcast/announcement`

@@ -1,7 +1,7 @@
 ---
 title: SEO
 parent: Operaciones
-nav_order: 9
+nav_order: 10
 render_with_liquid: false
 lang: es
 ---
@@ -13,7 +13,7 @@ Este documento describe el modelo SEO actual de The Pool en 2026. Es intencional
 ## Principios
 
 - Fortalecer la visibilidad de páginas públicas reales y páginas de campaña.
-- mantenga la superficie SEO orientada a la fork pequeña y confiable
+- mantenga la superficie SEO orientada a la bifurcación pequeña y confiable
 - preservar los límites de accesibilidad, privacidad y seguridad
 - Evite las tácticas de SEO que crean contenido deficiente, engañoso o basura.
 
@@ -25,8 +25,11 @@ La línea de base actual incluye:
 - metadatos en idiomas alternativos en páginas públicas localizadas y páginas de campaña localizadas
 - URL canónicas en diseños públicos
 - metadatos Open Graph con reconocimiento regional en diseños públicos
+- Las páginas de campaña ahora usan `og:type=article` más marcas de tiempo de publicación/modificación de artículos delimitadas derivadas de las fechas del contenido de la campaña.
+- metadatos explícitos de idioma/nombre de aplicación en diseños públicos
 - descripciones a nivel de página sobre rutas públicas principales
 - Metadatos de tarjetas Open Graph y Twitter
+- etiquetas seguras de imágenes sociales donde la imagen de la página ya es HTTPS
 - metadatos alternativos de imágenes sociales
 - Títulos y descripciones sociales de campañas conscientes del estado.
 - Imágenes SVG de tarjetas compartidas de campaña generadas por trabajadores para vistas previas sociales
@@ -34,7 +37,8 @@ La línea de base actual incluye:
 - generado [`sitemap.xml`](/sitemap.xml)
 - `noindex,nofollow` explícito en diseños tokenizados o solo para seguidores
 - conservador `Organization` / `WebSite` JSON-LD
-- campaña conservadora `CreativeWork` más ruta de navegación JSON-LD
+- campaña conservadora `CreativeWork` más ruta de navegación JSON-LD, ambos alineados con el idioma de la página activa donde sea compatible
+- campaña `CreativeWork` JSON-LD ahora también incluye `headline`, `mainEntityOfPage`, `isPartOf` y marcas de tiempo publicadas/modificadas para que las páginas de campaña públicas se parezcan más a páginas de inicio editoriales reales que a blobs anónimos.
 - un centro comunitario público que enlaza con páginas de campañas públicas en lugar de empujar a los rastreadores a rutas exclusivas para seguidores
 
 Los principales archivos de implementación son:
@@ -96,7 +100,7 @@ La implementación intencionalmente no emite:
 
 ## Superficie de configuración SEO compatible
 
-La superficie SEO orientada hacia la fork está delimitada intencionalmente. Las configuraciones admitidas actualmente incluyen:
+La superficie SEO orientada hacia la bifurcación está delimitada intencionalmente. Las configuraciones admitidas actualmente incluyen:
 
 - nivel superior `title`
 - nivel superior `description`
@@ -117,11 +121,15 @@ Los metadatos públicos también derivan algunos valores seguros automáticament
 
 - `og:locale` del idioma de la página activa
 - `og:locale:alternate` de los idiomas traducidos admitidos para esa página
+- `language`, `application-name` y `apple-mobile-web-app-title` de la identidad de sitio/página activa
 - `og:image:alt` / `twitter:image:alt` del texto alternativo de la imagen explícita cuando esté presente; de lo contrario, el título de la página
+- `og:image:secure_url` cuando la imagen social elegida ya se resuelve en HTTPS
+- `article:published_time` / `article:modified_time` en las páginas de la campaña cuando las fechas de la campaña estén disponibles
 - Copia de vista previa de la campaña desde el estado de la campaña (`upcoming`, `live`, `funded`, `ended`)
 - imágenes de vista previa de la campaña desde la ruta de la tarjeta compartida del trabajador en lugar de directamente desde la imagen principal únicamente
+- `WebSite.availableLanguage`, raíces de ruta de navegación localizadas y campaña `CreativeWork.inLanguage` del modelo local configurado
 
-Las forks pueden anular parte de ese comportamiento de forma limitada:
+Las bifurcaciones pueden anular parte de ese comportamiento de forma limitada:
 
 - `seo.default_social_image_alt` proporciona el texto alternativo alternativo para imágenes sociales predeterminadas
 - `seo.og_locale_overrides` asigna códigos de idioma a cadenas de configuración regional explícitas de Open Graph
@@ -141,9 +149,9 @@ seo:
     es: es_ES
 ```
 
-## ¿Qué forks se pueden cambiar de forma segura?
+## ¿Qué horquillas se pueden cambiar de forma segura?
 
-Las forks se pueden personalizar de forma segura:
+Las horquillas se pueden personalizar de forma segura:
 
 - identidad del sitio y metadatos predeterminados
 - enlaces de perfil social de la organización
@@ -151,7 +159,7 @@ Las forks se pueden personalizar de forma segura:
 - Copia descriptiva de página y campaña que ya existe en el modelo de contenido.
 - Entradas de vista previa de la campaña que ya existen en el modelo de contenido, como el título de la campaña, la propaganda, la categoría, el creador y las imágenes destacadas.
 
-Las forks no deben asumir soporte para:
+Las bifurcaciones no deben asumir soporte para:
 
 - matrices de configuración SEO arbitrarias por página
 - taxonomías de esquemas personalizados más allá de la superficie documentada
@@ -169,6 +177,7 @@ Al verificar una implementación manualmente:
 - JSON-LD valida limpiamente
 - Las páginas localizadas mantienen enlaces canónicos y alternativos coherentes.
 - Las páginas de campaña localizadas mantienen enlaces canónicos y alternativos coherentes.
+- Las páginas localizadas mantienen un lenguaje JSON-LD coherente y raíces de ruta de navegación
 - Las adiciones de metadatos no crean regresiones de accesibilidad o rendimiento.
 
 ## Notas

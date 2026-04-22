@@ -13,7 +13,7 @@ Este repositorio ahora incluye una ruta de desarrollo local sin raíz respaldada
 - sitio jekyll
 - Servidor de desarrollo local Cloudflare Worker
 
-El objetivo es facilitar el arranque local para las forks y al mismo tiempo preservar la seguridad y los límites similares a los de producción.
+El objetivo es facilitar el arranque local para las bifurcaciones y al mismo tiempo preservar la seguridad y los límites similares a los de producción.
 
 ## Alcance actual
 
@@ -70,7 +70,7 @@ El modo Podman está diseñado en torno a tres prioridades:
 |---------|--------------|----------------|
 |macos|`podman machine` máquina virtual|Validado por host en esta rama. Prefiera `libkrun` si `applehv` es inestable.|
 |linux|Podman nativo desarraigado|Compatible con la lógica del iniciador y el flujo de autoverificación, pero no validado por el host en este hilo.|
-|ventanas|`podman machine` máquina virtual|Compatible con la lógica del iniciador y el flujo de autoverificación cuando se ejecuta desde un shell compatible con bash, pero no validado por el host en este hilo.|
+|ventanas|`podman machine` máquina virtual|Compatible con la lógica del iniciador y el flujo de autocomprobación cuando se ejecuta desde un shell compatible con bash, pero no está validado por el host en este hilo.|
 
 En macOS y Windows, `./scripts/dev.sh --podman` inicializará/iniciará el `podman machine` predeterminado cuando sea necesario. En Linux, el iniciador omite la administración de la máquina y se comunica directamente con el motor Podman local sin raíz.
 
@@ -100,6 +100,8 @@ Más concretamente, la autocomprobación cubre:
 - `npm run test:e2e:headless:podman`
 
 La puerta de fusión más amplia también ejecuta `./scripts/smoke-pledge-management.sh --podman`, por lo que la ruta de modificación/cancelación mutable aún obtiene una cobertura de estado aislada incluso cuando las fases de compilación del host se realizan correctamente.
+
+Ese humo de promesa mutable ahora también sigue siendo compatible con configuraciones impositivas impulsadas por el proveedor, como `tax.provider: nm_grt`: la ruta del dispositivo de prueba del trabajador genera una dirección de facturación para que `/test/setup` pueda crear una promesa real consciente de los impuestos en lugar de asumir un impuesto fijo.
 
 Desde la raíz del repositorio:
 
@@ -156,7 +158,7 @@ Para la ruta del navegador sin cabeza del lado del host, Playwright ahora crea u
 
 ## Primera ejecución multiplataforma
 
-Si está configurando una fork nueva, esta es la secuencia recomendada más corta:
+Si está configurando una bifurcación nueva, esta es la secuencia recomendada más corta:
 
 ```bash
 npm run podman:doctor
@@ -166,7 +168,7 @@ npm run test:e2e:headless:podman
 
 Si el médico aprueba y la suite Podman sin cabeza está en verde, estás en un buen lugar para el trabajo local normal.
 
-Tenga en cuenta que el sitio estático generado ahora excluye carpetas internas del repositorio como `worker/`, `scripts/` y `tests/`, por lo que la verificación estática local se acerca más a lo que realmente publicaría una fork.
+Tenga en cuenta que el sitio estático generado ahora excluye carpetas internas del repositorio como `worker/`, `scripts/` y `tests/`, por lo que la verificación estática local se acerca más a lo que realmente publicaría una bifurcación.
 
 Nivel de confianza actual:
 
@@ -184,6 +186,16 @@ Si el pod ya se está ejecutando, inspeccione los registros con:
 podman logs -f pool-dev-site
 podman logs -f pool-dev-worker
 ```
+
+Si la puerta de fusión más amplia falla específicamente en `7b. Podman mutable-pledge smoke`, primero confirme que la pila esté en buen estado con:
+
+```bash
+npm run podman:doctor
+./scripts/dev.sh --podman
+./scripts/smoke-pledge-management.sh --podman
+```
+
+Esa secuencia ahora ejerce la misma ruta de dispositivo de prueba con reconocimiento de ubicación en la que se basa la puerta de fusión.
 
 Si `./scripts/dev.sh --podman` nunca supera el inicio de Podman, primero verifique la máquina:
 

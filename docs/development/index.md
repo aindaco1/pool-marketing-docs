@@ -14,6 +14,7 @@ Contribution flow, architecture notes, implementation gotchas, and fork-facing e
 2. [Project Overview](/docs/development/project-overview/) for the system summary, funding flow, campaign lifecycle, and code map.
 3. [Workflows](/docs/development/workflows/) for the pledge state machine, storage model, and Worker route behavior.
 4. [Developer Notes](/docs/development/developer-notes/) for stack-specific implementation details, content model guidance, and gotchas.
+5. [Agents & Operator Guide](/docs/development/agents-operator-guide/) for the safest way to make repo changes without drifting site, Worker, checkout, or localized behavior out of sync.
 
 ## Configuration And Extension
 
@@ -21,6 +22,7 @@ Contribution flow, architecture notes, implementation gotchas, and fork-facing e
 - [Internationalization](/docs/development/internationalization/) for locale config, routing, translation catalogs, and the language-addition workflow.
 - [Campaign Embeds](/docs/development/campaign-embeds/) for hosted embed routes, resize behavior, and localization rules.
 - [Add-On Products](/docs/development/add-on-products/) for the platform-wide merch catalog, inventory model, runtime contract, and shipping behavior.
+- [Agents & Operator Guide](/docs/development/agents-operator-guide/) for repo invariants, source-of-truth guidance, and safe contributor/LLM workflows.
 
 ## Day-To-Day Use
 

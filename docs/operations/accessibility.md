@@ -1,7 +1,7 @@
 ---
 title: "Accessibility"
 parent: "Operations"
-nav_order: 8
+nav_order: 9
 render_with_liquid: false
 ---
 
@@ -26,6 +26,8 @@ The site already includes:
 - ARIA landmarks (`main`, `contentinfo`, live regions where appropriate)
 - visible focus states through the existing design system
 - screen-reader helper utilities
+- stable `main-content` anchors on the main public shells so skip links and keyboard focus land consistently
+- cart trigger labeling that reflects both item count and displayed total for assistive technology instead of exposing only icon chrome
 
 The recent accessibility hardening pass added:
 
@@ -46,6 +48,15 @@ The recent accessibility hardening pass added:
   - `aria-describedby`
   - dynamic `aria-valuetext`
 - live-region and alert semantics for key status/error surfaces
+- safer small-screen affordances for mobile-heavy flows:
+  - larger close/remove tap targets in the cart sidecar
+  - safe-area-aware cart and nav overlays
+  - better wrapping behavior for localized action text and summary rows
+- campaign-page semantics and keyboard polish for:
+  - focus handoff from the mobile support CTA into the tiers section
+  - screen-reader countdown status text that mirrors the visual timer state
+  - clearer hero-video grouping and loading semantics
+  - safer small-screen wrapping for countdown tiles, creator metadata, and community teaser actions
 
 ## Critical Surfaces
 
@@ -76,6 +87,10 @@ Current automated accessibility-related coverage includes:
 - unit coverage for dialog semantics and keyboard handling in:
   - `tests/unit/cart-provider.test.ts`
   - `tests/unit/manage-page.test.ts`
+- unit coverage for public-shell skip links and main landmarks in:
+  - `tests/unit/layout-accessibility.test.ts`
+- unit coverage for cart-trigger accessible labels and expanded state in:
+  - `tests/unit/cart-icon.test.ts`
 - unit coverage for keyboard tabs in:
   - `tests/unit/diary-tabs.test.ts`
   - `tests/unit/campaign-tabs.test.ts`
@@ -99,6 +114,7 @@ Current automated accessibility-related coverage includes:
     - the community index page
     - the supporter-community denied page
     - the supporter-community content page
+  - the Podman-backed public-page accessibility sweep is the preferred final check when branches change public content, docs-backed public pages, or campaign-page chrome without needing host Bundler/Jekyll
 - ARIA snapshot coverage in Playwright for:
   - key public-page main regions
   - the cart / checkout dialog during keyboard-only flows
@@ -147,6 +163,12 @@ For the broader browser accessibility slice, use:
   --grep "Public Page Accessibility|keyboard-only|Community Flows|Public Page Keyboard Controls"
 ```
 
+For the narrower Podman-backed public-page accessibility sweep that avoids host Bundler/Jekyll setup, use:
+
+```bash
+npm run test:e2e:headless:podman -- tests/e2e/accessibility-public-pages.spec.ts --project=chromium
+```
+
 For the recommended local-dev stack, prefer:
 
 ```bash
@@ -159,6 +181,7 @@ npm run podman:doctor
 Automated checks help, but these manual accessibility checks are still important before merge for meaningful UI changes:
 
 - cart drawer can be opened, navigated, and closed with keyboard only
+- cart trigger announces a useful label and expanded/collapsed state to assistive technology
 - checkout sidecar keeps focus behavior stable while Stripe mounts and validates fields
 - `Update Card` modal is usable with keyboard only
 - tabbed campaign interfaces respond correctly to keyboard navigation

@@ -41,6 +41,7 @@ The site config is organized around these fork-facing sections:
 - `platform`
 - `pricing`
 - `shipping`
+- `reports`
 - `i18n`
 - `design`
 - `debug`
@@ -90,6 +91,7 @@ These values feed:
 - header / footer branding
 - release metadata for docs/public copy when a fork wants to surface its current milestone
 - page titles and meta tags
+- app-title metadata for mobile/share surfaces
 - default social-card image
 - campaign creator fallback copy
 - checkout / Manage Pledge UI copy and bootstrapped client config
@@ -98,17 +100,18 @@ These values feed:
 Notes:
 
 - `platform.*` is the primary branding surface.
-- `platform.version` should be the canonical machine-readable product version for the site, while `platform.release_label` can stay friendlier for public-facing copy such as `v0.9.1`.
+- `platform.version` should be the canonical machine-readable product version for the site, while `platform.release_label` can stay friendlier for public-facing copy such as `v0.9.4`.
 - top-level `title` / `author` still exist in Jekyll, but treat them as general site metadata / fallback rather than the main fork-customization interface.
 - `platform.default_social_image_path` is the supported default for OG/Twitter cards when a page or campaign does not provide a more specific image.
+- `platform.logo_path` is also the mirrored brand mark used in supporter emails.
 
 Example:
 
 ```yml
 platform:
   name: My Fork
-  version: 0.9.1
-  release_label: v0.9.1
+  version: 0.9.4
+  release_label: v0.9.4
   company_name: Example Studio
   support_email: support@example.com
   pledges_email_from: "My Fork <pledges@example.com>"
@@ -124,7 +127,7 @@ platform:
 
 ### `pricing`
 
-Use `pricing` for the shared tax/tip math that must stay consistent across the site and Worker.
+Use `pricing` for the flat-rate compatibility math and platform-tip defaults that must stay consistent across the site and Worker.
 
 Supported keys:
 
@@ -141,6 +144,49 @@ pricing:
   flat_shipping_rate: 4.50
   default_tip_percent: 5
   max_tip_percent: 15
+```
+
+### `tax`
+
+Use `tax` for the Worker-side tax engine selection and its non-secret lookup settings.
+
+Supported keys:
+
+- `provider`
+- `origin_country`
+- `use_regional_origin`
+- `nm_grt_api_base`
+- `zip_tax_api_base`
+
+Current provider values:
+
+- `flat` keeps the legacy configured `pricing.sales_tax_rate`
+- `offline_rules` uses vendored rules for international VAT/GST and state-level fallback handling
+- `nm_grt` uses a vendored New Mexico starter dataset and can refine full NM street-address lookups against the free EDAC GRT API
+- `zip_tax` uses ZIP.TAX for local / jurisdiction-level US tax lookups and falls back to `offline_rules` for non-US/CA destinations
+
+Current UX note:
+
+- cart and checkout can display provisional tax as `--` until the browser has enough destination detail for the configured provider
+- `nm_grt` is currently the most complete built-in local-data path for US jurisdictional tax and generally needs full New Mexico street-level destination data before it can return a precise result
+
+Example:
+
+```yml
+tax:
+  provider: nm_grt
+  origin_country: US
+  use_regional_origin: false
+  nm_grt_api_base: https://grt.edacnm.org
+  zip_tax_api_base: https://api.zip-tax.com
+```
+
+If you enable `zip_tax`, also set the Worker secret `ZIP_TAX_API_KEY`. Keep that secret out of `_config.yml`.
+
+The vendored New Mexico starter file lives in [`worker/src/tax-data/nm-grt-starter.js`](https://github.com/your-org/your-project/blob/main/worker/src/tax-data/nm-grt-starter.js). Refresh it with:
+
+```bash
+node ./scripts/update-nm-grt-starter.mjs
 ```
 
 ### `i18n`
@@ -185,9 +231,10 @@ Current supported pattern:
 - non-default public pages live under a locale prefix like `/es/`
 - shared runtime/browser messages are emitted through `assets/i18n.json`
 - Worker supporter emails reuse that shared locale catalog plus persisted `preferredLang`
-- campaign chrome such as the hero video button/loading text, supporter-community teaser copy, diary tabs, production-phase controls, and gallery accessibility labels also now comes from `_data/i18n/{lang}.yml`
+- campaign chrome such as the hero video button/loading text, supporter-community teaser copy, diary tabs, production-phase controls, gallery accessibility labels, cart-button summaries, and checkout tax-location helper copy also now comes from `_data/i18n/{lang}.yml`
 - the shared footer language switcher is automatic when more than one language is configured
 - long-form pages such as `about` and `terms` should use localized source pages rather than trying to store every paragraph in YAML
+- public metadata and structured-data language hints also follow the same locale model, so localized public pages do not need a second SEO-only translation system
 
 What this means in practice:
 
@@ -477,11 +524,76 @@ By contrast, global `add_ons.products` remain platform merch:
 - they do not count toward campaign funding totals
 - physical global add-ons combine into one separate platform shipment / shipping charge
 
+### `reports`
+
+Use `reports` for campaign-runner report delivery behavior that must stay aligned with Worker scheduling and email generation.
+
+Supported keys today:
+
+- `campaign_runner.enabled`
+- `campaign_runner.daily_pledge_report_enabled`
+- `campaign_runner.fulfillment_report_enabled`
+- `campaign_runner.send_hour_mt`
+- `campaign_runner.send_minute_mt`
+- `campaign_runner.include_stats_summary`
+- `campaign_runner.include_csv_attachment`
+- `campaign_runner.email_subject_prefix`
+
+Current behavior:
+
+- campaign-level recipients live in campaign front matter as `runner_report_emails`
+- if that campaign field is missing or empty, no campaign-runner emails are sent for that campaign
+- the send window is still interpreted in Mountain Time so report timing stays aligned with the rest of the campaign lifecycle model
+- `email_subject_prefix` can be set to an empty string to disable the prefix entirely
+- when the prefix is omitted at runtime, the Worker falls back to `[platform.name]`
+- report subjects stay concise and deliverability-oriented: no emoji, short report labels, and a consistent prefix + report-kind + campaign-title pattern
+- daily pledge emails use a campaign-only summary with total pledges, new pledges in the previous 24 hours, pledged total, goal progress, and deadline countdown/passed time
+- fulfillment sends are split by fulfiller:
+  - campaign-runner recipients receive only the campaign-fulfilled rows
+  - `platform.support_email` receives a separate platform-fulfillment email when platform add-on rows exist
+- fulfillment summaries are intentionally concise and fulfillment-oriented; they do not reuse the daily pledge-report body summary
+- both report types can include a short guidance note in the body so runners get campaign-stage-specific encouragement or fulfillment communication reminders alongside the CSV
+
+Example:
+
+```yml
+reports:
+  campaign_runner:
+    enabled: true
+    daily_pledge_report_enabled: true
+    fulfillment_report_enabled: true
+    send_hour_mt: 7
+    send_minute_mt: 0
+    include_stats_summary: true
+    include_csv_attachment: true
+    email_subject_prefix: "[My Fork]"
+```
+
+What this enables:
+
+- daily campaign-scoped pledge-ledger emails during live campaigns
+- one-time fulfillment exports after a campaign deadline passes
+- separate campaign-runner and platform fulfillment emails when both campaign and platform items need delivery
+- optional body summaries and optional CSV attachments without changing campaign content files
+- a consistent subject prefix, which defaults to `"[The Pool]"` in this repo and falls back to `[platform.name]` if omitted at runtime
+
+Per-campaign recipient example:
+
+```yml
+runner_report_emails:
+  - producer@example.com
+  - ops@example.com
+```
+
 ### `design`
 
 Use `design` for curated design-system overrides that do not require Sass edits.
 
 These values are emitted into the generated stylesheet [assets/theme-vars.css](https://github.com/your-org/your-project/blob/main/assets/theme-vars.css), which keeps the design-variable bridge compatible with the site’s strict CSP. Forks do not need to edit Sass just to change supported tokens.
+
+The same generated CSS variables also now theme the on-site Stripe Elements sidecar, so supported typography/color/radius overrides carry through the custom checkout payment UI without adding a separate checkout-only config layer.
+
+A deliberately smaller subset of the same branding surface is mirrored into the Worker so supporter emails can reuse the configured logo, font stacks, primary color, border/surface colors, and button radius.
 
 Current supported keys:
 
@@ -577,14 +689,13 @@ Some settings only affect the Jekyll build and browser-owned UI. Others are also
 These can be changed in `_config.yml` without changing Worker config or worrying about the sync step:
 
 - `i18n.*`
-- `design.*`
 - `checkout.stripe_publishable_key`
 - `platform.default_creator_name`
-- `platform.logo_path`
 - `platform.footer_logo_path`
 - `platform.favicon_path`
 - `platform.default_social_image_path`
 - `cache.*`
+- most `design.*` values that are only consumed by the generated site/theme CSS
 
 These are the safest “site generation / branding / localization without Worker-side math or email impact” knobs. They change the generated site, browser boot payload, or theme layer, but they do not need to be mirrored into Worker env.
 
@@ -597,9 +708,22 @@ These site-config values are also reflected into the Worker env values in [`work
 - `platform.support_email` -> `SUPPORT_EMAIL`
 - `platform.pledges_email_from` -> `PLEDGES_EMAIL_FROM`
 - `platform.updates_email_from` -> `UPDATES_EMAIL_FROM`
+- `platform.logo_path` -> `EMAIL_LOGO_PATH`
 - `platform.site_url` -> `SITE_BASE`
 - `platform.worker_url` -> `WORKER_BASE`
+- `design.font_body` -> `EMAIL_FONT_FAMILY`
+- `design.font_display` -> `EMAIL_HEADING_FONT_FAMILY`
+- `design.color_text` -> `EMAIL_COLOR_TEXT`
+- `design.color_text_muted` -> `EMAIL_COLOR_MUTED`
+- `design.color_surface_subtle` -> `EMAIL_COLOR_SURFACE`
+- `design.color_border` -> `EMAIL_COLOR_BORDER`
+- `design.color_primary` -> `EMAIL_COLOR_PRIMARY`
+- `design.radius_lg` -> `EMAIL_BUTTON_RADIUS`
 - `pricing.sales_tax_rate` -> `SALES_TAX_RATE`
+- `tax.provider` -> `TAX_PROVIDER`
+- `tax.origin_country` -> `TAX_ORIGIN_COUNTRY`
+- `tax.use_regional_origin` -> `TAX_USE_REGIONAL_ORIGIN`
+- `tax.zip_tax_api_base` -> `ZIP_TAX_API_BASE`
 - `pricing.flat_shipping_rate` -> `FLAT_SHIPPING_RATE`
 - `pricing.default_tip_percent` -> `DEFAULT_PLATFORM_TIP_PERCENT`
 - `pricing.max_tip_percent` -> `MAX_PLATFORM_TIP_PERCENT`
@@ -614,6 +738,14 @@ These site-config values are also reflected into the Worker env values in [`work
 - `shipping.usps.quote_cache_ttl_seconds` -> `USPS_QUOTE_CACHE_TTL_SECONDS`
 - `shipping.usps.failure_cooldown_seconds` -> `USPS_FAILURE_COOLDOWN_SECONDS`
 - `shipping.usps.rate_limit_cooldown_seconds` -> `USPS_RATE_LIMIT_COOLDOWN_SECONDS`
+- `reports.campaign_runner.enabled` -> `CAMPAIGN_RUNNER_REPORTS_ENABLED`
+- `reports.campaign_runner.daily_pledge_report_enabled` -> `CAMPAIGN_RUNNER_DAILY_PLEDGE_REPORT_ENABLED`
+- `reports.campaign_runner.fulfillment_report_enabled` -> `CAMPAIGN_RUNNER_FULFILLMENT_REPORT_ENABLED`
+- `reports.campaign_runner.send_hour_mt` -> `CAMPAIGN_RUNNER_REPORT_HOUR_MT`
+- `reports.campaign_runner.send_minute_mt` -> `CAMPAIGN_RUNNER_REPORT_MINUTE_MT`
+- `reports.campaign_runner.include_stats_summary` -> `CAMPAIGN_RUNNER_INCLUDE_STATS_SUMMARY`
+- `reports.campaign_runner.include_csv_attachment` -> `CAMPAIGN_RUNNER_INCLUDE_CSV_ATTACHMENT`
+- `reports.campaign_runner.email_subject_prefix` -> `CAMPAIGN_RUNNER_EMAIL_SUBJECT_PREFIX`
 
 The repo keeps those values aligned automatically through the main local/dev/test paths. After changing them, restart the local stack so the site and Worker both pick up the new values:
 
@@ -650,7 +782,7 @@ Still code-level today:
 - adding new payment providers or checkout modes
 - changing supported embed providers
 - expanding CSP allowlists for arbitrary external hosts
-- changing Stripe-owned field styling beyond Stripe’s supported appearance API
+- changing Stripe-owned field styling beyond the supported design-token bridge and Stripe’s appearance API
 - introducing brand-new layout structures, page templates, or content blocks
 - changing font hosting/CSP behavior beyond the currently supported font stacks
 
@@ -678,6 +810,7 @@ npm run podman:doctor
 - campaign creator fallback
 - CSP-sensitive pages still load without console CSP violations
 - cart / checkout totals
+- Stripe payment UI styling
 - Manage Pledge
 - supporter emails
 

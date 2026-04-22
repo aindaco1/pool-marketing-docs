@@ -15,7 +15,8 @@ Los creadores definen campañas en Markdown; los patrocinadores se comprometen a
 **Marca:**
 - Nombre de la plataforma: **The Pool**
 - Nombre de la empresa: configúrelo según el nombre de su organización o estudio.
-- Sistema de diseño: adapte los tokens de diseño y la tipografía admitidos a su propia marca
+- Tema predeterminado: el estilo editorial más tranquilo de Dust Wave
+- Personalización de la bifurcación: `_config.yml` ahora impulsa una superficie de token/marca seleccionada que llega a páginas públicas, elementos de Stripe en el sitio y correos electrónicos de seguidores.
 
 ---
 
@@ -28,13 +29,13 @@ Los creadores definen campañas en Markdown; los patrocinadores se comprometen a
 |**API/pegamento**|Trabajador de Cloudflare (`worker.example.com`)|Maneja el arranque de pago, webhooks, totales con reconocimiento de propinas, recuperación y datos de informes.|
 |**Automatización**|cron de trabajador + acción de GitHub|Auto-liquidación (por lotes) + transiciones de estado|
 |**Almacenamiento**|Rebaja / YAML|Definiciones y estado de la campaña|
-|**Estilo**|Sass (14 parciales modulares activos)|Sistema de diseño compartido para páginas públicas, pago y gestión de promesas.|
+|**Estilo**|Sass + vars de tema generados|Sistema de diseño compartido para páginas públicas, pago, gestión de promesas y superficies de pago/correo electrónico de marca.|
 
 Todo el código está versionado y es auditable: no se requiere una base de datos externa y la edición de campañas puede permanecer en el repositorio o fluir a través de Pages CMS.
 
-## Notas de eficiencia del plan gratuito para forks
+## Planificar notas de eficiencia para bifurcaciones
 
-La arquitectura actual está optimizada deliberadamente para que las implementaciones de Cloudflare de plan gratuito gasten su presupuesto en mutaciones de promesas en lugar de navegación informal:
+La arquitectura actual está optimizada deliberadamente para que las implementaciones de Cloudflare gasten su presupuesto en mutaciones de promesas en lugar de navegación informal:
 
 - Las páginas de campaña y la página de administración prefieren una lectura combinada de `/live/:slug` en lugar de estadísticas y solicitudes de inventario separadas.
 - el navegador almacena en caché las estadísticas en vivo y el inventario en `localStorage` para los TTL configurados, y las pestañas ocultas dejan de actualizarse hasta que vuelven a ser visibles.
@@ -42,11 +43,11 @@ La arquitectura actual está optimizada deliberadamente para que las implementac
 - Las rutas de escritura de nivel limitado ahora solicitan al coordinador de cada campaña la disponibilidad según la reserva, mientras que el inventario público permanece en KV como proyección.
 - La limitación de velocidad aún falla al cerrarse, pero las solicitudes bloqueadas repetidas dentro de la misma ventana ya no reescriben el mismo contador KV en cada visita.
 
-Eso significa que el límite real del plan gratuito para la mayoría de las forks suele ser **escrituras KV a partir de una actividad de compromiso exitosa**, no tráfico de lectura pública.
+Eso significa que el límite real para la mayoría de las bifurcaciones suele ser **escrituras KV a partir de una actividad de compromiso exitosa**, no el tráfico de lectura pública. `RATELIMIT` es ahora un requisito estricto para las implementaciones admitidas, pero eso por sí solo no hace que el plan gratuito no sea viable para la forma de financiación colectiva a pequeña escala prevista para el proyecto.
 
 ## Forma de desarrollo local
 
-La ruta local de baja fricción recomendada ahora usa Podman:
+La ruta local de baja fricción recomendada ahora utiliza Podman:
 
 - `./scripts/dev.sh --podman` arranca a Jekyll y al Trabajador en contenedores desarraigados
 - `npm run podman:doctor` comprueba primero la preparación del host
@@ -54,15 +55,17 @@ La ruta local de baja fricción recomendada ahora usa Podman:
 
 La ruta Ruby/Wrangler basada en host todavía existe, pero Podman es la forma más fácil de obtener un entorno local similar a la producción sin instalar manualmente todas las dependencias.
 
+Para los trabajadores estándar/pagados desplegados, el repositorio ahora también declara `limits.cpu_ms = 100` en `worker/wrangler.toml` como un respaldo de denegación de billetera. Ese límite es intencionalmente conservador, pero solo se aplica en la red implementada de Cloudflare, no durante el desarrollo local.
+
 ### Escenarios aproximados de planificación
 
 Estos escenarios son intencionalmente aproximados. Asumen los TTL predeterminados del navegador de 5 minutos, una lectura en vivo combinada en cargas de campaña en frío y los límites del plan gratuito publicados por Cloudflare a partir del 7 de abril de 2026.
 
 |Escenario|Cómo se siente operativamente|Planificación para llevar|
 |----------|----------------------------------|-------------------|
-|Primer lanzamiento|Una o dos campañas activas, unos cuantos miles de visitas a la página de la campaña durante varios días y un puñado de promesas completadas por día.|El plan gratuito es un punto de partida muy razonable.|
-|Fuerte tracción en la primera semana|Varios miles de lecturas dinámicas de Worker por día y un par de docenas de mutaciones de promesas en campañas en vivo.|Todavía es viable, pero comience a observar las escrituras de KV y los hábitos de mantenimiento de informes/administradores.|
-|Plataforma comunitaria establecida|Mutaciones frecuentes de promesas todos los días en múltiples campañas activas, además de flujos de informes/reparaciones administrativas más regulares|Actualízate antes de un gran momento. La ruta de lectura aún puede ser eficiente, pero los días con muchas mutaciones se convierten en la verdadera limitación.|
+|Primer lanzamiento|Una o dos campañas activas, unos cuantos miles de visitas a la página de la campaña durante varios días y un puñado de promesas completadas por día.|Lo gratuito debería seguir siendo un punto de partida razonable.|
+|Fuerte tracción en la primera semana|Varios miles de lecturas dinámicas de Worker por día y un par de docenas de mutaciones de promesas en campañas en vivo.|A menudo, todavía es viable de forma gratuita, pero aquí es donde el pago comienza a reducir la ansiedad operativa.|
+|Plataforma comunitaria establecida|Mutaciones frecuentes de promesas todos los días en múltiples campañas activas, además de flujos de informes/reparaciones administrativas más regulares|El pago se convierte en la opción más cómoda a largo plazo; siga monitoreando los costos de las rutas de mutación y abuso.|
 
 Para conocer los límites actuales de Cloudflare, consulte:
 
@@ -80,10 +83,14 @@ Para conocer los límites actuales de Cloudflare, consulte:
    - Registra los latidos del corazón (`cron:lastRun` en KV) para su monitoreo.
    - Activa la reconstrucción del sitio cuando pasa `goal_deadline` (`live` → `post`).
    - Si se financia, envía la liquidación por lotes a través del autoencadenamiento `/admin/settle-dispatch`.
-   - Cada lote (6 promesas) se ejecuta en una invocación de Trabajador separada para permanecer dentro de los límites de las subrequests.
+   - Cada lote (6 promesas) se ejecuta en una invocación de Trabajador separada para mantenerse dentro de los límites de las subrequests.
    - Los cargos se agregan por correo electrónico dentro de cada campaña: un cargo por seguidor por campaña.
    - Actualiza el estado del compromiso a `charged` o `payment_failed` en KV.
    - Activa la reconstrucción de páginas de GitHub y la purga de caché de Cloudflare en transiciones de estado.
+5. **Pase de informe de trabajador** válido a las 7:00 a. m., hora de la montaña:
+   - Envía correos electrónicos diarios sobre el libro mayor de compromisos relacionados con la campaña para campañas activas que configuran `runner_report_emails`.
+   - Envía un flujo de cumplimiento posterior a la fecha límite por campaña, dividiendo las filas del ejecutor de campaña de las filas de cumplimiento de la plataforma cuando sea necesario.
+   - Admite vista previa/envío manual a través de `POST /admin/report/campaign-runner`, incluidas respuestas de prueba para destinatarios, recuentos de filas de campaña/plataforma, nombres de archivos y estado del marcador de idempotencia.
 
 **Reglas de precios:**
 - El progreso de la campaña utiliza únicamente el subtotal.

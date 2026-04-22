@@ -24,5 +24,6 @@ Esta sección cubre el compromiso de trabajador, las opciones de tiempo de ejecu
 ## Barandillas de Comercio y Plataforma
 
 - [Shipping](/es/docs/operations/shipping/) para el modelo de envío centrado en el trabajador, el límite de integración de USPS y la política alternativa.
+- [Calculadora de impuestos](/es/docs/operations/tax-calculator/) para modos de proveedor, configuración reflejada, comportamiento provisional en navegador y verificación del impuesto en checkout.
 - [Accesibilidad](/es/docs/operations/accessibility/) para prioridades actuales, superficies críticas, cobertura y comprobaciones manuales.
 - [SEO](/es/docs/operations/seo/) para reglas de indexación, metadatos, datos estructurados y expectativas de validación.

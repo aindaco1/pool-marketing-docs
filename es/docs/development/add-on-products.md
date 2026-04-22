@@ -29,7 +29,7 @@ La diferencia importante es la intención:
 
 ## Principios
 
-- Mantenga el catálogo orientado hacia la fork y primero variable.
+- Mantenga el catálogo orientado hacia la horquilla y primero variable.
 - Admite productos de precio fijo y variantes simples como tallas de camisa.
 - reutilizar las bases existentes de carritos, envíos, informes y cumplimiento cuando sea posible
 - Evite forzar la compra al modelo anterior de artículos de soporte basado en cantidades cuando un artículo de catálogo de precio fijo es más adecuado.
@@ -124,7 +124,7 @@ Complementos físicos versus digitales:
 
 - `category: digital` significa que el complemento nunca afecta el envío
 - `category: physical` significa que el complemento participa en la misma calculadora de envío del lado del trabajador que los niveles físicos y los artículos de soporte físico.
-- para complementos físicos, las forks pueden:
+- para complementos físicos, las bifurcaciones pueden:
   - hacer referencia a un `shipping_preset` compartido como `tshirt` o `sticker`
   - o proporcionar metadatos `shipping` explícitos en línea
 
@@ -162,7 +162,7 @@ Valores predeterminados del inventario actual:
 
 - cada diseño de camiseta comienza con `15` unidades totales distribuidas en tallas
 - Las pegatinas comienzan con `50`.
-- el umbral de existencias bajas está predeterminado en `5` y está orientado hacia la fork en la configuración
+- el umbral de existencias bajas está predeterminado en `5` y está orientado hacia la bifurcación en la configuración
 
 ## Inventario y escasez
 

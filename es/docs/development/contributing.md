@@ -24,7 +24,7 @@ npm run podman:doctor
 ./scripts/dev.sh --podman
 ```
 
-Ése es el camino predeterminado para el desarrollo local. Mantiene los puertos locales estándar y los archivos de estado locales, pero ejecuta Jekyll y Wrangler dentro de contenedores, por lo que las nuevas forks no necesitan alojar Ruby o Wrangler solo para iniciar la aplicación.
+Ése es el camino predeterminado para el desarrollo local. Mantiene los puertos locales estándar y los archivos de estado locales, pero ejecuta Jekyll y Wrangler dentro de contenedores, por lo que las nuevas bifurcaciones no necesitan alojar Ruby o Wrangler solo para iniciar la aplicación.
 
 Si en su lugar necesita la ruta de solo host:
 
@@ -174,7 +174,7 @@ Consulte [TESTING.md](/es/docs/operations/testing/) para obtener una referencia 
 |**Todo o nada**|Tarjetas cargadas solo si `pledged_amount >= goal_amount` en la fecha límite|
 |**Intención de configuración**|Stripe se opone a guardar un método de pago para cargos posteriores fuera de la sesión|
 |**Enlace mágico**|URL firmada por HMAC enviada por correo electrónico para la gestión de promesas sin cuenta|
-|**The Pool**|Nombre de la plataforma para el sitio de crowdfunding|
+|**La piscina**|Nombre de la plataforma para el sitio de crowdfunding|
 |**Operador de plataforma**|Nombre de la empresa o estudio para su implementación|
 
 ---

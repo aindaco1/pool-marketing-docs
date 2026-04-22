@@ -23,5 +23,6 @@ This section covers the pledge Worker, local runtime options, quality gates, and
 ## Commerce And Platform Guardrails
 
 - [Shipping](/docs/operations/shipping/) for the Worker-first shipping model, USPS integration boundary, and fallback policy.
+- [Tax Calculator](/docs/operations/tax-calculator/) for provider modes, mirrored config, provisional browser behavior, and checkout-tax verification.
 - [Accessibility](/docs/operations/accessibility/) for current priorities, critical surfaces, coverage, and manual checks.
 - [SEO](/docs/operations/seo/) for indexing rules, metadata, structured data, and validation expectations.

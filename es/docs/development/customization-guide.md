@@ -8,15 +8,15 @@ lang: es
 
 # Guía de personalización
 
-Esta guía cubre la superficie de personalización sin código compatible para las forks de The Pool tal como existe ahora.
+Esta guía cubre la superficie de personalización sin código compatible para las bifurcaciones de The Pool tal como existe ahora.
 
-El objetivo es permitir que las forks cambien el nombre, el estilo y la reconfiguración de la plataforma a través de la configuración, manteniendo alineados el pago, los informes, los correos electrónicos y el trabajador.
+El objetivo es permitir que las bifurcaciones cambien el nombre, el estilo y la reconfiguración de la plataforma a través de la configuración, manteniendo alineados el pago, los informes, los correos electrónicos y el trabajador.
 
-El modelo de configuración estructurado en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) es ahora la superficie canónica orientada a la fork.
+El modelo de configuración estructurado en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) es ahora la superficie canónica orientada a la horquilla.
 
 ## Comience aquí
 
-Para la mayoría de las forks, los principales archivos de personalización son:
+Para la mayoría de las bifurcaciones, los principales archivos de personalización son:
 
 - [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml)
 - [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml)
@@ -24,24 +24,25 @@ Para la mayoría de las forks, los principales archivos de personalización son:
 
 Utilice `./scripts/dev.sh --podman` para la verificación local después de los cambios de configuración.
 
-Trate [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml) como un archivo de solo anulación. Mantenga la configuración de fork canónica en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) y use el archivo local solo para cosas que deberían diferir en su máquina, como las URL del host local o la visibilidad de la campaña solo local.
+Trate [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml) como un archivo de solo anulación. Mantenga la configuración de bifurcación canónica en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) y use el archivo local solo para cosas que deberían diferir en su máquina, como las URL del host local o la visibilidad de la campaña solo local.
 
 La ruta local normal ahora está basada en localhost:
 
 - sitio: `http://127.0.0.1:4000`
 - Trabajador: `http://127.0.0.1:8787`
 
-El sitio estático generado ahora también excluye carpetas internas del repositorio como `worker/`, `scripts/` y `tests/`, por lo que la verificación estática se asemeja más a lo que realmente publicaría una fork.
+El sitio estático generado ahora también excluye carpetas internas del repositorio como `worker/`, `scripts/` y `tests/`, por lo que la verificación estática se asemeja más a lo que realmente publicaría una bifurcación.
 
 ## Áreas de configuración admitidas
 
-La configuración del sitio está organizada en torno a estas secciones orientadas hacia la fork:
+La configuración del sitio está organizada en torno a estas secciones orientadas hacia la bifurcación:
 
 - nivel superior `title` / `description`
 - `seo`
 - `platform`
 - `pricing`
 - `shipping`
+- `reports`
 - `i18n`
 - `design`
 - `debug`
@@ -50,7 +51,7 @@ La configuración del sitio está organizada en torno a estas secciones orientad
 
 ### Nivel superior `title` / `description`
 
-Utilice los metadatos de Jekyll de nivel superior para la identidad social/búsqueda predeterminada del sitio.
+Utilice los metadatos de Jekyll de nivel superior para la búsqueda/identidad social predeterminada del sitio.
 
 Teclas admitidas:
 
@@ -63,7 +64,7 @@ Estos valores alimentan:
 - reserva de meta descripción predeterminada
 - descripción alternativa de `WebSite` JSON-LD en todo el sitio
 
-`platform.name` sigue siendo la principal superficie visible de la marca. Trate `title` / `description` de nivel superior como la línea base de SEO orientada a la fork en lugar de la interfaz principal de marca de UI.
+`platform.name` sigue siendo la principal superficie visible de la marca. Trate `title` / `description` de nivel superior como la línea base de SEO orientada a la bifurcación en lugar de la interfaz principal de marca de UI.
 
 ### `platform`
 
@@ -89,8 +90,9 @@ Teclas admitidas:
 Estos valores alimentan:
 
 - marca de encabezado/pie de página
-- publicar metadatos para documentos/copia pública cuando una fork quiera mostrar su hito actual
+- publicar metadatos para documentos/copia pública cuando una bifurcación quiera mostrar su hito actual
 - títulos de página y metaetiquetas
+- metadatos del título de la aplicación para superficies móviles/compartidas
 - imagen de tarjeta social predeterminada
 - copia alternativa del creador de la campaña
 - pago/Administrar la copia de la interfaz de usuario de Pledge y la configuración del cliente de arranque
@@ -99,17 +101,18 @@ Estos valores alimentan:
 Notas:
 
 - `platform.*` es la superficie de marca principal.
-- `platform.version` debe ser la versión canónica del producto legible por máquina para el sitio, mientras que `platform.release_label` puede seguir siendo más amigable para copias públicas como `v0.9.1`.
-- `title` / `author` de nivel superior todavía existen en Jekyll, pero trátelos como metadatos/respaldo generales del sitio en lugar de la interfaz principal de personalización de la fork.
+- `platform.version` debe ser la versión canónica del producto legible por máquina para el sitio, mientras que `platform.release_label` puede seguir siendo más amigable para copias públicas como `v0.9.4`.
+- `title` / `author` de nivel superior todavía existen en Jekyll, pero trátelos como metadatos/respaldo generales del sitio en lugar de la interfaz principal de personalización de la bifurcación.
 - `platform.default_social_image_path` es el valor predeterminado admitido para tarjetas OG/Twitter cuando una página o campaña no proporciona una imagen más específica.
+- `platform.logo_path` es también la marca reflejada que se utiliza en los correos electrónicos de los seguidores.
 
 Ejemplo:
 
 ```yml
 platform:
   name: My Fork
-  version: 0.9.1
-  release_label: v0.9.1
+  version: 0.9.4
+  release_label: v0.9.4
   company_name: Example Studio
   support_email: support@example.com
   pledges_email_from: "My Fork <pledges@example.com>"
@@ -125,7 +128,7 @@ platform:
 
 ### `pricing`
 
-Utilice `pricing` para los cálculos compartidos de impuestos/propinas que deben ser consistentes en todo el sitio y el trabajador.
+Utilice `pricing` para los valores predeterminados de sugerencias de plataforma y matemáticas de compatibilidad de tarifa plana que deben permanecer consistentes en todo el sitio y el trabajador.
 
 Teclas admitidas:
 
@@ -144,6 +147,49 @@ pricing:
   max_tip_percent: 15
 ```
 
+### `tax`
+
+Utilice `tax` para la selección del motor de impuestos del lado del trabajador y su configuración de búsqueda no secreta.
+
+Teclas admitidas:
+
+- `provider`
+- `origin_country`
+- `use_regional_origin`
+- `nm_grt_api_base`
+- `zip_tax_api_base`
+
+Valores actuales del proveedor:
+
+- `flat` mantiene el legado configurado `pricing.sales_tax_rate`
+- `offline_rules` utiliza reglas proporcionadas para el IVA/GST internacional y el manejo alternativo a nivel estatal
+- `nm_grt` utiliza un conjunto de datos inicial suministrado por Nuevo México y puede refinar búsquedas completas de direcciones de calles de NM con la API gratuita EDAC GRT
+- `zip_tax` usa ZIP.TAX para búsquedas de impuestos de EE. UU. a nivel local/jurisdiccional y recurre a `offline_rules` para destinos fuera de EE. UU./CA
+
+Nota de UX actual:
+
+- El carrito y el proceso de pago pueden mostrar el impuesto provisional como `--` hasta que el navegador tenga suficientes detalles de destino para el proveedor configurado.
+- `nm_grt` es actualmente la ruta de datos locales integrada más completa para impuestos jurisdiccionales de EE. UU. y generalmente necesita datos completos de destino a nivel de calle de Nuevo México antes de poder devolver un resultado preciso.
+
+Ejemplo:
+
+```yml
+tax:
+  provider: nm_grt
+  origin_country: US
+  use_regional_origin: false
+  nm_grt_api_base: https://grt.edacnm.org
+  zip_tax_api_base: https://api.zip-tax.com
+```
+
+Si habilita `zip_tax`, configure también el secreto de trabajador `ZIP_TAX_API_KEY`. Mantenga ese secreto fuera de `_config.yml`.
+
+El archivo inicial de Nuevo México suministrado se encuentra en [`worker/src/tax-data/nm-grt-starter.js`](https://github.com/your-org/your-project/blob/main/worker/src/tax-data/nm-grt-starter.js). Actualízalo con:
+
+```bash
+node ./scripts/update-nm-grt-starter.mjs
+```
+
 ### `i18n`
 
 Utilice `i18n` para el modelo local admitido en el sitio estático.
@@ -155,7 +201,7 @@ Teclas admitidas:
 - `language_labels`
 - `pages`
 
-`pages` es el mapa de ruta de la página pública utilizado por los ayudantes de configuración regional compartidos. Permite que las forks agreguen un nuevo idioma mediante configuración más contenido traducido en lugar de editar la lógica de navegación a mano.
+`pages` es el mapa de ruta de la página pública utilizado por los ayudantes de configuración regional compartidos. Permite que las bifurcaciones agreguen un nuevo idioma mediante configuración más contenido traducido en lugar de editar la lógica de navegación a mano.
 
 Ejemplo:
 
@@ -186,9 +232,10 @@ Patrón soportado actualmente:
 - Las páginas públicas no predeterminadas se encuentran bajo un prefijo local como `/es/`.
 - Los mensajes compartidos de tiempo de ejecución/navegador se emiten a través de `assets/i18n.json`.
 - Los correos electrónicos de los seguidores de los trabajadores reutilizan ese catálogo de configuración regional compartido y `preferredLang` persistente
-- El cromo de la campaña, como el botón de video principal/texto de carga, el texto teaser de la comunidad de seguidores, las pestañas del diario, los controles de la fase de producción y las etiquetas de accesibilidad de la galería, ahora también provienen de `_data/i18n/{lang}.yml`.
+- El cromo de la campaña, como el botón de video principal/texto de carga, el texto teaser de la comunidad de seguidores, las pestañas del diario, los controles de la fase de producción, las etiquetas de accesibilidad de la galería, los resúmenes de los botones del carrito y el texto auxiliar de ubicación de impuestos de pago ahora también provienen de `_data/i18n/{lang}.yml`.
 - el conmutador de idioma del pie de página compartido es automático cuando se configura más de un idioma
 - Las páginas de formato largo como `about` y `terms` deberían usar páginas fuente localizadas en lugar de intentar almacenar cada párrafo en YAML.
+- Los metadatos públicos y las sugerencias de lenguaje de datos estructurados también siguen el mismo modelo local, por lo que las páginas públicas localizadas no necesitan un segundo sistema de traducción exclusivo para SEO.
 
 Qué significa esto en la práctica:
 
@@ -202,7 +249,7 @@ Qué significa esto en la práctica:
   - páginas de origen localizadas para contenido de formato largo que realmente desea traducir
 - Las rutas tokenizadas de administración de promesas siguen funcionando en todas las configuraciones regionales porque el conmutador de idioma compartido conserva la cadena de consulta y el hash actuales.
 
-Flujo de trabajo de fork recomendado:
+Flujo de trabajo de bifurcación recomendado:
 
 1. Copiar `_data/i18n/en.yml` a `_data/i18n/{lang}.yml`
 2. Agregue el idioma al bloque `i18n` en `_config.yml`
@@ -211,7 +258,7 @@ Flujo de trabajo de fork recomendado:
 
 ### superficie SEO
 
-Los fundamentos actuales de SEO están intencionalmente limitados. Las forks deben tratarlas como perillas soportadas:
+Los fundamentos actuales de SEO están intencionalmente limitados. Las horquillas deben tratarlas como perillas soportadas:
 
 - nivel superior `title`
 - nivel superior `description`
@@ -272,7 +319,7 @@ Qué hacen:
 - `console_logging_enabled: false` suprime la salida del navegador y del trabajador `console` en el carrito compartido, la campaña, la comunidad, las estadísticas en vivo, la gestión de promesas, el webhook, el administrador y los tiempos de ejecución de las tareas programadas.
 - `verbose_console_logging: false` mantiene el registrador activo pero suprime el ruido de depuración/información/registro de menor gravedad y al mismo tiempo permite advertencias y errores.
 
-Estos valores predeterminados son intencionalmente `true` en `_config.yml`, por lo que las forks comienzan con diagnósticos completos disponibles y pueden desactivar el registro más tarde sin cambios de código.
+Estos valores predeterminados son intencionalmente `true` en `_config.yml`, por lo que las bifurcaciones comienzan con diagnósticos completos disponibles y pueden desactivar el registro más tarde sin cambios de código.
 
 Cuando están habilitados, los registradores compartidos ahora emiten:
 
@@ -359,9 +406,9 @@ Qué permite esto:
 - un origen de envío USPS a nivel de implementación
 - un valor predeterminado de envío gratuito a nivel de implementación que las campañas aún pueden anular
 - una tasa de reserva configurada si la cotización del operador en vivo no está disponible
-- una superficie de política de cotización de USPS orientada a la fork para tiempos de espera, reutilización de cotizaciones de corta duración y tiempos de reutilización temporales después de fallas repetidas o limitación de tarifas
+- una superficie de política de cotización de USPS orientada a la bifurcación para tiempos de espera, reutilización de cotizaciones de corta duración y tiempos de reutilización temporales después de fallas repetidas o limitación de tarifas
 - una superficie de selección de opciones de entrega compartida en el carrito y Administrar compromiso sin abrir opciones arbitrarias de velocidad del transportista
-- nombres `shipping_preset` reutilizables en niveles de campaña para que las forks no necesiten repetir dimensiones comunes de merchandising
+- nombres `shipping_preset` reutilizables en niveles de campaña para que las bifurcaciones no necesiten repetir dimensiones comunes de merchandising
 - sugerencias de perfil de USPS de nivel preestablecido opcionales para tipos de artículos que necesitan una forma de cotización nacional diferente
 - pedido opcional de clases de correo nacional de nivel preestablecido para productos que califican para clases de USPS más económicas como Media Mail
 
@@ -452,7 +499,7 @@ Esto está destinado a artículos de catálogo de precio fijo y variantes simple
 Comportamiento de envío de complementos:
 
 - `category: digital` significa que el complemento nunca contribuye al envío.
-- `category: physical` significa que el complemento participa en la misma calculadora de envío utilizada para los niveles físicos y los artículos de soporte físico.
+- `category: physical` significa que el complemento participa en la misma calculadora de envío utilizada para niveles físicos y artículos de soporte físico.
 - Los complementos físicos pueden:
   - hacer referencia a un `shipping_preset` compartido
   - o proporcione `shipping.weight_oz`, `shipping.packaging_weight_oz`, `shipping.length_in`, `shipping.width_in`, `shipping.height_in` y `shipping.stack_height_in` explícitos
@@ -462,7 +509,7 @@ Comportamiento actual del inventario de complementos:
 - `inventory` puede vivir del producto en sí o de cada variante.
 - `low_stock_threshold` controla cuándo la interfaz de usuario de administración/carro compartido muestra mensajes de escasez
 - Las variantes agotadas se eliminan de la superficie compartida del estado del producto, a menos que el colaborador ya posea esa variante exacta en un compromiso existente.
-- Tanto el carrito como Manage Pledge utilizan el mismo modelo de tarjeta de producto adicional compartido, por lo que las forks no necesitan diseñar ni configurar dos sistemas de merchandising diferentes.
+- Tanto el carrito como Manage Pledge utilizan el mismo modelo de tarjeta de producto adicional compartido, por lo que las bifurcaciones no necesitan diseñar ni configurar dos sistemas de merchandising diferentes.
 - el encabezado de la sección complementaria y la nota de soporte se localizan a través de los archivos i18n de tiempo de ejecución normal, y la nota de soporte interpola automáticamente el nombre del autor del sitio configurado.
 
 Las campañas también pueden definir complementos con alcance de campaña directamente en el frente de la campaña en `campaign_add_ons`.
@@ -478,11 +525,76 @@ Por el contrario, los `add_ons.products` globales siguen siendo productos de pla
 - no cuentan para los totales de financiación de la campaña
 - Los complementos físicos globales se combinan en un cargo de envío/envío de plataforma independiente.
 
+### `reports`
+
+Utilice `reports` para conocer el comportamiento de entrega de informes del ejecutor de campaña que debe estar alineado con la programación de los trabajadores y la generación de correo electrónico.
+
+Claves admitidas hoy:
+
+- `campaign_runner.enabled`
+- `campaign_runner.daily_pledge_report_enabled`
+- `campaign_runner.fulfillment_report_enabled`
+- `campaign_runner.send_hour_mt`
+- `campaign_runner.send_minute_mt`
+- `campaign_runner.include_stats_summary`
+- `campaign_runner.include_csv_attachment`
+- `campaign_runner.email_subject_prefix`
+
+Comportamiento actual:
+
+- Los destinatarios a nivel de campaña viven en el frente de la campaña como `runner_report_emails`.
+- Si el campo de la campaña falta o está vacío, no se envían correos electrónicos al responsable de la campaña para esa campaña.
+- la ventana de envío todavía se interpreta en Mountain Time, por lo que el tiempo del informe permanece alineado con el resto del modelo del ciclo de vida de la campaña.
+- `email_subject_prefix` se puede configurar como una cadena vacía para desactivar el prefijo por completo
+- cuando el prefijo se omite en tiempo de ejecución, el trabajador vuelve a `[platform.name]`
+- Los temas de los informes son concisos y están orientados a la capacidad de entrega: sin emoji, etiquetas de informe cortas y un patrón consistente de prefijo + tipo de informe + título de campaña.
+- Los correos electrónicos de promesas diarias utilizan un resumen exclusivo de la campaña con las promesas totales, las nuevas promesas en las 24 horas anteriores, el total de las promesas, el progreso de los objetivos y la cuenta regresiva/tiempo transcurrido de la fecha límite.
+- Los envíos de cumplimiento se dividen por cumplimiento:
+  - Los destinatarios del corredor de campaña reciben solo las filas completadas por la campaña.
+  - `platform.support_email` recibe un correo electrónico de cumplimiento de plataforma por separado cuando existen filas de complementos de plataforma
+- los resúmenes de cumplimiento son intencionalmente concisos y orientados al cumplimiento; no reutilizan el resumen del cuerpo del informe de compromiso diario
+- Ambos tipos de informes pueden incluir una breve nota de orientación en el cuerpo para que los corredores reciban recordatorios de comunicación de cumplimiento o motivación específicos de la etapa de la campaña junto con el CSV.
+
+Ejemplo:
+
+```yml
+reports:
+  campaign_runner:
+    enabled: true
+    daily_pledge_report_enabled: true
+    fulfillment_report_enabled: true
+    send_hour_mt: 7
+    send_minute_mt: 0
+    include_stats_summary: true
+    include_csv_attachment: true
+    email_subject_prefix: "[My Fork]"
+```
+
+Qué permite esto:
+
+- Correos electrónicos diarios del libro mayor de compromisos relacionados con la campaña durante las campañas en vivo.
+- Exportaciones de cumplimiento únicas después de que pasa la fecha límite de la campaña.
+- Separe los correos electrónicos de cumplimiento de la plataforma y del corredor de la campaña cuando sea necesario entregar tanto los elementos de la campaña como los de la plataforma.
+- resúmenes del cuerpo opcionales y archivos adjuntos CSV opcionales sin cambiar los archivos de contenido de la campaña
+- un prefijo de asunto consistente, que por defecto es `"[The Pool]"` en este repositorio y vuelve a `[platform.name]` si se omite en tiempo de ejecución
+
+Ejemplo de destinatario por campaña:
+
+```yml
+runner_report_emails:
+  - producer@example.com
+  - ops@example.com
+```
+
 ### `design`
 
 Utilice `design` para anulaciones seleccionadas del sistema de diseño que no requieren ediciones de Sass.
 
-Estos valores se emiten en la hoja de estilo generada [assets/theme-vars.css](https://github.com/your-org/your-project/blob/main/assets/theme-vars.css), que mantiene el puente de variables de diseño compatible con el estricto CSP del sitio. Las forks no necesitan editar Sass solo para cambiar los tokens admitidos.
+Estos valores se emiten en la hoja de estilo generada [assets/theme-vars.css](https://github.com/your-org/your-project/blob/main/assets/theme-vars.css), que mantiene el puente de variables de diseño compatible con el estricto CSP del sitio. Las bifurcaciones no necesitan editar Sass solo para cambiar los tokens admitidos.
+
+Las mismas variables CSS generadas ahora también son el tema del sidecar Stripe Elements en el sitio, por lo que las anulaciones de tipografía/color/radio admitidas se llevan a cabo en la interfaz de usuario de pago personalizada sin agregar una capa de configuración separada solo para el pago.
+
+Un subconjunto deliberadamente más pequeño de la misma superficie de marca se refleja en el Worker para que los correos electrónicos de los seguidores puedan reutilizar el logotipo configurado, las pilas de fuentes, el color primario, los colores de borde/superficie y el radio del botón.
 
 Claves admitidas actualmente:
 
@@ -558,7 +670,7 @@ Clave admitida hoy:
 
 - `stripe_publishable_key`
 
-El tiempo de ejecución del carrito propio y el flujo de pago personalizado en el sitio se tratan como un comportamiento integrado en la plataforma, no como cambios de modo orientados hacia la fork.
+El tiempo de ejecución del carrito propio y el flujo de pago personalizado en el sitio se tratan como un comportamiento integrado en la plataforma, no como cambios de modo orientados hacia la bifurcación.
 
 ### `cache`
 
@@ -578,14 +690,13 @@ Algunas configuraciones solo afectan la compilación de Jekyll y la interfaz de 
 Estos se pueden cambiar en `_config.yml` sin cambiar la configuración del trabajador ni preocuparse por el paso de sincronización:
 
 - `i18n.*`
-- `design.*`
 - `checkout.stripe_publishable_key`
 - `platform.default_creator_name`
-- `platform.logo_path`
 - `platform.footer_logo_path`
 - `platform.favicon_path`
 - `platform.default_social_image_path`
 - `cache.*`
+- la mayoría de los valores `design.*` que solo son consumidos por el CSS del sitio/tema generado
 
 Estos son los botones de “generación/marca/localización de sitios” más seguros sin impacto matemático del lado del trabajador o del correo electrónico. Cambian el sitio generado, la carga útil de inicio del navegador o la capa del tema, pero no es necesario reflejarlos en el entorno del trabajador.
 
@@ -598,9 +709,22 @@ Estos valores de configuración del sitio también se reflejan en los valores de
 - `platform.support_email` -> `SUPPORT_EMAIL`
 - `platform.pledges_email_from` -> `PLEDGES_EMAIL_FROM`
 - `platform.updates_email_from` -> `UPDATES_EMAIL_FROM`
+- `platform.logo_path` -> `EMAIL_LOGO_PATH`
 - `platform.site_url` -> `SITE_BASE`
 - `platform.worker_url` -> `WORKER_BASE`
+- `design.font_body` -> `EMAIL_FONT_FAMILY`
+- `design.font_display` -> `EMAIL_HEADING_FONT_FAMILY`
+- `design.color_text` -> `EMAIL_COLOR_TEXT`
+- `design.color_text_muted` -> `EMAIL_COLOR_MUTED`
+- `design.color_surface_subtle` -> `EMAIL_COLOR_SURFACE`
+- `design.color_border` -> `EMAIL_COLOR_BORDER`
+- `design.color_primary` -> `EMAIL_COLOR_PRIMARY`
+- `design.radius_lg` -> `EMAIL_BUTTON_RADIUS`
 - `pricing.sales_tax_rate` -> `SALES_TAX_RATE`
+- `tax.provider` -> `TAX_PROVIDER`
+- `tax.origin_country` -> `TAX_ORIGIN_COUNTRY`
+- `tax.use_regional_origin` -> `TAX_USE_REGIONAL_ORIGIN`
+- `tax.zip_tax_api_base` -> `ZIP_TAX_API_BASE`
 - `pricing.flat_shipping_rate` -> `FLAT_SHIPPING_RATE`
 - `pricing.default_tip_percent` -> `DEFAULT_PLATFORM_TIP_PERCENT`
 - `pricing.max_tip_percent` -> `MAX_PLATFORM_TIP_PERCENT`
@@ -615,6 +739,14 @@ Estos valores de configuración del sitio también se reflejan en los valores de
 - `shipping.usps.quote_cache_ttl_seconds` -> `USPS_QUOTE_CACHE_TTL_SECONDS`
 - `shipping.usps.failure_cooldown_seconds` -> `USPS_FAILURE_COOLDOWN_SECONDS`
 - `shipping.usps.rate_limit_cooldown_seconds` -> `USPS_RATE_LIMIT_COOLDOWN_SECONDS`
+- `reports.campaign_runner.enabled` -> `CAMPAIGN_RUNNER_REPORTS_ENABLED`
+- `reports.campaign_runner.daily_pledge_report_enabled` -> `CAMPAIGN_RUNNER_DAILY_PLEDGE_REPORT_ENABLED`
+- `reports.campaign_runner.fulfillment_report_enabled` -> `CAMPAIGN_RUNNER_FULFILLMENT_REPORT_ENABLED`
+- `reports.campaign_runner.send_hour_mt` -> `CAMPAIGN_RUNNER_REPORT_HOUR_MT`
+- `reports.campaign_runner.send_minute_mt` -> `CAMPAIGN_RUNNER_REPORT_MINUTE_MT`
+- `reports.campaign_runner.include_stats_summary` -> `CAMPAIGN_RUNNER_INCLUDE_STATS_SUMMARY`
+- `reports.campaign_runner.include_csv_attachment` -> `CAMPAIGN_RUNNER_INCLUDE_CSV_ATTACHMENT`
+- `reports.campaign_runner.email_subject_prefix` -> `CAMPAIGN_RUNNER_EMAIL_SUBJECT_PREFIX`
 
 El repositorio mantiene esos valores alineados automáticamente a través de las rutas principales locales/de desarrollo/prueba. Después de cambiarlos, reinicie la pila local para que tanto el sitio como el trabajador recojan los nuevos valores:
 
@@ -651,7 +783,7 @@ Todavía a nivel de código hoy:
 - agregar nuevos proveedores de pago o modos de pago
 - cambiar proveedores de inserción compatibles
 - ampliar las listas permitidas de CSP para hosts externos arbitrarios
-- cambiar el estilo de los campos propiedad de Stripe más allá de la API de apariencia compatible de Stripe
+- cambiar el estilo de campo propiedad de Stripe más allá del puente de token de diseño admitido y la API de apariencia de Stripe
 - introducir estructuras de diseño, plantillas de página o bloques de contenido completamente nuevos
 - cambiar el comportamiento del alojamiento de fuentes/CSP más allá de las pilas de fuentes actualmente admitidas
 
@@ -661,7 +793,7 @@ Tenga en cuenta también:
 - no todas las variables de entorno de trabajador pertenecen a `_config.yml`
 - la superficie de soporte está curada para evitar regresiones de seguridad y mantenimiento
 
-## Flujo de trabajo seguro para forks
+## Flujo de trabajo seguro para horquillas
 
 1. Actualización `_config.yml`.
 2. Ejecute `npm run sync:worker-config` si está editando configuraciones fuera de los puntos de entrada normales y desea actualizar `worker/wrangler.toml` inmediatamente.
@@ -679,6 +811,7 @@ npm run podman:doctor
 - respaldo del creador de campañas
 - Las páginas sensibles a CSP aún se cargan sin infracciones de CSP de la consola
 - totales del carrito/pago
+- Estilo de interfaz de usuario de pago de franjas
 - Gestionar compromiso
 - correos electrónicos de seguidores
 

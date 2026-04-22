@@ -8,7 +8,9 @@ lang: es
 
 # The Pool
 
-**Iniciador de plataforma de crowdfunding de código abierto**
+**Plataforma de financiación colectiva de código abierto de Dust Wave** — [site.example.com](https://site.example.com)
+
+Hito de lanzamiento actual: **v0.9.4**. The Pool considerará **v1.0** como el hito de lanzamiento público más amplio una vez que se completen los elementos restantes de la hoja de ruta.
 
 Un sitio estático de carrito propio Jekyll + para crowdfunding creativo de todo o nada. Los patrocinadores crean una promesa en el carrito propiedad del navegador de The Pool, el trabajador de Cloudflare canonicaliza la contribución a través de `/checkout-intent/start` y Stripe recopila y guarda los detalles de la tarjeta a través de un paso de pago seguro en el sitio para que las tarjetas solo se carguen después de que una campaña exitosa alcance su fecha límite. Un pago único puede incluir artículos de múltiples campañas; Después de la confirmación del webhook, los fanáticos de los trabajadores se agrupan en registros de compromiso separados con alcance de campaña. Si se financia, un cron de trabajador envía liquidaciones por lotes y cobra promesas fuera de sesión. Opcionalmente, los seguidores pueden agregar un consejo sobre la plataforma, administrar promesas a través de enlaces mágicos con alcance de pedido y volver a visitar un panel de administración de promesas compatible con escritorio con secciones Activas/Cerradas.
 
@@ -24,7 +26,7 @@ Un sitio estático de carrito propio Jekyll + para crowdfunding creativo de todo
 - **Complementos de plataforma con reconocimiento de inventario**: los complementos de merchandising a nivel de paquete se pueden adjuntar al proceso de pago, permanecer editables en Administrar compromiso, admitir existencias por variante y seguir el mismo flujo canónico de envío, informes y correo electrónico sin contar para los objetivos de financiación de la campaña.
 - **Complementos de campaña con contabilidad basada en campaña**: el descuento de campaña también puede definir complementos con alcance de campaña que se muestran en el mismo carrito/administrar la interfaz de usuario, cuentan para el subtotal de financiación de esa campaña, siguen las anulaciones de envío de la campaña y desaparecen automáticamente cuando el compromiso de campaña propietario abandona el carrito.
 - **Paso de pago de Stripe en el sitio**: el segundo sidecar de pago existente aloja la interfaz de usuario de pago de Stripe segura y Manage Pledge utiliza el mismo patrón para `Update Card`.
-- **Configuraciones de precios configurables**: `pricing.sales_tax_rate`, `pricing.default_tip_percent` y `pricing.max_tip_percent` viven en `_config.yml`, y las variables de trabajo requeridas se sincronizan automáticamente en `worker/wrangler.toml` para la aplicación del lado del servidor.
+- **Configuraciones configurables de precios e impuestos del proveedor**: `pricing.*` y `tax.*` viven en `_config.yml`, y las variables de trabajador reflejadas se sincronizan automáticamente en `worker/wrangler.toml` para que las vistas previas del navegador, los estados de impuestos provisionales y los totales del lado del servidor permanezcan alineados.
 - **Niveles físicos y digitales**: los artículos físicos activan la captura de la dirección de envío durante el proceso de pago, además de cotizaciones de USPS calculadas por el trabajador, tarifas alternativas configuradas y actualizaciones de firma nacionales opcionales cuando están habilitadas.
 - **Enlaces mágicos relacionados con el pedido**: cada enlace de colaborador solo administra su propio compromiso/pedido.
 - **Sesiones de apoyo más seguras**: las páginas de la comunidad mantienen el acceso de los seguidores en el almacenamiento de sesiones del navegador en lugar de una cookie simbólica de larga duración.
@@ -43,13 +45,15 @@ Un sitio estático de carrito propio Jekyll + para crowdfunding creativo de todo
 - **Financiamiento continuo** — Sección de apoyo posterior a la campaña
 - **Panel de administración de promesas**: secciones activas/cerradas fáciles de usar para escritorio con controles de solo lectura en estado bloqueado después de la fecha límite
 - **Correos electrónicos e informes con sugerencias**: los correos electrónicos de los colaboradores, los informes de compromiso y las exportaciones de cumplimiento incluyen la sugerencia de la plataforma cuando está presente.
+- **Informes de ejecución de campaña**: los correos electrónicos configurables del libro mayor de compromisos diarios con alcance de campaña y las exportaciones de cumplimiento posteriores a la fecha límite pueden ir a los destinatarios de ejecución configurados de cada campaña, mientras que las filas completadas por la plataforma se pueden enrutar por separado a `support_email`, con asuntos concisos que priorizan la entregabilidad, notas de orientación específicas de la campaña y una ruta de administración de ejecución en seco/envío manual para las operaciones.
 - **Diagnóstico de deriva de proyección**: las comprobaciones administrativas de solo lectura y una CLI local pueden comparar las estadísticas almacenadas, el inventario y los índices de campaña con la verdad del compromiso guardado antes de que cualquier ruta de reparación modifique los datos.
 - **Sistema visual compartido**: las páginas públicas, las superficies de campaña, el carrito/pago y Manage Pledge utilizan el mismo lenguaje de tipografía, botones, campos y tarjetas reutilizables y más tranquilos.
-- **Pulido adaptable para dispositivos móviles**: las páginas de campaña, los flujos de pago/administración, las páginas de la comunidad y el contenido de formato largo comparten correcciones de espaciado, apilamiento y desbordamiento de pantalla pequeña en lugar de una interfaz de usuario separada solo para dispositivos móviles.
-- **Personalización de la fork primero variable**: la configuración estructurada ahora impulsa la marca, los precios, las configuraciones sincronizadas con los trabajadores, los activos principales de la marca y las variables de diseño seleccionadas sin necesidad de código personalizado para el cambio de marca normal de la fork.
+- **Pulido adaptable para dispositivos móviles**: las páginas de campaña, los flujos de pago/administración, las páginas de la comunidad y el contenido de formato largo comparten un espacio de pantalla pequeño, cajones con reconocimiento de áreas seguras, objetivos de toque más grandes y correcciones de desbordamiento en lugar de una interfaz de usuario separada solo para dispositivos móviles.
+- **Línea base de accesibilidad**: los shells públicos ahora mantienen enlaces de omisión y puntos de referencia principales estables, mientras que los flujos de carrito/pago utilizan una semántica de diálogo más sólida, actualizaciones de regiones en vivo y etiquetas accesibles más claras sin mover los campos de pago fuera de la interfaz de usuario segura propiedad de Stripe.
+- **Personalización de la primera bifurcación variable**: la configuración estructurada ahora impulsa la marca, los precios, las configuraciones sincronizadas con los trabajadores, los activos principales de la marca, las variables de diseño seleccionadas, los elementos Stripe temáticos y los correos electrónicos de los seguidores de la marca sin necesidad de un código personalizado para el cambio de marca normal de la bifurcación.
 - **Inserciones de campañas en vivo alojadas**: las páginas de la campaña ahora se vinculan a un generador de inserciones con reconocimiento regional que genera código iframe de copiar y pegar con opciones de diseño/tema/medios/CTA, datos en vivo respaldados por los trabajadores y comportamiento de cambio de tamaño automático.
-- **Fundación i18n en inglés + español**: `_config.yml` ahora ofrece idiomas admitidos, rutas de configuración regional estática, rutas de campaña localizadas generadas, datos de traducción compartidos y un selector de idioma de pie de página más silencioso, con español en vivo en inicio/acerca de/términos, páginas de campaña públicas, páginas insertadas, páginas de resultados de promesas, `/manage/`, `/community/`, rutas de la comunidad de seguidores, carrito/comunidad propiedad del sitio/Administrar compromiso/copia en tiempo de ejecución insertada, campaña etiquetas de cuenta regresiva/galería/estadísticas en vivo, video de héroe/avance de la comunidad/diario cromado, fechas de campaña localizadas y correos electrónicos de apoyo de los trabajadores localizados
-- **Línea de base de los fundamentos de SEO**: las páginas públicas y las páginas de campaña ahora emiten títulos consistentes, descripciones, canónicos, etiquetas OG/Twitter, JSON-LD honesto, imágenes de tarjetas compartidas de campaña generadas por los trabajadores y metadatos en idiomas alternativos cuando sean compatibles, mientras que `robots.txt`, `sitemap.xml` y las reglas explícitas de noindex mantienen los flujos privados/tokenizados fuera de la intención de búsqueda.
+- **Fundación i18n en inglés + español**: `_config.yml` ahora ofrece idiomas admitidos, rutas de configuración regional estática, rutas de campaña localizadas generadas, datos de traducción compartidos y un selector de idioma de pie de página más silencioso, con español en vivo en inicio/acerca de/términos, páginas de campaña públicas, páginas insertadas, páginas de resultados de promesas, `/manage/`, `/community/`, rutas de la comunidad de seguidores, carrito/comunidad propiedad del sitio/Administrar compromiso/copia en tiempo de ejecución insertada, campaña etiquetas de cuenta regresiva/galería/estadísticas en vivo, resúmenes de los botones del carrito, copia auxiliar de ubicación de impuestos de pago, video principal/avance de la comunidad/diario cromado, fechas de campaña localizadas y correos electrónicos de apoyo de los trabajadores localizados
+- **Línea de base de los fundamentos de SEO**: las páginas públicas y las páginas de campaña ahora emiten títulos consistentes, descripciones, canónicos, etiquetas OG/Twitter, metadatos de idiomas localizados, JSON-LD honesto, imágenes de tarjetas compartidas de campaña generadas por los trabajadores y metadatos de idiomas alternativos cuando sean compatibles, mientras que `robots.txt`, `sitemap.xml` y las reglas explícitas de noindex mantienen los flujos privados/tokenizados fuera de la intención de búsqueda.
 - **Integración de CMS**: [Páginas CMS](https://pagescms.org) para edición visual de campañas
 
 ## Arquitectura
@@ -85,6 +89,16 @@ Las configuraciones de precios compatibles con Fork se encuentran en:
 - `pricing.sales_tax_rate`, `pricing.default_tip_percent` y `pricing.max_tip_percent` en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml)
 - Vars de trabajo sincronizadas automáticamente `SALES_TAX_RATE`, `DEFAULT_PLATFORM_TIP_PERCENT` y `MAX_PLATFORM_TIP_PERCENT` en [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml)
 
+Las configuraciones del motor de impuestos compatibles con Fork se encuentran en:
+- `tax.provider`, `tax.origin_country`, `tax.use_regional_origin`, `tax.nm_grt_api_base` y `tax.zip_tax_api_base` en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml)
+- Vars de trabajador reflejadas `TAX_PROVIDER`, `TAX_ORIGIN_COUNTRY`, `TAX_USE_REGIONAL_ORIGIN`, `NM_GRT_API_BASE` y `ZIP_TAX_API_BASE` en [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml)
+- `tax.provider: flat` mantiene la línea base de tasa configurada heredada de `pricing.sales_tax_rate`
+- `tax.provider: offline_rules` utiliza reglas internacionales de IVA/GST suministradas además de un comportamiento alternativo a nivel estatal
+- `tax.provider: nm_grt` utiliza primero el conjunto de datos inicial de Nuevo México suministrado y puede refinar las búsquedas de direcciones de calles de Nuevo México con la API gratuita EDAC GRT.
+- Secreto de trabajador opcional `ZIP_TAX_API_KEY` cuando `tax.provider: zip_tax` está habilitado para búsquedas de impuestos de EE. UU. a nivel local/jurisdiccional
+
+El comportamiento de pago actual es intencionalmente conservador: si el navegador aún no tiene suficientes datos de destino, el carrito muestra el impuesto provisional como `--` y la cotización de impuestos final se resuelve una vez que el Trabajador tiene suficientes detalles de ubicación de facturación o envío.
+
 Las configuraciones de envío amigables con el fork se encuentran en:
 - `shipping.origin_*`, `shipping.fallback_flat_rate`, `shipping.free_shipping_default` y `shipping.usps.*` en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml)
 - Variables de trabajo sincronizadas automáticamente como `SHIPPING_ORIGIN_ZIP`, `SHIPPING_FALLBACK_FLAT_RATE`, `USPS_ENABLED`, `USPS_CLIENT_ID` y las perillas de tiempo de espera/caché/enfriamiento de USPS en [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml)
@@ -101,18 +115,21 @@ Las configuraciones globales de productos/complementos compatibles con Fork ahor
 - el inventario complementario configurado es la base inicial; El stock restante se deriva del estado del compromiso guardado, no del carrito no guardado o de Administrar borradores.
 - Los informes de compromiso y cumplimiento ahora separan el valor del compromiso de campaña del valor adicional de la plataforma para facilitar las operaciones.
 
-Las configuraciones orientadas a la fork ahora usan un modelo de configuración estructurado en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml):
+Las configuraciones orientadas a la bifurcación ahora usan un modelo de configuración estructurado en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml):
 
 - `platform` para identidad, URL y contacto de soporte
 - `platform` también cubre activos de marca como logotipo, logotipo de pie de página, favicon e imagen social predeterminada.
 - `title` / `description` de nivel superior para la identidad del sitio de Jekyll y la copia SEO predeterminada
 - `seo` para controles de identidad SEO locales como `x_handle`, `same_as`, `default_social_image_alt`, `og_locale_overrides` y si el centro de red público debe seguir siendo indexable.
-- `pricing` para impuestos, la línea base de compatibilidad de envío plano heredada y los valores predeterminados de sugerencias de plataforma
+- `pricing` para la línea base de compatibilidad de tarifa plana y los valores predeterminados de sugerencias de plataforma
+- `tax` para elegir el motor de impuestos de los trabajadores y su configuración de búsqueda no secreta
 - `shipping` para configuración de origen, comportamiento de cotización de USPS, política alternativa, valores predeterminados de envío gratuito, ajustes preestablecidos de envío y política de opciones de envío limitadas
 - `add_ons` para un pequeño catálogo de productos global, productos de precio fijo y variantes simples como tallas de camisa.
+- `reports` para tiempos de informes de campaña, archivos adjuntos, resúmenes, comportamiento de prefijo de asunto y el flujo de trabajo de correo electrónico de cumplimiento dividido junto con `platform.support_email`
 - Tema frontal de la campaña `campaign_add_ons` para productos relacionados con la campaña que deben usar la misma interfaz de usuario de tarjeta pero que cuentan para el subtotal y las reglas de envío de esa campaña.
 - `i18n` para idiomas predeterminados/compatibles, etiquetas de idioma y rutas de páginas públicas traducidas
 - `design` para anulaciones de tipografía seleccionada, radio, ancho de diseño y token de tema
+- un pequeño subconjunto seleccionado de `platform` / `design` se refleja en el Worker para que los correos electrónicos de los seguidores también permanezcan alineados con la marca de la bifurcación.
 - `debug` para el comportamiento de registro del navegador y de la consola de trabajo
 - `checkout` para configuraciones de pago verdaderamente variables como la clave publicable de Stripe
 - `cache` para TTL de navegador en vivo
@@ -121,6 +138,8 @@ Las configuraciones orientadas a la fork ahora usan un modelo de configuración 
 
 Consulte [docs/CUSTOMIZATION.md](/es/docs/development/customization-guide/) para conocer la superficie de personalización sin código admitida y qué configuraciones se reflejan automáticamente en el trabajador.
 Consulte [docs/SEO.md](/es/docs/operations/seo/) para conocer la implementación actual de los fundamentos de SEO y la superficie de SEO compatible.
+Consulte [docs/ACCESSIBILITY.md](/es/docs/operations/accessibility/) para conocer la línea base de accesibilidad actual y los flujos críticos verificados.
+Consulte [docs/I18N.md](/es/docs/development/internationalization/) para conocer el modelo local, las fuentes de traducción compartidas y el comportamiento de la ruta localizada.
 
 Para la localización, el modelo admitido es:
 
@@ -164,7 +183,7 @@ npm run podman:self-check
 
 Si desea realizar el pago de Stripe en el sitio localmente, agregue `STRIPE_PUBLISHABLE_KEY_TEST=pk_test_...` a [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars) antes de iniciar la pila.
 
-## Guía de plan gratuito de Cloudflare para forks
+## Guía del plan Cloudflare para bifurcaciones
 
 The Pool tiene una forma intencionada para que la mayor parte del tráfico siga siendo barato:
 
@@ -175,29 +194,35 @@ The Pool tiene una forma intencionada para que la mayor parte del tráfico siga 
 - Los informes de una sola campaña, las reconstrucciones de estadísticas, los asistentes de liquidación y la enumeración de los partidarios de los administradores prefieren los índices `campaign-pledges:{slug}` antes de recurrir a costosos escaneos de espacios de nombres, y las reconstrucciones de estadísticas/inventario ahora reparan los índices de campaña obsoletos cuando detectan una desviación.
 - Las nuevas comprobaciones de deriva de solo lectura facilitan la confirmación cuando las proyecciones están obsoletas antes de ejecutar una ruta de reparación.
 - Las rutas de escritura de nivel limitado ahora solicitan al coordinador disponibilidad según la reserva en lugar de reconstruir la verdad a partir de claves de reserva KV.
+- Las rutas de lectura públicas siguen siendo intencionalmente permisivas para que una campaña legítimamente popular no alcance límites artificiales anti-DoS, mientras que las costosas escrituras de pago/administración/administración conllevan límites de velocidad y límites de tamaño de solicitud más estrictos.
 - Una vez que un cliente ya ha superado una ventana de límite de velocidad, las solicitudes bloqueadas repetidas ya no reescriben el mismo contador KV en cada visita.
+- `POST /checkout-intent/abandon` utiliza un depósito de reintentos con alcance de orden para que la limpieza de descarga/reintento siga siendo compatible con las IP compartidas sin dejar abierta la ruta de lanzamiento.
+- la configuración de trabajador también establece `limits.cpu_ms = 100` para trabajadores estándar/pagados implementados, lo cual está muy por encima de los tiempos actuales de aprovechamiento de unidades representativas (`6-28 ms`) y al mismo tiempo está dramáticamente por debajo del límite predeterminado de 30 segundos de Cloudflare para implementaciones pagas.
 
-Perillas de fork que vale la pena conocer:
+Perillas de horquilla que vale la pena conocer:
 
-- configuración del sitio: `cache.live_stats_ttl_seconds`, `cache.live_inventory_ttl_seconds`, `pricing.sales_tax_rate`, `pricing.flat_shipping_rate`
-- Entorno de trabajador: valores de precios sincronizados automáticamente en [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml)
+- configuración del sitio: `cache.live_stats_ttl_seconds`, `cache.live_inventory_ttl_seconds`, `pricing.sales_tax_rate`, `pricing.flat_shipping_rate`, `tax.*`
+- Entorno del trabajador: precios sincronizados automáticamente y valores del proveedor de impuestos en [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml)
 
 ### Escenarios prácticos de escalabilidad
 
-Estos son escenarios de planificación aproximados, no garantías. Asumen los TTL de caché del navegador predeterminados de 5 minutos, en su mayoría un comportamiento normal del usuario y los límites de planes gratuitos publicados actualmente por Cloudflare para Workers y KV.
+Estos son escenarios de planificación aproximados, no garantías. Asumen los TTL de caché del navegador predeterminados de 5 minutos, en su mayoría el comportamiento normal del usuario y los precios/límites de KV y trabajadores publicados actualmente de Cloudflare.
 
-|Escenario|Actividad diaria dura|Perspectiva de plan libre|
-|----------|----------------------|-------------------|
-|Pequeño lanzamiento colectivo|~1500 visitas a la página de la campaña, ~75 visitas de administradores/colaboradores, ~20 inicios de pago, ~10 promesas completadas|Cómodo. Las páginas estáticas absorben la mayor parte del tráfico y el uso dinámico de los trabajadores debería mantenerse en unos pocos miles.|
-|Semana de lanzamiento ocupada|~8000 visitas a la página de la campaña, ~250 visitas de administradores/colaboradores, ~60 inicios de pago, ~25 compromisos completados o modificados|Sigue siendo plausible en el nivel gratuito para el tráfico de lectura. El primer presupuesto a tener en cuenta son los escritos de KV, no las solicitudes de los trabajadores.|
-|Estudio multiproyecto en crecimiento|~20,000+ lecturas dinámicas por día o muchas docenas de promesas completadas/modificadas/canceladas por día|Comience a planificar el plan de Trabajadores Asalariados antes de un importante impulso de campaña. El tráfico de lectura aún puede estar bien, pero los días con muchas mutaciones pueden superar primero las escrituras KV libres.|
+|Escenario|Actividad diaria dura|Perspectivas del plan|
+|----------|----------------------|--------------|
+|Pequeño lanzamiento colectivo|~1500 visitas a la página de la campaña, ~75 visitas de administradores/colaboradores, ~20 inicios de pago, ~10 promesas completadas|Lo gratuito debería seguir siendo viable. Esta es la forma operativa que The Pool está diseñada para manejar de forma económica.|
+|Semana de lanzamiento ocupada|~8000 visitas a la página de la campaña, ~250 visitas de administradores/colaboradores, ~60 inicios de pago, ~25 compromisos completados o modificados|A menudo, sigue siendo plausible en el modo Gratis si el abuso se mantiene bajo y los flujos de reparación del administrador son raros, pero aquí es donde el Pago comienza a comprar un margen real.|
+|Estudio multiproyecto en crecimiento|~20,000+ lecturas dinámicas por día o muchas docenas de promesas completadas/modificadas/canceladas por día|Comience a planificar el pago antes de un impulso importante. Los días con muchas mutaciones y el camino de abuso se convierten en la parte a tener en cuenta primero.|
 
-A partir del 7 de abril de 2026, Cloudflare documenta el plan Workers Free en `100,000` solicitudes por día, y Workers KV Free en `100,000` lecturas por día más `1,000` escrituras por día y solicitudes de lista `1,000` por día:
+A partir del 18 de abril de 2026, Cloudflare documenta el plan Workers Free en `100,000` solicitudes por día. El plan Workers Paid comienza en `$5/month` e incluye solicitudes de `10 million` por mes más `30 million` ms de CPU por mes antes del precio excedente. Workers KV Free incluye lecturas `100,000`/día más solo escrituras `1,000`/día y solicitudes de lista `1,000`/día, mientras que Workers KV en el plan pago incluye lecturas `10 million`/mes y escrituras `1 million`/mes antes de los excedentes:
 
 - [Precios para trabajadores de Cloudflare](https://developers.cloudflare.com/workers/platform/pricing/)
+- [Precios de Cloudflare Workers KV](https://developers.cloudflare.com/kv/platform/pricing/)
 - [Límites KV de los trabajadores de Cloudflare](https://developers.cloudflare.com/kv/platform/limits/)
 
-La conclusión práctica de las forks es simple: The Pool puede manejar una buena cantidad de tráfico de navegación en el plan gratuito, pero los compromisos completados, las modificaciones de los compromisos, las cancelaciones y los flujos de reparación de administradores son la parte que se debe observar más de cerca porque gastan el escaso presupuesto de escritura de KV.
+La conclusión práctica de las bifurcaciones es simple: The Pool aún puede adaptarse al plan Workers Free para su forma prevista de "pequeña cantidad de campañas simultáneas, volumen modesto de patrocinadores, ejecución de un mes", especialmente porque el tráfico de lectura pública es barato y la mayoría de los días tienen poco tráfico de mutación. La razón para pasar a Pagado no es que Gratis dejó de funcionar repentinamente, sino que Pagado brinda un margen más saludable para picos de flash, escrituras KV de ruta de abuso, actividad de modificación/cancelación más intensa y más herramientas de operador.
+
+Un matiz de implementación: el bloque `limits` configurable de Cloudflare solo se aplica en el modelo de uso estándar y solo en los trabajadores implementados, no en el desarrollo local. Eso significa que la nueva protección `cpu_ms` es un respaldo de denegación de billetera para implementaciones pagas, mientras que Workers Free todavía depende de los límites máximos de plan gratuito integrados de Cloudflare.
 
 ## Pruebas
 
@@ -207,6 +232,7 @@ npm run test:secrets   # Secret exposure audit against local env files, tracked 
 npm run test:unit      # Unit tests (Vitest)
 npm run test:e2e       # E2E tests (Playwright) — fully automated browser coverage
 npm run test:e2e:headless # CI-style automated browser suite
+npm run test:e2e:headless:podman -- tests/e2e/accessibility-public-pages.spec.ts --project=chromium # Podman-backed public accessibility slice
 npm run test:security  # Security tests — pen testing the Worker API
 npm run test:security:podman # Security tests with a Podman-backed local stack in one invocation
 npm test               # Run unit + e2e
@@ -217,6 +243,7 @@ Informes locales:
 ./scripts/pledge-report.sh --local
 ./scripts/fulfillment-report.sh --local
 ./scripts/check-projections.sh
+ADMIN_SECRET=... ./scripts/check-observability.sh --local
 ```
 
 Pruebas locales respaldadas por Podman:
@@ -232,7 +259,7 @@ npm run test:e2e:headless:podman     # Automated browser suite with Playwright i
 npm run test:security:podman         # Security suite against a one-shot Podman-backed local stack
 ```
 
-La puerta previa a la fusión ahora prueba primero la ruta del host Bundler/Jekyll, incluido un intento único `bundle install` cuando Bundler está presente pero faltan gemas. Mantiene el humo del trabajador del host más ligero, pero ejecuta el humo de compromiso mutable a través de la pila respaldada por Podman para que la ruta de modificación/cancelación con estado utilice un estado de servicio local aislado incluso cuando la ruta de compilación del host tiene éxito. Si la ruta Ruby del host aún no puede producir una compilación limpia, la puerta ahora recurre a la compilación del artefacto respaldada por Podman en lugar de fallar al principio de la configuración del host.
+La puerta previa a la fusión ahora prueba primero la ruta del host Bundler/Jekyll, incluido un intento único `bundle install` cuando Bundler está presente pero faltan gemas. Mantiene el humo del trabajador del host más ligero, pero ejecuta el humo de compromiso mutable a través de la pila respaldada por Podman para que la ruta de modificación/cancelación con estado utilice un estado de servicio local aislado incluso cuando la ruta de compilación del host tiene éxito. Ese humo mutable también rota sus IP de solicitud de administrador sintéticas para que el límite de tasa de administración real del Trabajador no cree fallas falsas durante las verificaciones de reconstrucción de la proyección local. Si la ruta Ruby del host aún no puede producir una compilación limpia, la puerta ahora recurre a la compilación del artefacto respaldada por Podman en lugar de fallar al principio de la configuración del host.
 
 El arnés del navegador sin cabeza ahora construye un `_site` estático limpio y lo sirve con un servidor HTTP liviano en lugar de depender de `jekyll serve`, lo que mantiene las regresiones del navegador más cercanas a la forma real de los activos publicados.
 
@@ -265,6 +292,8 @@ Consulte [TESTING.md](/es/docs/operations/testing/) para obtener una guía de pr
 
 Consulte [`docs/`](/es/docs/) para obtener la documentación completa:
 
+Buenos puntos de partida después de clonar una bifurcación son [PROJECT_OVERVIEW.md](/es/docs/development/project-overview/), [CUSTOMIZATION.md](/es/docs/development/customization-guide/), [SECURITY.md](/es/docs/operations/security/) y [TESTING.md](/es/docs/operations/testing/).
+
 - [CONTRIBUTING.md](/es/docs/development/contributing/) — Guía de introducción, configuración y contribución
 - [PODMAN.md](/es/docs/operations/podman-local-dev/) — Ruta de desarrollo local de Rootless Podman para Jekyll + Worker
 - [PROJECT_OVERVIEW.md](/es/docs/development/project-overview/) — Arquitectura del sistema
@@ -273,7 +302,7 @@ Consulte [`docs/`](/es/docs/) para obtener la documentación completa:
 - [TESTING.md](/es/docs/operations/testing/) — Guía de prueba completa y referencia de secretos
 - [SECURITY.md](/es/docs/operations/security/) — Arquitectura de seguridad, limitación de velocidad y prueba de penetración
 - [ACCESSIBILITY.md](/es/docs/operations/accessibility/) — Estándares de accesibilidad, superficies críticas y cobertura actual
-- [CUSTOMIZATION.md](/es/docs/development/customization-guide/) — Anulaciones de diseño, precios y marcas orientadas a la fork admitidas
+- [CUSTOMIZATION.md](/es/docs/development/customization-guide/) — Anulaciones de diseño, precios y marcas orientadas a la bifurcación admitidas
 - [EMBEDS.md](/es/docs/development/campaign-embeds/) — Rutas, opciones, localización y modelo de cambio de tamaño del widget de campaña alojado
 - [I18N.md](/es/docs/development/internationalization/) — Estructura de localización actual, modelo de enrutamiento y flujo de trabajo de adición de idiomas
 - [SHIPPING.md](/es/docs/operations/shipping/): modelo de envío actual, configuración de USPS y política alternativa

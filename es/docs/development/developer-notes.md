@@ -17,9 +17,9 @@ lang: es
 - **Reenviar**: correos electrónicos transaccionales (confirmación del colaborador, hitos, errores)
 - **Pages CMS**: edición visual de campañas a través de [app.pagescms.org](https://app.pagescms.org)
 
-### Perillas de plano libre aptas para forks
+### Perillas de plano libre aptas para horquillas
 
-Si está intentando mantener una fork cómoda en el plan gratuito Cloudflare Workers, las perillas más seguras para ajustar primero son:
+Si está intentando mantener una bifurcación cómoda en el plan gratuito Cloudflare Workers, las perillas más seguras para ajustar primero son:
 
 - `cache.live_stats_ttl_seconds`
 - `cache.live_inventory_ttl_seconds`
@@ -40,19 +40,28 @@ La configuración ahora utiliza un modelo de configuración estructurado en [`_c
 - `checkout`
 - `cache`
 
-Trate [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml) como un archivo de anulación ligero para las URL de host local y otras diferencias locales de la máquina, no como un segundo lugar para duplicar la configuración de fork canónica.
+Trate [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml) como un archivo de anulación ligero para las URL de host local y otras diferencias locales de la máquina, no como un segundo lugar para duplicar la configuración de bifurcación canónica.
 
 El objetivo de sincronización es [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) y los puntos de entrada de desarrollo/pruebas admitidos por el repositorio lo mantienen alineado automáticamente.
 
-Consulte [CUSTOMIZATION.md](/es/docs/development/customization-guide/) para conocer la superficie de fork sin código admitida, incluidas las configuraciones que son solo para el sitio y las que se reflejan automáticamente en el trabajador.
+Consulte [CUSTOMIZATION.md](/es/docs/development/customization-guide/) para conocer la superficie de bifurcación sin código admitida, incluidas las configuraciones que son solo para el sitio y las que se reflejan automáticamente en el trabajador.
 
-Valores de trabajador reflejados actuales que vale la pena tratar como parte de la superficie de personalización admitida:
+Valores actuales reflejados de los trabajadores que vale la pena tratar como parte de la superficie de personalización admitida:
 
 - `PLATFORM_NAME`
 - `PLATFORM_COMPANY_NAME`
 - `SUPPORT_EMAIL`
 - `PLEDGES_EMAIL_FROM`
 - `UPDATES_EMAIL_FROM`
+- `EMAIL_LOGO_PATH`
+- `EMAIL_FONT_FAMILY`
+- `EMAIL_HEADING_FONT_FAMILY`
+- `EMAIL_COLOR_TEXT`
+- `EMAIL_COLOR_MUTED`
+- `EMAIL_COLOR_SURFACE`
+- `EMAIL_COLOR_BORDER`
+- `EMAIL_COLOR_PRIMARY`
+- `EMAIL_BUTTON_RADIUS`
 - `SALES_TAX_RATE`
 - `FLAT_SHIPPING_RATE`
 - `SHIPPING_ORIGIN_ZIP`
@@ -78,7 +87,7 @@ Los fundamentos de SEO ahora siguen un modelo similar:
 - Los diseños públicos utilizan inclusiones compartidas para metadatos y JSON-LD.
 - `robots.txt` y `sitemap.xml` se generan a partir de la superficie estática pública.
 - `/manage/`, las páginas de la comunidad de seguidores y las páginas de resultados de compromisos emiten `noindex,nofollow`
-- la superficie SEO orientada a la fork admitida es principalmente `title`, `description`, `seo.x_handle`, `seo.same_as`, `seo.index_public_community_hub`, `platform.name`, `platform.site_url`, `platform.default_social_image_path` y campos de contenido de página/campaña como `title`, `description`, `short_blurb` e imágenes destacadas.
+- la superficie SEO orientada a la bifurcación admitida es principalmente `title`, `description`, `seo.x_handle`, `seo.same_as`, `seo.index_public_community_hub`, `platform.name`, `platform.site_url`, `platform.default_social_image_path` y campos de contenido de página/campaña como `title`, `description`, `short_blurb` e imágenes destacadas.
 
 El registro de la consola del navegador y del trabajador ahora utiliza asistentes de registro compartidos en lugar de llamadas ad hoc `console.*` en los tiempos de ejecución principales. Eso le da al repositorio un interruptor acotado:
 
@@ -112,14 +121,16 @@ La puerta de fusión ahora divide deliberadamente sus rutas de humo locales:
 
 El arnés Playwright ahora construye un `_site` estático limpio y lo sirve desde un servidor HTTP liviano para comprobaciones del navegador sin cabeza, en lugar de depender de `jekyll serve`.
 
-Nota: el carrito/tiempo de ejecución propios y la interfaz de usuario de pago en el sitio personalizada ahora se tratan como comportamiento integrado de la plataforma, no como opciones de configuración orientadas a la fork. El espacio de nombres de configuración `checkout` ahora es principalmente para configuraciones verdaderamente variables como la clave publicable de Stripe.
+Nota: el carrito/tiempo de ejecución propios y la interfaz de usuario personalizada de pago en el sitio ahora se tratan como comportamientos integrados de la plataforma, no como opciones de configuración orientadas a la bifurcación. El espacio de nombres de configuración `checkout` ahora es principalmente para configuraciones verdaderamente variables como la clave publicable de Stripe.
 
 ## Sistema de diseño
 
-Combina con el estilo **dust-wave-shop**:
-- **Colores**: Negro primario (`#000000`), texto gris oscuro (`#3a3a3a`), fondo teñido de azul claro (`#f8faff`)
-- **Fuentes**: Inter (cuerpo), Gambado Sans (títulos) a través de Google Fonts + Adobe Typekit
-- **Espaciado**: sistema de cuadrícula de unidad base de 8px
+El lenguaje visual predeterminado aún comienza con el aspecto editorial más tranquilo de Dust Wave, pero el repositorio actual ya no está limitado a un tema de marca codificado:
+
+- **Tokens de tema**: `design.*` en `_config.yml` alimenta variables CSS generadas en `assets/theme-vars.css`
+- **Estilo de pago**: el sidecar Stripe Elements en el sitio ahora lee la misma superficie simbólica para colores, radio y fuente del cuerpo.
+- **Marca de correo electrónico del colaborador**: un subconjunto seleccionado de `platform.*` + `design.*` se refleja en el entorno del trabajador para que el estilo del logotipo/fuente/color/botón permanezca alineado en el correo electrónico.
+- **Espaciado**: el sistema Sass todavía utiliza internamente un ritmo de diseño basado en 8px
 - **Puntos de interrupción**: 724 px (xsm), 1000 px (sm/ms)
 
 ## Estructura descarada
@@ -272,7 +283,7 @@ long_content:
 
 El complemento `_plugins/campaign_state.rb` establece el estado en el momento de la compilación. El cron del trabajador activa una reconstrucción del sitio cuando las fechas cruzan la medianoche MT.
 
-**Aplicación de Mountain Time**: el complemento Jekyll convierte UTC a Mountain Time antes de comparar fechas, para que las campañas no finalicen antes de tiempo en los servidores CI basados ​​en UTC. El cron de trabajador y el cron de acciones de GitHub se ejecutan a las 7 a. m. UTC (medianoche MT) para activar transiciones de estado.
+**Cumplimiento de la hora de montaña**: el complemento Jekyll convierte UTC a hora de montaña antes de comparar fechas, para que las campañas no finalicen antes de tiempo en los servidores CI basados ​​en UTC. El cron de trabajador y el cron de acciones de GitHub se ejecutan a las 7 a. m. UTC (medianoche MT) para activar transiciones de estado.
 
 ### Zona horaria del temporizador de cuenta regresiva
 
@@ -676,7 +687,7 @@ Si Stripe muestra fallas de webhook ("otros errores") para el punto final de pro
 
 ### Tarjetas de prueba de rayas
 
-|Tarjeta|Escenario|
+|tarjeta|Escenario|
 |------|----------|
 |`4242 4242 4242 4242`|Éxito|
 |`4000 0000 0000 3220`|Se requiere 3D Secure|
@@ -700,7 +711,7 @@ Semillas de prueba se comprometen en KV local para su prueba:
 **Qué hace:**
 1. Borra los datos de compromiso existentes del KV local antes de la siembra
 2. Promesas de semillas para todas las campañas con escenarios realistas:
-   - **hand-relations**: Financiamiento parcial y finalizado (~$8,200 / $25,000)
+   - **hand-relations**: Finalizado, financiamiento parcial (~$8,200 / $25,000)
    - **sunder**: Financiamiento anticipado y en vivo (~$650 / $2500)
    - **tecolote**: Finalizado, financiamiento parcial (~$1,550 / $2,000)
    - **peor película de todos los tiempos**: Terminada, financiación parcial (~$1,290 / $2,500)
@@ -998,7 +1009,7 @@ Utilice `requires_threshold` en el nivel; la plantilla lo oculta hasta `pledged_
 Los Stripe SetupIntents (métodos de pago guardados) no caducan como las retenciones de tarjetas de 7 días, por eso los usamos.
 
 **¿Cómo se cobran las campañas cuando se financian?**
-El trabajador liquida campañas automáticamente mediante un activador cron diario (se ejecuta a medianoche MT). Cuando transcurre el plazo de una campaña y ésta ha cumplido su objetivo, el Trabajador:
+El trabajador liquida campañas automáticamente a través de un activador cron diario (se ejecuta a medianoche MT). Cuando transcurre el plazo de una campaña y ésta ha cumplido su objetivo, el Trabajador:
 1. Agrega todas las promesas activas **por correo electrónico dentro de una campaña** (un cargo por partidario por campaña, no por fila de promesa)
 2. Utiliza el método de pago actualizado más recientemente para cada partidario
 3. Crea un Stripe PaymentIntent por partidario para el monto total de su campaña.
@@ -1337,7 +1348,7 @@ El flujo de liquidación utiliza **invocaciones por lotes autoencadenadas** para
 
 **Claves KV utilizadas por liquidación:**
 
-|clave|Propósito|
+|Llave|Propósito|
 |-----|---------|
 |`campaign-pledges:{slug}`|Matriz de ID de pedido por campaña (se mantiene al crear/cancelar)|
 

@@ -6,7 +6,7 @@ render_with_liquid: false
 lang: es
 ---
 
-# The Pool - Trabajador comprometido
+# La piscina - Trabajador comprometido
 
 Cloudflare Worker se encarga de la canonicalización de pagos propios, la integración de Stripe, la gestión de promesas y la autenticación de patrocinadores en el ámbito de los pedidos.
 
@@ -21,14 +21,45 @@ Esto inicia el sitio y el trabajador juntos en los puertos locales estándar y e
 
 Si trabaja específicamente desde el directorio `worker/`, los scripts Worker npm ahora ejecutan automáticamente el espejo de configuración primero para que `worker/wrangler.toml` permanezca alineado con la raíz del repositorio `_config.yml`/`_config.local.yml`.
 
-Trate `_config.local.yml` como un archivo de solo anulación para valores específicos del host local. La configuración canónica de orientación hacia la fork debe residir en la raíz del repositorio `_config.yml`, y el espejo del trabajador seguirá desde allí.
+Trate `_config.local.yml` como un archivo de solo anulación para valores específicos del host local. La configuración canónica de orientación hacia la bifurcación debe residir en la raíz del repositorio `_config.yml`, y el espejo del trabajador seguirá desde allí.
+
+La entrega de informes de campaña sigue el mismo patrón:
+
+- Los destinatarios a nivel de campaña viven en el frente de la campaña como `runner_report_emails`.
+- la sincronización de toda la implementación y el comportamiento del correo electrónico/informes se encuentran en `_config.yml` en `reports.campaign_runner`
+- el espejo del trabajador lleva esas configuraciones no secretas a `wrangler.toml`
+- el núcleo de informes compartido en `worker/src/reports.js` ahora impulsa tanto los correos electrónicos de los ejecutores programados como los asistentes de exportación del shell local para que la lógica CSV permanezca en un solo lugar.
 
 La configuración de Worker reflejada ahora también incluye los indicadores de depuración compartidos:
 
 - `DEBUG_CONSOLE_LOGGING_ENABLED`
 - `DEBUG_VERBOSE_CONSOLE_LOGGING`
 
-Estos provienen de `debug.console_logging_enabled` y `debug.verbose_console_logging` en la raíz del repositorio [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml), y ambos están predeterminados en `true`, por lo que los trabajadores locales y desplegados permanecen detallados a menos que una fork rechace explícitamente el inicio de sesión.
+Estos provienen de `debug.console_logging_enabled` y `debug.verbose_console_logging` en la raíz del repositorio [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml), y ambos están predeterminados en `true`, por lo que los trabajadores locales y desplegados permanecen detallados a menos que una bifurcación rechace explícitamente el inicio de sesión.
+
+La protección DoS de ruta de escritura ahora requiere un espacio de nombres KV `RATELIMIT`. Si falta ese enlace, el trabajador no se cierra con `503` en lugar de ejecutarse sin protección contra abusos. Las lecturas públicas de datos en vivo son intencionalmente amplias para los picos de campaña, mientras que el pago, la gestión de promesas y las mutaciones de administración utilizan los límites más estrictos por IP documentados en [`docs/SECURITY.md`](/es/docs/operations/security/). Ese requisito agrega seguridad, no una nueva suposición de que cada bifurcación debe superar inmediatamente el plan Workers Free.
+
+Los trabajadores estándar/pagados implementados ahora también configuran `limits.cpu_ms = 100` en [`wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml). Ese límite no se aplica en el desarrollo local y no es una anulación de Workers Free; es un límite conservador de denegación de billetera para implementaciones pagas que aún deja un espacio cómodo por encima de los tiempos de solicitud de ruta rápida observados actualmente en el arnés de la unidad.
+
+El cálculo de impuestos ahora se dirige a través de una costura de proveedor en `worker/src/tax.js`:
+
+- `TAX_PROVIDER=flat` mantiene el comportamiento de velocidad configurada actual de `SALES_TAX_RATE`
+- `TAX_PROVIDER=offline_rules` utiliza reglas proporcionadas para el IVA/GST internacional y el manejo alternativo a nivel estatal
+- `TAX_PROVIDER=nm_grt` utiliza el conjunto de datos inicial de Nuevo México suministrado y puede refinar las búsquedas de direcciones de calles de Nuevo México con la API gratuita EDAC GRT.
+- `TAX_PROVIDER=zip_tax` agrega búsquedas de EE. UU. a nivel local/jurisdiccional a través de ZIP.TAX y recurre a `offline_rules` para destinos fuera de EE. UU./CA
+
+La configuración del proveedor no secreto se refleja desde la raíz del repositorio `_config.yml` en [`wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) como `TAX_PROVIDER`, `TAX_ORIGIN_COUNTRY`, `TAX_USE_REGIONAL_ORIGIN`, `NM_GRT_API_BASE` y `ZIP_TAX_API_BASE`. Si habilita `zip_tax`, configure también `ZIP_TAX_API_KEY` como secreto de trabajador o en [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars). Actualice el archivo inicial de Nuevo México suministrado con `node ../scripts/update-nm-grt-starter.mjs`.
+
+En el flujo actual del navegador, se permite intencionalmente que las vistas previas de impuestos permanezcan provisionales. Si el carrito o el pago personalizado aún no tiene suficientes datos de ubicación, el sitio muestra `--` y espera a que `/tax/quote` o `/checkout-intent/start` finalicen el resultado del impuesto. Las búsquedas de Nuevo México son la ruta integrada más exacta en este momento y normalmente necesitan datos completos de direcciones a nivel de calle, no solo código postal/estado, antes de que el trabajador pueda devolver un resultado de GRT local confiable.
+
+El trabajador ahora también escribe resúmenes de observabilidad ligeros en `PLEDGES` KV para dos cosas:
+
+- Resultados de entrega del webhook de Stripe e historial de entrega reciente
+- tiempos de reloj de pared muestreados para un pequeño conjunto de rutas de mutación utilizadas para sintonizar la tapa `cpu_ms`
+
+Los informes de ejecución de campaña ahora utilizan ejecuciones programadas dedicadas a las 7:00 a. m., hora de la montaña. El trabajador mantiene esa ventana compatible con MT en el código, mientras que `wrangler.toml` incluye las entradas cron UTC emparejadas necesarias para cubrir tanto MST como MDT de forma segura.
+
+La frecuencia de muestreo predeterminada es `0.1` y se puede anular con `OBSERVABILITY_SAMPLE_RATE=0.05` (o cualquier valor de `0-1`) si una bifurcación desea menos o más escrituras de tiempo muestreadas.
 
 Las estadísticas del lado de los trabajadores y la reparación de inventario ahora también tratan a `campaign-pledges:{slug}` como un estado de proyección en lugar de una verdad permanente. Si el índice de una campaña se desvía de los registros de compromiso activos subyacentes, las rutas de recálculo lo reparan automáticamente mientras reconstruyen los totales de la campaña y el inventario de nivel limitado.
 
@@ -82,6 +113,9 @@ wrangler secret put ADMIN_SECRET
 
 # USPS OAuth secret (keep the client id in site config)
 wrangler secret put USPS_CLIENT_SECRET
+
+# Optional: ZIP.TAX API key for local/jurisdiction-level tax lookup
+wrangler secret put ZIP_TAX_API_KEY
 ```
 
 La configuración de USPS para este repositorio se divide intencionalmente:
@@ -108,7 +142,7 @@ Notas:
 
 - mantener `worker/.dev.vars` sin seguimiento y ignorado
 - use secretos locales/de prueba aquí, no credenciales de producción en vivo
-- `./scripts/dev.sh --podman` puede generar automáticamente o actualizar algunos valores solo locales, como `CHECKOUT_INTENT_SECRET` o el secreto del webhook de Stripe, durante el desarrollo.
+- `./scripts/dev.sh --podman` puede generar o actualizar automáticamente algunos valores solo locales, como `CHECKOUT_INTENT_SECRET` o el secreto del webhook de Stripe, durante el desarrollo.
 
 ### 3. Configurar los webhooks de Stripe
 
@@ -161,11 +195,13 @@ Canonicalice la carga útil del carrito propio y cree una sesión de pago en mod
 
 Devuelve un arranque de sesión personalizado (`checkoutUiMode`, `sessionId`, `clientSecret`, `publishableKey`, `orderId`) o una URL alternativa alojada.
 
+Si el navegador ya tiene un destino de impuestos de facturación, también puede incluir `billingAddress` en esa carga útil para que la cotización de pago final no tenga que recurrir a las reglas de destino de impuestos de solo envío.
+
 El trabajador reconstruye el nivel, el complemento del paquete, el soporte personalizado, el envío y el estado del subtotal a partir de artículos del carrito propios, valida el estado y el inventario de la campaña, firma una instantánea de pago de corta duración, reserva un inventario escaso para niveles limitados antes de que se complete el paso de pago y confirma esas reservas cuando el compromiso realmente persiste. Para promesas físicas o complementos físicos, el envío lo calcula el trabajador desde el destino más los metadatos de envío de campaña/artículo, utilizando cotizaciones en vivo de USPS cuando estén disponibles y tasas de implementación o respaldo de campaña cuando no.
 
 Cuando un compromiso califica para mejoras de envío, el Trabajador también mantiene la opción de entrega limitada seleccionada (`standard`, `signature_required` o `adult_signature_required`) para que el carrito, la Gestión del compromiso, el total del compromiso almacenado y los correos electrónicos de los seguidores permanezcan alineados.
 
-Las reservas y los reclamos de nivel limitado se serializan a través de un coordinador de objetos duraderos por campaña antes de que se actualice la instantánea del inventario de KV, por lo que los inicios, reintentos, modificaciones y finalizaciones de webhooks simultáneos no pueden sobrevender las escasas recompensas.
+Las reservas y los reclamos de nivel limitado se serializan a través de un coordinador de objetos duraderos por campaña antes de que se actualice la instantánea del inventario de KV, por lo que los inicios de pago simultáneos, los reintentos, las modificaciones y las finalizaciones de webhooks no pueden sobrevender las escasas recompensas.
 
 ### OBTENER /pledges?token={token}
 Obtenga la(s) promesa(s) autorizada(s) mediante un token de enlace mágico.
@@ -199,7 +235,7 @@ Cambie los niveles, la cantidad o el soporte personalizado para un compromiso ac
 }
 ```
 
-Todos los campos excepto `token` son opcionales. Los cambios se rastrean en la matriz `history` del compromiso con entradas `type: "modified"` que incluyen el estado del nivel, cambios de complementos del paquete, `customAmount`, deltas de envío y cualquier opción de envío seleccionada.
+Todos los campos excepto `token` son opcionales. Los cambios se rastrean en la matriz `history` del compromiso con entradas `type: "modified"` que incluyen el estado del nivel, cambios en los complementos del paquete, `customAmount`, deltas de envío y cualquier opción de envío seleccionada.
 
 El trabajador valida el pedido solicitado con la carga útil del token y vuelve a calcular los totales a partir del estado del compromiso almacenado más las definiciones de la campaña. Los cambios estructurales al mismo precio, como un intercambio de variante adicional, todavía cuentan como cambios de compromiso reales para fines de persistencia y correo electrónico a los seguidores.
 
@@ -242,6 +278,35 @@ La tarjeta renderizada utiliza datos de la campaña en vivo, incluido el estado 
 
 ### ENVIAR /webhooks/raya
 Punto final del webhook de Stripe (firma verificada).
+
+### POST /impuesto/cotización
+Devuelve una vista previa de impuestos calculados por el trabajador para la interfaz de usuario del carrito/pago.
+
+```json
+{
+  "subtotalCents": 1000,
+  "shippingCents": 300,
+  "billingAddress": {
+    "country": "US",
+    "postalCode": "80205",
+    "state": "CO"
+  }
+}
+```
+
+El flujo actual del navegador utiliza esto para la visualización de impuestos de carrito provisional/pago personalizado. Tiene protección del mismo origen, velocidad limitada y está destinado a vistas previas de la interfaz de usuario de origen en lugar de uso público de terceros.
+
+Si la carga útil no incluye suficientes detalles de destino para el proveedor configurado, el Trabajador puede devolver una respuesta de resultado provisional/sin impuestos y dejar que el navegador siga mostrando `--` hasta que el pago tenga un mejor destino de facturación o envío.
+
+### OBTENER /admin/observability/webhooks?days=2
+Resumen de observabilidad del webhook solo para administradores.
+
+Devuelve recuentos de entregas de webhooks recientes por día, resultados, resúmenes de tipos de eventos, estadísticas de duración y una breve ventana de eventos recientes para reintentos de depuración, errores de firma y picos de tráfico inesperados.
+
+### OBTENER /admin/observabilidad/rendimiento?días=2
+Resumen de rendimiento de muestra solo para administradores.
+
+Devuelve muestras de tiempos de reloj de pared para rutas de mutación clave, como inicio de pago, finalización de pago, escrituras de compromiso de gestión, cotizaciones de envío y abandono de pago. Esto está pensado como una ayuda de ajuste para la tapa `cpu_ms` desplegada, no como un sistema de seguimiento de alta cardinalidad.
 
 ### POST /admin/broadcast/diario
 Envíe una notificación de actualización del diario a todos los partidarios de la campaña. Requiere el encabezado `x-admin-key`.
@@ -290,6 +355,58 @@ Envíe notificaciones de hitos a todos los seguidores de la campaña. Requiere e
 }
 ```
 
+### POST /admin/report/campaign-runner
+Obtenga una vista previa o envíe manualmente un informe de ejecución de campaña para una campaña. Requiere el encabezado `x-admin-key`.
+
+```json
+{
+  "campaignSlug": "hand-relations",
+  "reportType": "pledge",   // "pledge" or "fulfillment"
+  "dryRun": true,
+  "markAsSent": false
+}
+```
+
+Notas:
+
+- `dryRun: true` devuelve destinatarios, recuentos de filas, nombre de archivo y estado del marcador sin enviar
+- Al omitir `markAsSent`, el valor predeterminado es `true` para envíos en vivo, de modo que la ejecución cron coincidente no duplique inmediatamente el informe.
+- Los destinatarios de la campaña todavía provienen del frente de la campaña `runner_report_emails`.
+- `reportType: "pledge"` es el informe diario de la campaña en vivo.
+- `reportType: "fulfillment"` es el informe único de envío/exportación posterior a la fecha límite.
+- Los correos electrónicos de informes utilizan asuntos cortos, sin emojis y que priorizan la entregabilidad con el prefijo configurado más el tipo de informe y el título de la campaña.
+- Los correos electrónicos de compromiso diario incluyen totales de campaña únicamente más una breve nota de impulso/entrenamiento en el cuerpo.
+- envíos de cumplimiento divididos por cumplimiento:
+  - Los destinatarios de la campaña reciben solo las filas completadas por la campaña.
+  - `platform.support_email` recibe un correo electrónico de cumplimiento de plataforma independiente cuando existen filas de plataforma
+- Los correos electrónicos de cumplimiento utilizan un resumen/nota de cuerpo específico del cumplimiento en lugar de reutilizar el resumen diario del informe de compromiso.
+- Los simulacros de cumplimiento/respuestas de informes exponen `campaignRowCount`, `platformRowCount` y `platformRecipient`.
+
+Ejemplo de ejecución en seco:
+
+```bash
+curl -X POST https://worker.example.com/admin/report/campaign-runner \
+  -H "Content-Type: application/json" \
+  -H "x-admin-key: YOUR_ADMIN_SECRET" \
+  -d '{"campaignSlug":"hand-relations","reportType":"pledge","dryRun":true}'
+```
+
+Ejemplo de envío manual:
+
+```bash
+curl -X POST https://worker.example.com/admin/report/campaign-runner \
+  -H "Content-Type: application/json" \
+  -H "x-admin-key: YOUR_ADMIN_SECRET" \
+  -d '{"campaignSlug":"hand-relations","reportType":"fulfillment","dryRun":false,"markAsSent":true}'
+```
+
+Orientación operativa:
+
+- prefiera `dryRun: true` primero al verificar una nueva campaña, lista de destinatarios o cambio de personalización
+- configure `markAsSent: false` solo cuando desee intencionalmente un envío manual sin consumir el marcador de envío programado
+- El comportamiento en toda la implementación proviene de `_config.yml` bajo `reports.campaign_runner`, mientras que los destinatarios por campaña permanecen al frente.
+- para el cumplimiento, valide tanto el corredor como la plataforma antes de enviar si una campaña incluye complementos de plataforma
+
 ### ENVIAR /prueba/correo electrónico
 Envíe un correo electrónico de prueba de cualquier tipo. En modo de prueba (`APP_MODE=test`), no se requiere autenticación. En producción, requiere el encabezado `x-admin-key`.
 
@@ -331,6 +448,15 @@ curl -X POST https://worker.example.com/test/email \
 |`SUPPORT_EMAIL`|Contacto de soporte reflejado desde la configuración del sitio|
 |`PLEDGES_EMAIL_FROM`|Identidad del remitente para correos electrónicos relacionados con promesas|
 |`UPDATES_EMAIL_FROM`|Identidad del remitente para correos electrónicos de actualización/hitos/anuncios|
+|`EMAIL_LOGO_PATH`|Ruta del logotipo de correo electrónico del colaborador reflejada desde `platform.logo_path`|
+|`EMAIL_FONT_FAMILY`|Pila de fuentes del cuerpo del correo electrónico del colaborador reflejada desde `design.font_body`|
+|`EMAIL_HEADING_FONT_FAMILY`|Pila de fuentes de encabezado de correo electrónico de apoyo reflejada desde `design.font_display`|
+|`EMAIL_COLOR_TEXT`|Color del texto base del correo electrónico del colaborador reflejado desde `design.color_text`|
+|`EMAIL_COLOR_MUTED`|Color de texto silenciado del correo electrónico de soporte reflejado desde `design.color_text_muted`|
+|`EMAIL_COLOR_SURFACE`|Color de la superficie de la tarjeta de correo electrónico de apoyo reflejado de `design.color_surface_subtle`|
+|`EMAIL_COLOR_BORDER`|Color del borde del correo electrónico de apoyo reflejado desde `design.color_border`|
+|`EMAIL_COLOR_PRIMARY`|Color de enlace/CTA principal del correo electrónico del colaborador reflejado desde `design.color_primary`|
+|`EMAIL_BUTTON_RADIUS`|Radio del botón de correo electrónico del colaborador reflejado desde `design.radius_lg`|
 |`I18N_CATALOG_JSON`|Anulación opcional del catálogo local en línea para la localización del correo electrónico de los trabajadores en pruebas o implementaciones personalizadas|
 |`SALES_TAX_RATE`|Tasa de impuesto sobre las ventas reflejada de `pricing.sales_tax_rate`|
 |`FLAT_SHIPPING_RATE`|Línea base de compatibilidad de envío plano heredada reflejada desde `pricing.flat_shipping_rate`|
@@ -352,7 +478,7 @@ curl -X POST https://worker.example.com/test/email \
 
 Cuando `SITE_BASE` apunta al desarrollador local (`localhost` / `127.0.0.1`), las imágenes de correo electrónico incrustadas aún regresan a la base de activos pública `https://site.example.com` para que los clientes de la bandeja de entrada no reciban URL de imágenes de host local rotas.
 
-Nota de fork: trate esas variables de identidad, precios y envío como espejos de la configuración estructurada del sitio en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml), especialmente las secciones `platform`, `pricing` y `shipping`. El carrito/tiempo de ejecución propios y la interfaz de usuario de pago en el sitio personalizada son comportamientos integrados de la plataforma ahora, no opciones de entorno de trabajo que normalmente debería personalizar.
+Nota de bifurcación: trate esas variables de identidad, marca de correo electrónico, precios y envío como espejos de la configuración estructurada del sitio en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml), especialmente las secciones `platform`, `design`, `pricing` y `shipping`. El carrito/tiempo de ejecución propios y la interfaz de usuario de pago en el sitio personalizada son comportamientos integrados de la plataforma ahora, no opciones de entorno de trabajo que normalmente debería personalizar directamente.
 
 Mantenga `USPS_CLIENT_SECRET` fuera de la configuración del sitio. Pertenece a los secretos del trabajador o [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars).
 

@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import re
+import os
 import sys
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from json import loads
 from pathlib import Path
@@ -32,6 +34,7 @@ TITLE_OVERRIDES = {
     "Customization Guide": "Guía de personalización",
     "Campaign Embeds": "Embeds de campaña",
     "Add-On Products": "Productos complementarios",
+    "Agents & Operator Guide": "Guía para agentes y operadores",
     "Pledge Worker": "Worker de promesas",
     "Podman Local Dev": "Desarrollo local con Podman",
     "Testing Guide": "Guía de pruebas",
@@ -58,12 +61,15 @@ BODY_OVERRIDES = {
     "# Development": "# Desarrollo",
     "# Operations": "# Operaciones",
     "# Reference": "# Referencia",
+    "# AGENTS": "# Guía para agentes y operadores",
     "## Last Updated": "## Última actualización",
 }
 
 cache: dict[str, str] = {}
 TRANSLATE_SEPARATOR = "\nZXQZXQPOOLBREAKZXQZXQ\n"
-TRANSLATE_MAX_CHARS = 2400
+TRANSLATE_MAX_CHARS = int(os.environ.get("POOL_TRANSLATE_MAX_CHARS", "1200"))
+TRANSLATE_TIMEOUT_SECONDS = float(os.environ.get("POOL_TRANSLATE_TIMEOUT_SECONDS", "15"))
+TRANSLATE_RETRIES = int(os.environ.get("POOL_TRANSLATE_RETRIES", "3"))
 
 
 def protect_text(text: str) -> tuple[str, list[str]]:
@@ -152,8 +158,21 @@ def translate_texts(texts: list[str]) -> list[str]:
             )
             url = f"https://translate.googleapis.com/translate_a/single?{params}"
 
-            with urlopen(url, timeout=30) as response:
-                payload = loads(response.read().decode("utf-8"))
+            last_error = None
+            payload = None
+            for attempt in range(TRANSLATE_RETRIES):
+                try:
+                    with urlopen(url, timeout=TRANSLATE_TIMEOUT_SECONDS) as response:
+                        payload = loads(response.read().decode("utf-8"))
+                    break
+                except Exception as error:  # noqa: BLE001
+                    last_error = error
+                    if attempt == TRANSLATE_RETRIES - 1:
+                        raise
+                    time.sleep(min(2**attempt, 5))
+
+            if payload is None and last_error is not None:
+                raise last_error
 
             translated_joined = "".join(part[0] for part in payload[0])
             batch = translated_joined.split(TRANSLATE_SEPARATOR)
@@ -346,9 +365,24 @@ def main() -> int:
 
     TARGET_DIR.mkdir(parents=True, exist_ok=True)
 
-    paths = sorted(SOURCE_DIR.rglob("*.md"))
+    requested_files = {
+        value.strip()
+        for value in os.environ.get("POOL_TRANSLATION_FILES", "").split(",")
+        if value.strip()
+    }
 
-    with ThreadPoolExecutor(max_workers=4) as executor:
+    paths = sorted(SOURCE_DIR.rglob("*.md"))
+    if requested_files:
+        paths = [
+            path
+            for path in paths
+            if str(path.relative_to(ROOT)) in requested_files
+            or str(path.relative_to(SOURCE_DIR)) in requested_files
+        ]
+
+    max_workers = max(1, int(os.environ.get("POOL_TRANSLATION_WORKERS", "1")))
+
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
         futures = {executor.submit(translate_page, path): path for path in paths}
         for future in as_completed(futures):
             future.result()

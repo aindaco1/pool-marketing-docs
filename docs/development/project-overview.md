@@ -14,7 +14,8 @@ Creators define campaigns in Markdown; backers pledge through The Pool’s first
 **Branding:**  
 - Platform name: **The Pool**
 - Company name: set this to your organization or studio name
-- Design system: adapt the supported design tokens and typography to your own brand
+- Default theme: Dust Wave's calmer editorial styling
+- Fork customization: `_config.yml` now drives a curated branding/token surface that reaches public pages, on-site Stripe Elements, and supporter emails
 
 ---
 
@@ -27,13 +28,13 @@ Creators define campaigns in Markdown; backers pledge through The Pool’s first
 | **API/Glue** | Cloudflare Worker (`worker.example.com`) | Handles checkout bootstrap, webhooks, tip-aware totals, recovery, and reporting data |
 | **Automation** | Worker cron + GitHub Action | Auto-settle (batched) + state transitions |
 | **Storage** | Markdown / YAML | Campaign definitions & state |
-| **Styling** | Sass (14 active modular partials) | Shared design system for public pages, checkout, and pledge management |
+| **Styling** | Sass + generated theme vars | Shared design system for public pages, checkout, pledge management, and branded checkout/email surfaces |
 
 All code is versioned and auditable — no external DB is required, and campaign editing can stay in-repo or flow through Pages CMS.
 
-## Free-Plan Efficiency Notes For Forks
+## Plan Efficiency Notes For Forks
 
-The current architecture is deliberately optimized so free-plan Cloudflare deployments spend their budget on pledge mutations rather than casual browsing:
+The current architecture is deliberately optimized so Cloudflare deployments spend their budget on pledge mutations rather than casual browsing:
 
 - campaign pages and the manage page prefer one combined `/live/:slug` read instead of separate stats + inventory requests
 - the browser caches live stats and inventory in `localStorage` for the configured TTLs, and hidden tabs stop refreshing until visible again
@@ -41,7 +42,7 @@ The current architecture is deliberately optimized so free-plan Cloudflare deplo
 - limited-tier write paths now ask the per-campaign coordinator for reservation-aware availability, while public inventory stays in KV as a projection
 - rate limiting still fails closed, but repeated blocked requests inside the same window no longer rewrite the same KV counter on every hit
 
-That means the real free-plan ceiling for most forks is usually **KV writes from successful pledge activity**, not public read traffic.
+That means the real ceiling for most forks is usually **KV writes from successful pledge activity**, not public read traffic. `RATELIMIT` is now a hard requirement for supported deployments, but that does not by itself make the Free plan non-viable for the project's intended small-scale crowdfunding shape.
 
 ## Local Development Shape
 
@@ -53,15 +54,17 @@ The recommended low-friction local path now uses Podman:
 
 The host-based Ruby/Wrangler path still exists, but Podman is the easiest way to get a production-like local environment without hand-installing every dependency.
 
+For deployed Standard/Paid Workers, the repo now also declares `limits.cpu_ms = 100` in `worker/wrangler.toml` as a denial-of-wallet backstop. That cap is intentionally conservative, but it only applies on Cloudflare's deployed network, not during local development.
+
 ### Rough Planning Scenarios
 
 These scenarios are intentionally approximate. They assume the default 5-minute browser TTLs, one combined live read on cold campaign loads, and Cloudflare’s published free-plan limits as of April 7, 2026.
 
 | Scenario | What it feels like operationally | Planning takeaway |
 |----------|----------------------------------|-------------------|
-| First launch | One or two live campaigns, a few thousand campaign-page visits over several days, and a handful of completed pledges per day | The free plan is a very reasonable starting point. |
-| Strong week-one traction | Several thousand dynamic Worker reads per day and a couple dozen pledge mutations across live campaigns | Still workable, but start watching KV writes and report/admin maintenance habits. |
-| Established community platform | Frequent pledge mutations every day across multiple live campaigns, plus more regular admin repair/reporting flows | Upgrade before a big moment. The read path can still be efficient, but mutation-heavy days become the real constraint. |
+| First launch | One or two live campaigns, a few thousand campaign-page visits over several days, and a handful of completed pledges per day | Free should still be a reasonable starting point. |
+| Strong week-one traction | Several thousand dynamic Worker reads per day and a couple dozen pledge mutations across live campaigns | Often still workable on Free, but this is where Paid starts reducing operational anxiety. |
+| Established community platform | Frequent pledge mutations every day across multiple live campaigns, plus more regular admin repair/reporting flows | Paid becomes the more comfortable long-term choice; keep monitoring mutation and abuse-path costs. |
 
 For current Cloudflare limits, see:
 
@@ -83,6 +86,10 @@ For current Cloudflare limits, see:
    - Charges are aggregated by email within each campaign — one charge per supporter per campaign.
    - Updates pledge status to `charged` or `payment_failed` in KV.
    - Triggers GitHub Pages rebuild and Cloudflare cache purge on state transitions.
+5. **Worker report pass** runs at 7:00 AM Mountain Time:
+   - Sends daily campaign-scoped pledge-ledger emails for live campaigns that configure `runner_report_emails`.
+   - Sends one post-deadline fulfillment flow per campaign, splitting campaign-runner rows from platform-fulfillment rows when needed.
+   - Supports manual preview/send through `POST /admin/report/campaign-runner`, including dry-run responses for recipients, campaign/platform row counts, filenames, and idempotency-marker state.
 
 **Pricing rules:**
 - Campaign progress uses subtotal only.

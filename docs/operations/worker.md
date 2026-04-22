@@ -22,12 +22,43 @@ If you specifically work from the `worker/` directory, the Worker npm scripts no
 
 Treat `_config.local.yml` as an override-only file for localhost-specific values. The canonical fork-facing settings should live in the repo-root `_config.yml`, and the Worker mirror will follow from there.
 
+Campaign-runner report delivery follows that same pattern:
+
+- campaign-level recipients live in campaign front matter as `runner_report_emails`
+- deployment-wide timing and email/report behavior live in `_config.yml` under `reports.campaign_runner`
+- the Worker mirror carries those non-secret settings into `wrangler.toml`
+- the shared report core in `worker/src/reports.js` now powers both scheduled runner emails and the local shell export helpers so CSV logic stays in one place
+
 The mirrored Worker config now also includes the shared debug flags:
 
 - `DEBUG_CONSOLE_LOGGING_ENABLED`
 - `DEBUG_VERBOSE_CONSOLE_LOGGING`
 
 Those come from `debug.console_logging_enabled` and `debug.verbose_console_logging` in the repo-root [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml), and both default to `true` so local and deployed Workers stay verbose unless a fork explicitly turns logging down.
+
+Write-path DoS protection now requires a `RATELIMIT` KV namespace. If that binding is missing, the Worker fails closed with `503` instead of running without abuse protection. Public live-data reads stay intentionally roomy for campaign spikes, while checkout, Manage Pledge, and admin mutations use the tighter per-IP caps documented in [`docs/SECURITY.md`](/docs/operations/security/). That requirement adds safety, not a new assumption that every fork must immediately outgrow the Workers Free plan.
+
+Deployed Standard/Paid Workers now also set `limits.cpu_ms = 100` in [`wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml). That limit is not enforced in local development and is not a Workers Free override; it is a conservative denial-of-wallet ceiling for paid deployments that still leaves comfortable room above the currently observed fast-path request timings in the unit harness.
+
+Tax calculation is now routed through a provider seam in `worker/src/tax.js`:
+
+- `TAX_PROVIDER=flat` keeps the current configured-rate behavior from `SALES_TAX_RATE`
+- `TAX_PROVIDER=offline_rules` uses vendored rules for international VAT/GST and state-level fallback handling
+- `TAX_PROVIDER=nm_grt` uses the vendored New Mexico starter dataset and can refine New Mexico street-address lookups against the free EDAC GRT API
+- `TAX_PROVIDER=zip_tax` adds local / jurisdiction-level US lookups through ZIP.TAX and falls back to `offline_rules` for destinations outside US/CA
+
+Non-secret provider settings are mirrored from the repo-root `_config.yml` into [`wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) as `TAX_PROVIDER`, `TAX_ORIGIN_COUNTRY`, `TAX_USE_REGIONAL_ORIGIN`, `NM_GRT_API_BASE`, and `ZIP_TAX_API_BASE`. If you enable `zip_tax`, also set `ZIP_TAX_API_KEY` as a Worker secret or in [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars). Refresh the vendored New Mexico starter file with `node ../scripts/update-nm-grt-starter.mjs`.
+
+In the current browser flow, tax previews are intentionally allowed to stay provisional. If the cart or custom checkout does not yet have enough location data, the site shows `--` and waits for `/tax/quote` or `/checkout-intent/start` to finalize the tax result. New Mexico lookups are the most exact built-in path right now and typically need full street-level address data, not just ZIP/state, before the Worker can return a reliable local GRT result.
+
+The Worker now also writes lightweight observability summaries into `PLEDGES` KV for two things:
+
+- Stripe webhook delivery outcomes and recent delivery history
+- sampled wall-clock timings for a small set of mutation routes used to tune the `cpu_ms` cap
+
+Campaign-runner reports now use dedicated scheduled runs at 7:00 AM Mountain Time. The Worker keeps that window MT-aware in code, while `wrangler.toml` includes the paired UTC cron entries needed to cover both MST and MDT safely.
+
+The sampling rate defaults to `0.1` and can be overridden with `OBSERVABILITY_SAMPLE_RATE=0.05` (or any `0-1` value) if a fork wants fewer or more sampled timing writes.
 
 Worker-side stats and inventory repair now also treat `campaign-pledges:{slug}` as projection state instead of permanent truth. If a campaign index drifts from the underlying active pledge records, the recalc paths repair it automatically while rebuilding campaign totals and limited-tier inventory.
 
@@ -81,6 +112,9 @@ wrangler secret put ADMIN_SECRET
 
 # USPS OAuth secret (keep the client id in site config)
 wrangler secret put USPS_CLIENT_SECRET
+
+# Optional: ZIP.TAX API key for local/jurisdiction-level tax lookup
+wrangler secret put ZIP_TAX_API_KEY
 ```
 
 USPS setup for this repo is split intentionally:
@@ -159,6 +193,8 @@ Canonicalize the first-party cart payload and create a Stripe setup-mode Checkou
 ```
 
 Returns either a custom-session bootstrap (`checkoutUiMode`, `sessionId`, `clientSecret`, `publishableKey`, `orderId`) or a hosted fallback URL.
+
+If the browser already has a billing tax destination, it can also include `billingAddress` in that payload so the final checkout quote does not have to fall back to shipping-only tax destination rules.
 
 The Worker rebuilds tier, bundle add-on, custom-support, shipping, and subtotal state from first-party cart items, validates campaign state and inventory, signs a short-lived checkout snapshot, reserves scarce inventory for limited tiers before the payment step completes, and confirms those reservations when the pledge is actually persisted. For physical pledges or physical add-ons, shipping is Worker-calculated from destination plus campaign/item shipping metadata, using USPS live quotes when available and deployment or campaign fallback rates when not.
 
@@ -242,6 +278,35 @@ The rendered card uses live campaign data, including current state, pledged tota
 ### POST /webhooks/stripe
 Stripe webhook endpoint (signature verified).
 
+### POST /tax/quote
+Return a Worker-calculated tax preview for cart / checkout UI.
+
+```json
+{
+  "subtotalCents": 1000,
+  "shippingCents": 300,
+  "billingAddress": {
+    "country": "US",
+    "postalCode": "80205",
+    "state": "CO"
+  }
+}
+```
+
+The current browser flow uses this for provisional cart / custom-checkout tax display. It is same-origin protected, rate limited, and intended for first-party UI previews rather than public third-party use.
+
+If the payload does not include enough destination detail for the configured provider, the Worker can return a provisional/no-tax-result response and let the browser keep displaying `--` until checkout has a better billing or shipping destination.
+
+### GET /admin/observability/webhooks?days=2
+Admin-only webhook observability summary.
+
+Returns recent per-day webhook delivery counts, outcomes, event-type rollups, duration stats, and a short recent-event window for debugging retries, signature failures, and unexpected traffic spikes.
+
+### GET /admin/observability/performance?days=2
+Admin-only sampled performance summary.
+
+Returns sampled wall-clock timings for key mutation routes such as checkout start, checkout completion, Manage Pledge writes, shipping quotes, and checkout abandon. This is intended as a tuning aid for the deployed `cpu_ms` cap, not as a high-cardinality tracing system.
+
 ### POST /admin/broadcast/diary
 Send diary update notification to all campaign supporters. Requires `x-admin-key` header.
 
@@ -289,6 +354,58 @@ Send milestone notification to all campaign supporters. Requires `x-admin-key` h
 }
 ```
 
+### POST /admin/report/campaign-runner
+Preview or manually send a campaign-runner report for one campaign. Requires `x-admin-key` header.
+
+```json
+{
+  "campaignSlug": "hand-relations",
+  "reportType": "pledge",   // "pledge" or "fulfillment"
+  "dryRun": true,
+  "markAsSent": false
+}
+```
+
+Notes:
+
+- `dryRun: true` returns recipients, row counts, filename, and marker status without sending
+- omitting `markAsSent` defaults it to `true` for live sends so the matching cron run does not immediately duplicate the report
+- campaign recipients still come from campaign front matter `runner_report_emails`
+- `reportType: "pledge"` is the daily live-campaign ledger report
+- `reportType: "fulfillment"` is the one-time post-deadline shipment/export report
+- report emails use short, emoji-free, deliverability-first subjects with the configured prefix plus report kind and campaign title
+- daily pledge emails include campaign-only totals plus a short momentum/coaching note in the body
+- fulfillment sends split by fulfiller:
+  - campaign-runner recipients get only the campaign-fulfilled rows
+  - `platform.support_email` gets a separate platform-fulfillment email when platform rows exist
+- fulfillment emails use a fulfillment-specific summary/body note rather than reusing the daily pledge-report summary
+- fulfillment dry runs/report responses expose `campaignRowCount`, `platformRowCount`, and `platformRecipient`
+
+Dry-run example:
+
+```bash
+curl -X POST https://worker.example.com/admin/report/campaign-runner \
+  -H "Content-Type: application/json" \
+  -H "x-admin-key: YOUR_ADMIN_SECRET" \
+  -d '{"campaignSlug":"hand-relations","reportType":"pledge","dryRun":true}'
+```
+
+Manual send example:
+
+```bash
+curl -X POST https://worker.example.com/admin/report/campaign-runner \
+  -H "Content-Type: application/json" \
+  -H "x-admin-key: YOUR_ADMIN_SECRET" \
+  -d '{"campaignSlug":"hand-relations","reportType":"fulfillment","dryRun":false,"markAsSent":true}'
+```
+
+Operational guidance:
+
+- prefer `dryRun: true` first when checking a new campaign, recipient list, or customization change
+- set `markAsSent: false` only when you intentionally want a manual send without consuming the scheduled-send marker
+- deployment-wide behavior comes from `_config.yml` under `reports.campaign_runner`, while per-campaign recipients stay in front matter
+- for fulfillment, validate both the runner and platform slices before sending if a campaign includes platform add-ons
+
 ### POST /test/email
 Send a test email of any type. In test mode (`APP_MODE=test`), no auth required. In production, requires `x-admin-key` header.
 
@@ -330,6 +447,15 @@ curl -X POST https://worker.example.com/test/email \
 | `SUPPORT_EMAIL` | Support contact mirrored from site config |
 | `PLEDGES_EMAIL_FROM` | Sender identity for pledge-related emails |
 | `UPDATES_EMAIL_FROM` | Sender identity for update / milestone / announcement emails |
+| `EMAIL_LOGO_PATH` | Supporter-email logo path mirrored from `platform.logo_path` |
+| `EMAIL_FONT_FAMILY` | Supporter-email body font stack mirrored from `design.font_body` |
+| `EMAIL_HEADING_FONT_FAMILY` | Supporter-email heading font stack mirrored from `design.font_display` |
+| `EMAIL_COLOR_TEXT` | Supporter-email base text color mirrored from `design.color_text` |
+| `EMAIL_COLOR_MUTED` | Supporter-email muted text color mirrored from `design.color_text_muted` |
+| `EMAIL_COLOR_SURFACE` | Supporter-email card surface color mirrored from `design.color_surface_subtle` |
+| `EMAIL_COLOR_BORDER` | Supporter-email border color mirrored from `design.color_border` |
+| `EMAIL_COLOR_PRIMARY` | Supporter-email primary CTA/link color mirrored from `design.color_primary` |
+| `EMAIL_BUTTON_RADIUS` | Supporter-email button radius mirrored from `design.radius_lg` |
 | `I18N_CATALOG_JSON` | Optional inline locale catalog override for Worker email localization in tests or custom deployments |
 | `SALES_TAX_RATE` | Sales tax rate mirrored from `pricing.sales_tax_rate` |
 | `FLAT_SHIPPING_RATE` | Legacy flat-shipping compatibility baseline mirrored from `pricing.flat_shipping_rate` |
@@ -351,7 +477,7 @@ curl -X POST https://worker.example.com/test/email \
 
 When `SITE_BASE` points at local dev (`localhost` / `127.0.0.1`), embedded email images still fall back to the public `https://site.example.com` asset base so inbox clients do not receive broken localhost image URLs.
 
-Fork note: treat those identity, pricing, and shipping vars as mirrors of the structured site config in [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml), especially the `platform`, `pricing`, and `shipping` sections. The first-party cart/runtime and the custom on-site checkout UI are built-in platform behavior now, not Worker env toggles you should normally customize.
+Fork note: treat those identity, email-branding, pricing, and shipping vars as mirrors of the structured site config in [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml), especially the `platform`, `design`, `pricing`, and `shipping` sections. The first-party cart/runtime and the custom on-site checkout UI are built-in platform behavior now, not Worker env toggles you should normally customize directly.
 
 Keep `USPS_CLIENT_SECRET` out of site config. It belongs in Worker secrets or [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars).
 

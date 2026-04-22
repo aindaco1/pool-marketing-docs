@@ -6,7 +6,7 @@ Marketing site and developer docs for The Pool, built with Jekyll and `just-the-
 
 ```bash
 bundle install
-ruby scripts/sync_pool_docs.rb
+POOL_SOURCE=/path/to/pool ruby scripts/sync_pool_docs.rb
 bundle exec jekyll serve
 ```
 

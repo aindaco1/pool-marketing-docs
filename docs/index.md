@@ -10,7 +10,7 @@ This page is the **fastest way to get oriented** before you dive into the full d
 
 ## Last Updated
 
-April 17, 2026
+April 21, 2026
 
 ## Common Questions
 

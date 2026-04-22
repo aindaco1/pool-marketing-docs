@@ -158,6 +158,12 @@ Secciones clave:
 
 Para agregar un nuevo campo a las campañas, edite `.pages.yml` y agréguelo a la matriz `fields` en `campaigns`.
 
+Nota de campo de operaciones de campaña actual:
+
+- `runner_report_emails` es la lista de destinatarios por campaña para los informes de los ejecutores de campaña.
+- dejarlo vacío significa que la campaña no recibe correos electrónicos de informes del ejecutor de la campaña.
+- este campo sólo controla los destinatarios; la sincronización, los archivos adjuntos, la copia de resumen y el comportamiento del prefijo de asunto aún provienen de `_config.yml` en `reports.campaign_runner`
+
 ## Solución de problemas
 
 ### Los cambios no aparecen

@@ -47,6 +47,12 @@ Para la sección del navegador centrada en la accesibilidad, utilice:
   --grep "Public Page Accessibility|keyboard-only|Community Flows|Public Page Keyboard Controls"
 ```
 
+Si desea solo el barrido de regresión de accesibilidad pública y no desea depender del host Ruby/Bundler, prefiera la ruta respaldada por Podman:
+
+```bash
+npm run test:e2e:headless:podman -- tests/e2e/accessibility-public-pages.spec.ts --project=chromium
+```
+
 ---
 
 ## Pruebas unitarias (Vitest)
@@ -59,7 +65,7 @@ Pruebas rápidas y aisladas para funciones JS en `tests/unit/`.
 |--------|-----------------|
 |`live-stats.js`|`formatMoney`, `updateProgressBar`, `updateMarkerState`, `checkTierUnlocks`, `checkLateSupport`, `updateSupportItems`, `updateTierInventory`|
 |`platform-tip`|Desinfección de propinas, derivación del porcentaje de propinas, cálculo del monto de la propina|
-|`pledge-management`|Cumplimiento de plazos según el horario de verano (MST/MDT a través de Intl), cancelación/modificación/validación del método de pago, transiciones de estado de compromiso, independencia de múltiples campañas, envío en registros de compromiso, forma de respuesta de API|
+|`pledge-management`|Cumplimiento de plazos según el horario de verano (MST/MDT a través de Intl), cancelación/modificación/validación del método de pago, transiciones de estado de compromiso, independencia de múltiples campañas, envío de registros de compromiso, forma de respuesta de API|
 |`settlement`|Agregación de cargos (incluidas tarifas de envío), éxito o fracaso del pago, flujo de reintento, modo de prueba, casos extremos, liquidación por lotes, índice de compromiso de campaña, envío de liquidación, envío en liquidación, latido cron|
 |`email-broadcasts`|Extracción de extractos del diario (con truncamiento de puntos suspensivos), ayudas de seguimiento del diario/hitos, lógica de verificación de hitos, limitación de velocidad|
 |`email-tip`|Desgloses de correos electrónicos de soporte conscientes de las sugerencias en correos electrónicos de confirmación/modificados/cancelados/fallidos/cargados|
@@ -98,7 +104,8 @@ Esto se ejecuta:
 - Cobertura de serialización de inventario de niveles de objetos duraderos en `tests/unit/tier-inventory-do.test.ts`
 - Guiones de humo locales contra la campaña mutable de solo prueba:
   - `scripts/test-worker.sh` para verificaciones de contrato de sitio/trabajador y verificación de `/checkout-intent/start` con formato incorrecto
-  - `scripts/smoke-pledge-management.sh` para una cobertura de modificación/cancelación exitosa en la campaña mutable solo local, utilizando las respuestas de reconstrucción del administrador más verificaciones de deriva de proyección de solo lectura como fuente autorizada de estadísticas/inventario durante el humo.
+  - `scripts/smoke-pledge-management.sh` para una cobertura exitosa de modificación/cancelación en la campaña mutable solo local, utilizando las respuestas de reconstrucción del administrador más verificaciones de deriva de proyección de solo lectura como fuente autorizada de estadísticas/inventario durante el humo.
+El script ahora rota sus IP de solicitud de administrador sintéticas durante esas llamadas de reconstrucción/verificación para que el limitador de velocidad de administrador real no cree un falso negativo en la activación de combinación local.
 - Suite de unidad completa a través de `npm run test:unit`
 - Paquete de seguridad a través de `npm run test:security` contra un trabajador local iniciado automáticamente
 - Suite de seguridad respaldada por Podman a través de `npm run test:security:podman` cuando desea que el sitio/pila de trabajo se inicie y se ejerza en la misma invocación.
@@ -106,7 +113,7 @@ Esto se ejecuta:
 
 El script previo a la fusión ahora inicia automáticamente Jekyll con `_config.yml,_config.local.yml` cuando es necesario, de modo que la campaña `smoke-editable` solo local esté disponible durante la activación de la fusión y el arnés Playwright use la misma configuración combinada localmente.
 Esa puerta ahora intenta primero la ruta del host Bundler/Jekyll, incluido un intento único de `bundle install` cuando Bundler está presente pero faltan gemas. Mantiene el humo del trabajador del host más ligero, pero ejecuta el humo de compromiso mutable a través de la pila respaldada por Podman para que la ruta de modificación/cancelación con estado utilice un estado de servicio local aislado incluso cuando la ruta de compilación del host tiene éxito. Si la ruta Ruby del host aún no puede compilarse limpiamente, recurre a una compilación Jekyll respaldada por Podman más los asistentes de navegador/humo compatibles con Podman restantes en lugar de fallar solo en la configuración del host.
-Para ejecuciones de navegadores sin cabeza, Playwright ahora construye un `_site` estático y sirve esa salida con un servidor HTTP liviano en lugar de usar `jekyll serve`, lo que mantiene las comprobaciones automatizadas del navegador más cercanas al diseño real de los activos publicados.
+Para ejecuciones de navegadores sin cabeza, Playwright ahora crea un `_site` estático y entrega esa salida con un servidor HTTP liviano en lugar de usar `jekyll serve`, lo que mantiene las comprobaciones automatizadas del navegador más cercanas al diseño real de los activos publicados.
 
 Esta rama ahora tiene como valor predeterminado la ruta de tiempo de ejecución/carro propio tanto en `_config.yml` como en `_config.local.yml`, y la ruta del navegador ya no admite el antiguo tiempo de ejecución del carro alojado.
 
@@ -121,7 +128,7 @@ Los valores predeterminados del trabajador local en [worker/wrangler.toml](https
 
 Para trabajo local, prefiera `./scripts/dev.sh --podman`. Inicia a Jekyll y al Trabajador en contenedores Podman desarraigados, preservando al mismo tiempo los mismos puertos y el estado local de Wrangler.
 
-[`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml) ahora es una capa de solo anulación, no una segunda configuración base. Cuando cambie o agregue configuraciones de orientación hacia la fork, prefiera [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) a menos que el valor realmente difiera solo en su máquina local.
+[`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml) ahora es una capa de solo anulación, no una segunda configuración base. Cuando cambie o agregue configuraciones de orientación hacia la bifurcación, prefiera [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) a menos que el valor realmente difiera solo en su máquina local.
 
 Los scripts de ayuda del navegador admiten el mismo modo:
 
@@ -178,7 +185,7 @@ Después de cambiar el TTL de la caché localmente, reinicie `./scripts/dev.sh -
 npx vitest run tests/unit/live-stats.test.ts tests/unit/manage-page.test.ts tests/unit/config-boot.test.ts
 ```
 
-Esas suites protegen la ruta de lectura combinada `/live/:slug`, el comportamiento de la caché del navegador y el cableado de arranque de configuración del que dependen las forks.
+Esas suites protegen la ruta de lectura combinada `/live/:slug`, el comportamiento de la caché del navegador y el cableado de arranque de configuración del que dependen las bifurcaciones.
 
 En GitHub, la misma puerta se ejecuta automáticamente en el flujo de trabajo `Merge Smoke` para solicitudes de extracción dirigidas a `main`.
 
@@ -228,6 +235,7 @@ Ejecútelos contra la preparación antes de fusionarlos cuando exista un entorno
 4. Cancele una promesa no cargada y verifique que las estadísticas y el inventario se publiquen correctamente.
 5. Realice ensayos de liquidación y ejecución real de las promesas iniciales, confirmando que las campañas solo marcan el acuerdo cuando nada necesita atención.
 6. Active transmisiones de diarios, anuncios e hitos en una campaña lo suficientemente grande como para cruzar los límites de paginación.
+7. Active un informe de cumplimiento en una campaña con elementos de campaña y de plataforma, confirmando que los destinatarios del corredor reciben solo filas de campaña y `support_email` recibe el archivo adjunto solo de plataforma.
 
 Para cambios en la lógica empresarial de pago o de trabajador, aún se requiere un pase de humo antes de fusionar:
 
@@ -404,7 +412,7 @@ Pruebas de penetración para la API Worker. Ubicado en `tests/security/`.
 
 ### Cobertura
 
-|categoría|Pruebas|
+|Categoría|Pruebas|
 |----------|-------|
 |Omisión de autenticación|Omisión de token de desarrollo, validación de token, caducidad, manipulación|
 |Seguridad del webhook|Verificación de firma de franja, manejo de eventos duplicados, inyección de dirección de envío, manejo de webhooks heredados eliminados|

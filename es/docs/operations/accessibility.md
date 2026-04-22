@@ -1,7 +1,7 @@
 ---
 title: Accesibilidad
 parent: Operaciones
-nav_order: 8
+nav_order: 9
 render_with_liquid: false
 lang: es
 ---
@@ -27,6 +27,8 @@ El sitio ya incluye:
 - Puntos de referencia ARIA (`main`, `contentinfo`, regiones activas cuando corresponda)
 - estados de enfoque visibles a través del sistema de diseño existente
 - Utilidades auxiliares del lector de pantalla
+- anclajes `main-content` estables en los shells públicos principales para que los enlaces de salto y el enfoque del teclado aterricen de manera consistente
+- Etiquetado de activación del carrito que refleja tanto el recuento de artículos como el total mostrado para tecnología de asistencia en lugar de exponer solo el ícono cromado.
 
 El reciente pase de refuerzo de accesibilidad agregó:
 
@@ -47,6 +49,15 @@ El reciente pase de refuerzo de accesibilidad agregó:
   - `aria-describedby`
   - dinámico `aria-valuetext`
 - región activa y semántica de alertas para superficies clave de estado/error
+- Posibilidades de pantalla pequeña más seguras para flujos con gran cantidad de dispositivos móviles:
+  - objetivos de cierre/eliminación más grandes en el sidecar del carrito
+  - Superposiciones de navegación y carrito con reconocimiento de área segura
+  - mejor comportamiento de ajuste para texto de acción localizado y filas de resumen
+- semántica de la página de campaña y pulido del teclado para:
+  - Enfoque la transferencia desde el CTA de soporte móvil a la sección de niveles.
+  - Texto de estado de cuenta regresiva del lector de pantalla que refleja el estado del temporizador visual.
+  - Semántica de carga y agrupación de videos de héroes más clara.
+  - Ajuste de pantalla pequeña más seguro para mosaicos de cuenta regresiva, metadatos de creadores y acciones de avance de la comunidad.
 
 ## Superficies críticas
 
@@ -77,6 +88,10 @@ La cobertura automatizada actual relacionada con la accesibilidad incluye:
 - Cobertura de unidades para semántica de diálogo y manejo de teclado en:
   - `tests/unit/cart-provider.test.ts`
   - `tests/unit/manage-page.test.ts`
+- Cobertura unitaria para enlaces de salto de shell público y puntos de referencia principales en:
+  - `tests/unit/layout-accessibility.test.ts`
+- Cobertura unitaria para etiquetas accesibles con activación por carrito y estado ampliado en:
+  - `tests/unit/cart-icon.test.ts`
 - Cobertura unitaria para pestañas de teclado en:
   - `tests/unit/diary-tabs.test.ts`
   - `tests/unit/campaign-tabs.test.ts`
@@ -100,6 +115,7 @@ La cobertura automatizada actual relacionada con la accesibilidad incluye:
     - la página de índice de la comunidad
     - la página denegada de la comunidad de seguidores
     - la página de contenido de la comunidad de seguidores
+  - El barrido de accesibilidad de páginas públicas respaldado por Podman es la verificación final preferida cuando las sucursales cambian contenido público, páginas públicas respaldadas por documentos o Chrome de páginas de campaña sin necesidad de host Bundler/Jekyll.
 - Cobertura instantánea de ARIA en Playwright para:
   - regiones principales de la página pública clave
   - el cuadro de diálogo de carrito/pago durante los flujos de solo teclado
@@ -148,6 +164,12 @@ Para una sección más amplia de accesibilidad del navegador, utilice:
   --grep "Public Page Accessibility|keyboard-only|Community Flows|Public Page Keyboard Controls"
 ```
 
+Para un barrido de accesibilidad de página pública más limitado respaldado por Podman que evita la configuración del host Bundler/Jekyll, utilice:
+
+```bash
+npm run test:e2e:headless:podman -- tests/e2e/accessibility-public-pages.spec.ts --project=chromium
+```
+
 Para la pila de desarrollo local recomendada, prefiera:
 
 ```bash
@@ -160,11 +182,12 @@ npm run podman:doctor
 Las comprobaciones automáticas ayudan, pero estas comprobaciones de accesibilidad manuales siguen siendo importantes antes de fusionarlas para realizar cambios significativos en la interfaz de usuario:
 
 - El cajón del carrito se puede abrir, navegar y cerrar solo con el teclado.
+- El disparador del carrito anuncia una etiqueta útil y un estado expandido/contraído para tecnología de asistencia.
 - El sidecar de pago mantiene estable el comportamiento de enfoque mientras Stripe monta y valida los campos.
 - El modal `Update Card` se puede utilizar solo con el teclado.
 - Las interfaces de campaña con pestañas responden correctamente a la navegación con el teclado.
 - Los controles secundarios de la página de campaña, como las pestañas del diario y las galerías de carrusel, siguen siendo utilizables solo con el teclado.
-- Los widgets de campañas públicas, como cantidades personalizadas, artículos de apoyo y avances de la comunidad de seguidores, siguen siendo utilizables solo con el teclado.
+- Los widgets de campañas públicas, como cantidades personalizadas, elementos de apoyo y avances de la comunidad de seguidores, siguen siendo utilizables solo con el teclado.
 - Las galerías de carrusel permanecen enfocables con el teclado y se desplazan correctamente con las teclas de flecha y Inicio/Fin.
 - Los controles deslizantes de punta siguen siendo utilizables con ajustes repetidos de las teclas de flecha.
 - La votación comunitaria sigue siendo operativa con interacción solo con teclado.
