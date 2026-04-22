@@ -82,28 +82,65 @@ Nuevo en esta versión:
 - La calculadora de envío funciona con cotizaciones de USPS, comportamiento alternativo y manejo de opciones de entrega.
 - complementos de plataforma, complementos de campaña, comprobaciones de deriva de proyección y madurez más amplia de informes/operaciones
 
-### v0.9.1: Estado actual de la aplicación local
+### v0.9.1 — Compartir campañas e embeds
 
-Este es el estado local actual de la aplicación. Es la versión reflejada en la configuración local y representa el trabajo completado después del hito `0.9` en lugar de una versión pública implementada por separado.
+Esta versión fue el primer gran seguimiento después del hito `0.9`. El foco estuvo en hacer que los embeds, las vistas compartidas de campaña y el pulido posterior al checkout se sintieran como parte del producto y no como experimentos laterales.
 
 Nuevo en esta versión:
 
-- Comportamiento mejorado de confirmación de pago y entrega de correo electrónico a los seguidores.
-- Widget de inserción de campaña en vivo alojado y flujo de creación de inserción más completo
-- Vistas previas de tarjetas compartidas de campaña más completas y alineadas con el lenguaje de diseño integrado.
-- incrustar enlaces cerrados y rutas de retorno pulidos para widgets de campaña
-- Trabajo de limpieza y lanzamiento de documentos después del hito más importante `0.9`
-- Limpieza del comportamiento de cuenta regresiva para que las cuentas regresivas de campañas vencidas dejen de mostrarse después de las fechas límite.
+- comportamiento mejorado de confirmación de checkout y entrega de emails para supporters
+- widget alojado de embed de campaña en vivo y un flujo más completo para construir embeds
+- vistas previas de share cards de campaña más ricas y alineadas con el lenguaje visual del embed
+- pulido de enlaces de cierre y rutas de retorno para widgets de campaña
+- limpieza de documentación y trabajo de release polish después del gran hito `0.9`
+- limpieza del comportamiento de countdown para que las campañas vencidas dejen de mostrar cuentas regresivas después del deadline
+
+### v0.9.2 — Madurez de comercio y fulfillment
+
+Esta versión convirtió la plataforma en algo más completo que “tiers de campaña más un shipping básico”.
+
+Nuevo en esta versión:
+
+- add-ons globales de plataforma con inventario consciente, manejo de low stock, variantes y soporte completo en cart y Manage Pledge
+- add-ons específicos de campaña que reutilizan la misma UI pero siguen contando para el subtotal y la lógica de financiación de la campaña propietaria
+- calculadora de shipping que reemplazó el viejo modelo plano para recompensas físicas con cotización canónica del Worker, soporte USPS, fallbacks, free shipping y upgrades limitados de entrega
+- cambios en reportes para mantener más claramente separados los ingresos de pledges de campaña, los add-ons de plataforma y la responsabilidad de fulfillment
+- seguimiento de shipping con smoke tests reales contra USPS, UX de modo estimado, datos compartidos de países de envío y mejor manejo para casos de tarifa manual o correo plano
+
+### v0.9.3 — Hardening operativo y reportes
+
+Esta versión se enfocó en que la plataforma fuera más fácil de operar de forma segura a medida que crecía la superficie de comercio.
+
+Nuevo en esta versión:
+
+- diagnósticos de projection drift en modo solo lectura y herramientas locales de operador para revisar stats, inventario e índices de campaña antes de ejecutar reparaciones
+- hardening contra denegación de servicio con `RATELIMIT` KV obligatorio, límites más estrictos en rutas de escritura, rechazo más temprano de payloads sobredimensionados y presupuestos de reintento más seguros para `checkout-intent/abandon`
+- un límite conservador de `cpu_ms`, resúmenes livianos de observabilidad y verificaciones locales para ajustar costo y comportamiento del Worker
+- reportes para campaign runners con `runner_report_emails`, configuración acotada en `reports.campaign_runner`, emails diarios de ledger para campañas en vivo y flujos separados de fulfillment para campaign fulfillers y platform fulfillers
+- un núcleo compartido de reportes para que los emails programados y las exportaciones locales por CLI no se desalineen
+
+### v0.9.4 — Estado local actual de la aplicación
+
+Este es el hito de release local actual reflejado en la app y en la documentación. El gran tema aquí fue la madurez del checkout con impuestos y la última ronda de pulido para forks.
+
+Nuevo en esta versión:
+
+- cálculo de impuestos por proveedor mediante los modos `flat`, `offline_rules`, `nm_grt` y `zip_tax` en lugar de depender solo de una tasa fija
+- UX provisional de impuestos en cart y checkout para que el navegador pueda mostrar `--` hasta que el Worker tenga suficiente información de facturación o envío
+- plomería completa del destino fiscal entre cart, custom checkout, Manage Pledge, datos persistidos y emails para supporters para mantener la matemática de impuestos alineada en todas partes
+- una ruta gratuita centrada en Nuevo México con dataset vendorizado más refinamiento opcional por EDAC, junto con mejor cobertura local para pruebas bajo proveedores de impuestos por ubicación
+- más pulido de branding para forks, de modo que la misma superficie de configuración ahora tematiza Stripe Elements en sitio, emails para supporters y más partes de la capa de metadata localizada
+- trabajo de localización adicional como resúmenes de botones del carrito, copy auxiliar sobre ubicación fiscal en checkout y metadata pública / JSON-LD por locale para que los flujos con impuestos sigan leyéndose bien en inglés y español
 
 ## Próximo
 
-El trabajo aún planeado después de `0.9.1` incluye:
+El trabajo aún planeado después de `0.9.4` incluye:
 
-- herramientas de administración de solo lectura o ligeramente interactivas para operadores
-- una historia de editor de contenido más sólida que la configuración actual de Pages CMS
-- reemplazar la lógica del impuesto sobre las ventas de tasa fija por un modelo de cálculo de impuestos más sólido
-- trabajo adicional de defensa por denegación de servicio
-- soporte de precios más flexible para variantes complementarias
+- un dashboard de administración y herramientas operativas más fuertes para datos de campaña, plataforma y supporters
+- una historia de edición de contenido más sólida que la configuración actual de Pages CMS
+- más trabajo en la calculadora de impuestos para una cobertura más amplia en EE. UU. e internacional, mejor profundidad jurisdiccional y flujos más claros para refrescar datos fiscales
+- trabajo adicional de defensa ante denegación de servicio y de observabilidad de la plataforma
+- soporte de precios más flexible para variantes de add-ons
 
 ## Problemas conocidos
 

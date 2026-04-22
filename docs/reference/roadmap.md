@@ -81,9 +81,9 @@ New in this version:
 - shipping-calculator work with USPS quoting, fallback behavior, and delivery-option handling
 - platform add-ons, campaign add-ons, projection drift checks, and broader reporting/operations maturity
 
-### v0.9.1 — Current Local App State
+### v0.9.1 — Embedded Campaign Sharing
 
-This is the current local state of the app. It is the version reflected in the local config and represents work completed after the `0.9` milestone rather than a separately deployed public release.
+This point release was the first major follow-up after the larger `0.9` milestone. The emphasis here was making campaign sharing, embeds, and post-checkout polish feel like part of the product rather than sidecar experiments.
 
 New in this version:
 
@@ -94,14 +94,51 @@ New in this version:
 - docs cleanup and release-polish work following the larger `0.9` milestone
 - countdown behavior cleanup so expired campaign countdowns stop showing after deadlines
 
+### v0.9.2 — Commerce And Fulfillment Maturity
+
+This version turned the platform from “campaign tiers plus basic shipping” into a more complete commerce and fulfillment system.
+
+New in this version:
+
+- platform-wide add-on products with inventory awareness, low-stock handling, variant support, and full cart / Manage Pledge integration
+- campaign-specific add-ons that reuse the same UI patterns while still counting toward the owning campaign’s subtotal and funding logic
+- shipping-calculator work that replaced the old flat physical-fee model with Worker-canonical USPS-backed quoting, fallback behavior, free-shipping overrides, and limited delivery-option upgrades
+- reporting changes that kept campaign pledge revenue, platform add-on revenue, and fulfiller ownership more operationally distinct
+- follow-up shipping work around real USPS credentialed smoke coverage, estimate-mode UX, shared shipping-country data, and safer handling for flat-mail/manual-rate cases
+
+### v0.9.3 — Operator Hardening And Reporting
+
+This release focused on making the platform easier to operate safely once the commerce surface got more complex.
+
+New in this version:
+
+- read-only projection-drift diagnostics plus local operator tooling so stats, inventory, and campaign indexes could be checked before repair work mutated anything
+- denial-of-service hardening with required `RATELIMIT` KV, tighter write-path rate limits, earlier oversized-payload rejection, and safer retry budgeting around `checkout-intent/abandon`
+- a conservative `cpu_ms` ceiling plus lightweight observability summaries and local observability checks for tuning Worker cost and behavior
+- campaign-runner reporting with `runner_report_emails`, bounded `reports.campaign_runner` config, daily live-campaign ledger emails, and split post-deadline fulfillment flows for campaign versus platform fulfillers
+- a shared report core so scheduled runner emails and local CLI exports stop drifting from each other
+
+### v0.9.4 — Current Local App State
+
+This is the current local release milestone reflected in the app and docs. The major theme here was tax-aware checkout maturity plus the last round of fork-polish work needed to make the platform feel more production-shaped.
+
+New in this version:
+
+- provider-driven tax calculation through `flat`, `offline_rules`, `nm_grt`, and `zip_tax` modes instead of only one flat-rate assumption
+- provisional tax UX in cart and checkout so the browser can show `--` until the Worker has enough billing or shipping destination detail to return a real answer
+- final-tax destination plumbing across cart, custom checkout, Manage Pledge, stored pledge data, and supporter emails so tax math stays consistent everywhere
+- a free-first New Mexico path through a vendored starter dataset plus optional EDAC refinement, alongside better local smoke coverage for provider-driven tax setups
+- shared fork-branding polish so the same config surface now themes on-site Stripe Elements, supporter emails, and more of the localized metadata layer
+- localized follow-up work such as cart-button summaries, checkout tax-location helper copy, and locale-aware public metadata / JSON-LD so the tax-aware flows still read cleanly in English and Spanish
+
 ## Next
 
-Work still planned after `0.9.1` includes:
+Work still planned after `0.9.4` includes:
 
-- read-only or lightly interactive admin tooling for operators
+- an admin dashboard and stronger operator tooling around campaign, platform, and supporter data
 - a stronger content-editor story than the current Pages CMS setup
-- replacing flat-rate sales-tax logic with a more robust tax-calculation model
-- additional denial-of-service defense work
+- further tax-calculator work for broader US and international coverage, better local-jurisdiction depth, and clearer tax-data refresh workflows
+- additional denial-of-service defense and platform-observability follow-up
 - more flexible pricing support for add-on variants
 
 ## Known Issues
