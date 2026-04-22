@@ -252,11 +252,11 @@ summary:focus-visible,
 
 .hero__grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(20rem, 0.9fr);
+  grid-template-columns: minmax(0, 0.9fr) minmax(24rem, 1.1fr);
   grid-template-areas:
     "intro media"
     "actions media";
-  gap: 1.5rem;
+  gap: 2rem;
   align-items: start;
 }
 
@@ -321,6 +321,7 @@ summary:focus-visible,
 
 .hero__media {
   min-width: 0;
+  width: 100%;
   grid-area: media;
 }
 
@@ -332,10 +333,12 @@ summary:focus-visible,
 
 .hero-demo {
   display: block;
+  width: 100%;
 }
 
 .hero-demo__frame {
   display: block;
+  width: 100%;
 }
 
 .hero-demo__frame--placeholder {
