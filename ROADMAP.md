@@ -1,0 +1,1 @@
+- Create self-updating gif images for each doc page inspired by https://interblah.net/self-updating-screenshots
