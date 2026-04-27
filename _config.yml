@@ -7,6 +7,7 @@ theme: just-the-docs
 lang: en
 logo: "/assets/images/defaults/dust-wave-square.png"
 permalink: pretty
+demo_video_alpha_url: "/assets/videos/hero-demo-alpha.mov"
 demo_video_url: "/assets/videos/hero-demo.webm"
 demo_video_fallback_url: "/assets/videos/hero-demo.mp4"
 demo_video_poster: ""

@@ -19,16 +19,22 @@
 
         <div class="hero__media" aria-label="Product demo">
           <section class="hero-demo" aria-label="Product demo">
-            <div class="hero-demo__frame{% unless site.demo_video_url != '' or site.demo_video_fallback_url != '' %} hero-demo__frame--placeholder{% endunless %}">
-              {% if site.demo_video_url != "" or site.demo_video_fallback_url != "" %}
+            {% assign demo_video_alpha_url = site.demo_video_alpha_url | default: "" %}
+            {% assign demo_video_url = site.demo_video_url | default: "" %}
+            {% assign demo_video_fallback_url = site.demo_video_fallback_url | default: "" %}
+            <div class="hero-demo__frame{% unless demo_video_alpha_url != '' or demo_video_url != '' or demo_video_fallback_url != '' %} hero-demo__frame--placeholder{% endunless %}">
+              {% if demo_video_alpha_url != "" or demo_video_url != "" or demo_video_fallback_url != "" %}
               <video class="hero-demo__video" autoplay muted loop playsinline preload="metadata"{% if site.demo_video_poster != "" %} poster="{{ site.demo_video_poster }}"{% endif %}>
-                {% if site.demo_video_url != "" %}
-                <source src="{{ site.demo_video_url }}" type="video/webm">
+                {% if demo_video_alpha_url != "" %}
+                <source src="{{ demo_video_alpha_url }}" type='video/quicktime; codecs="hvc1"'>
                 {% endif %}
-                {% if site.demo_video_fallback_url != "" %}
-                <source src="{{ site.demo_video_fallback_url }}" type="video/mp4">
+                {% if demo_video_url != "" %}
+                <source src="{{ demo_video_url }}" type='video/webm; codecs="vp9"'>
                 {% endif %}
-                <p data-i18n="home.demo.fallback">Your browser does not support WebM video.</p>
+                {% if demo_video_fallback_url != "" %}
+                <source src="{{ demo_video_fallback_url }}" type="video/mp4">
+                {% endif %}
+                <p data-i18n="home.demo.fallback">Your browser does not support this video.</p>
               </video>
               {% else %}
               <div class="hero-demo__placeholder" aria-hidden="true"></div>

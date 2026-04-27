@@ -46,11 +46,11 @@ home:
     license_value: Gratis para hacer fork, optimizado para los free tiers de los servicios
   demo:
     eyebrow: Espacio para demo
-    title: Espacio para un walkthrough .webm
+    title: Espacio para un walkthrough
     body: Coloca aquí una demo corta de páginas de campaña, checkout o Manage Pledge para mostrar cómo funciona tu fork de punta a punta.
-    placeholder: Walkthrough de campaña .webm
+    placeholder: Walkthrough de campaña
     caption: Espacio reservado para un recorrido corto del producto.
-    fallback: Tu navegador no soporta video WebM.
+    fallback: Tu navegador no soporta este video.
   positioning_heading: Hecho para creativos que hacen crowdfunding.
   positioning_intro: "Para <em>películas, álbumes, herramientas financiadas por la comunidad y convocatorias pagadas</em>... lo que quieras."
   positioning_cards:

@@ -46,11 +46,11 @@ home:
     license_value: Free to fork, optimized for services' free tiers
   demo:
     eyebrow: Demo slot
-    title: Room for a live .webm walkthrough
+    title: Room for a live walkthrough
     body: Drop in a short demo of campaign pages, checkout, or Manage Pledge to show how your fork works end to end.
-    placeholder: Campaign walkthrough .webm
+    placeholder: Campaign walkthrough
     caption: Reserved space for a short product walkthrough.
-    fallback: Your browser does not support WebM video.
+    fallback: Your browser does not support this video.
   positioning_heading: Built for creatives who crowdfund.
   positioning_intro: "For <em>films, albums, community-backed tools, paid submissions</em> ... whatever you want."
   positioning_cards:
