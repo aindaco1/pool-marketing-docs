@@ -1,7 +1,7 @@
 ---
 title: "SEO"
 parent: "Operations"
-nav_order: 10
+nav_order: 9
 render_with_liquid: false
 ---
 

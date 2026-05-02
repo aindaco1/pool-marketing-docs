@@ -246,6 +246,34 @@ Informes locales:
 ADMIN_SECRET=... ./scripts/check-observability.sh --local
 ```
 
+Los reportes remotos de production/dev leen Cloudflare KV a través de Wrangler, así que primero autentica Wrangler:
+```bash
+cd worker && npx wrangler login
+
+# O, para shells no interactivos y reportes respaldados por Podman:
+export CLOUDFLARE_API_TOKEN="your-token"
+./scripts/pledge-report.sh --env production --remote > ~/Desktop/pool-pledge-report.csv
+./scripts/fulfillment-report.sh --env production --remote > ~/Desktop/pool-fulfillment-report.csv
+```
+Para reportes remotos respaldados por Podman, prefiere `CLOUDFLARE_API_TOKEN` en el shell del host o en un archivo env local ignorado como `.env.local`, `.env.cloudflare` o `worker/.dev.vars`; los wrappers de reportes pasan esos valores de autenticación de Cloudflare a `podman exec`. Configuración para forks:
+
+1. En Cloudflare, crea un token de API de usuario desde **My Profile -> API Tokens -> Create Token**.
+2. Otorga **Account / Workers KV Storage / Read** para la cuenta propietaria del namespace KV `PLEDGES`.
+3. Agrega el token a `worker/.dev.vars`:
+
+```bash
+CLOUDFLARE_API_TOKEN=your-token
+```
+
+Después ejecuta las exportaciones remotas de producción a través del contenedor Worker de Podman:
+
+```bash
+./scripts/pledge-report.sh --podman --env production --remote > ~/Desktop/pool-pledge-report.csv
+./scripts/fulfillment-report.sh --podman --env production --remote > ~/Desktop/pool-fulfillment-report.csv
+```
+
+Los reportes remotos imprimen el progreso de lectura de pledges en stderr, así que la salida CSV redirigida se mantiene limpia.
+
 Pruebas locales respaldadas por Podman:
 
 ```bash

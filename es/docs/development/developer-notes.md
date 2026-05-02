@@ -761,6 +761,12 @@ Tipos de historia:
 Genere informes CSV de promesas de Cloudflare KV:
 
 ```bash
+# Los informes remotos de production/dev requieren autenticación de Wrangler.
+cd worker && npx wrangler login
+
+# O, para shells no interactivos y reportes respaldados por Podman:
+export CLOUDFLARE_API_TOKEN="your-token"
+
 # All pledges, production KV
 ./scripts/pledge-report.sh
 
@@ -773,6 +779,27 @@ Genere informes CSV de promesas de Cloudflare KV:
 # Save to file
 ./scripts/pledge-report.sh worst-movie-ever > pledges.csv
 ```
+
+Para informes remotos respaldados por Podman, coloque `CLOUDFLARE_API_TOKEN` en el shell del host o en un archivo env local ignorado como `.env.local`, `.env.cloudflare` o `worker/.dev.vars`; los envoltorios de informes pasan los valores de autenticación de Cloudflare a `podman exec`.
+
+Configuración de bifurcación para informes de producción:
+
+1. En Cloudflare, vaya a **Mi perfil -> Tokens API -> Crear token**.
+2. Cree un token de usuario con **Cuenta/Almacenamiento KV de trabajadores/Lectura** con alcance para la cuenta propietaria del espacio de nombres KV `PLEDGES` de esta bifurcación.
+3. Guárdelo en `worker/.dev.vars` u otro archivo env ignorado:
+
+```bash
+CLOUDFLARE_API_TOKEN=your-token
+```
+
+4. Ejecute exportaciones de producción a través del mismo entorno de trabajo de Podman utilizado por las pruebas locales:
+
+```bash
+./scripts/pledge-report.sh --podman --env production --remote > ~/Desktop/pool-pledge-report.csv
+./scripts/fulfillment-report.sh --podman --env production --remote > ~/Desktop/pool-fulfillment-report.csv
+```
+
+El progreso se escribe en stderr, mientras que los datos CSV se escriben solo en stdout, por lo que las redirecciones de archivos se mantienen limpias.
 
 **Formato de salida:** Una fila por entrada del historial (estilo libro mayor). Esto significa:
 - Nuevas promesas: 1 fila (creada)

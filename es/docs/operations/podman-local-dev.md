@@ -150,6 +150,21 @@ npm run test:security:podman
 npm run test:e2e:headless:podman
 ```
 
+Las exportaciones remotas de reportes de producción también pueden ejecutarse a través del contenedor Worker. Crea un token de API de usuario de Cloudflare con acceso **Account / Workers KV Storage / Read** a la cuenta propietaria del namespace KV `PLEDGES`, y guárdalo en un archivo env local ignorado como `worker/.dev.vars`:
+
+```bash
+CLOUDFLARE_API_TOKEN=your-token
+```
+
+Ejecuta:
+
+```bash
+./scripts/pledge-report.sh --podman --env production --remote > ~/Desktop/pool-pledge-report.csv
+./scripts/fulfillment-report.sh --podman --env production --remote > ~/Desktop/pool-fulfillment-report.csv
+```
+
+Los wrappers de reportes cargan la autenticación de Cloudflare desde `.env`, `.env.local`, `.env.cloudflare` y `worker/.dev.vars`, la pasan a `podman exec`, e imprimen el progreso en stderr para que los archivos CSV redirigidos permanezcan limpios.
+
 `./scripts/test-e2e.sh --podman` ahora es una cobertura de navegador totalmente automatizada. El asistente dedicado `./scripts/test-checkout.sh --podman` sigue siendo la ruta interactiva manual cuando específicamente desea realizar un pago real en su propio navegador. El conjunto de navegador automatizado sin cabeza se ejecuta en su propio contenedor Playwright y reutiliza el sitio/trabajador que ya se está ejecutando en lugar de intentar iniciar Jekyll dentro del contenedor de prueba.
 
 Para comandos del lado del host que necesitan un sitio/trabajador respaldado por Podman sin asumir persistencia de pila separada, use [`scripts/podman-stack-run.sh`](https://github.com/your-org/your-project/blob/main/scripts/podman-stack-run.sh). `npm run test:security:podman` usa ese contenedor para iniciar la pila, ejecutar el paquete de seguridad y derribar la pila en una sola invocación.
