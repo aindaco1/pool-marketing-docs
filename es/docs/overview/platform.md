@@ -8,9 +8,7 @@ lang: es
 
 # The Pool
 
-**Plataforma de financiación colectiva de código abierto de Dust Wave** — [site.example.com](https://site.example.com)
-
-Hito de lanzamiento actual: **v0.9.4**. The Pool considerará **v1.0** como el hito de lanzamiento público más amplio una vez que se completen los elementos restantes de la hoja de ruta.
+**Starter de crowdfunding de código abierto**
 
 Un sitio estático de carrito propio Jekyll + para crowdfunding creativo de todo o nada. Los patrocinadores crean una promesa en el carrito propiedad del navegador de The Pool, el trabajador de Cloudflare canonicaliza la contribución a través de `/checkout-intent/start` y Stripe recopila y guarda los detalles de la tarjeta a través de un paso de pago seguro en el sitio para que las tarjetas solo se carguen después de que una campaña exitosa alcance su fecha límite. Un pago único puede incluir artículos de múltiples campañas; Después de la confirmación del webhook, los fanáticos de los trabajadores se agrupan en registros de compromiso separados con alcance de campaña. Si se financia, un cron de trabajador envía liquidaciones por lotes y cobra promesas fuera de sesión. Opcionalmente, los seguidores pueden agregar un consejo sobre la plataforma, administrar promesas a través de enlaces mágicos con alcance de pedido y volver a visitar un panel de administración de promesas compatible con escritorio con secciones Activas/Cerradas.
 

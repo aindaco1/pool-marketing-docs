@@ -10,8 +10,6 @@ lang: es
 
 **The Pool** es una plataforma de financiación colectiva de código abierto para proyectos creativos y cinematográficos independientes.
 
-El hito del lanzamiento de la plataforma actual es **v0.9.4**. Dust Wave está reservando **v1.0** para un lanzamiento público más amplio una vez que se completen los elementos restantes de la hoja de ruta.
-
 ## Compromiso de todo o nada
 
 Cuando respaldas un proyecto en The Pool, tu tarjeta se guarda de forma segura a través de Stripe, pero **no se te cobra hasta que la campaña alcanza su objetivo**. Si el proyecto no alcanza su objetivo de financiación antes de la fecha límite, nunca se realizará ningún cargo en su tarjeta.
@@ -75,7 +73,7 @@ The Pool está diseñado para cineastas y otros creativos con características c
 
 ## La tecnología
 
-La piscina se ejecuta en una arquitectura estática moderna:
+The Pool se ejecuta en una arquitectura estática moderna:
 
 |capa|Plataforma|Rol|
 |-------|----------|------|

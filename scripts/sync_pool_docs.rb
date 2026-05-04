@@ -310,9 +310,9 @@ ROADMAP_REWRITE = <<~MARKDOWN.freeze
   - campaign-runner reporting with `runner_report_emails`, bounded `reports.campaign_runner` config, daily live-campaign ledger emails, and split post-deadline fulfillment flows for campaign versus platform fulfillers
   - a shared report core so scheduled runner emails and local CLI exports stop drifting from each other
 
-  ### v0.9.4 — Current Local App State
+  ### v0.9.4 — Tax-Aware Checkout
 
-  This is the current local release milestone reflected in the app and docs. The major theme here was tax-aware checkout maturity plus the last round of fork-polish work needed to make the platform feel more production-shaped.
+  This release made tax-aware checkout a first-class part of the platform and rounded out the fork-polish work needed to make the project feel more production-shaped.
 
   New in this version:
 
@@ -323,14 +323,26 @@ ROADMAP_REWRITE = <<~MARKDOWN.freeze
   - shared fork-branding polish so the same config surface now themes on-site Stripe Elements, supporter emails, and more of the localized metadata layer
   - localized follow-up work such as cart-button summaries, checkout tax-location helper copy, and locale-aware public metadata / JSON-LD so the tax-aware flows still read cleanly in English and Spanish
 
+  ### v0.9.5 — Local Runtime Parity And Creator Launch Handoff
+
+  This is the current local release milestone reflected in the app and docs. The focus was keeping local Worker development aligned with production deployment behavior while tightening the public handoff material creators need before launch.
+
+  New in this version:
+
+  - Podman Worker development now runs on Node 24 to match GitHub Actions deployments
+  - host and Podman helper scripts now prefer Node 24 and no longer force the obsolete Node 20 Wrangler path
+  - Wrangler 4 local development runs against Worker compatibility date `2026-05-03`, avoiding the older local-runtime polyfill crash under Node 24
+  - Podman Worker dependency setup now uses `npm ci` so local container starts do not mutate `worker/package-lock.json`
+  - the public Campaign Creator Checklist now covers campaign add-ons, embed-code promotion, shipping fallback/free-shipping decisions, tax expectations, report recipients, and fulfillment handoff
+  - a Spanish creator checklist route now exists at `/es/creator-campaign-checklist/`
+
   ## Next
 
-  Work still planned after `0.9.4` includes:
+  Work still planned after `0.9.5` includes:
 
   - an admin dashboard and stronger operator tooling around campaign, platform, and supporter data
   - a stronger content-editor story than the current Pages CMS setup
   - further tax-calculator work for broader US and international coverage, better local-jurisdiction depth, and clearer tax-data refresh workflows
-  - additional denial-of-service defense and platform-observability follow-up
   - more flexible pricing support for add-on variants
 
   ## Known Issues
@@ -355,7 +367,7 @@ def rewrite_copy(content, current_src)
   case current_src
   when "README.md"
     rewritten.sub!(
-      /\*\*Dust Wave's open-source crowdfunding platform\*\* — \[site\.example\.com\]\(https:\/\/site\.example\.com\)\n\nCurrent release milestone: \*\*v0\.9\.1\*\*\. The Pool will treat \*\*v1\.0\*\* as the wider public launch milestone once the remaining roadmap items are complete\.\n\n/,
+      /\*\*Dust Wave's open-source crowdfunding platform\*\* — \[site\.example\.com\]\(https:\/\/site\.example\.com\)\n\nCurrent release milestone: \*\*v[\d.]+\*\*\. The Pool will treat \*\*v1\.0\*\* as the wider public launch milestone once the remaining roadmap items are complete\.\n\n/,
       "**Open-source crowdfunding platform starter**\n\n"
     )
     rewritten.gsub!(/\n\*🄯 Dust Wave\*\n/, "\n")
@@ -367,7 +379,7 @@ def rewrite_copy(content, current_src)
       "**The Pool** is an open-source crowdfunding platform for independent film and creative projects."
     )
     rewritten.sub!(
-      /\nThe current platform release milestone is \*\*v0\.9\.1\*\*\. Dust Wave is reserving \*\*v1\.0\*\* for the wider public launch once the remaining roadmap items are complete\.\n/,
+      /\nThe current platform release milestone is \*\*v[\d.]+\*\*\. Dust Wave is reserving \*\*v1\.0\*\* for the wider public launch once the remaining roadmap items are complete\.\n/,
       "\n"
     )
     rewritten.gsub!(/\n\*The Pool is created and maintained by.*\n/, "\n")

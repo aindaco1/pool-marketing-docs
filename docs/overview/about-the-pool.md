@@ -9,7 +9,6 @@ render_with_liquid: false
 
 **The Pool** is an open-source crowdfunding platform for independent film and creative projects.
 
-The current platform release milestone is **v0.9.4**. Dust Wave is reserving **v1.0** for the wider public launch once the remaining roadmap items are complete.
 
 ## All-or-Nothing Pledging
 

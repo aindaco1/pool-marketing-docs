@@ -46,7 +46,7 @@ El objetivo de sincronización es [`worker/wrangler.toml`](https://github.com/yo
 
 Consulte [CUSTOMIZATION.md](/es/docs/development/customization-guide/) para conocer la superficie de bifurcación sin código admitida, incluidas las configuraciones que son solo para el sitio y las que se reflejan automáticamente en el trabajador.
 
-Valores actuales reflejados de los trabajadores que vale la pena tratar como parte de la superficie de personalización admitida:
+Valores de trabajador reflejados actuales que vale la pena tratar como parte de la superficie de personalización admitida:
 
 - `PLATFORM_NAME`
 - `PLATFORM_COMPANY_NAME`
@@ -79,6 +79,8 @@ Valores actuales reflejados de los trabajadores que vale la pena tratar como par
 - `MAX_PLATFORM_TIP_PERCENT`
 
 El repositorio ahora incluye `npm run sync:worker-config`, que sincroniza esos valores reflejados de `_config.yml`/`_config.local.yml` en `worker/wrangler.toml`. Las rutas principales de desarrollo local, prueba, solo para trabajadores y previas a la fusión lo llaman automáticamente. La verificación de artefactos propios de la puerta de fusión también recurre a la ruta de compilación respaldada por Podman cuando el host Bundler/Jekyll no está disponible.
+
+El desarrollo del trabajador local ahora apunta al Nodo 24 para que coincida con las acciones de GitHub. La imagen de Podman Worker tiene como valor predeterminado el Nodo 24, mientras que los scripts de ayuda del host prefieren el Nodo 24 y recurren al Nodo 22 en lugar de forzar la antigua ruta del Nodo 20 que Wrangler 4 ya no admite. El trabajador compartido `compatibility_date` debe moverse deliberadamente con las actualizaciones de Wrangler/tiempo de ejecución para que el comportamiento de Miniflare local y el comportamiento de los trabajadores implementados permanezcan alineados.
 
 Los secretos de USPS OAuth están intencionalmente separados de esa superficie de configuración reflejada. Mantenga `USPS_CLIENT_SECRET` en Secretos de trabajador o `worker/.dev.vars`, no en `_config.yml`.
 
@@ -121,7 +123,7 @@ La puerta de fusión ahora divide deliberadamente sus rutas de humo locales:
 
 El arnés Playwright ahora construye un `_site` estático limpio y lo sirve desde un servidor HTTP liviano para comprobaciones del navegador sin cabeza, en lugar de depender de `jekyll serve`.
 
-Nota: el carrito/tiempo de ejecución propios y la interfaz de usuario personalizada de pago en el sitio ahora se tratan como comportamientos integrados de la plataforma, no como opciones de configuración orientadas a la bifurcación. El espacio de nombres de configuración `checkout` ahora es principalmente para configuraciones verdaderamente variables como la clave publicable de Stripe.
+Nota: el carrito/tiempo de ejecución propios y la interfaz de usuario de pago en el sitio personalizada ahora se tratan como comportamiento integrado de la plataforma, no como opciones de configuración orientadas a la bifurcación. El espacio de nombres de configuración `checkout` ahora es principalmente para configuraciones verdaderamente variables como la clave publicable de Stripe.
 
 ## Sistema de diseño
 
@@ -283,7 +285,7 @@ long_content:
 
 El complemento `_plugins/campaign_state.rb` establece el estado en el momento de la compilación. El cron del trabajador activa una reconstrucción del sitio cuando las fechas cruzan la medianoche MT.
 
-**Cumplimiento de la hora de montaña**: el complemento Jekyll convierte UTC a hora de montaña antes de comparar fechas, para que las campañas no finalicen antes de tiempo en los servidores CI basados ​​en UTC. El cron de trabajador y el cron de acciones de GitHub se ejecutan a las 7 a. m. UTC (medianoche MT) para activar transiciones de estado.
+**Aplicación de Mountain Time**: el complemento Jekyll convierte UTC a Mountain Time antes de comparar fechas, para que las campañas no finalicen antes de tiempo en los servidores CI basados ​​en UTC. El cron de trabajador y el cron de acciones de GitHub se ejecutan a las 7 a. m. UTC (medianoche MT) para activar transiciones de estado.
 
 ### Zona horaria del temporizador de cuenta regresiva
 
@@ -624,7 +626,7 @@ npm run podman:doctor
 
 Esto comienza:
 - **Jekyll** en http://127.0.0.1:4000 (con anulaciones de `_config.local.yml`)
-- **Trabajador** en http://127.0.0.1:8787
+- **Trabajador** en http://127.0.0.1:8787, ejecutándose en el nodo 24 en el contenedor de desarrollo
 - **Stripe CLI** reenvía webhooks al trabajador local cuando esté disponible
 - dependencias en contenedores locales para la ruta de desarrollo/prueba de Podman compatible
 
@@ -711,7 +713,7 @@ Semillas de prueba se comprometen en KV local para su prueba:
 **Qué hace:**
 1. Borra los datos de compromiso existentes del KV local antes de la siembra
 2. Promesas de semillas para todas las campañas con escenarios realistas:
-   - **hand-relations**: Finalizado, financiamiento parcial (~$8,200 / $25,000)
+   - **hand-relations**: Financiamiento parcial y finalizado (~$8,200 / $25,000)
    - **sunder**: Financiamiento anticipado y en vivo (~$650 / $2500)
    - **tecolote**: Finalizado, financiamiento parcial (~$1,550 / $2,000)
    - **peor película de todos los tiempos**: Terminada, financiación parcial (~$1,290 / $2,500)
@@ -761,10 +763,10 @@ Tipos de historia:
 Genere informes CSV de promesas de Cloudflare KV:
 
 ```bash
-# Los informes remotos de production/dev requieren autenticación de Wrangler.
+# Remote production/dev reports require Wrangler auth.
 cd worker && npx wrangler login
 
-# O, para shells no interactivos y reportes respaldados por Podman:
+# Or, for non-interactive shells and Podman-backed report runs:
 export CLOUDFLARE_API_TOKEN="your-token"
 
 # All pledges, production KV
@@ -1036,7 +1038,7 @@ Utilice `requires_threshold` en el nivel; la plantilla lo oculta hasta `pledged_
 Los Stripe SetupIntents (métodos de pago guardados) no caducan como las retenciones de tarjetas de 7 días, por eso los usamos.
 
 **¿Cómo se cobran las campañas cuando se financian?**
-El trabajador liquida campañas automáticamente a través de un activador cron diario (se ejecuta a medianoche MT). Cuando transcurre el plazo de una campaña y ésta ha cumplido su objetivo, el Trabajador:
+El trabajador liquida campañas automáticamente mediante un activador cron diario (se ejecuta a medianoche MT). Cuando transcurre el plazo de una campaña y ésta ha cumplido su objetivo, el Trabajador:
 1. Agrega todas las promesas activas **por correo electrónico dentro de una campaña** (un cargo por partidario por campaña, no por fila de promesa)
 2. Utiliza el método de pago actualizado más recientemente para cada partidario
 3. Crea un Stripe PaymentIntent por partidario para el monto total de su campaña.
@@ -1226,11 +1228,11 @@ Las plantillas de campañas públicas ahora también obtienen más Chrome compar
 
 Los correos electrónicos de soporte de los trabajadores también consumen el catálogo de configuración regional compartido y el `preferredLang` persistente adjunto para pagar y administrar los flujos, por lo que los correos electrónicos de soporte localizados y los enlaces `/manage/` / `/community/:slug/` localizados permanecen alineados con el modelo de configuración regional del sitio.
 
-El conmutador de idioma de pie de página compartido también conserva la cadena de consulta y el hash actuales, lo cual es importante para rutas tokenizadas como `/manage/?t=...` y enlaces de comunidad de seguidores.
+El selector de idioma de pie de página compartido también conserva la cadena de consulta y el hash actuales, lo cual es importante para rutas tokenizadas como `/manage/?t=...` y enlaces de comunidad de seguidores.
 
 Límite importante:
 
-- un archivo YAML de configuración regional es la fuente principal para Chrome del sitio compartido, copia de la interfaz de usuario en tiempo de ejecución y copia del correo electrónico del asistente del trabajador.
+- un archivo YAML local es la fuente principal para Chrome del sitio compartido, copia de la interfaz de usuario en tiempo de ejecución y copia del correo electrónico del colaborador.
 - No es un cambio mágico de traducción de sitio completo por sí solo.
 - Las páginas de formato largo y otras rutas con mucho contenido aún necesitan archivos fuente localizados cuando desea una copia de la página traducida real.
 

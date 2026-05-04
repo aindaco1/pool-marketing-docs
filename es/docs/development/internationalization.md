@@ -10,7 +10,7 @@ lang: es
 
 Este documento registra la estructura de localización actual de The Pool y el flujo de trabajo admitido para agregar idiomas en una bifurcación.
 
-La ubicación secundaria enviada inmediatamente es el español, pero el objetivo real es hacer que la localización futura sea sencilla sin código personalizado para las superficies compartidas de propiedad del sitio.
+La ubicación secundaria enviada inmediatamente es español, pero el objetivo real es hacer que la localización futura sea sencilla sin código personalizado para las superficies compartidas propiedad del sitio.
 
 ## Lo que existe ahora
 
@@ -29,6 +29,7 @@ El modelo i18n actual cubre:
   - `/pledge-cancelled/`
   - `/manage/`
   - `/community/`
+  - `/creator-campaign-checklist/`
   - páginas de la comunidad de seguidores
 - Copia localizada en tiempo de ejecución propiedad del sitio para carrito, pago, gestión de compromiso, flujos de la comunidad, cuentas regresivas de la campaña (incluido el estado del tiempo restante del lector de pantalla), estados de carga/vídeo principal y títulos insertados, avance de la comunidad de seguidores, pestañas del diario, controles de la fase de producción, etiquetas de la galería, texto de estado de estadísticas en vivo y el generador/widget de inserción de la campaña.
 - etiquetas de sección de complementos de campaña localizadas tanto en el carrito como en Manage Pledge, además de una copia de ayuda para el pago, como resúmenes de los botones del carrito, etiquetas de ubicación fiscal y una copia del siguiente paso del pago alojado
@@ -68,6 +69,9 @@ i18n:
     community_index:
       en: /community/
       es: /es/community/
+    creator_campaign_checklist:
+      en: /creator-campaign-checklist/
+      es: /es/creator-campaign-checklist/
     pledge_success:
       en: /pledge-success/
       es: /es/pledge-success/
@@ -119,6 +123,8 @@ Ejemplos:
 - [es/about.md](/es/docs/overview/about-the-pool/)
 - [términos.md](/es/docs/overview/terms-and-guidelines/)
 - [es/terms.md](/es/docs/overview/terms-and-guidelines/)
+- [lista-de-verificación-de-campaña-de-creadores.md](https://github.com/your-org/your-project/blob/main/creator-campaign-checklist.md)
+- [es/creator-campaign-checklist.md](https://github.com/your-org/your-project/blob/main/es/creator-campaign-checklist.md)
 
 Ese mismo patrón debería usarse para futuras páginas con mucho contenido.
 
@@ -132,6 +138,7 @@ El sitio utiliza un modelo estático de prefijo local:
   - `/terms/`
   - `/manage/`
   - `/community/`
+  - `/creator-campaign-checklist/`
 - Los idiomas no predeterminados viven bajo un prefijo local.
   - `/es/`
   - `/es/about/`
@@ -140,6 +147,7 @@ El sitio utiliza un modelo estático de prefijo local:
   - `/es/embed/campaign/`
   - `/es/manage/`
   - `/es/community/`
+  - `/es/creator-campaign-checklist/`
 
 Esto mantiene el modelo de implementación de Jekyll/GitHub Pages simple y predecible.
 
@@ -170,9 +178,9 @@ Comportamiento actual importante:
 - Los resúmenes de activación del carrito y la copia auxiliar de ubicación de impuestos provienen del catálogo local compartido, por lo que el pago personalizado sigue siendo traducible sin cadenas codificadas separadas.
 - Las plantillas de campañas públicas ahora enrutan cadenas de Chrome compartidas a través de datos locales en lugar de inglés codificado cuando sea práctico, incluido el CTA/estado de carga del video principal, títulos insertados del video principal, texto de adelanto de la comunidad de seguidores, diario cromado, etiquetas de la fase de producción, etiquetas de accesibilidad de la galería, copia del compromiso de la barra lateral de la campaña, texto de estado del lector de pantalla de cuenta regresiva y fechas de la campaña localizadas.
 - Las páginas de campaña ahora exponen el cambio de idioma del pie de página localizado a través de la campaña generada `localized_paths`
-- el generador de inserción y el widget de la campaña alojada extraen sus cadenas de generador/tiempo de ejecución del catálogo de configuración regional compartido y conservan los enlaces de retorno de la campaña que tienen en cuenta la configuración regional
+- el generador de inserción de campaña alojada y el widget extraen sus cadenas de generador/tiempo de ejecución del catálogo de configuración regional compartido y conservan los enlaces de retorno de la campaña que tienen en cuenta la configuración regional.
 - Los metadatos públicos y JSON-LD ahora también siguen el idioma de la página activa, la ruta de inicio localizada y el conjunto de idiomas admitidos para que las páginas localizadas no emitan sugerencias de rastreo solo en inglés por accidente.
-- Las páginas localizadas de formato largo, como Acerca de y Términos, todavía usan traducciones de archivos fuente, por lo que los barridos de documentos/contenido deben mantener esos archivos específicos de la configuración regional sincronizados manualmente.
+- Las páginas localizadas de formato largo, como Acerca de y Términos, aún usan traducciones de archivos fuente, por lo que los barridos de documentos/contenido deben mantener esos archivos específicos de la configuración regional sincronizados manualmente.
 
 ## Comportamiento del correo electrónico del trabajador
 
@@ -188,7 +196,7 @@ Comportamiento práctico:
 - Si no se captura ninguna preferencia local, los correos electrónicos vuelven al inglés.
 - si un partidario se compromete o administra desde `/es/...`, el trabajador puede persistir `preferredLang=es`
 - Los correos electrónicos de los seguidores y las URL de enlaces mágicos utilizan el modelo de ruta en español, como `/es/manage/?t=...`.
-- Las tarjetas compartidas de campaña también se pueden solicitar según la configuración regional, como `/share/campaign/sunder.svg?lang=es`.
+- Las tarjetas compartidas de campaña también se pueden solicitar según la configuración regional, como `/share/campaign/sunder.svg?lang=es`
 
 ## Qué hace y qué no hace un archivo YAML de configuración regional
 

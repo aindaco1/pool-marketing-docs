@@ -28,6 +28,7 @@ The current i18n model covers:
   - `/pledge-cancelled/`
   - `/manage/`
   - `/community/`
+  - `/creator-campaign-checklist/`
   - supporter community pages
 - localized site-owned runtime copy for cart, checkout, Manage Pledge, community flows, campaign countdowns (including screen-reader remaining-time status), hero-video/loading states and embed titles, supporter-community teaser chrome, diary tabs, production-phase controls, gallery labels, live-stats status text, and the campaign embed builder/widget
 - localized campaign-add-on section labels in both cart and Manage Pledge, plus checkout helper copy such as cart-button summaries, tax-location labels, and hosted-checkout next-step copy
@@ -67,6 +68,9 @@ i18n:
     community_index:
       en: /community/
       es: /es/community/
+    creator_campaign_checklist:
+      en: /creator-campaign-checklist/
+      es: /es/creator-campaign-checklist/
     pledge_success:
       en: /pledge-success/
       es: /es/pledge-success/
@@ -118,6 +122,8 @@ Examples:
 - [es/about.md](/docs/overview/about-the-pool/)
 - [terms.md](/docs/overview/terms-and-guidelines/)
 - [es/terms.md](/docs/overview/terms-and-guidelines/)
+- [creator-campaign-checklist.md](https://github.com/your-org/your-project/blob/main/creator-campaign-checklist.md)
+- [es/creator-campaign-checklist.md](https://github.com/your-org/your-project/blob/main/es/creator-campaign-checklist.md)
 
 That same pattern should be used for future content-heavy pages.
 
@@ -131,6 +137,7 @@ The site uses a static locale-prefix model:
   - `/terms/`
   - `/manage/`
   - `/community/`
+  - `/creator-campaign-checklist/`
 - non-default languages live under a locale prefix
   - `/es/`
   - `/es/about/`
@@ -139,6 +146,7 @@ The site uses a static locale-prefix model:
   - `/es/embed/campaign/`
   - `/es/manage/`
   - `/es/community/`
+  - `/es/creator-campaign-checklist/`
 
 This keeps the Jekyll/GitHub Pages deployment model simple and predictable.
 

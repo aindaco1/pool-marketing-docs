@@ -51,7 +51,7 @@ La configuración del sitio está organizada en torno a estas secciones orientad
 
 ### Nivel superior `title` / `description`
 
-Utilice los metadatos de Jekyll de nivel superior para la búsqueda/identidad social predeterminada del sitio.
+Utilice los metadatos de Jekyll de nivel superior para la identidad social/búsqueda predeterminada del sitio.
 
 Teclas admitidas:
 
@@ -101,7 +101,7 @@ Estos valores alimentan:
 Notas:
 
 - `platform.*` es la superficie de marca principal.
-- `platform.version` debe ser la versión canónica del producto legible por máquina para el sitio, mientras que `platform.release_label` puede seguir siendo más amigable para copias públicas como `v0.9.4`.
+- `platform.version` debe ser la versión canónica del producto legible por máquina para el sitio, mientras que `platform.release_label` puede seguir siendo más amigable para copias públicas como `v0.9.5`.
 - `title` / `author` de nivel superior todavía existen en Jekyll, pero trátelos como metadatos/respaldo generales del sitio en lugar de la interfaz principal de personalización de la bifurcación.
 - `platform.default_social_image_path` es el valor predeterminado admitido para tarjetas OG/Twitter cuando una página o campaña no proporciona una imagen más específica.
 - `platform.logo_path` es también la marca reflejada que se utiliza en los correos electrónicos de los seguidores.
@@ -111,8 +111,8 @@ Ejemplo:
 ```yml
 platform:
   name: My Fork
-  version: 0.9.4
-  release_label: v0.9.4
+  version: 0.9.5
+  release_label: v0.9.5
   company_name: Example Studio
   support_email: support@example.com
   pledges_email_from: "My Fork <pledges@example.com>"
@@ -594,7 +594,7 @@ Estos valores se emiten en la hoja de estilo generada [assets/theme-vars.css](ht
 
 Las mismas variables CSS generadas ahora también son el tema del sidecar Stripe Elements en el sitio, por lo que las anulaciones de tipografía/color/radio admitidas se llevan a cabo en la interfaz de usuario de pago personalizada sin agregar una capa de configuración separada solo para el pago.
 
-Un subconjunto deliberadamente más pequeño de la misma superficie de marca se refleja en el Worker para que los correos electrónicos de los seguidores puedan reutilizar el logotipo configurado, las pilas de fuentes, el color primario, los colores de borde/superficie y el radio del botón.
+Un subconjunto deliberadamente más pequeño de la misma superficie de marca se refleja en el Worker para que los correos electrónicos de los seguidores puedan reutilizar el logotipo configurado, las pilas de fuentes, el color principal, los colores de borde/superficie y el radio del botón.
 
 Claves admitidas actualmente:
 

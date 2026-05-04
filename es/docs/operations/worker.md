@@ -6,7 +6,7 @@ render_with_liquid: false
 lang: es
 ---
 
-# La piscina - Trabajador comprometido
+# The Pool - Worker de promesas
 
 Cloudflare Worker se encarga de la canonicalización de pagos propios, la integración de Stripe, la gestión de promesas y la autenticación de patrocinadores en el ámbito de los pedidos.
 
@@ -18,6 +18,8 @@ npm run podman:doctor
 ```
 
 Esto inicia el sitio y el trabajador juntos en los puertos locales estándar y es la forma más fácil de ejercer el pago completo en el sitio y los flujos `Update Card` localmente.
+
+La ruta Podman de raíz de repositorio ejecuta el trabajador con el nodo 24, que coincide con las acciones de GitHub. El desarrollo de Worker solo de host también debe utilizar el Nodo 24 cuando sea posible; Wrangler 4 requiere al menos el Nodo 22. La fecha de compatibilidad de Worker se comparte intencionalmente entre entornos locales e implementados para que el comportamiento del tiempo de ejecución de Miniflare/Workers no cambie.
 
 Si trabaja específicamente desde el directorio `worker/`, los scripts Worker npm ahora ejecutan automáticamente el espejo de configuración primero para que `worker/wrangler.toml` permanezca alineado con la raíz del repositorio `_config.yml`/`_config.local.yml`.
 
@@ -37,7 +39,7 @@ La configuración de Worker reflejada ahora también incluye los indicadores de 
 
 Estos provienen de `debug.console_logging_enabled` y `debug.verbose_console_logging` en la raíz del repositorio [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml), y ambos están predeterminados en `true`, por lo que los trabajadores locales y desplegados permanecen detallados a menos que una bifurcación rechace explícitamente el inicio de sesión.
 
-La protección DoS de ruta de escritura ahora requiere un espacio de nombres KV `RATELIMIT`. Si falta ese enlace, el trabajador no se cierra con `503` en lugar de ejecutarse sin protección contra abusos. Las lecturas públicas de datos en vivo son intencionalmente amplias para los picos de campaña, mientras que el pago, la gestión de promesas y las mutaciones de administración utilizan los límites más estrictos por IP documentados en [`docs/SECURITY.md`](/es/docs/operations/security/). Ese requisito agrega seguridad, no una nueva suposición de que cada bifurcación debe superar inmediatamente el plan Workers Free.
+La protección DoS de ruta de escritura ahora requiere un espacio de nombres KV `RATELIMIT`. Si falta ese enlace, el trabajador no se cierra con `503` en lugar de ejecutarse sin protección contra abusos. Las lecturas públicas de datos en vivo se mantienen intencionalmente amplias para los picos de campaña, mientras que el pago, la gestión de promesas y las mutaciones de administración utilizan los límites más estrictos por IP documentados en [`docs/SECURITY.md`](/es/docs/operations/security/). Ese requisito agrega seguridad, no una nueva suposición de que cada bifurcación debe superar inmediatamente el plan Workers Free.
 
 Los trabajadores estándar/pagados implementados ahora también configuran `limits.cpu_ms = 100` en [`wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml). Ese límite no se aplica en el desarrollo local y no es una anulación de Workers Free; es un límite conservador de denegación de billetera para implementaciones pagas que aún deja un espacio cómodo por encima de los tiempos de solicitud de ruta rápida observados actualmente en el arnés de la unidad.
 
@@ -142,7 +144,7 @@ Notas:
 
 - mantener `worker/.dev.vars` sin seguimiento y ignorado
 - use secretos locales/de prueba aquí, no credenciales de producción en vivo
-- `./scripts/dev.sh --podman` puede generar o actualizar automáticamente algunos valores solo locales, como `CHECKOUT_INTENT_SECRET` o el secreto del webhook de Stripe, durante el desarrollo.
+- `./scripts/dev.sh --podman` puede generar automáticamente o actualizar algunos valores solo locales, como `CHECKOUT_INTENT_SECRET` o el secreto del webhook de Stripe, durante el desarrollo.
 
 ### 3. Configurar los webhooks de Stripe
 
@@ -201,7 +203,7 @@ El trabajador reconstruye el nivel, el complemento del paquete, el soporte perso
 
 Cuando un compromiso califica para mejoras de envío, el Trabajador también mantiene la opción de entrega limitada seleccionada (`standard`, `signature_required` o `adult_signature_required`) para que el carrito, la Gestión del compromiso, el total del compromiso almacenado y los correos electrónicos de los seguidores permanezcan alineados.
 
-Las reservas y los reclamos de nivel limitado se serializan a través de un coordinador de objetos duraderos por campaña antes de que se actualice la instantánea del inventario de KV, por lo que los inicios de pago simultáneos, los reintentos, las modificaciones y las finalizaciones de webhooks no pueden sobrevender las escasas recompensas.
+Las reservas y los reclamos de nivel limitado se serializan a través de un coordinador de objetos duraderos por campaña antes de que se actualice la instantánea del inventario de KV, por lo que los inicios, reintentos, modificaciones y finalizaciones de webhooks simultáneos no pueden sobrevender las escasas recompensas.
 
 ### OBTENER /pledges?token={token}
 Obtenga la(s) promesa(s) autorizada(s) mediante un token de enlace mágico.
@@ -235,7 +237,7 @@ Cambie los niveles, la cantidad o el soporte personalizado para un compromiso ac
 }
 ```
 
-Todos los campos excepto `token` son opcionales. Los cambios se rastrean en la matriz `history` del compromiso con entradas `type: "modified"` que incluyen el estado del nivel, cambios en los complementos del paquete, `customAmount`, deltas de envío y cualquier opción de envío seleccionada.
+Todos los campos excepto `token` son opcionales. Los cambios se rastrean en la matriz `history` del compromiso con entradas `type: "modified"` que incluyen el estado del nivel, cambios de complementos del paquete, `customAmount`, deltas de envío y cualquier opción de envío seleccionada.
 
 El trabajador valida el pedido solicitado con la carga útil del token y vuelve a calcular los totales a partir del estado del compromiso almacenado más las definiciones de la campaña. Los cambios estructurales al mismo precio, como un intercambio de variante adicional, todavía cuentan como cambios de compromiso reales para fines de persistencia y correo electrónico a los seguidores.
 
@@ -322,6 +324,8 @@ Envíe una notificación de actualización del diario a todos los partidarios de
 
 ### POST /admin/diario/verificar
 Verifique todas las campañas en busca de nuevas entradas del diario y transmítalas automáticamente. Lo llaman GitHub Actions después de la implementación. Requiere el encabezado `Authorization: Bearer {ADMIN_SECRET}`.
+
+Si la seguridad de la zona de Cloudflare desafía la solicitud de GitHub Actions antes de que llegue al trabajador, establezca un secreto de repositorio llamado `DIARY_CHECK_BYPASS_SECRET` y agregue una regla de omisión WAF de Cloudflare para `POST /admin/diary/check` cuando `X-Pool-Diary-Check` coincida con ese secreto. Mantenga `ADMIN_SECRET` habilitado; el encabezado de omisión es solo una señal de regla de borde, no una autenticación de trabajador.
 
 ```json
 {
@@ -545,4 +549,4 @@ Las entradas del diario se transmiten automáticamente a los seguidores cuando s
 3. Las nuevas entradas se transmiten a todos los seguidores de la campaña por correo electrónico.
 4. Las entradas enviadas se rastrean en KV (`diary-sent:{campaignSlug}`) para evitar correos electrónicos duplicados
 
-**Configuración:** Asegúrese de que `ADMIN_SECRET` esté configurado como secreto del repositorio de GitHub para que la acción de implementación se autentique.
+**Configuración:** Asegúrese de que `ADMIN_SECRET` esté configurado como secreto del repositorio de GitHub para que la acción de implementación se autentique. Si la verificación posterior a la implementación recibe una página de desafío de Cloudflare, configure también `DIARY_CHECK_BYPASS_SECRET` más la regla de omisión de WAF correspondiente descrita anteriormente.

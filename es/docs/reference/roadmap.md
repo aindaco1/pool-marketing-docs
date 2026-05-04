@@ -76,71 +76,83 @@ Nuevo en esta versión:
 - Protección contra sobreventa de inventario limitado con un coordinador por campaña.
 - Fortalecimiento de la accesibilidad en cuadros de diálogo, pestañas, controles deslizantes, regiones en vivo y flujos clave de público/partidarios.
 - Rediseño del sistema de diseño compartido, pase de capacidad de respuesta móvil y limpieza más amplia del sistema de estilo.
-- Personalización de primera variable para forks a través de configuración estructurada y duplicación de trabajadores.
+- Personalización de primera variable para bifurcaciones a través de configuración estructurada y duplicación de trabajadores.
 - Finalización de i18n en inglés/español para páginas públicas, flujos de soporte clave y copia en tiempo de ejecución compartida
 - Fundamentos de SEO que incluyen metadatos canónicos, datos estructurados, manejo de mapas de sitio/robots y mejoras en las tarjetas compartidas.
 - La calculadora de envío funciona con cotizaciones de USPS, comportamiento alternativo y manejo de opciones de entrega.
 - complementos de plataforma, complementos de campaña, comprobaciones de deriva de proyección y madurez más amplia de informes/operaciones
 
-### v0.9.1 — Compartir campañas e embeds
+### v0.9.1: uso compartido de campañas integrado
 
-Esta versión fue el primer gran seguimiento después del hito `0.9`. El foco estuvo en hacer que los embeds, las vistas compartidas de campaña y el pulido posterior al checkout se sintieran como parte del producto y no como experimentos laterales.
-
-Nuevo en esta versión:
-
-- comportamiento mejorado de confirmación de checkout y entrega de emails para supporters
-- widget alojado de embed de campaña en vivo y un flujo más completo para construir embeds
-- vistas previas de share cards de campaña más ricas y alineadas con el lenguaje visual del embed
-- pulido de enlaces de cierre y rutas de retorno para widgets de campaña
-- limpieza de documentación y trabajo de release polish después del gran hito `0.9`
-- limpieza del comportamiento de countdown para que las campañas vencidas dejen de mostrar cuentas regresivas después del deadline
-
-### v0.9.2 — Madurez de comercio y fulfillment
-
-Esta versión convirtió la plataforma en algo más completo que “tiers de campaña más un shipping básico”.
+Este lanzamiento puntual fue el primer seguimiento importante después del hito más importante `0.9`. El énfasis aquí era hacer que el intercambio de campañas, las incrustaciones y el pulido posterior al pago se sintieran como parte del producto en lugar de experimentos complementarios.
 
 Nuevo en esta versión:
 
-- add-ons globales de plataforma con inventario consciente, manejo de low stock, variantes y soporte completo en cart y Manage Pledge
-- add-ons específicos de campaña que reutilizan la misma UI pero siguen contando para el subtotal y la lógica de financiación de la campaña propietaria
-- calculadora de shipping que reemplazó el viejo modelo plano para recompensas físicas con cotización canónica del Worker, soporte USPS, fallbacks, free shipping y upgrades limitados de entrega
-- cambios en reportes para mantener más claramente separados los ingresos de pledges de campaña, los add-ons de plataforma y la responsabilidad de fulfillment
-- seguimiento de shipping con smoke tests reales contra USPS, UX de modo estimado, datos compartidos de países de envío y mejor manejo para casos de tarifa manual o correo plano
+- Comportamiento mejorado de confirmación de pago y entrega de correo electrónico a los seguidores.
+- Widget de inserción de campaña en vivo alojado y flujo de creación de inserción más completo
+- Vistas previas de tarjetas compartidas de campaña más completas y alineadas con el lenguaje de diseño integrado.
+- incrustar enlaces cerrados y rutas de retorno pulidos para widgets de campaña
+- Trabajo de limpieza y lanzamiento de documentos después del hito más importante `0.9`
+- Limpieza del comportamiento de cuenta regresiva para que las cuentas regresivas de campañas vencidas dejen de mostrarse después de las fechas límite.
 
-### v0.9.3 — Hardening operativo y reportes
+### v0.9.2 — Madurez de comercio y cumplimiento
 
-Esta versión se enfocó en que la plataforma fuera más fácil de operar de forma segura a medida que crecía la superficie de comercio.
-
-Nuevo en esta versión:
-
-- diagnósticos de projection drift en modo solo lectura y herramientas locales de operador para revisar stats, inventario e índices de campaña antes de ejecutar reparaciones
-- hardening contra denegación de servicio con `RATELIMIT` KV obligatorio, límites más estrictos en rutas de escritura, rechazo más temprano de payloads sobredimensionados y presupuestos de reintento más seguros para `checkout-intent/abandon`
-- un límite conservador de `cpu_ms`, resúmenes livianos de observabilidad y verificaciones locales para ajustar costo y comportamiento del Worker
-- reportes para campaign runners con `runner_report_emails`, configuración acotada en `reports.campaign_runner`, emails diarios de ledger para campañas en vivo y flujos separados de fulfillment para campaign fulfillers y platform fulfillers
-- un núcleo compartido de reportes para que los emails programados y las exportaciones locales por CLI no se desalineen
-
-### v0.9.4 — Estado local actual de la aplicación
-
-Este es el hito de release local actual reflejado en la app y en la documentación. El gran tema aquí fue la madurez del checkout con impuestos y la última ronda de pulido para forks.
+Esta versión convirtió la plataforma de “niveles de campaña más envío básico” a un sistema de comercio y cumplimiento más completo.
 
 Nuevo en esta versión:
 
-- cálculo de impuestos por proveedor mediante los modos `flat`, `offline_rules`, `nm_grt` y `zip_tax` en lugar de depender solo de una tasa fija
-- UX provisional de impuestos en cart y checkout para que el navegador pueda mostrar `--` hasta que el Worker tenga suficiente información de facturación o envío
-- plomería completa del destino fiscal entre cart, custom checkout, Manage Pledge, datos persistidos y emails para supporters para mantener la matemática de impuestos alineada en todas partes
-- una ruta gratuita centrada en Nuevo México con dataset vendorizado más refinamiento opcional por EDAC, junto con mejor cobertura local para pruebas bajo proveedores de impuestos por ubicación
-- más pulido de branding para forks, de modo que la misma superficie de configuración ahora tematiza Stripe Elements en sitio, emails para supporters y más partes de la capa de metadata localizada
-- trabajo de localización adicional como resúmenes de botones del carrito, copy auxiliar sobre ubicación fiscal en checkout y metadata pública / JSON-LD por locale para que los flujos con impuestos sigan leyéndose bien en inglés y español
+- Productos complementarios para toda la plataforma con reconocimiento de inventario, manejo de existencias bajas, soporte de variantes e integración de carrito completo/Administrar compromiso
+- complementos específicos de la campaña que reutilizan los mismos patrones de interfaz de usuario y al mismo tiempo cuentan para el subtotal y la lógica de financiación de la campaña propietaria.
+- Trabajo de calculadora de envíos que reemplazó el antiguo modelo de tarifa física plana con cotizaciones canónicas de Worker respaldadas por USPS, comportamiento alternativo, anulaciones de envío gratuito y actualizaciones de opciones de entrega limitadas.
+- cambios en los informes que mantuvieron los ingresos por promesas de campaña, los ingresos por complementos de la plataforma y la propiedad del cumplimentador más diferenciados desde el punto de vista operativo
+- trabajo de seguimiento de envío en torno a una cobertura de humo real acreditada por USPS, UX en modo de estimación, datos compartidos del país de envío y un manejo más seguro para casos de correo plano/tarifa manual
+
+### v0.9.3: Informes y fortalecimiento del operador
+
+Esta versión se centró en hacer que la plataforma fuera más fácil de operar de forma segura una vez que la superficie comercial se volviera más compleja.
+
+Nuevo en esta versión:
+
+- Diagnósticos de deriva de proyección de solo lectura más herramientas de operador local para que las estadísticas, el inventario y los índices de campaña puedan verificarse antes de que el trabajo de reparación cambie algo.
+- endurecimiento de denegación de servicio con `RATELIMIT` KV requerido, límites de velocidad de ruta de escritura más estrictos, rechazo más temprano de carga útil de gran tamaño y presupuesto de reintento más seguro alrededor de `checkout-intent/abandon`
+- un techo `cpu_ms` conservador más resúmenes de observabilidad livianos y comprobaciones de observabilidad locales para ajustar el costo y el comportamiento de los trabajadores
+- Informes del ejecutor de campaña con `runner_report_emails`, configuración limitada de `reports.campaign_runner`, correos electrónicos diarios de contabilidad de campañas en vivo y flujos de cumplimiento posteriores a la fecha límite divididos para quienes cumplen con la campaña versus la plataforma.
+- un núcleo de informes compartido para que los correos electrónicos programados de los ejecutores y las exportaciones CLI locales dejen de desviarse entre sí
+
+### v0.9.4: Pago con reconocimiento de impuestos
+
+Este lanzamiento convirtió el proceso de pago con conocimiento de impuestos en una parte de primera clase de la plataforma y completó el trabajo de pulido necesario para que el proyecto se sintiera más en forma de producción.
+
+Nuevo en esta versión:
+
+- cálculo de impuestos impulsado por el proveedor a través de los modos `flat`, `offline_rules`, `nm_grt` y `zip_tax` en lugar de un solo supuesto de tasa fija
+- UX de impuesto provisional en el carrito y en el proceso de pago para que el navegador pueda mostrar `--` hasta que el Trabajador tenga suficientes detalles de facturación o destino de envío para devolver una respuesta real
+- Conexión del destino final del impuesto en el carrito, pago personalizado, gestión de compromiso, datos de compromiso almacenados y correos electrónicos de apoyo para que las matemáticas de impuestos se mantengan consistentes en todas partes.
+- un camino gratuito primero en Nuevo México a través de un conjunto de datos inicial proporcionado más un refinamiento EDAC opcional, junto con una mejor cobertura de humo local para configuraciones de impuestos impulsadas por el proveedor
+- Se ha compartido el pulido de la marca de la bifurcación, por lo que la misma superficie de configuración ahora presenta temas en el sitio Stripe Elements, correos electrónicos de soporte y más de la capa de metadatos localizados.
+- trabajo de seguimiento localizado, como resúmenes de los botones del carrito, copia auxiliar de ubicación de impuestos en el proceso de pago y metadatos públicos con reconocimiento regional/JSON-LD para que los flujos con reconocimiento de impuestos aún se lean claramente en inglés y español.
+
+### v0.9.5: Paridad de tiempo de ejecución local y transferencia de lanzamiento del creador
+
+Este es el hito de lanzamiento local actual reflejado en la aplicación y los documentos. El objetivo era mantener el desarrollo de los trabajadores locales alineado con el comportamiento de implementación de la producción y, al mismo tiempo, reforzar la transferencia pública de material que los creadores necesitan antes del lanzamiento.
+
+Nuevo en esta versión:
+
+- El desarrollo de Podman Worker ahora se ejecuta en el Nodo 24 para coincidir con las implementaciones de GitHub Actions
+- Los scripts de host y ayuda de Podman ahora prefieren el Nodo 24 y ya no fuerzan la ruta obsoleta del Nodo 20 Wrangler.
+- El desarrollo local de Wrangler 4 se ejecuta según la fecha de compatibilidad de Worker `2026-05-03`, lo que evita el antiguo fallo del polyfill en tiempo de ejecución local en el Nodo 24.
+- La configuración de dependencia de Podman Worker ahora usa `npm ci` para que los inicios de contenedores locales no muten `worker/package-lock.json`
+- la lista de verificación pública para creadores de campañas ahora cubre complementos de campaña, promoción de códigos de inserción, decisiones de envío alternativo/envío gratuito, expectativas impositivas, destinatarios de informes y transferencia de cumplimiento.
+- Ahora existe una ruta de lista de verificación de creadores en español en `/es/creator-campaign-checklist/`.
 
 ## Próximo
 
-El trabajo aún planeado después de `0.9.4` incluye:
+El trabajo aún planeado después de `0.9.5` incluye:
 
-- un dashboard de administración y herramientas operativas más fuertes para datos de campaña, plataforma y supporters
-- una historia de edición de contenido más sólida que la configuración actual de Pages CMS
-- más trabajo en la calculadora de impuestos para una cobertura más amplia en EE. UU. e internacional, mejor profundidad jurisdiccional y flujos más claros para refrescar datos fiscales
-- trabajo adicional de defensa ante denegación de servicio y de observabilidad de la plataforma
-- soporte de precios más flexible para variantes de add-ons
+- un panel de administración y herramientas de operador más sólidas en torno a la campaña, la plataforma y los datos de los seguidores
+- una historia de editor de contenido más sólida que la configuración actual de Pages CMS
+- Trabajo adicional en la calculadora de impuestos para una cobertura más amplia en EE. UU. e internacional, una mayor profundidad de las jurisdicciones locales y flujos de trabajo de actualización de datos tributarios más claros.
+- soporte de precios más flexible para variantes complementarias
 
 ## Problemas conocidos
 

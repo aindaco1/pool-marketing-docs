@@ -34,6 +34,8 @@ npm test                   # Run all tests
 
 `./scripts/test-e2e.sh --podman` es ahora la ruta del navegador totalmente automatizada. Utilice `./scripts/test-checkout.sh --podman` cuando desee específicamente realizar el pago manualmente en un navegador real.
 
+La ruta de prueba del trabajador local ahora prefiere el nodo 24, que coincide con las acciones de GitHub. Los scripts del host recurren al Nodo 22 si una bifurcación lo tiene instalado, pero ya no fuerzan el Nodo 20 porque Wrangler 4 requiere el Nodo 22 o posterior.
+
 Para la sección del navegador centrada en la accesibilidad, utilice:
 
 ```bash
@@ -65,7 +67,7 @@ Pruebas rápidas y aisladas para funciones JS en `tests/unit/`.
 |--------|-----------------|
 |`live-stats.js`|`formatMoney`, `updateProgressBar`, `updateMarkerState`, `checkTierUnlocks`, `checkLateSupport`, `updateSupportItems`, `updateTierInventory`|
 |`platform-tip`|Desinfección de propinas, derivación del porcentaje de propinas, cálculo del monto de la propina|
-|`pledge-management`|Cumplimiento de plazos según el horario de verano (MST/MDT a través de Intl), cancelación/modificación/validación del método de pago, transiciones de estado de compromiso, independencia de múltiples campañas, envío de registros de compromiso, forma de respuesta de API|
+|`pledge-management`|Cumplimiento de plazos según el horario de verano (MST/MDT a través de Intl), cancelación/modificación/validación del método de pago, transiciones de estado de compromiso, independencia de múltiples campañas, envío en registros de compromiso, forma de respuesta de API|
 |`settlement`|Agregación de cargos (incluidas tarifas de envío), éxito o fracaso del pago, flujo de reintento, modo de prueba, casos extremos, liquidación por lotes, índice de compromiso de campaña, envío de liquidación, envío en liquidación, latido cron|
 |`email-broadcasts`|Extracción de extractos del diario (con truncamiento de puntos suspensivos), ayudas de seguimiento del diario/hitos, lógica de verificación de hitos, limitación de velocidad|
 |`email-tip`|Desgloses de correos electrónicos de soporte conscientes de las sugerencias en correos electrónicos de confirmación/modificados/cancelados/fallidos/cargados|
@@ -104,8 +106,8 @@ Esto se ejecuta:
 - Cobertura de serialización de inventario de niveles de objetos duraderos en `tests/unit/tier-inventory-do.test.ts`
 - Guiones de humo locales contra la campaña mutable de solo prueba:
   - `scripts/test-worker.sh` para verificaciones de contrato de sitio/trabajador y verificación de `/checkout-intent/start` con formato incorrecto
-  - `scripts/smoke-pledge-management.sh` para una cobertura exitosa de modificación/cancelación en la campaña mutable solo local, utilizando las respuestas de reconstrucción del administrador más verificaciones de deriva de proyección de solo lectura como fuente autorizada de estadísticas/inventario durante el humo.
-El script ahora rota sus IP de solicitud de administrador sintéticas durante esas llamadas de reconstrucción/verificación para que el limitador de velocidad de administrador real no cree un falso negativo en la activación de combinación local.
+  - `scripts/smoke-pledge-management.sh` para una cobertura de modificación/cancelación exitosa en la campaña mutable solo local, utilizando las respuestas de reconstrucción del administrador más verificaciones de deriva de proyección de solo lectura como fuente autorizada de estadísticas/inventario durante el humo.
+El script ahora rota sus IP de solicitud de administrador sintéticas durante esas llamadas de reconstrucción/verificación para que el limitador de velocidad de administrador real no cree un falso negativo en la activación de fusión local.
 - Suite de unidad completa a través de `npm run test:unit`
 - Paquete de seguridad a través de `npm run test:security` contra un trabajador local iniciado automáticamente
 - Suite de seguridad respaldada por Podman a través de `npm run test:security:podman` cuando desea que el sitio/pila de trabajo se inicie y se ejerza en la misma invocación.
@@ -113,7 +115,7 @@ El script ahora rota sus IP de solicitud de administrador sintéticas durante es
 
 El script previo a la fusión ahora inicia automáticamente Jekyll con `_config.yml,_config.local.yml` cuando es necesario, de modo que la campaña `smoke-editable` solo local esté disponible durante la activación de la fusión y el arnés Playwright use la misma configuración combinada localmente.
 Esa puerta ahora intenta primero la ruta del host Bundler/Jekyll, incluido un intento único de `bundle install` cuando Bundler está presente pero faltan gemas. Mantiene el humo del trabajador del host más ligero, pero ejecuta el humo de compromiso mutable a través de la pila respaldada por Podman para que la ruta de modificación/cancelación con estado utilice un estado de servicio local aislado incluso cuando la ruta de compilación del host tiene éxito. Si la ruta Ruby del host aún no puede compilarse limpiamente, recurre a una compilación Jekyll respaldada por Podman más los asistentes de navegador/humo compatibles con Podman restantes en lugar de fallar solo en la configuración del host.
-Para ejecuciones de navegadores sin cabeza, Playwright ahora crea un `_site` estático y entrega esa salida con un servidor HTTP liviano en lugar de usar `jekyll serve`, lo que mantiene las comprobaciones automatizadas del navegador más cercanas al diseño real de los activos publicados.
+Para ejecuciones de navegadores sin cabeza, Playwright ahora construye un `_site` estático y sirve esa salida con un servidor HTTP liviano en lugar de usar `jekyll serve`, lo que mantiene las comprobaciones automatizadas del navegador más cercanas al diseño real de los activos publicados.
 
 Esta rama ahora tiene como valor predeterminado la ruta de tiempo de ejecución/carro propio tanto en `_config.yml` como en `_config.local.yml`, y la ruta del navegador ya no admite el antiguo tiempo de ejecución del carro alojado.
 
@@ -412,7 +414,7 @@ Pruebas de penetración para la API Worker. Ubicado en `tests/security/`.
 
 ### Cobertura
 
-|Categoría|Pruebas|
+|categoría|Pruebas|
 |----------|-------|
 |Omisión de autenticación|Omisión de token de desarrollo, validación de token, caducidad, manipulación|
 |Seguridad del webhook|Verificación de firma de franja, manejo de eventos duplicados, inyección de dirección de envío, manejo de webhooks heredados eliminados|

@@ -13,7 +13,7 @@ lang: es
 ### Requisitos previos
 - Podman para la ruta local recomendada, o:
 - Ruby + Bundler (para el anfitrión Jekyll)
-- Node.js (para scripts de trabajador +)
+- Se prefiere Node.js 24, Node.js 22 mínimo para Wrangler 4 (para scripts Worker +)
 - [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/) (para el desarrollo del trabajador anfitrión)
 - opcional: [Stripe CLI](https://stripe.com/docs/stripe-cli) (para pruebas de webhook)
 
@@ -25,6 +25,8 @@ npm run podman:doctor
 ```
 
 Ése es el camino predeterminado para el desarrollo local. Mantiene los puertos locales estándar y los archivos de estado locales, pero ejecuta Jekyll y Wrangler dentro de contenedores, por lo que las nuevas bifurcaciones no necesitan alojar Ruby o Wrangler solo para iniciar la aplicación.
+
+El contenedor Podman Worker ejecuta el Nodo 24, que coincide con las Acciones de GitHub. El desarrollo de Worker solo de host debe utilizar el Nodo 24 cuando sea posible; El nodo 22 es el tiempo de ejecución mínimo admitido para Wrangler 4.
 
 Si en su lugar necesita la ruta de solo host:
 
@@ -139,6 +141,7 @@ bundle exec jekyll clean
 
 - [] Clonar repositorio, ejecutar `npm run podman:doctor`
 - [] Inicie el desarrollo local con `./scripts/dev.sh --podman`
+- [] Confirme que el desarrollo local del trabajador se esté ejecutando en el nodo 24 a través de la ruta Podman
 - [] Utilice únicamente la ruta Jekyll/Wrangler de host exclusivo si la necesita intencionalmente
 - [] Hojee `_layouts/` y `_includes/` para ver la integración del carrito propio
 - [] Revisar los scripts de carrito y compromiso de `assets/js/`
@@ -174,7 +177,7 @@ Consulte [TESTING.md](/es/docs/operations/testing/) para obtener una referencia 
 |**Todo o nada**|Tarjetas cargadas solo si `pledged_amount >= goal_amount` en la fecha límite|
 |**Intención de configuración**|Stripe se opone a guardar un método de pago para cargos posteriores fuera de la sesión|
 |**Enlace mágico**|URL firmada por HMAC enviada por correo electrónico para la gestión de promesas sin cuenta|
-|**La piscina**|Nombre de la plataforma para el sitio de crowdfunding|
+|**The Pool**|Nombre de la plataforma para el sitio de crowdfunding|
 |**Operador de plataforma**|Nombre de la empresa o estudio para su implementación|
 
 ---

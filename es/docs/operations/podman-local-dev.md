@@ -25,6 +25,7 @@ Incluido hoy:
   - `http://127.0.0.1:8787`
 - fuente de repositorio montada en enlace para una iteración rápida sin reconstrucción de imágenes en cambios de código normales
 - El estado local de Wrangler persistió en el árbol de trabajo del repositorio.
+- Imagen de desarrollo del trabajador basada en el Nodo 24, que coincide con el tiempo de ejecución de implementación de GitHub Actions
 - Uso local de `worker/.dev.vars`, incluida la generación automática de `CHECKOUT_INTENT_SECRET`.
 - Reenvío opcional de CLI de Stripe del host al trabajador local
 - Descubrimiento automático de Stripe CLI desde rutas de instalación comunes de macOS/Homebrew
@@ -70,7 +71,7 @@ El modo Podman está diseñado en torno a tres prioridades:
 |---------|--------------|----------------|
 |macos|`podman machine` máquina virtual|Validado por host en esta rama. Prefiera `libkrun` si `applehv` es inestable.|
 |linux|Podman nativo desarraigado|Compatible con la lógica del iniciador y el flujo de autoverificación, pero no validado por el host en este hilo.|
-|ventanas|`podman machine` máquina virtual|Compatible con la lógica del iniciador y el flujo de autocomprobación cuando se ejecuta desde un shell compatible con bash, pero no está validado por el host en este hilo.|
+|ventanas|`podman machine` máquina virtual|Compatible con la lógica del iniciador y el flujo de autoverificación cuando se ejecuta desde un shell compatible con bash, pero no validado por el host en este hilo.|
 
 En macOS y Windows, `./scripts/dev.sh --podman` inicializará/iniciará el `podman machine` predeterminado cuando sea necesario. En Linux, el iniciador omite la administración de la máquina y se comunica directamente con el motor Podman local sin raíz.
 
@@ -101,7 +102,7 @@ Más concretamente, la autocomprobación cubre:
 
 La puerta de fusión más amplia también ejecuta `./scripts/smoke-pledge-management.sh --podman`, por lo que la ruta de modificación/cancelación mutable aún obtiene una cobertura de estado aislada incluso cuando las fases de compilación del host se realizan correctamente.
 
-Ese humo de promesa mutable ahora también sigue siendo compatible con configuraciones impositivas impulsadas por el proveedor, como `tax.provider: nm_grt`: la ruta del dispositivo de prueba del trabajador genera una dirección de facturación para que `/test/setup` pueda crear una promesa real consciente de los impuestos en lugar de asumir un impuesto fijo.
+Ese humo de promesa mutable ahora también sigue siendo compatible con configuraciones impositivas impulsadas por el proveedor, como `tax.provider: nm_grt`: la ruta del accesorio de prueba del trabajador genera una dirección de facturación para que `/test/setup` pueda crear una promesa real consciente de los impuestos en lugar de asumir un impuesto fijo.
 
 Desde la raíz del repositorio:
 
@@ -128,6 +129,7 @@ Reconstruir cuando cambies:
 - `worker/Containerfile.dev`
 - requisitos del paquete del sistema
 - supuestos de arranque de dependencia
+- Supuestos de tiempo de ejecución de Nodo/Wrangler como el trabajador `compatibility_date`
 
 Usar:
 
@@ -150,24 +152,26 @@ npm run test:security:podman
 npm run test:e2e:headless:podman
 ```
 
-Las exportaciones remotas de reportes de producción también pueden ejecutarse a través del contenedor Worker. Crea un token de API de usuario de Cloudflare con acceso **Account / Workers KV Storage / Read** a la cuenta propietaria del namespace KV `PLEDGES`, y guárdalo en un archivo env local ignorado como `worker/.dev.vars`:
+Las exportaciones de informes de producción remota también pueden ejecutarse a través del contenedor de trabajadores. Cree un token API de usuario de Cloudflare con acceso **Cuenta/Almacenamiento KV de trabajadores/Lectura** a la cuenta propietaria del espacio de nombres KV `PLEDGES`, luego guárdelo en un archivo env local ignorado, como `worker/.dev.vars`:
 
 ```bash
 CLOUDFLARE_API_TOKEN=your-token
 ```
 
-Ejecuta:
+Correr:
 
 ```bash
 ./scripts/pledge-report.sh --podman --env production --remote > ~/Desktop/pool-pledge-report.csv
 ./scripts/fulfillment-report.sh --podman --env production --remote > ~/Desktop/pool-fulfillment-report.csv
 ```
 
-Los wrappers de reportes cargan la autenticación de Cloudflare desde `.env`, `.env.local`, `.env.cloudflare` y `worker/.dev.vars`, la pasan a `podman exec`, e imprimen el progreso en stderr para que los archivos CSV redirigidos permanezcan limpios.
+Los contenedores de informes cargan la autenticación de Cloudflare desde `.env`, `.env.local`, `.env.cloudflare` y `worker/.dev.vars`, la pasan a `podman exec` e imprimen el progreso en stderr para que los archivos CSV redirigidos permanezcan limpios.
 
 `./scripts/test-e2e.sh --podman` ahora es una cobertura de navegador totalmente automatizada. El asistente dedicado `./scripts/test-checkout.sh --podman` sigue siendo la ruta interactiva manual cuando específicamente desea realizar un pago real en su propio navegador. El conjunto de navegador automatizado sin cabeza se ejecuta en su propio contenedor Playwright y reutiliza el sitio/trabajador que ya se está ejecutando en lugar de intentar iniciar Jekyll dentro del contenedor de prueba.
 
 Para comandos del lado del host que necesitan un sitio/trabajador respaldado por Podman sin asumir persistencia de pila separada, use [`scripts/podman-stack-run.sh`](https://github.com/your-org/your-project/blob/main/scripts/podman-stack-run.sh). `npm run test:security:podman` usa ese contenedor para iniciar la pila, ejecutar el paquete de seguridad y derribar la pila en una sola invocación.
+
+El contenedor de trabajadores tiene por defecto `node:24-bookworm-slim`. Si la extracción de una imagen de Podman local se detiene pero la imagen de Playwright ya está almacenada en caché, el iniciador puede reutilizar `mcr.microsoft.com/playwright:v1.57.0-noble` como base del Nodo 24 para que el desarrollo aún coincida con el tiempo de ejecución del Nodo 24 de GitHub Actions.
 
 Para la ruta del navegador sin cabeza del lado del host, Playwright ahora crea un `_site` estático limpio y lo sirve con un servidor HTTP liviano en lugar de depender de `jekyll serve`. Esto mantiene las regresiones del navegador más cercanas a la forma real de los activos publicados y evita cierta inestabilidad de WEBrick durante las ejecuciones paralelas.
 
@@ -257,6 +261,8 @@ El modo Podman no pretende clonar perfectamente la producción de Cloudflare, pe
 
 - procesos separados del sitio y del trabajador
 - Simulación local de Wrangler para KV / Objetos duraderos
+- Nodo 24 en el contenedor de trabajadores, que coincide con las acciones de GitHub
+- la misma fecha de compatibilidad de trabajadores utilizada en la implementación
 - la misma configuración de entorno/desarrollo del trabajador utilizada por el flujo de host
 - el mismo carrito propio y ruta de pago
 - la misma ruta del navegador de compilación estática utilizada por el arnés sin cabeza del host

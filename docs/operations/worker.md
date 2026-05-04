@@ -18,6 +18,8 @@ npm run podman:doctor
 
 That boots the site and Worker together on the standard local ports and is the easiest way to exercise the full on-site checkout and `Update Card` flows locally.
 
+The repo-root Podman path runs the Worker with Node 24, matching GitHub Actions. Host-only Worker development should also use Node 24 when possible; Wrangler 4 requires at least Node 22. The Worker compatibility date is intentionally shared across local and deployed environments so Miniflare/Workers runtime behavior does not drift.
+
 If you specifically work from the `worker/` directory, the Worker npm scripts now auto-run the config mirror first so `worker/wrangler.toml` stays aligned with the repo-root `_config.yml` / `_config.local.yml`.
 
 Treat `_config.local.yml` as an override-only file for localhost-specific values. The canonical fork-facing settings should live in the repo-root `_config.yml`, and the Worker mirror will follow from there.
@@ -322,6 +324,8 @@ Send diary update notification to all campaign supporters. Requires `x-admin-key
 ### POST /admin/diary/check
 Check all campaigns for new diary entries and broadcast them automatically. Called by GitHub Actions after deploy. Requires `Authorization: Bearer {ADMIN_SECRET}` header.
 
+If Cloudflare zone security challenges the GitHub Actions request before it reaches the Worker, set a repository secret named `DIARY_CHECK_BYPASS_SECRET` and add a Cloudflare WAF skip rule for `POST /admin/diary/check` when `X-Pool-Diary-Check` matches that secret. Keep `ADMIN_SECRET` enabled; the bypass header is only an edge-rule signal, not Worker authentication.
+
 ```json
 {
   "dryRun": true  // Optional: preview without sending
@@ -544,4 +548,4 @@ Diary entries are automatically broadcast to supporters when deployed:
 3. New entries are broadcast to all campaign supporters via email
 4. Sent entries are tracked in KV (`diary-sent:{campaignSlug}`) to prevent duplicate emails
 
-**Setup:** Ensure `ADMIN_SECRET` is set as a GitHub repository secret for the deploy action to authenticate.
+**Setup:** Ensure `ADMIN_SECRET` is set as a GitHub repository secret for the deploy action to authenticate. If the post-deploy check receives a Cloudflare challenge page, also configure `DIARY_CHECK_BYPASS_SECRET` plus the matching WAF skip rule described above.

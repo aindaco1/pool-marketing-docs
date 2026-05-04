@@ -97,6 +97,7 @@ def restore_text(text: str, placeholders: list[str]) -> str:
     for index, original in enumerate(placeholders):
         restored = restored.replace(f"ZZTOKEN{index}ZZ", original)
     restored = restored.replace("La Piscina", "The Pool")
+    restored = restored.replace("La piscina", "The Pool")
     restored = restored.replace("la piscina", "The Pool")
     restored = restored.replace("El Pool", "The Pool")
     restored = restored.replace("el Pool", "The Pool")
