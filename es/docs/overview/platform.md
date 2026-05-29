@@ -8,7 +8,9 @@ lang: es
 
 # The Pool
 
-**Starter de crowdfunding de código abierto**
+**Iniciador de plataforma de crowdfunding de código abierto**
+
+Hito de lanzamiento actual: **v1.0.1**. El conjunto de funciones v1.0 y el pase de refuerzo de lanzamiento están completos; v1.0.1 agrega cargas de medios del editor de contenido del administrador, captura de análisis neto/tarifa real de Stripe y herramientas de optimización de medios del panel.
 
 Un sitio estático de carrito propio Jekyll + para crowdfunding creativo de todo o nada. Los patrocinadores crean una promesa en el carrito propiedad del navegador de The Pool, el trabajador de Cloudflare canonicaliza la contribución a través de `/checkout-intent/start` y Stripe recopila y guarda los detalles de la tarjeta a través de un paso de pago seguro en el sitio para que las tarjetas solo se carguen después de que una campaña exitosa alcance su fecha límite. Un pago único puede incluir artículos de múltiples campañas; Después de la confirmación del webhook, los fanáticos de los trabajadores se agrupan en registros de compromiso separados con alcance de campaña. Si se financia, un cron de trabajador envía liquidaciones por lotes y cobra promesas fuera de sesión. Opcionalmente, los seguidores pueden agregar un consejo sobre la plataforma, administrar promesas a través de enlaces mágicos con alcance de pedido y volver a visitar un panel de administración de promesas compatible con escritorio con secciones Activas/Cerradas.
 
@@ -33,17 +35,21 @@ Un sitio estático de carrito propio Jekyll + para crowdfunding creativo de todo
 - **Temporizadores de cuenta regresiva** — Hora de montaña (MST/MDT) con detección automática de horario de verano, renderizado previamente para evitar flashes
 - **Fases de producción y registro**: interfaz con pestañas para necesidades de financiación detalladas
 - **Decisiones de la comunidad**: votación/encuesta para la participación de los patrocinadores con listas de opciones permitidas publicadas y bloqueo de decisiones cerrado
-- **Bloques de contenido de campaña desinfectados**: el contenido de campaña y diario de formato largo acepta Markdown más un pequeño subconjunto en línea seguro (`<br>`, `<em>`, `<strong>`, `<i>`, `<b>`, `<u>`), neutraliza los esquemas de enlaces de Markdown no seguros, abre automáticamente enlaces externos en una nueva pestaña y escapa o rechaza otro HTML sin formato.
+- **Bloques de contenido de campaña desinfectados**: el contenido de campaña y diario de formato largo acepta Markdown más un pequeño subconjunto en línea seguro (`<br>`, `<em>`, `<strong>`, `<i>`, `<b>`, `<u>`), admite videos locales con carteles opcionales, neutraliza esquemas de enlaces de Markdown inseguros, abre automáticamente enlaces externos en una nueva pestaña y escapa o rechaza otro HTML sin formato.
 - **Incrustaciones estructuradas estrictas**: las incrustaciones `spotify`, `youtube` y `vimeo` aprobadas se validan con orígenes confiables exactos y rutas de inserción en lugar de coincidencias de subcadenas.
 - **Inventario serializado de niveles limitados**: las recompensas escasas se reservan a través de un objeto duradero por campaña al inicio del pago y se confirman a través del mismo coordinador en el momento de la persistencia, por lo que los niveles limitados no se sobrevenden bajo demanda simultánea.
 - **Manejo estricto de promesas faltantes** — Las lecturas de promesas de Magic-link fallan al cerrarse con `404` cuando falta el registro de promesa de respaldo
 - **Diario de producción**: actualizaciones de contenido enriquecido con correos electrónicos de transmisión automática a los seguidores
 - **Anuncios**: el administrador transmite correos electrónicos con enlaces de CTA personalizados a los seguidores.
+- **Panel de administración privado**: acceso de administrador Magic-link para configuraciones de ámbito de función, edición de campañas, complementos, seguidores, informes, análisis, herramientas de marketing/recomendaciones, usuarios y secretos/diagnósticos de solo lectura sin exponer los secretos de administrador en el código del navegador.
 - **Integración de Instagram**: CTA social opcional en los correos electrónicos de los seguidores
 - **Financiamiento continuo** — Sección de apoyo posterior a la campaña
 - **Panel de administración de promesas**: secciones activas/cerradas fáciles de usar para escritorio con controles de solo lectura en estado bloqueado después de la fecha límite
 - **Correos electrónicos e informes con sugerencias**: los correos electrónicos de los colaboradores, los informes de compromiso y las exportaciones de cumplimiento incluyen la sugerencia de la plataforma cuando está presente.
-- **Informes de ejecución de campaña**: los correos electrónicos configurables del libro mayor de compromisos diarios con alcance de campaña y las exportaciones de cumplimiento posteriores a la fecha límite pueden ir a los destinatarios de ejecución configurados de cada campaña, mientras que las filas completadas por la plataforma se pueden enrutar por separado a `support_email`, con asuntos concisos que priorizan la entregabilidad, notas de orientación específicas de la campaña y una ruta de administración de ejecución en seco/envío manual para las operaciones.
+- **Base de análisis de tarifas reales de Stripe**: las promesas cobradas recientemente almacenan la tarifa de transacción del saldo de Stripe/los valores netos cuando están disponibles, y los análisis del panel prefieren esos valores reales al tiempo que etiquetan claramente las filas de reserva estimadas.
+- **Cargas de medios del editor de contenido administrativo**: los editores de contenido de campañas y diarios pueden organizar cargas de imágenes, videos y audio con vistas previas inmediatas y luego publicarlas en el directorio de activos de la campaña con el cambio de contenido.
+- **Canal de optimización de medios del panel**: los medios cargados en el panel conservan el origen en el Worker, luego las herramientas del repositorio pueden comprimir imágenes sin pérdidas y generar derivados WebM de alta calidad para los videos cargados.
+- **Informes de los ejecutores de campaña**: los correos electrónicos del libro mayor de compromisos diarios configurables con alcance de campaña y las exportaciones de cumplimiento posteriores a la fecha límite pueden enviarse a los destinatarios de los ejecutores configurados de cada campaña, mientras que el panel obtiene una vista previa/descarga los archivos CSV de compromisos y cumplimiento sin enviar correos electrónicos ni escribir marcadores de envío.
 - **Diagnóstico de deriva de proyección**: las comprobaciones administrativas de solo lectura y una CLI local pueden comparar las estadísticas almacenadas, el inventario y los índices de campaña con la verdad del compromiso guardado antes de que cualquier ruta de reparación modifique los datos.
 - **Sistema visual compartido**: las páginas públicas, las superficies de campaña, el carrito/pago y Manage Pledge utilizan el mismo lenguaje de tipografía, botones, campos y tarjetas reutilizables y más tranquilos.
 - **Pulido adaptable para dispositivos móviles**: las páginas de campaña, los flujos de pago/administración, las páginas de la comunidad y el contenido de formato largo comparten un espacio de pantalla pequeño, cajones con reconocimiento de áreas seguras, objetivos de toque más grandes y correcciones de desbordamiento en lugar de una interfaz de usuario separada solo para dispositivos móviles.
@@ -51,8 +57,7 @@ Un sitio estático de carrito propio Jekyll + para crowdfunding creativo de todo
 - **Personalización de la primera bifurcación variable**: la configuración estructurada ahora impulsa la marca, los precios, las configuraciones sincronizadas con los trabajadores, los activos principales de la marca, las variables de diseño seleccionadas, los elementos Stripe temáticos y los correos electrónicos de los seguidores de la marca sin necesidad de un código personalizado para el cambio de marca normal de la bifurcación.
 - **Inserciones de campañas en vivo alojadas**: las páginas de la campaña ahora se vinculan a un generador de inserciones con reconocimiento regional que genera código iframe de copiar y pegar con opciones de diseño/tema/medios/CTA, datos en vivo respaldados por los trabajadores y comportamiento de cambio de tamaño automático.
 - **Fundación i18n en inglés + español**: `_config.yml` ahora ofrece idiomas admitidos, rutas de configuración regional estática, rutas de campaña localizadas generadas, datos de traducción compartidos y un selector de idioma de pie de página más silencioso, con español en vivo en inicio/acerca de/términos, páginas de campaña públicas, páginas insertadas, páginas de resultados de promesas, `/manage/`, `/community/`, rutas de la comunidad de seguidores, carrito/comunidad propiedad del sitio/Administrar compromiso/copia en tiempo de ejecución insertada, campaña etiquetas de cuenta regresiva/galería/estadísticas en vivo, resúmenes de los botones del carrito, copia auxiliar de ubicación de impuestos de pago, video principal/avance de la comunidad/diario cromado, fechas de campaña localizadas y correos electrónicos de apoyo de los trabajadores localizados
-- **Línea de base de los fundamentos de SEO**: las páginas públicas y las páginas de campaña ahora emiten títulos consistentes, descripciones, canónicos, etiquetas OG/Twitter, metadatos de idiomas localizados, JSON-LD honesto, imágenes de tarjetas compartidas de campaña generadas por los trabajadores y metadatos de idiomas alternativos cuando sean compatibles, mientras que `robots.txt`, `sitemap.xml` y las reglas explícitas de noindex mantienen los flujos privados/tokenizados fuera de la intención de búsqueda.
-- **Integración de CMS**: [Páginas CMS](https://pagescms.org) para edición visual de campañas
+- **Línea de base de los fundamentos de SEO**: las páginas públicas y las páginas de campaña ahora emiten títulos consistentes, descripciones, canónicos, etiquetas OG/Twitter, metadatos de idiomas localizados, JSON-LD honesto, tarjetas compartidas de campaña PNG generadas por los trabajadores y compatibles con rastreadores y metadatos de idiomas alternativos cuando sean compatibles, mientras que `robots.txt`, `sitemap.xml` y las reglas explícitas de noindex mantienen los flujos privados/tokenizados fuera de la intención de búsqueda.
 
 ## Arquitectura
 
@@ -66,7 +71,7 @@ Un sitio estático de carrito propio Jekyll + para crowdfunding creativo de todo
 |Interfaz|Páginas de GitHub|Jekyll + Sass + tiempo de ejecución del carrito propio|
 |Pagos|raya|Campos de pago seguros, métodos de pago guardados, cargos fuera de sesión|
 |API|Trabajador de Cloudflare|Arranque de sesión de pago, webhook, totales con reconocimiento de propinas, estadísticas, liquidación automática, purga de caché|
-|CMS|Páginas CMS|Edición de campaña visual (se compromete con GitHub)|
+|Interfaz de usuario de administrador|Panel privado|Edición, configuración, complementos, informes, análisis, seguidores, herramientas de marketing y usuarios de campañas basadas en roles|
 
 ## Inicio rápido
 
@@ -77,6 +82,8 @@ npm run podman:doctor
 ```
 
 Ése es el camino recomendado para el desarrollo local. Arranca Jekyll, el Worker, el reenvío opcional de Stripe CLI y los servicios de soporte local junto con los valores predeterminados actuales del repositorio.
+
+El contenedor de desarrollo Worker ahora se ejecuta en el nodo 24 para coincidir con las acciones de GitHub. Wrangler 4.87 también se ejecuta contra el trabajador compartido `compatibility_date = "2026-05-03"`, por lo que el comportamiento local de Miniflare/Workers se mantiene alineado con la semántica de tiempo de ejecución implementada.
 
 Si desea reconstruir las imágenes de desarrollo de Podman después de cambios de dependencia o de imagen base:
 ```bash
@@ -92,7 +99,7 @@ Las configuraciones del motor de impuestos compatibles con Fork se encuentran en
 - Vars de trabajador reflejadas `TAX_PROVIDER`, `TAX_ORIGIN_COUNTRY`, `TAX_USE_REGIONAL_ORIGIN`, `NM_GRT_API_BASE` y `ZIP_TAX_API_BASE` en [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml)
 - `tax.provider: flat` mantiene la línea base de tasa configurada heredada de `pricing.sales_tax_rate`
 - `tax.provider: offline_rules` utiliza reglas internacionales de IVA/GST suministradas además de un comportamiento alternativo a nivel estatal
-- `tax.provider: nm_grt` utiliza primero el conjunto de datos inicial de Nuevo México suministrado y puede refinar las búsquedas de direcciones de calles de Nuevo México con la API gratuita EDAC GRT.
+- `tax.provider: nm_grt` utiliza primero el conjunto de datos inicial suministrado de Nuevo México y puede refinar las búsquedas de direcciones de calles de Nuevo México con la API gratuita EDAC GRT.
 - Secreto de trabajador opcional `ZIP_TAX_API_KEY` cuando `tax.provider: zip_tax` está habilitado para búsquedas de impuestos de EE. UU. a nivel local/jurisdiccional
 
 El comportamiento de pago actual es intencionalmente conservador: si el navegador aún no tiene suficientes datos de destino, el carrito muestra el impuesto provisional como `--` y la cotización de impuestos final se resuelve una vez que el Trabajador tiene suficientes detalles de ubicación de facturación o envío.
@@ -101,7 +108,7 @@ Las configuraciones de envío amigables con el fork se encuentran en:
 - `shipping.origin_*`, `shipping.fallback_flat_rate`, `shipping.free_shipping_default` y `shipping.usps.*` en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml)
 - Variables de trabajo sincronizadas automáticamente como `SHIPPING_ORIGIN_ZIP`, `SHIPPING_FALLBACK_FLAT_RATE`, `USPS_ENABLED`, `USPS_CLIENT_ID` y las perillas de tiempo de espera/caché/enfriamiento de USPS en [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml)
 
-Mantenga `USPS_CLIENT_SECRET` fuera de la configuración del sitio. Configúrelo como secreto de trabajador o en [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars) para desarrollo local.
+Mantenga `USPS_CLIENT_SECRET` fuera de la configuración del sitio. Configúrelo como secreto de trabajador o en `worker/.dev.vars` para desarrollo local.
 
 Si cambia esos valores localmente, reinicie `./scripts/dev.sh --podman` para que el trabajador use las mismas matemáticas que el sitio.
 
@@ -117,6 +124,7 @@ Las configuraciones orientadas a la bifurcación ahora usan un modelo de configu
 
 - `platform` para identidad, URL y contacto de soporte
 - `platform` también cubre activos de marca como logotipo, logotipo de pie de página, favicon e imagen social predeterminada.
+- `admin` para URL de administración de producción más usuarios de inicialización/recuperación reflejados en el trabajador como `ADMIN_USERS_JSON`
 - `title` / `description` de nivel superior para la identidad del sitio de Jekyll y la copia SEO predeterminada
 - `seo` para controles de identidad SEO locales como `x_handle`, `same_as`, `default_social_image_alt`, `og_locale_overrides` y si el centro de red público debe seguir siendo indexable.
 - `pricing` para la línea base de compatibilidad de tarifa plana y los valores predeterminados de sugerencias de plataforma
@@ -132,12 +140,14 @@ Las configuraciones orientadas a la bifurcación ahora usan un modelo de configu
 - `checkout` para configuraciones de pago verdaderamente variables como la clave publicable de Stripe
 - `cache` para TTL de navegador en vivo
 
-[`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml) ahora es intencionalmente delgado: solo debe contener anulaciones locales verdaderas como las URL de localhost y `show_test_campaigns`, no una segunda copia de la configuración base.
+`_config.local.yml` ahora es intencionalmente delgado: solo debe contener anulaciones locales verdaderas como las URL de localhost y `show_test_campaigns`, no una segunda copia de la configuración base.
 
 Consulte [docs/CUSTOMIZATION.md](/es/docs/development/customization-guide/) para conocer la superficie de personalización sin código admitida y qué configuraciones se reflejan automáticamente en el trabajador.
 Consulte [docs/SEO.md](/es/docs/operations/seo/) para conocer la implementación actual de los fundamentos de SEO y la superficie de SEO compatible.
 Consulte [docs/ACCESSIBILITY.md](/es/docs/operations/accessibility/) para conocer la línea base de accesibilidad actual y los flujos críticos verificados.
 Consulte [docs/I18N.md](/es/docs/development/internationalization/) para conocer el modelo local, las fuentes de traducción compartidas y el comportamiento de la ruta localizada.
+
+Los creadores pueden utilizar la [Lista de verificación para creadores de campañas](https://github.com/your-org/your-project/blob/main/creator-campaign-checklist.md) pública] para la preparación del lanzamiento. Ahora cubre complementos de campaña, incrustaciones alojadas, expectativas de impuestos/envío, decisiones de envío gratuito y tasas de reserva, destinatarios de informes y transferencia de cumplimiento; la ruta española vive en `/es/creator-campaign-checklist/`.
 
 Para la localización, el modelo admitido es:
 
@@ -146,7 +156,7 @@ Para la localización, el modelo admitido es:
 - Las páginas de campaña generadas y las páginas insertadas ahora también participan en el modelo local, por lo que `/campaigns/{slug}/` puede cambiar limpiamente a `/es/campaigns/{slug}/`.
 - el conmutador de idioma de pie de página compartido conserva la cadena de consulta y el hash actuales, por lo que las rutas tokenizadas como `/manage/?t=...` pueden cambiar a `/es/manage/?t=...` sin perder el acceso al compromiso.
 
-Las principales rutas locales/dev/test ya sincronizan automáticamente los valores de Worker reflejados. Si desea actualizar la configuración del trabajador directamente, ejecute:
+Las principales rutas locales/dev/test ya llaman al script de sincronización existente, [`scripts/sync-worker-config.rb`](https://github.com/your-org/your-project/blob/main/scripts/sync-worker-config.rb), para mantener alineados los valores reflejados de Worker. Si edita `_config.yml` / `_config.local.yml` directamente y desea actualizar la configuración del trabajador antes de reiniciar la pila, ejecute:
 
 ```bash
 npm run sync:worker-config
@@ -159,6 +169,31 @@ bundle exec jekyll serve --config _config.yml,_config.local.yml
 ```
 
 Para una pila completa solo de host, ejecute el trabajador por separado con `cd worker && wrangler dev --env dev --port 8787`.
+
+Las pruebas del panel de administración local leen el correo electrónico del superadministrador de arranque de `worker/.dev.vars` ignorado como `ADMIN_BOOTSTRAP_EMAILS`. `npm run secrets:dev` crea ese archivo desde `worker/.dev.vars.example`, donde las bifurcaciones pueden reemplazar el marcador de posición con su propio correo electrónico de inicio de sesión local. Los valores predeterminados del trabajador de desarrollo comprometido aún establecen `CORS_ALLOWED_ORIGIN=http://127.0.0.1:4000` y las dos campañas de solo prueba `hand-relations,smoke-editable`. `_config.yml` `admin.users` es la lista de inicialización/recuperación de producción reflejada en el trabajador implementado como `ADMIN_USERS_JSON`; Las ediciones del usuario administrador realizadas en el panel se guardan directamente en Worker KV en `admin-users:v1`, entran en vigor de inmediato y no se publican en GitHub. Los secretos específicos de la máquina y el acceso de arranque local pertenecen al `worker/.dev.vars` ignorado.
+
+El inicio de sesión por correo electrónico del administrador también puede utilizar Cloudflare Turnstile. Configure la clave del widget público en `_config.yml` como `admin.turnstile_site_key` y almacene el `TURNSTILE_SECRET_KEY` correspondiente como secreto de trabajador. La automatización local/de prueba puede utilizar `ADMIN_TURNSTILE_BYPASS=true`, pero esa omisión debería quedar fuera de los trabajadores desplegados.
+
+Las rutas de publicación del panel están divididas intencionalmente:
+
+- Las configuraciones, los complementos, las campañas y las publicaciones de contenido se validan a través del trabajador y confirman los cambios en GitHub antes del flujo de implementación normal.
+- Configuración -> Usuarios guarda directamente en Worker KV y no usa el botón de publicar.
+- Los códigos de referencia guardados de marketing escriben un registro KV con alcance de campaña solo cuando se guardan explícitamente.
+- Los informes, análisis, soportes, cargas/vistas previas de contenido, borradores locales, filtros, clasificación y descargas de CSV son flujos de navegación de solo lectura.
+
+Para crear o actualizar secretos locales de forma segura, ejecute:
+
+```bash
+npm run secrets:dev
+```
+
+Ese ayudante crea `worker/.dev.vars` a partir de `worker/.dev.vars.example` cuando es necesario, lo bloquea con permisos de archivo solo locales, genera secretos de firma locales y solicita claves de proveedor opcionales sin imprimirlas nuevamente en el terminal. El panel de administración muestra una sección de estado de **Secretos y credenciales** de solo lectura, pero nunca almacena valores secretos en `_config.yml`, KV, confirmaciones de GitHub o borradores de configuración de administrador.
+
+Para iniciar ambas campañas de prueba de administrador contra un trabajador local en ejecución:
+
+```bash
+./scripts/seed-admin-test-campaigns.sh
+```
 
 Consulte [docs/PODMAN.md](/es/docs/operations/podman-local-dev/) para conocer el alcance y las limitaciones actuales.
 
@@ -179,7 +214,11 @@ npm run podman:doctor
 npm run podman:self-check
 ```
 
-Si desea realizar el pago de Stripe en el sitio localmente, agregue `STRIPE_PUBLISHABLE_KEY_TEST=pk_test_...` a [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars) antes de iniciar la pila.
+Si desea realizar el pago de Stripe en el sitio localmente, agregue `STRIPE_PUBLISHABLE_KEY_TEST=pk_test_...` a `worker/.dev.vars` antes de iniciar la pila.
+
+Para producción, use los secretos de Cloudflare Worker para las credenciales de tiempo de ejecución y los secretos del repositorio de GitHub para las credenciales de implementación. No coloque claves secretas de Stripe, secretos de webhooks, claves de reenvío, secretos de clientes de USPS, claves ZIP.TAX ni tokens de API de Cloudflare en `_config.yml`.
+
+Los dominios de remitente de reenvío deben coincidir con las direcciones de remitente configuradas. Para esta implementación, los correos electrónicos de compromiso y actualización utilizan remitentes `site.example.com` como `The Pool <pledges@site.example.com>`, por lo que la clave API de reenvío debe estar autorizada para `site.example.com`.
 
 ## Guía del plan Cloudflare para bifurcaciones
 
@@ -189,7 +228,8 @@ The Pool tiene una forma intencionada para que la mayor parte del tráfico siga 
 - los datos públicos en vivo ahora prefieren una solicitud combinada `/live/:slug` en lugar de estadísticas separadas + llamadas de inventario
 - Las páginas de campaña almacenan en caché las estadísticas en vivo y el inventario en `localStorage` para `cache.live_stats_ttl_seconds` / `cache.live_inventory_ttl_seconds` (`300` predeterminado)
 - las pestañas de fondo dejan de actualizarse hasta que la página vuelve a ser visible
-- Los informes de una sola campaña, las reconstrucciones de estadísticas, los asistentes de liquidación y la enumeración de los partidarios de los administradores prefieren los índices `campaign-pledges:{slug}` antes de recurrir a costosos escaneos de espacios de nombres, y las reconstrucciones de estadísticas/inventario ahora reparan los índices de campaña obsoletos cuando detectan una desviación.
+- Los informes del panel, los partidarios, los análisis, las reconstrucciones de estadísticas, los asistentes de liquidación y la enumeración de los partidarios de los administradores prefieren los índices `campaign-pledges:{slug}` antes de recurrir a costosos escaneos de espacios de nombres, y las reconstrucciones de estadísticas/inventario ahora reparan los índices de campaña obsoletos cuando detectan una desviación.
+- Las lecturas normales del panel, las vistas previas de contenido, las vistas previas/descargas de informes, los filtros de soporte, las vistas de análisis, la creación de URL de marketing y los borradores del editor local están diseñados para agregar cero escrituras de KV.
 - Las nuevas comprobaciones de deriva de solo lectura facilitan la confirmación cuando las proyecciones están obsoletas antes de ejecutar una ruta de reparación.
 - Las rutas de escritura de nivel limitado ahora solicitan al coordinador disponibilidad según la reserva en lugar de reconstruir la verdad a partir de claves de reserva KV.
 - Las rutas de lectura públicas siguen siendo intencionalmente permisivas para que una campaña legítimamente popular no alcance límites artificiales anti-DoS, mientras que las costosas escrituras de pago/administración/administración conllevan límites de velocidad y límites de tamaño de solicitud más estrictos.
@@ -199,7 +239,7 @@ The Pool tiene una forma intencionada para que la mayor parte del tráfico siga 
 
 Perillas de horquilla que vale la pena conocer:
 
-- configuración del sitio: `cache.live_stats_ttl_seconds`, `cache.live_inventory_ttl_seconds`, `pricing.sales_tax_rate`, `pricing.flat_shipping_rate`, `tax.*`
+- configuración del sitio: `cache.live_stats_ttl_seconds`, `cache.live_inventory_ttl_seconds`, `pricing.sales_tax_rate`, `shipping.fallback_flat_rate`, `tax.*`
 - Entorno del trabajador: precios sincronizados automáticamente y valores del proveedor de impuestos en [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml)
 
 ### Escenarios prácticos de escalabilidad
@@ -231,8 +271,11 @@ npm run test:unit      # Unit tests (Vitest)
 npm run test:e2e       # E2E tests (Playwright) — fully automated browser coverage
 npm run test:e2e:headless # CI-style automated browser suite
 npm run test:e2e:headless:podman -- tests/e2e/accessibility-public-pages.spec.ts --project=chromium # Podman-backed public accessibility slice
+npx playwright test tests/e2e/admin-dashboard.spec.ts --project=chromium # Focused admin dashboard browser suite
+node --check assets/js/admin-dashboard.js # Dashboard JavaScript syntax check
 npm run test:security  # Security tests — pen testing the Worker API
 npm run test:security:podman # Security tests with a Podman-backed local stack in one invocation
+npm run media:optimize:check # Check uploaded media for pending optimization/derivatives
 npm test               # Run unit + e2e
 ```
 
@@ -244,33 +287,33 @@ Informes locales:
 ADMIN_SECRET=... ./scripts/check-observability.sh --local
 ```
 
-Los reportes remotos de production/dev leen Cloudflare KV a través de Wrangler, así que primero autentica Wrangler:
+Los informes de producción/desarrollo remotos leen Cloudflare KV a través de Wrangler, así que primero autentique Wrangler:
 ```bash
 cd worker && npx wrangler login
 
-# O, para shells no interactivos y reportes respaldados por Podman:
+# Or, for non-interactive shells and Podman-backed report runs:
 export CLOUDFLARE_API_TOKEN="your-token"
 ./scripts/pledge-report.sh --env production --remote > ~/Desktop/pool-pledge-report.csv
 ./scripts/fulfillment-report.sh --env production --remote > ~/Desktop/pool-fulfillment-report.csv
 ```
-Para reportes remotos respaldados por Podman, prefiere `CLOUDFLARE_API_TOKEN` en el shell del host o en un archivo env local ignorado como `.env.local`, `.env.cloudflare` o `worker/.dev.vars`; los wrappers de reportes pasan esos valores de autenticación de Cloudflare a `podman exec`. Configuración para forks:
+Para informes remotos respaldados por Podman, prefiera `CLOUDFLARE_API_TOKEN` en el shell del host o un archivo env local ignorado como `.env.local`, `.env.cloudflare` o `worker/.dev.vars`; los envoltorios de informes pasan esos valores de autenticación de Cloudflare a `podman exec`. Configuración de la horquilla:
 
-1. En Cloudflare, crea un token de API de usuario desde **My Profile -> API Tokens -> Create Token**.
-2. Otorga **Account / Workers KV Storage / Read** para la cuenta propietaria del namespace KV `PLEDGES`.
-3. Agrega el token a `worker/.dev.vars`:
+1. En Cloudflare, cree un token API de usuario desde **Mi perfil -> Tokens API -> Crear token**.
+2. Otorgue **Cuenta/Almacenamiento KV de trabajadores/Lectura** para la cuenta propietaria del espacio de nombres `PLEDGES` KV.
+3. Agregue el token a `worker/.dev.vars`:
 
 ```bash
 CLOUDFLARE_API_TOKEN=your-token
 ```
 
-Después ejecuta las exportaciones remotas de producción a través del contenedor Worker de Podman:
+Luego ejecute las exportaciones de producción remota a través del contenedor de trabajadores de Podman:
 
 ```bash
 ./scripts/pledge-report.sh --podman --env production --remote > ~/Desktop/pool-pledge-report.csv
 ./scripts/fulfillment-report.sh --podman --env production --remote > ~/Desktop/pool-fulfillment-report.csv
 ```
 
-Los reportes remotos imprimen el progreso de lectura de pledges en stderr, así que la salida CSV redirigida se mantiene limpia.
+Los informes remotos imprimen el progreso de la recuperación de promesas en stderr, por lo que la salida CSV redirigida se mantiene limpia.
 
 Pruebas locales respaldadas por Podman:
 
@@ -321,6 +364,7 @@ Consulte [`docs/`](/es/docs/) para obtener la documentación completa:
 Buenos puntos de partida después de clonar una bifurcación son [PROJECT_OVERVIEW.md](/es/docs/development/project-overview/), [CUSTOMIZATION.md](/es/docs/development/customization-guide/), [SECURITY.md](/es/docs/operations/security/) y [TESTING.md](/es/docs/operations/testing/).
 
 - [CONTRIBUTING.md](/es/docs/development/contributing/) — Guía de introducción, configuración y contribución
+- [CHANGELOG.md](/es/docs/reference/changelog/) — Notas de la versión
 - [PODMAN.md](/es/docs/operations/podman-local-dev/) — Ruta de desarrollo local de Rootless Podman para Jekyll + Worker
 - [PROJECT_OVERVIEW.md](/es/docs/development/project-overview/) — Arquitectura del sistema
 - [WORKFLOWS.md](/es/docs/development/workflows/) — Ciclo de vida de la promesa, enlaces mágicos y flujo de carga
@@ -334,13 +378,14 @@ Buenos puntos de partida después de clonar una bifurcación son [PROJECT_OVERVI
 - [SHIPPING.md](/es/docs/operations/shipping/): modelo de envío actual, configuración de USPS y política alternativa
 - [SEO.md](/es/docs/operations/seo/): rastreo actual, metadatos, JSON-LD y modelo sin índice
 - [ADD_ON_PRODUCTS.md](/es/docs/development/add-on-products/) — Estructura actual del catálogo de complementos global y modelo inicial de importación de productos
-- [ROADMAP.md](/es/docs/reference/roadmap/) — Funciones planificadas
-- [CMS.md](/es/docs/reference/cms-integration/) — Guía de edición de campañas y configuración de Pages CMS
+- [DASHBOARD.md](/es/docs/operations/admin-dashboard/) — Referencia del panel de administración privado para operaciones y edición de campañas
+- [ROADMAP.md](/es/docs/reference/roadmap/): estado de la versión v1.0 y seguimientos posteriores a la v1.0
+- [Lista de verificación para creadores de campañas](https://github.com/your-org/your-project/blob/main/creator-campaign-checklist.md): hoja de trabajo de preparación para el lanzamiento del creador público, con ruta en español en `/es/creator-campaign-checklist/`
 
 ## Directorios clave
 
 ```
-.pages.yml            # Pages CMS configuration
+admin.md              # Private admin dashboard route
 _campaigns/           # Markdown campaign files
 _layouts/             # Page templates (campaign, community, manage, etc.)
 _includes/            # Reusable components
@@ -366,6 +411,7 @@ assets/
   └── js/             # Client-side scripts
       ├── cart.js             # Pledge flow (tiers, support items, tip UI, shipping detection)
       ├── campaign.js         # Phase tabs, toasts
+      ├── admin-dashboard.js  # Private dashboard UI, editors, tables, and publish flows
       ├── buy-buttons.js      # Button handlers
       ├── live-stats.js       # Real-time stats, inventory, tier unlocks, late support
       └── cart-provider.js    # First-party cart/runtime provider
@@ -399,6 +445,26 @@ Secretos del repositorio de GitHub necesarios para la implementación automátic
 - `CLOUDFLARE_API_TOKEN`
 - `CLOUDFLARE_ACCOUNT_ID`
 - `ADMIN_SECRET` para la verificación del diario posterior a la implementación
+- `DIARY_CHECK_BYPASS_SECRET` opcional si Cloudflare WAF desafía la verificación del diario posterior a la implementación
+
+El flujo de trabajo también necesita permisos de implementación de GitHub Pages. Mantenga `pages: write` y `id-token: write` explícitos en el trabajo de implementación de páginas si copia o refactoriza `.github/workflows/deploy.yml`.
+
+Los medios cargados en el panel conservan el origen cuando ingresan al repositorio. El flujo de trabajo independiente **Optimizar medios del panel** se ejecuta en `main` para los cambios `assets/images/**`, `assets/videos/**`, `_campaigns/**` y `_config.yml`; comprime imágenes cuando hay una salida más pequeña disponible, genera derivados WebM para videos subidos, reescribe referencias de video literales después de que existen derivados y confirma esos cambios de optimización con el bot GitHub Actions.
+
+Si la verificación del diario registra una página de desafío HTTP `403` Cloudflare, la solicitud se detiene antes de que llegue al trabajador. Agregue una regla personalizada WAF de Cloudflare que omita los desafíos administrados para:
+
+- anfitrión es igual a `worker.example.com`
+- ruta es igual a `/admin/diary/check`
+- método es igual a `POST`
+- encabezado `X-Pool-Diary-Check` es igual al valor `DIARY_CHECK_BYPASS_SECRET`
+
+Expresión sugerida:
+
+```text
+(http.host eq "worker.example.com" and http.request.method eq "POST" and http.request.uri.path eq "/admin/diary/check" and any(http.request.headers["x-pool-diary-check"][*] eq "your-bypass-secret"))
+```
+
+El Trabajador todavía requiere `Authorization: Bearer ADMIN_SECRET`; el encabezado de omisión solo permite que la automatización de GitHub Actions llegue a ese punto final autenticado.
 
 Reserva temporal: el flujo de trabajo también admite la autenticación heredada de Cloudflare a través de
 - `CLOUDFLARE_EMAIL`
@@ -417,6 +483,6 @@ El Trabajador tiene facultades:
 - cálculo total teniendo en cuenta las propinas
 - entrega de correo electrónico a seguidores mediante reenvío
 - flujos de liquidación y reintento por lotes
-- puntos finales de informes y recuperación de administración
+- autenticación del panel de administración del navegador, lectura de API, publicación de API, administración de usuarios, guardado de referencias de marketing y puntos finales de administración de secreto compartido heredados
 
 ---

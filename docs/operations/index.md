@@ -6,10 +6,11 @@ has_children: true
 
 # Operations
 
-This section covers the pledge Worker, local runtime options, quality gates, and the operational rules that protect checkout and fulfillment behavior.
+This section covers the admin dashboard, pledge Worker, local runtime options, quality gates, and the operational rules that protect checkout and fulfillment behavior.
 
 ## Local Runtime And Services
 
+- [Admin Dashboard](/docs/operations/admin-dashboard/) for browser-based campaign editing, reports, analytics, marketing tools, media uploads, and user management.
 - [Pledge Worker](/docs/operations/worker/) for secrets, KV namespaces, webhooks, environment variables, and API endpoints.
 - [Podman Local Dev](/docs/operations/podman-local-dev/) for the containerized local stack, support matrix, and troubleshooting flow.
 

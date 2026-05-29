@@ -1,7 +1,7 @@
 ---
 title: Guía de pruebas
 parent: Operaciones
-nav_order: 3
+nav_order: 4
 render_with_liquid: false
 lang: es
 ---
@@ -22,10 +22,12 @@ npm run test:e2e           # E2E tests (Playwright) — fully automated browser 
 npm run test:e2e:headless  # CI mode
 npm run test:e2e:headless:podman  # Automated browser suite with Playwright in Podman
 npm run test:e2e:parity    # First-party critical-path browser flows
+npx playwright test tests/e2e/admin-dashboard.spec.ts --project=chromium  # Focused admin dashboard browser suite
 npm run podman:doctor      # Cross-platform Podman readiness check
 npm run test:security      # Security pen tests (Worker must be running)
 npm run test:security:podman  # Security pen tests with a one-shot Podman-backed stack
 npm run test:security:staging  # Security tests against a staging worker, if you maintain one
+npm run media:optimize:check   # Check dashboard-uploaded media for pending optimization/derivatives
 ./scripts/test-checkout.sh --podman  # Manual checkout helper against the Podman stack
 ./scripts/test-e2e.sh --podman       # Automated browser helper against the Podman stack
 npm run test:usps          # Live USPS credential + quote sanity check
@@ -72,6 +74,8 @@ Pruebas rápidas y aisladas para funciones JS en `tests/unit/`.
 |`email-broadcasts`|Extracción de extractos del diario (con truncamiento de puntos suspensivos), ayudas de seguimiento del diario/hitos, lógica de verificación de hitos, limitación de velocidad|
 |`email-tip`|Desgloses de correos electrónicos de soporte conscientes de las sugerencias en correos electrónicos de confirmación/modificados/cancelados/fallidos/cargados|
 |`votes`|Almacenamiento/descopia de votos basado en correo electrónico, recuperación del estado de los votos, resultados de campaña, agregación de resultados|
+|`admin-dashboard`|Seguimiento del estado sucio del panel, serialización de configuraciones, normalización de contenido/editor, cargas de medios por etapas, análisis/relleno de tarifas reales de Stripe, ayudas de URL de referencia, utilidades de soporte responsivo/i18n|
+|`media-optimization-script`|Selección de archivos modificados, decisiones de optimización de imágenes sin pérdidas, denominación de derivados de vídeo y reescritura de referencias de fuente a WebM|
 
 ### Correr
 
@@ -126,11 +130,17 @@ El reciente refuerzo de seguridad que ahora cubre la puerta incluye:
 - Validación de origen exacto para incrustaciones estructuradas (`spotify`, `youtube`, `vimeo`)
 - reservas serializadas de inventario de nivel limitado al inicio del pago y confirmación en el momento de persistencia exitosa
 
+La optimización de medios está intencionalmente separada de la puerta previa a la fusión porque depende de herramientas nativas como FFmpeg y optimizadores de imágenes. Cuando una rama incluye medios cargados en el panel o agregados manualmente, ejecute:
+
+```bash
+npm run media:optimize:check
+```
+
 Los valores predeterminados del trabajador local en [worker/wrangler.toml](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) ahora coinciden con la configuración propia. `./scripts/dev.sh --podman` ahora genera automáticamente un `CHECKOUT_INTENT_SECRET` local en `worker/.dev.vars` si falta, por lo que los nuevos inicios de pago local no fallan al cerrarse en un secreto de desarrollo no inicializado.
 
 Para trabajo local, prefiera `./scripts/dev.sh --podman`. Inicia a Jekyll y al Trabajador en contenedores Podman desarraigados, preservando al mismo tiempo los mismos puertos y el estado local de Wrangler.
 
-[`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml) ahora es una capa de solo anulación, no una segunda configuración base. Cuando cambie o agregue configuraciones de orientación hacia la bifurcación, prefiera [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) a menos que el valor realmente difiera solo en su máquina local.
+`_config.local.yml` ahora es una capa de solo anulación, no una segunda configuración base. Cuando cambie o agregue configuraciones de orientación hacia la bifurcación, prefiera [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) a menos que el valor realmente difiera solo en su máquina local.
 
 Los scripts de ayuda del navegador admiten el mismo modo:
 
@@ -174,7 +184,7 @@ El alcance actual de Podman es intencionalmente limitado:
 
 Utilice [docs/PODMAN.md](/es/docs/operations/podman-local-dev/) para conocer la configuración exacta y las limitaciones actuales.
 
-Si cambia `pricing.sales_tax_rate` o `pricing.flat_shipping_rate` en la configuración de Jekyll, el repositorio ahora sincroniza automáticamente los valores de Worker reflejados en [worker/wrangler.toml](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) a través de las rutas principales de desarrollo/prueba. Reinicie `./scripts/dev.sh --podman` antes de probar las matemáticas de pago para que ambos servicios recojan los nuevos valores.
+Si cambia `pricing.sales_tax_rate` o `shipping.fallback_flat_rate` en la configuración de Jekyll, el repositorio ahora sincroniza automáticamente los valores de Worker reflejados en [worker/wrangler.toml](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) a través de las rutas principales de desarrollo/prueba. Reinicie `./scripts/dev.sh --podman` antes de probar las matemáticas de pago para que ambos servicios recojan los nuevos valores.
 
 Si ajusta el comportamiento de lectura del plan gratuito, manténgalos sincronizados también:
 
@@ -231,7 +241,7 @@ git worktree remove ../pool-main-check
 
 Ejecútelos contra la preparación antes de fusionarlos cuando exista un entorno de preparación. Si no existe un entorno de prueba para The Pool, ejecute la misma lista de verificación localmente con `./scripts/dev.sh --podman` y registre esa excepción en las notas de la versión/PR.
 
-1. Inicie un nuevo pago en una campaña de prueba en vivo y confirme que `/checkout-intent/start` devuelve un arranque de sesión personalizado en modo personalizado o una URL alojada en modo alternativo alojado.
+1. Inicie un nuevo pago en una campaña de prueba en vivo y confirme que `/checkout-intent/start` devuelve un arranque de sesión personalizado cuando se configura la clave publicable de Stripe coincidente, o una URL alojada cuando se utiliza intencionalmente el respaldo alojado.
 2. Complete una promesa y verifique que el webhook almacene la promesa, la actualización de estadísticas y la ruta del correo electrónico de confirmación se mantenga en buen estado.
 3. Modifique una promesa con cambios de nivel/soporte/cantidad personalizada y verifique los totales, el historial y la actualización del inventario correctamente.
 4. Cancele una promesa no cargada y verifique que las estadísticas y el inventario se publiquen correctamente.
@@ -383,6 +393,14 @@ Pruebas basadas en navegador para flujos de usuarios completos en `tests/e2e/`.
 - Verifique que la vista previa del resumen del pedido de pago aparezca inmediatamente y se resuelva en totales que tengan en cuenta las propinas
 - Cobertura de prueba de integración de API de trabajador para estadísticas en vivo y arranque de pago
 
+**Aspectos destacados de la cobertura del panel de administración:**
+- Inicio de sesión con enlace mágico, pestañas con alcance de función y restricciones de acceso de usuarios de campaña
+- Configuración, complementos, campañas, análisis, informes, seguidores y comportamiento de la pestaña Marketing
+- Editor de contenido Edición de bloques WYSIWYG, configuración de enlaces/medios, reutilización del editor de diario, estado de borrador, estado de publicación y vista previa móvil
+- Códigos de referencia de marketing guardados, creador de URL de campaña, exportaciones CSV, clasificación y flujos de lectura sin escritura
+- Capacidad de respuesta de escritorio/tableta/móvil, incluidos menús compactos de tableta en español
+- Ax comprueba el shell del panel autenticado
+
 ### Correr
 
 ```bash
@@ -391,6 +409,7 @@ npm run test:e2e:quick     # Headed mode (requires running server)
 npm run test:e2e:headless  # CI mode (headless)
 npm run test:e2e:parity    # Critical cart/manage browser regressions
 npm run test:e2e:ui        # Interactive UI mode
+npx playwright test tests/e2e/admin-dashboard.spec.ts --project=chromium
 ```
 
 ### Agregar pruebas
@@ -419,7 +438,7 @@ Pruebas de penetración para la API Worker. Ubicado en `tests/security/`.
 |Omisión de autenticación|Omisión de token de desarrollo, validación de token, caducidad, manipulación|
 |Seguridad del webhook|Verificación de firma de franja, manejo de eventos duplicados, inyección de dirección de envío, manejo de webhooks heredados eliminados|
 |Autorización|Puntos finales de administración, acceso entre usuarios, protecciones de puntos finales de prueba|
-|Validación de entrada|XSS, inyección, desbordamiento, entrada con formato incorrecto, hasAbuso de bandera física, manipulación de tarifas de envío, niveles adicionales/inyección de artículos de soporte|
+|Validación de entrada|XSS, inyección, desbordamiento, entrada con formato incorrecto, normalización de campos del panel de control, abuso de indicadores físicos, manipulación de tarifas de envío, niveles adicionales/inyección de artículos de soporte|
 |Limitación de tasa|Solicitudes de ráfaga, resistencia DoS|
 
 ### Correr
@@ -513,7 +532,7 @@ npx wrangler dev --env dev --port 8787
 ### Verificar dominio (para producción)
 
 1. Vaya a **Dominios** → **Agregar dominio**
-2. Agregue su dominio de envío verificado
+2. Agregue el dominio de remitente exacto utilizado por `PLEDGES_EMAIL_FROM`/`UPDATES_EMAIL_FROM` (para esta implementación, `site.example.com`)
 3. Agregue los registros DNS que proporciona Reenviar
 4. Esperar verificación
 
@@ -836,7 +855,7 @@ Esperado: devuelve `{ success: true }` y activa el flujo de trabajo de GitHub.
 ## 8. Lista de verificación de producción
 
 - [] Cambiar Stripe a claves en vivo
-- [] Verifica tu dominio de envío en Reenviar
+- [] Verifique el dominio del remitente de reenvío utilizado por `PLEDGES_EMAIL_FROM` y `UPDATES_EMAIL_FROM` (para esta implementación, `site.example.com`)
 - [] Implementar trabajador: `wrangler deploy`
 - [] Configurar el webhook de Stripe en el panel → `https://worker.example.com/webhooks/stripe`
 - [ ] Pruebe con una contribución real de $1
@@ -857,7 +876,10 @@ Esperado: devuelve `{ success: true }` y activa el flujo de trabajo de GitHub.
 - `MAGIC_LINK_SECRET`: cadena aleatoria de más de 32 caracteres para la firma de tokens HMAC
 - `RESEND_API_KEY` — Reenviar clave API para correos electrónicos de soporte (re_...)
 - `ADMIN_SECRET`: cadena aleatoria para puntos finales de API de administración
-- `GITHUB_TOKEN`: (opcional) PAT de GitHub con alcance `workflow` para activadores de reconstrucción
+- `GITHUB_TOKEN`: GitHub PAT con acceso a repositorio/flujo de trabajo para acciones de publicación del panel y activadores de reconstrucción; opcional solo cuando no estás probando la publicación respaldada por GitHub
+- `ADMIN_BOOTSTRAP_EMAILS`: lista de correo electrónico de superadministrador local/de recuperación opcional para iniciar sesión en el panel; El desarrollador local lee esto de `worker/.dev.vars`.
+- `ADMIN_USERS_JSON`: lista de usuarios administradores de inicialización/recuperación opcional reflejada desde `_config.yml`; Panel de control Las ediciones de los usuarios se guardan en KV en `admin-users:v1`.
+- `CORS_ALLOWED_ORIGIN`: debe coincidir con el origen del sitio para las solicitudes del panel del navegador; Podman local deriva esto para `http://127.0.0.1:4000`
 
 ### Cloudflare KV
 - **Espacio de nombres**: `PLEDGES`: almacena datos de promesas y estadísticas agregadas.
@@ -874,7 +896,7 @@ Esperado: devuelve `{ success: true }` y activa el flujo de trabajo de GitHub.
 - No se requiere catálogo de productos; los montos provienen de artículos del carrito propios canonizados por los trabajadores
 
 ### Reenviar panel
-- **Dominio**: verifique su dominio de envío para el remitente transaccional configurado
+- **Dominio**: Verifique la parte del dominio de las direcciones del remitente configuradas en `_config.yml`/Worker env. Para esta implementación, `PLEDGES_EMAIL_FROM` es `The Pool <pledges@site.example.com>`, por lo que Resend debe autorizar `site.example.com`.
 - **Clave API**: Crear clave con permiso de "Acceso de envío"
 - Se utiliza para: todos los correos electrónicos de compromiso dirigidos a los seguidores (confirmación, acceso a la comunidad/administración, actualizaciones del diario, anuncios, éxito de los cargos, errores de pago, cancelaciones)
 - Nota del desarrollador local: incluso cuando `SITE_BASE` apunta a `127.0.0.1`, las imágenes de correo electrónico incrustadas aún usan la base de recursos pública `https://site.example.com`, por lo que las vistas previas de la bandeja de entrada no muestran URL de imágenes de host local rotas.

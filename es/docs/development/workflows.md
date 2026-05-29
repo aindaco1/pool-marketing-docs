@@ -12,7 +12,7 @@ The Pool utiliza un **sistema de gestión de promesas basado en correo electrón
 
 ## Diferenciadores clave
 
-- **Sin cuentas** — Solo correo electrónico + información de pago (sin registro)
+- **Sin cuentas**: solo correo electrónico + información de pago (sin registro)
 - **Administración de enlaces mágicos**: cancele, modifique o actualice el método de pago mediante un enlace de correo electrónico relacionado con el pedido
 - **Todo o nada**: tarjetas guardadas ahora, cobradas solo si se alcanza el objetivo
 - **Sugerencia de plataforma opcional**: 0% a 15% La propina del grupo (5% predeterminado) se agrega a los totales pero se excluye del progreso de la campaña.
@@ -43,6 +43,7 @@ upcoming → live → post
 |**Raya**|Sesiones de pago en modo de configuración (paso de pago personalizado en el sitio) + PaymentIntents (cobrar más tarde)|
 |**Trabajador de Cloudflare**|Backend: pago, webhooks, almacenamiento de promesas (KV), lecturas en vivo combinadas, estadísticas, cron de liquidación automática|
 |**Jekyll**|Páginas estáticas + rebajas de campaña|
+|**Panel de administración**|Espacio de trabajo privado del navegador para configuraciones, campañas, complementos, informes, análisis, seguidores, enlaces de marketing y usuarios.|
 
 ---
 
@@ -76,6 +77,8 @@ Las promesas se almacenan en Cloudflare KV. Patrones clave:
 |`pending-extras:{orderId}`|Almacenamiento temporal de artículos de soporte/cantidad personalizada durante el pago|
 |`pending-tiers:{orderId}`|Almacenamiento temporal para niveles adicionales cuando los metadatos de Stripe sean demasiado grandes|
 |`checkout-intent:{orderId}`|Carga útil de pago canonicalizada utilizada para promover el pago combinado en promesas de campaña|
+|`admin-users:v1`|Usuarios del panel de ejecución guardados desde **Configuración -> Usuarios**|
+|`admin-marketing-referrals:{campaignSlug}`|Metadatos del código de referencia guardado para la pestaña Marketing del panel|
 
 Las reservas de nivel escaso y el estado de reclamo comprometido ahora se encuentran en el coordinador de objetos duraderos por campaña en lugar de en KV. `tier-inventory:{campaignSlug}` sigue siendo la proyección pública utilizada por `/inventory/:slug` y `/live/:slug`.
 
@@ -175,6 +178,8 @@ Cree una sesión de pago de Stripe en modo de configuración desde el estado del
 **Respuesta:**
 - modo personalizado: `{ checkoutUiMode, sessionId, clientSecret, publishableKey, orderId }`
 - reserva alojada: `{ checkoutUiMode: "hosted", url }`
+
+Si se selecciona el pago personalizado pero el entorno actual no tiene una clave publicable de Stripe, el trabajador usa la respuesta alternativa alojada en lugar de fallar el inicio del pago.
 
 **Flujo de datos:**
 1. Cart.js pasa el porcentaje de propina seleccionado más los artículos actuales del carrito propio
@@ -345,58 +350,35 @@ Envíe un correo electrónico de anuncio personalizado con un enlace CTA opciona
 
 **Campos:**
 - `subject` (obligatorio): cuerpo de la línea de asunto del correo electrónico; la entrega lo formatea como `{Subject} | {Campaign Title}`
-- `heading` (opcional): encabezado del correo electrónico (el asunto predeterminado es si se omite)
+- `heading` (opcional): encabezado del correo electrónico (el valor predeterminado es el asunto si se omite)
 - `body` (obligatorio) — Texto del cuerpo del mensaje
 - `ctaLabel` + `ctaUrl` (opcional): agrega un botón destacado que vincula a la URL
 - `dryRun` (opcional): devuelve la lista de destinatarios sin enviar
 
-### `POST /admin/report/campaign-runner`
-Obtenga una vista previa o envíe manualmente un informe de ejecución de campaña para una campaña.
+### Panel de administración del navegador
 
-**Encabezados:** `Authorization: Bearer ADMIN_SECRET`
-**Pedido:**
-```json
-{
-  "campaignSlug": "hand-relations",
-  "reportType": "pledge",
-  "dryRun": true,
-  "markAsSent": false
-}
-```
+El panel privado está disponible en `/admin/` y `/es/admin/`. Utiliza inicio de sesión con enlace mágico y una sesión de trabajador respaldada por cookies; El código del navegador nunca recibe `ADMIN_SECRET`.
 
-**Campos:**
-- `campaignSlug` (obligatorio): campaña para informar
-- `reportType` (opcional) — `pledge` o `fulfillment` (`pledge` por defecto)
-- `dryRun` (opcional): devuelve destinatarios, recuentos de filas, nombre de archivo y estado del marcador sin enviar
-- `markAsSent` (opcional): en envíos en vivo, escribe el marcador del informe coincidente para que la ejecución programada no duplique inmediatamente el correo electrónico; El valor predeterminado es `true` cuando `dryRun` es falso.
+Flujos primarios:
 
-Los destinatarios todavía provienen del campo principal de la campaña `runner_report_emails`.
-Para `reportType: "fulfillment"`, el Trabajador también puede enviar un correo electrónico de cumplimiento de plataforma por separado a `platform.support_email` cuando existan filas de complementos de plataforma.
+- El resumen del panel, los análisis, los informes, los soportes, las cargas de contenido y las vistas previas de contenido son flujos de navegación de solo lectura.
+- El contenido/configuración de la campaña y la configuración/complementos de la plataforma se publican a través de la validación del trabajador y las confirmaciones respaldadas por GitHub.
+- **Configuración -> Usuarios** guarda directamente en Worker KV en `admin-users:v1`.
+- Los códigos de referencia guardados en **Marketing** se guardan en KV con alcance de campaña.
+- **Informes** muestra una vista previa de las filas de promesas/cumplimiento y descarga archivos CSV; no envía correos electrónicos y no marca informes como enviados.
+- **Secretos y credenciales** informes configurados/estado faltante únicamente; no expone ni almacena valores secretos.
 
-**Ejemplo de ensayo:**
+Informe de puntos finales de vista previa/descarga utilizados por el panel:
+
 ```bash
-curl -X POST http://localhost:8787/admin/report/campaign-runner \
-  -H 'Content-Type: application/json' \
-  -H 'Authorization: Bearer YOUR_ADMIN_SECRET' \
-  -d '{"campaignSlug":"hand-relations","reportType":"pledge","dryRun":true}'
+curl "http://localhost:8787/admin/reports/campaign-runner/preview?campaignSlug=hand-relations&reportType=pledge"
 ```
 
-**Ejemplo de envío manual:**
 ```bash
-curl -X POST http://localhost:8787/admin/report/campaign-runner \
-  -H 'Content-Type: application/json' \
-  -H 'Authorization: Bearer YOUR_ADMIN_SECRET' \
-  -d '{"campaignSlug":"hand-relations","reportType":"fulfillment","dryRun":false,"markAsSent":true}'
+curl "http://localhost:8787/admin/reports/campaign-runner.csv?campaignSlug=hand-relations&reportType=fulfillment"
 ```
 
-**Notas operativas:**
-- realice primero un ensayo al validar destinatarios, forma CSV o personalización del prefijo del asunto
-- use `reportType=pledge` para el libro de contabilidad diario de la campaña en vivo y `reportType=fulfillment` para la exportación única posterior a la fecha límite.
-- Los temas de los informes son concisos y no contienen emojis para facilitar la entrega, utilizando el prefijo configurado más el tipo de informe y el título de la campaña.
-- Los correos electrónicos de compromiso y los correos electrónicos de cumplimiento utilizan intencionalmente diferentes contenidos de resumen/cuerpo para que los envíos de cumplimiento se centren en el trabajo de entrega en lugar de en las estadísticas del impulso de la campaña.
-- Los simulacros de cumplimiento ahora exponen `campaignRowCount`, `platformRowCount` y `platformRecipient` para que los operadores puedan confirmar ambas audiencias de cumplimiento antes de enviar.
-- Envíos en vivo de cumplimiento divididos por cumplimiento: los destinatarios del corredor de campaña solo obtienen filas de la campaña, mientras que `support_email` obtiene la porción de la plataforma cuando está presente
-- mantenga `markAsSent=false` solo para envíos deliberados de estilo de vista previa que no deben suprimir el siguiente informe programado
+Para el uso del navegador autenticado, estos puntos finales requieren la cookie de sesión del panel y protecciones de origen/CSRF cuando corresponda. Los puntos finales de administración basados ​​en scripts que todavía usan `Authorization: Bearer ADMIN_SECRET` permanecen separados del contrato del panel del navegador.
 
 ### `POST /admin/recover-checkout`
 Recupere un webhook de Stripe perdido creando manualmente una contribución a partir de una sesión de pago completada.
@@ -463,10 +445,10 @@ Página de inicio del enlace mágico para la gestión de promesas:
 ### `/community/:slug/`
 Página de la comunidad exclusiva para seguidores:
 - Siempre verifica con Worker API (no confía únicamente en las cookies)
-- En caso de éxito: establece una cookie `supporter_{slug}` no confidencial para la optimización de UX y almacena el token de portador sin formato solo en `sessionStorage`
+- En caso de éxito: establece una cookie `supporter_{slug}` no confidencial para la optimización de UX y almacena el token de portador sin formato solo en `sessionStorage`.
 - En caso de error (compromiso cancelado, token caducado): borra el estado del token de sesión, muestra acceso denegado CTA
 - Muestra decisiones de votación/encuesta exclusivas de los patrocinadores.
-- La API `/votes` devuelve 403 para promesas canceladas (verifica el acceso dos veces)
+- La API `/votes` devuelve 403 para promesas canceladas (acceso de doble verificación)
 - `/votes` solo acepta ID de decisión definidos por la campaña y valores de opciones definidos por la campaña.
 - Las decisiones cerradas siguen siendo legibles pero rechazan nuevos votos
 - Los votos se ingresan por **correo electrónico** (no por ID de pedido): los partidarios con múltiples promesas aún obtienen un voto por decisión.
@@ -475,12 +457,12 @@ Página de la comunidad exclusiva para seguidores:
 
 ## Flujo de carga (cron del trabajador)
 
-El trabajador tiene un activador programado que se ejecuta diariamente a las **7:00 a. m. UTC** (medianoche, hora de la montaña):
+El trabajador ha programado activadores a las **6:00 a. m. UTC** y **7:00 a. m. UTC**, por lo que los controles diarios se alinean con la medianoche, hora de la montaña, tanto en MDT como en MST:
 
 ```toml
 # wrangler.toml
 [triggers]
-crons = ["0 7 * * *"]
+crons = ["0 6 * * *", "0 7 * * *"]
 ```
 
 **Qué hace:**
@@ -546,7 +528,7 @@ El Trabajador maneja todos los correos electrónicos relacionados con el comprom
 
 ### Reenviar Integración (Trabajador)
 
-El trabajador envía correos electrónicos de soporte después de que el webhook de Stripe confirma la sesión en modo de configuración:
+El trabajador envía correos electrónicos a sus seguidores después de que el webhook de Stripe confirma la sesión en modo de configuración. El dominio del remitente debe estar autorizado para la clave API de reenvío configurada; Para esta implementación, las confirmaciones de compromiso utilizan `The Pool <pledges@site.example.com>` porque `site.example.com` es el dominio de envío autorizado.
 
 ```js
 // In Worker: POST /webhooks/stripe handler
@@ -561,12 +543,12 @@ async function sendSupporterEmail(env, { email, campaignSlug, campaignTitle, amo
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      from: 'The Pool <pledges@example.com>',
+      from: env.PLEDGES_EMAIL_FROM,
       to: email,
       subject: `Pledge confirmed | ${campaignTitle}`,
       html: `
         <h1>Thanks for backing ${campaignTitle}!</h1>
-        <p><strong>Pledge amount:</strong> $${(amount / 100).toFixed(0)}</p>
+        <p><strong>Pledge amount:</strong> $${(amount / 100).toFixed(2)}</p>
         <p><strong>Remember:</strong> Your card is saved but won't be charged unless this campaign reaches its goal.</p>
         <hr>
         <h2>Your Supporter Access</h2>
@@ -587,7 +569,7 @@ Todos los correos electrónicos muestran cantidades exactas con 2 decimales (sin
 
 **Confirmación de compromiso** (enviada después de que la sesión de Stripe en el modo de configuración se complete exitosamente)
 - Asunto: "Compromiso confirmado | {Título de la campaña}"
-- Contiene: desglose completo (subtotal, propina opcional de The Pool, impuestos, envío si es físico, total), artículos de compromiso, enlace de administración, enlace de la comunidad
+- Contiene: desglose completo (subtotal, propina opcional de The Pool, impuestos, envío si es físico, total), artículos prometidos, enlace de administración, enlace comunitario
 - Incluye: CTA de Instagram (si la campaña tiene URL de Instagram)
 - El enlace de la comunidad se muestra solo si la campaña tiene decisiones activas.
 

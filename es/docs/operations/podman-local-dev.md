@@ -1,7 +1,7 @@
 ---
 title: Desarrollo local con Podman
 parent: Operaciones
-nav_order: 2
+nav_order: 3
 render_with_liquid: false
 lang: es
 ---
@@ -27,6 +27,7 @@ Incluido hoy:
 - El estado local de Wrangler persistió en el árbol de trabajo del repositorio.
 - Imagen de desarrollo del trabajador basada en el Nodo 24, que coincide con el tiempo de ejecución de implementación de GitHub Actions
 - Uso local de `worker/.dev.vars`, incluida la generación automática de `CHECKOUT_INTENT_SECRET`.
+- Valores predeterminados del panel de administración local, incluido el correo electrónico de administrador de arranque de `worker/.dev.vars` y el cableado de origen CORS para `http://127.0.0.1:4000`
 - Reenvío opcional de CLI de Stripe del host al trabajador local
 - Descubrimiento automático de Stripe CLI desde rutas de instalación comunes de macOS/Homebrew
 - Ejecución automatizada de Playwright sin cabeza en un contenedor Podman dedicado
@@ -119,6 +120,14 @@ Eso será:
 - generar automáticamente secretos `worker/.dev.vars` si es necesario
 - Opcionalmente, inicie el reenvío de webhooks de Stripe desde el host.
 
+Después del arranque, el panel de administración local está disponible en:
+
+```text
+http://127.0.0.1:4000/admin/
+```
+
+El trabajador local ofrece API de panel en `http://127.0.0.1:8787`, con `CORS_ALLOWED_ORIGIN` derivado para el sitio local. El panel puede ejercitar las campañas de prueba locales inicializadas y el KV local. La gestión de usuarios del panel guarda la escritura en KV local (`admin-users:v1`) en lugar de comprometerse con GitHub.
+
 ## Reconstruir imágenes
 
 Los cambios de código normales no necesitan una reconstrucción de la imagen porque el repositorio está montado en enlace.
@@ -158,7 +167,7 @@ Las exportaciones de informes de producción remota también pueden ejecutarse a
 CLOUDFLARE_API_TOKEN=your-token
 ```
 
-Correr:
+Ejecutar:
 
 ```bash
 ./scripts/pledge-report.sh --podman --env production --remote > ~/Desktop/pool-pledge-report.csv
@@ -168,6 +177,12 @@ Correr:
 Los contenedores de informes cargan la autenticación de Cloudflare desde `.env`, `.env.local`, `.env.cloudflare` y `worker/.dev.vars`, la pasan a `podman exec` e imprimen el progreso en stderr para que los archivos CSV redirigidos permanezcan limpios.
 
 `./scripts/test-e2e.sh --podman` ahora es una cobertura de navegador totalmente automatizada. El asistente dedicado `./scripts/test-checkout.sh --podman` sigue siendo la ruta interactiva manual cuando específicamente desea realizar un pago real en su propio navegador. El conjunto de navegador automatizado sin cabeza se ejecuta en su propio contenedor Playwright y reutiliza el sitio/trabajador que ya se está ejecutando en lugar de intentar iniciar Jekyll dentro del contenedor de prueba.
+
+Para una cobertura del navegador de panel enfocada en la pila respaldada por Podman, use:
+
+```bash
+npm run test:e2e:headless:podman -- tests/e2e/admin-dashboard.spec.ts --project=chromium
+```
 
 Para comandos del lado del host que necesitan un sitio/trabajador respaldado por Podman sin asumir persistencia de pila separada, use [`scripts/podman-stack-run.sh`](https://github.com/your-org/your-project/blob/main/scripts/podman-stack-run.sh). `npm run test:security:podman` usa ese contenedor para iniciar la pila, ejecutar el paquete de seguridad y derribar la pila en una sola invocación.
 

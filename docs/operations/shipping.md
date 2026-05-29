@@ -1,7 +1,7 @@
 ---
 title: "Shipping"
 parent: "Operations"
-nav_order: 7
+nav_order: 8
 render_with_liquid: false
 ---
 
@@ -296,7 +296,33 @@ tiers:
 
 ### Support items
 
-Allow the same shipping metadata on physical support items if we support physical add-ons there.
+Physical support items can use the same shipping metadata shape as physical tiers and add-ons when a campaign needs fulfillment for a support item:
+
+```yml
+support_items:
+  - id: prop-materials
+    label: Prop materials
+    category: physical
+    shipping_preset: poster
+```
+
+Or explicit package metadata:
+
+```yml
+support_items:
+  - id: prop-materials
+    label: Prop materials
+    category: physical
+    shipping:
+      weight_oz: 8
+      packaging_weight_oz: 2
+      length_in: 12
+      width_in: 9
+      height_in: 1
+      stack_height_in: 0.25
+```
+
+The admin dashboard follows the same conditional UI for tiers, support items, platform add-ons, and campaign add-ons: digital items hide shipping fields; physical items can select a preset; physical items with no preset expose explicit weight and dimension fields.
 
 ## Packing Strategy
 
@@ -351,10 +377,10 @@ Do **not** commit the USPS client secret into Jekyll config.
 
 For a normal production-style local setup, the minimum values this repo needs are:
 
-- [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) or [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml)
+- [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) or `_config.local.yml`
   - `shipping.usps.enabled: true`
   - `shipping.usps.client_id: "<your Consumer Key>"`
-- [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars)
+- `worker/.dev.vars`
   - `USPS_CLIENT_SECRET=<your Consumer Secret>`
 
 If you want to test against USPS TEM with the same production credentials USPS describes, also set:
@@ -366,7 +392,7 @@ If you want to test against USPS TEM with the same production credentials USPS d
 For local testing:
 
 - set `shipping.usps.client_id` in [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) or your local override path
-- set `USPS_CLIENT_SECRET=...` in [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars)
+- set `USPS_CLIENT_SECRET=...` in `worker/.dev.vars`
 - run:
 
 ```bash
@@ -471,6 +497,8 @@ The cart/manage UI can stay structurally similar:
 - show shipping in summary rows
 - continue collecting shipping address for physical orders
 - no new user-facing carrier UI in v1
+
+The admin dashboard is an operator-facing frontend for the same shipping metadata. It should not introduce a second shipping model. New dashboard fields must serialize to `shipping_preset`, `shipping_fallback_flat_rate`, `shipping_options`, or the nested `shipping.*` package fields already consumed by the Worker.
 
 ## Testing Strategy
 
@@ -639,6 +667,7 @@ The shipping implementation is in good shape when:
 - qualifying manual-rate items like `sticker` and `signed_script` skip USPS and use the documented flat table
 - campaign add-ons inherit the owning campaign's shipping rules and overrides
 - physical global add-ons combine into one separate platform shipment instead of borrowing campaign shipping
+- admin dashboard product editors hide shipping for digital items and show preset/package fields only for physical items
 - quantity changes affect shipment math correctly
 - checkout, Manage Pledge, saved pledge totals, emails, reports, and fulfillment exports stay aligned on the stored shipping amount
 - ZIP-required carts stay in estimate mode until the postal code is complete

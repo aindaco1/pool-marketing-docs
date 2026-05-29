@@ -28,13 +28,15 @@ The current i18n model covers:
   - `/pledge-cancelled/`
   - `/manage/`
   - `/community/`
+  - `/admin/`
   - `/creator-campaign-checklist/`
   - supporter community pages
-- localized site-owned runtime copy for cart, checkout, Manage Pledge, community flows, campaign countdowns (including screen-reader remaining-time status), hero-video/loading states and embed titles, supporter-community teaser chrome, diary tabs, production-phase controls, gallery labels, live-stats status text, and the campaign embed builder/widget
+- localized site-owned runtime copy for cart, checkout, Manage Pledge, admin auth/dashboard/report previews/supporter browsing/content preview, community flows, campaign countdowns (including screen-reader remaining-time status), hero-video/loading states and embed titles, supporter-community teaser chrome, diary tabs, production-phase controls, gallery labels, live-stats status text, and the campaign embed builder/widget
+- admin language switching preserves safe view state such as campaign filters and hashes, but strips `admin_login` magic-link tokens before linking to the alternate language
 - localized campaign-add-on section labels in both cart and Manage Pledge, plus checkout helper copy such as cart-button summaries, tax-location labels, and hosted-checkout next-step copy
 - localized campaign footer switching and localized campaign date formatting for public campaign chrome
 - localized Worker supporter emails and localized `/manage/` / `/community/:slug/` links based on persisted `preferredLang`
-- localized Worker campaign share-card routes such as `/share/campaign/:slug.svg?lang=es`
+- localized Worker campaign share-card routes such as `/share/campaign/:slug.png?lang=es`
 - localized public metadata and structured-data language hints on public pages and localized campaign pages
 
 English remains the default locale. Spanish is the seeded secondary locale.
@@ -65,6 +67,9 @@ i18n:
     manage:
       en: /manage/
       es: /es/manage/
+    admin:
+      en: /admin/
+      es: /es/admin/
     community_index:
       en: /community/
       es: /es/community/
@@ -104,6 +109,7 @@ This includes:
 - status labels
 - progress/meta text
 - cart / checkout / Manage Pledge runtime copy
+- admin dashboard tabs, filters, generated form labels, option labels, help text, media-upload copy, report/supporter/analytics/marketing copy, and content-editor controls
 - campaign add-on section labels and hosted/custom-checkout helper copy
 - community runtime copy
 - campaign countdown / hero-video / supporter-community / diary / production-phase / gallery / live-stats copy
@@ -168,6 +174,21 @@ Runtime locale payloads:
 - [/_includes/runtime-messages-json.html](https://github.com/your-org/your-project/blob/main/_includes/runtime-messages-json.html)
 - [assets/js/pool-config.js](https://github.com/your-org/your-project/blob/main/assets/js/pool-config.js)
 
+Admin dashboard localization:
+
+- static admin shell copy in [/_layouts/admin.html](https://github.com/your-org/your-project/blob/main/_layouts/admin.html) uses the shared Liquid translation helper
+- runtime admin copy is included in the full admin catalog emitted by `runtime-messages-json.html`
+- generated Settings and Campaigns fields come from Worker JSON, but [assets/js/admin-dashboard.js](https://github.com/your-org/your-project/blob/main/assets/js/admin-dashboard.js) localizes them with deterministic keys:
+  - `settings_section_*` for top-level settings sidebar sections
+  - `settings_field_*_label`, `settings_field_*_help`, and `settings_field_*_placeholder` for editable platform settings
+  - `settings_readonly_*_label` and `settings_readonly_*_help` for platform read-only diagnostics and secret status rows
+  - `campaign_field_*_label` and `campaign_field_*_help` for campaign settings and campaign-owned collections
+  - `campaign_readonly_*_label` and `campaign_readonly_*_help` for campaign read-only rows
+  - `settings_option_*`, `campaign_option_*`, and generic `option_*` keys for select/checkbox options
+- content editor controls, staged media-upload status/errors, media settings labels/help text, gallery settings, and gallery hover-caption controls are also runtime-localized; update English and Spanish together when adding a new admin media control
+- the Worker should keep returning stable field `path` values; the client derives i18n keys from those paths so forks can add fields without duplicating render code
+- creator-authored campaign data, diary bodies, add-on names, decision options, and other saved content are displayed as authored; the shared catalog only localizes the surrounding dashboard UI
+
 Important current behavior:
 
 - the footer language switcher is the shared locale switch surface
@@ -195,7 +216,7 @@ Practical behavior:
 - if no locale preference is captured, emails fall back to English
 - if a supporter pledges or manages from `/es/...`, the Worker can persist `preferredLang=es`
 - supporter emails and magic-link URLs then use the Spanish route model, such as `/es/manage/?t=...`
-- campaign share cards can also be requested in a locale-aware way, such as `/share/campaign/sunder.svg?lang=es`
+- campaign share cards can also be requested in a locale-aware way, such as `/share/campaign/sunder.png?lang=es`
 
 ## What a Locale YAML File Does and Does Not Do
 
@@ -221,7 +242,8 @@ Full language support also needs:
 3. Add localized public-page routes to `i18n.pages`.
 4. Add localized source pages for long-form content such as `/about/`, `/terms/`, `/manage/`, or curated community index pages where needed.
 5. Verify generated collection routes such as `/es/campaigns/{slug}/` and any locale-aware embed routes your deployment exposes.
-6. Run the local stack and verify both the shared UI copy and localized routes:
+6. For admin dashboard changes, add matching `admin` keys in every locale file before shipping. In particular, generated fields need the deterministic `settings_field_*`, `settings_readonly_*`, `campaign_field_*`, or `campaign_readonly_*` keys described above.
+7. Run the local stack and verify both the shared UI copy and localized routes, including `/admin/` and `/es/admin/` when admin UI strings changed:
 
 ```bash
 npm run podman:doctor
@@ -233,5 +255,6 @@ npm run podman:doctor
 Still intentionally out of scope for this model:
 
 - automatic translation of creator-authored campaign bodies, diary entries, or community post content
+- automatic translation of saved admin-authored campaign settings, add-on names, decision options, referral labels, or other content stored as campaign/platform data
 - locale-specific tax, shipping, or pricing rules
 - an in-repo machine-translation pipeline

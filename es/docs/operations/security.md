@@ -1,7 +1,7 @@
 ---
 title: Guía de seguridad
 parent: Operaciones
-nav_order: 5
+nav_order: 6
 render_with_liquid: false
 lang: es
 ---
@@ -18,7 +18,9 @@ Este documento cubre la arquitectura de seguridad, los riesgos conocidos, las me
 |-----------|-----------|-------------|
 |**Fichas de enlace mágico**|`/pledge*`, `/pledges`, `/votes`|Tokens firmados HMAC-SHA256 con vencimiento de 90 días|
 |**Firma de webhook de rayas**|`/webhooks/stripe`|Verificación HMAC-SHA256 según las especificaciones de Stripe|
-|**Secreto de administrador**|`/admin/*`|Encabezado `Authorization: Bearer <secret>` o `x-admin-key`|
+|**Sesiones del panel de administración**|API del panel del navegador `/admin/*`|Inicio de sesión mediante enlace mágico por correo electrónico, cookie de sesión firmada, encabezado CSRF sobre mutaciones, alcance de función/campaña|
+|**Desafío de inicio de sesión de administrador**|`POST /admin/auth/start`|Verificación opcional de Cloudflare Turnstile antes de la emisión del enlace mágico del administrador|
+|**Secreto de recuperación del administrador**|Automatización y recuperación de puntos finales `/admin/*`|Encabezado `Authorization: Bearer <secret>` o `x-admin-key` para operaciones basadas en scripts|
 |**Protección del modo de prueba**|`/test/*`|`APP_MODE === 'test'` verificación del entorno|
 
 ### Almacenamiento de datos (Cloudflare KV)
@@ -36,6 +38,11 @@ Este documento cubre la arquitectura de seguridad, los riesgos conocidos, las me
 |`pending-extras:{orderId}`|PROMESAS|Artículo de soporte temporal/extras de pago de cantidad personalizada|**Bajo** - efímero|
 |`pending-tiers:{orderId}`|PROMESAS|Metadatos de nivel de desbordamiento temporal durante el pago|**Bajo** - efímero|
 |`cron:lastRun`|PROMESAS|Marca de tiempo de la última ejecución cron|**Bajo** - seguimiento|
+|`admin-login:{hash}`|PROMESAS|Inicio de sesión único de administrador y correo electrónico|**Medio**: autenticación de administrador efímera|
+|`admin-session:{hash}`|PROMESAS|Correo electrónico de administrador, función, alcance de la campaña, token CSRF, vencimiento|**Alta** - autenticación de administrador|
+|`admin-users:v1`|PROMESAS|Usuarios administradores de tiempo de ejecución y alcances de campaña|**Alto** - control de acceso|
+|`admin-marketing-referrals:{slug}`|PROMESAS|Metadatos del código de referencia guardado|**Bajo**: datos de marketing escritos por el administrador|
+|`admin-audit:{date}:{action}:{id}`|PROMESAS|Eventos recientes de auditoría de mutación de administrador|**Medio**: identidad del administrador + metadatos operativos|
 |`vote:{slug}:{decision}:{email}`|VOTOS|elección de voto|**Medio** - vincula a un partidario para que vote|
 |`results:{slug}:{decision}`|VOTOS|recuentos de votos|**Bajo** - semipúblico|
 |`rl:{endpoint}:{ip}`|LÍMITE DE TARIFAS|Recuento de solicitudes + tiempo de reinicio|**Bajo** - efímero|
@@ -58,6 +65,8 @@ La postura de seguridad actual está diseñada en torno a algunos principios bá
 ### Control de acceso y control ambiental
 
 - Los enlaces mágicos están dirigidos a rutas de campaña y compromisos específicos en lugar de cuentas de usuario amplias.
+- El acceso de administrador privado utiliza enlaces mágicos de correo electrónico, cookies de sesión firmadas, comprobaciones CSRF y alcance de rol/campaña.
+- El inicio de sesión de administrador puede requerir un desafío de Cloudflare Turnstile antes de iniciar sesión, escribir nonce o entregar un enlace mágico.
 - Las rutas `/test/*` están cerradas en modo de prueba y no deben ser accesibles en implementaciones normales.
 - Las rutas de administración requieren un secreto explícito y están diseñadas para fallar cuando no se configuran correctamente.
 - La votación de los seguidores está vinculada a la identidad de correo electrónico del seguidor asociada con el compromiso autorizado, lo que evita una simple amplificación del voto de múltiples compromisos.
@@ -78,8 +87,10 @@ La postura de seguridad actual está diseñada en torno a algunos principios bá
 
 ### Validación de entrada y contenido
 
-- Las cargas útiles de inicio de pago validan identificadores de campaña, direcciones de correo electrónico, artículos del carrito y entradas de contribuciones antes de la reconstrucción canónica.
+- Las cargas útiles de inicio de pago validan identificadores de campaña, direcciones de correo electrónico, artículos del carrito y entradas de contribución antes de la reconstrucción canónica.
 - Los puntos finales de votación validan los identificadores de decisiones y los valores de las opciones antes de que alcancen la lógica de cambio de estado.
+- La configuración del panel, los campos de la campaña, los bloques de contenido, los complementos, los niveles, los elementos de soporte, las entradas del diario, las decisiones y los registros de los usuarios se normalizan en el lado del servidor antes de la persistencia.
+- Las cargas de medios del panel tienen un alcance por función, acceso a la campaña, tipo de carga, tipo de contenido, tamaño de archivo, directorio de destino y nombre de archivo canónico.
 - Las etiquetas creadas por el creador y el contenido enriquecido se escapan o se desinfectan de forma predeterminada, y solo se conserva un subconjunto HTML muy pequeño incluido en la lista de permitidos.
 - las incrustaciones estructuradas se incluyen en la lista permitida para precisar los proveedores aprobados y las formas de URL en lugar de verificaciones amplias de subcadenas
 - Los destinos de los enlaces de rebajas están restringidos a esquemas seguros y enlaces internos.
@@ -95,6 +106,8 @@ La postura de seguridad actual está diseñada en torno a algunos principios bá
 
 - La limitación de tarifas está disponible para rutas costosas como pago, gestión de promesas, operaciones administrativas y webhooks.
 - Las solicitudes bloqueadas están diseñadas para fallar en el cierre sin convertir el abuso en escrituras KV adicionales excesivas.
+- Las lecturas normales del panel, los filtros, las vistas previas, los análisis, las descargas de informes y los borradores del editor local están diseñados para evitar escrituras KV.
+- los valores secretos permanecen en secretos de los trabajadores o en archivos locales ignorados; el panel puede informar el estado configurado/faltante pero no puede editar ni serializar valores secretos
 - Los conjuntos de pruebas de seguridad y auditoría secreta son parte de la ruta de verificación documentada.
 - El modelo de seguridad supone que los operadores mantendrán los secretos de implementación rotados, con alcance y fuera del historial del repositorio.
 
@@ -120,7 +133,9 @@ Antes de implementar en producción, verifique que estos secretos estén configu
 |Secreto del webhook de rayas|`STRIPE_WEBHOOK_SECRET_LIVE`|32+ caracteres|
 |Secreto de intención de pago|`CHECKOUT_INTENT_SECRET`|32+ caracteres|
 |Secreto del enlace mágico|`MAGIC_LINK_SECRET`|32+ caracteres|
+|Secreto de sesión de administrador|`ADMIN_SESSION_SECRET`|32+ caracteres|
 |Secreto de administrador|`ADMIN_SECRET`|32+ caracteres|
+|Secreto del torniquete de administración|`TURNSTILE_SECRET_KEY`|N/A|
 |Reenviar clave API|`RESEND_API_KEY`|N/A|
 
 Generar secretos seguros:
@@ -157,11 +172,12 @@ Si un token de enlace mágico está comprometido:
 3. Para invalidar: elimine el compromiso de KV (`GET /pledge` luego devolverá `404` para ese token)
 4. Opcionalmente: regenerar MAGIC_LINK_SECRET (invalida TODOS los tokens)
 
-### Compromiso secreto del administrador
+### Sesión de administración o compromiso secreto
 
-1. Gire inmediatamente `ADMIN_SECRET` a través de `wrangler secret put`
-2. Revisar los registros de auditoría para detectar acciones administrativas no autorizadas
-3. Vuelva a verificar las estadísticas de la campaña y prometa la integridad de los datos.
+1. Gire inmediatamente `ADMIN_SESSION_SECRET` y `ADMIN_SECRET` a través de `wrangler secret put`
+2. Borrar claves `admin-session:*` activas del espacio de nombres Worker KV
+3. Revise los eventos `admin-audit:*` y las confirmaciones de GitHub para detectar acciones administrativas no autorizadas
+4. Vuelva a verificar las estadísticas de la campaña, los datos de las promesas, la configuración y los alcances de los usuarios administradores.
 
 ### Compromiso secreto de Stripe Webhook
 

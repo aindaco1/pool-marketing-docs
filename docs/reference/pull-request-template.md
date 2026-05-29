@@ -16,6 +16,7 @@ render_with_liquid: false
 
 ## Screenshots / Demos
 <!-- Add images or GIFs for UI changes. -->
+<!-- For admin dashboard UI changes, include desktop, tablet, and mobile screenshots. Include `/es/admin/` when strings or responsive menus changed. -->
 
 ## Test Plan
 - [ ] `npm run test:premerge`
@@ -24,6 +25,8 @@ render_with_liquid: false
 - [ ] Manual smoke checklist completed for changed checkout / Worker flows (staging when available, otherwise documented local smoke fallback)
 - [ ] Local Jekyll build ok
 - [ ] `./scripts/test-e2e.sh --podman` passes when browser checkout behavior changed
+- [ ] `npx playwright test tests/e2e/admin-dashboard.spec.ts --project=chromium` passes when admin dashboard UI, i18n, accessibility, responsive behavior, or admin Worker contracts changed
+- [ ] `node --check assets/js/admin-dashboard.js` passes when dashboard JavaScript changed
 - [ ] First-party cart opens, no console errors
 - [ ] Worker `/checkout-intent/start` returns the expected on-site custom-session bootstrap or hosted fallback response (test mode)
 - [ ] Pledge persistence stores tiers, support items, custom amount, and live totals refresh correctly
@@ -35,7 +38,10 @@ render_with_liquid: false
 ## Security / Secrets
 - [ ] No secrets committed
 - [ ] Uses repo/Worker secrets only
+- [ ] Admin dashboard changes do not expose/edit secret values; **Secrets & credentials** remains status-only
+- [ ] Admin mutations preserve the intended storage path: GitHub-backed publish, KV-only Users save, KV-only saved referral codes, or read-only browse/export
 
 ## Backward Compatibility
 - [ ] No breaking content model changes
 - [ ] If schema changes, updated `docs/DEV_NOTES.md` and sample campaigns
+- [ ] Existing campaign/add-on/tier/variant IDs are preserved unless the migration intentionally changes them

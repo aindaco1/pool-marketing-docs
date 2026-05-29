@@ -1,7 +1,7 @@
 ---
 title: SEO
 parent: Operaciones
-nav_order: 9
+nav_order: 10
 render_with_liquid: false
 lang: es
 ---
@@ -32,10 +32,11 @@ La línea de base actual incluye:
 - etiquetas seguras de imágenes sociales donde la imagen de la página ya es HTTPS
 - metadatos alternativos de imágenes sociales
 - Títulos y descripciones sociales de campañas conscientes del estado.
-- Imágenes SVG de tarjetas compartidas de campaña generadas por trabajadores para vistas previas sociales
+- PNG de tarjetas compartidas de campaña generadas por los trabajadores para metadatos sociales públicos, con SVG retenido para herramientas internas de vista previa/depuración
 - generado [`robots.txt`](/robots.txt)
 - generado [`sitemap.xml`](/sitemap.xml)
 - `noindex,nofollow` explícito en diseños tokenizados o solo para seguidores
+- `noindex,nofollow,noarchive`, `sitemap: false` explícitos, robots no permitidos y metadatos sociales deshabilitados en el panel de administración privado
 - conservador `Organization` / `WebSite` JSON-LD
 - campaña conservadora `CreativeWork` más ruta de navegación JSON-LD, ambos alineados con el idioma de la página activa donde sea compatible
 - campaña `CreativeWork` JSON-LD ahora también incluye `headline`, `mainEntityOfPage`, `isPartOf` y marcas de tiempo publicadas/modificadas para que las páginas de campaña públicas se parezcan más a páginas de inicio editoriales reales que a blobs anónimos.
@@ -50,12 +51,14 @@ Los principales archivos de implementación son:
 - [/robots.txt](/robots.txt)
 - [/sitemap.xml](/sitemap.xml)
 
-Las vistas previas sociales de la campaña ahora utilizan una ruta de trabajador con la siguiente forma:
+Las vistas previas sociales de la campaña tienen de forma predeterminada un PNG generado por los trabajadores y compatible con rastreadores que utiliza el progreso de la campaña en vivo. Una campaña aún puede anular eso con `social_image` cuando necesita una imagen rasterizada estática fija, idealmente JPEG o PNG en `1200 x 630`.
 
-- `/share/campaign/{slug}.svg?lang=en`
-- `/share/campaign/{slug}.svg?lang=es`
+La ruta pública de Open Graph es:
 
-Esa ruta genera una tarjeta compartida con reconocimiento de estado a partir de datos de campaña en vivo, de modo que la imagen social se mantiene más cercana al lenguaje visual de la inserción alojada que una imagen principal sin editar por sí sola.
+- `/share/campaign/{slug}.png?lang=en`
+- `/share/campaign/{slug}.png?lang=es`
+
+Esa ruta genera una tarjeta SVG con reconocimiento de estado a partir de datos de campaña en vivo, luego la rasteriza a PNG para que los enlaces compartidos permanezcan seguros para los rastreadores y al mismo tiempo muestren el total comprometido, el progreso de los objetivos, el estado de la campaña y el cuadrado `hero_image` de la campaña con el estilo de tarjeta compartida más rico. El trabajador también mantiene la versión SVG en `/share/campaign/{slug}.svg?lang={lang}` para herramientas internas de vista previa/depuración, pero SVG no es el valor predeterminado de metadatos públicos porque algunos rastreadores externos lo rechazan.
 
 ## Contrato de indexación
 
@@ -73,6 +76,8 @@ No indexable por defecto:
 - flujos de carrito y pago
 - promesa exitosa / páginas canceladas
 - `/manage/`
+- `/admin/`
+- `/es/admin/`
 - páginas de la comunidad de seguidores
 - rutas tokenizadas y rutas de acceso a cadenas de consulta específicas del usuario
 
@@ -82,6 +87,14 @@ Esto se aplica mediante una combinación de:
 - `robots.txt`
 - reglas de inclusión del mapa del sitio
 - mapa del sitio `lastmod` sugerencias para páginas públicas y campañas
+
+Contrato del panel de administración:
+
+- [admin.md](https://github.com/your-org/your-project/blob/main/admin.md) y [es/admin/index.html](https://github.com/your-org/your-project/blob/main/es/admin/index.html) deben conservar `indexable: false` y `sitemap: false`
+- [/_layouts/admin.html](https://github.com/your-org/your-project/blob/main/_layouts/admin.html) debe llamar a `seo-meta.html` con `indexable=false` y `social=false`
+- [`robots.txt`](/robots.txt) debe rechazar `/admin/` y `/es/admin/`
+- [`sitemap.xml`](/sitemap.xml) no debe incluir rutas de administración
+- el diseño del administrador no debe emitir metadatos de vista previa social JSON-LD o Open Graph/Twitter; el panel es una superficie de aplicación privada, no un resultado de búsqueda público ni un objetivo compartido
 
 ## Datos estructurados
 
@@ -126,7 +139,7 @@ Los metadatos públicos también derivan algunos valores seguros automáticament
 - `og:image:secure_url` cuando la imagen social elegida ya se resuelve en HTTPS
 - `article:published_time` / `article:modified_time` en las páginas de la campaña cuando las fechas de la campaña estén disponibles
 - Copia de vista previa de la campaña desde el estado de la campaña (`upcoming`, `live`, `funded`, `ended`)
-- imágenes de vista previa de la campaña desde la ruta de la tarjeta compartida del trabajador en lugar de directamente desde la imagen principal únicamente
+- imágenes de vista previa de campaña de `social_image` cuando están configuradas; de lo contrario, la ruta de tarjeta compartida PNG generada por el trabajador
 - `WebSite.availableLanguage`, raíces de ruta de navegación localizadas y campaña `CreativeWork.inLanguage` del modelo local configurado
 
 Las bifurcaciones pueden anular parte de ese comportamiento de forma limitada:
@@ -157,7 +170,7 @@ Las horquillas se pueden personalizar de forma segura:
 - enlaces de perfil social de la organización
 - si el centro comunitario público debe seguir siendo indexable
 - Copia descriptiva de página y campaña que ya existe en el modelo de contenido.
-- Entradas de vista previa de la campaña que ya existen en el modelo de contenido, como el título de la campaña, la propaganda, la categoría, el creador y las imágenes destacadas.
+- entradas de vista previa de la campaña que ya existen en el modelo de contenido, como el título de la campaña, el primer bloque de texto de contenido extenso utilizado para las descripciones sociales, la categoría, el creador, una marca `funded: true` para los metadatos posteriores a la campaña exitosos antes de la liquidación y la imagen principal cuadrada utilizada dentro de las tarjetas compartidas generadas.
 
 Las bifurcaciones no deben asumir soporte para:
 
@@ -170,10 +183,11 @@ Las bifurcaciones no deben asumir soporte para:
 Al verificar una implementación manualmente:
 
 - La fuente de la página para las páginas de inicio/acerca de/términos/campaña tiene el título, la descripción y las etiquetas canónicas, OG y de Twitter correctos.
-- Las páginas de la campaña emiten el SVG de la tarjeta compartida del trabajador como imagen social e incluyen la ruta correcta basada en la configuración regional en la URL de esa imagen.
+- Las páginas de campaña emiten un `social_image` compatible con rastreadores cuando se configuran; de lo contrario, la ruta PNG de la tarjeta compartida del trabajador.
 - `robots.txt` es accesible y solo expone las rutas de rastreo públicas previstas.
 - `sitemap.xml` es accesible y solo incluye URL públicas previstas.
 - las páginas privadas/tokenizadas emiten `noindex` cuando corresponda
+- `/admin/` y `/es/admin/` emiten `noindex,nofollow,noarchive`, no aparecen en `sitemap.xml` y no emiten vista previa social ni metadatos JSON-LD.
 - JSON-LD valida limpiamente
 - Las páginas localizadas mantienen enlaces canónicos y alternativos coherentes.
 - Las páginas de campaña localizadas mantienen enlaces canónicos y alternativos coherentes.

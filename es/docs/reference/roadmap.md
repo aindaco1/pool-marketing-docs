@@ -10,6 +10,12 @@ lang: es
 
 Esta hoja de ruta está organizada como un historial de lanzamiento de los estados reales del proyecto que realmente utilizamos, en lugar de una lista plana de funciones completadas.
 
+## Hito actual
+
+**v1.0.1**
+
+El conjunto de funciones v1.0 y el pase de liberación reforzada están completos. v1.0.1 agrega cargas de medios del editor de contenido del administrador, captura neta/tarifa real de Stripe para análisis, herramientas de optimización de medios del panel y estados del panel vacíos más amigables para nuevas campañas sin índices de compromiso.
+
 ## Historial de lanzamientos
 
 ### v0.5 — Lanzamiento de WME
@@ -134,7 +140,7 @@ Nuevo en esta versión:
 
 ### v0.9.5: Paridad de tiempo de ejecución local y transferencia de lanzamiento del creador
 
-Este es el hito de lanzamiento local actual reflejado en la aplicación y los documentos. El objetivo era mantener el desarrollo de los trabajadores locales alineado con el comportamiento de implementación de la producción y, al mismo tiempo, reforzar la transferencia pública de material que los creadores necesitan antes del lanzamiento.
+Esta versión mantuvo el desarrollo de los trabajadores locales alineado con el comportamiento de implementación de producción y al mismo tiempo reforzó el material de transferencia pública que los creadores necesitan antes del lanzamiento.
 
 Nuevo en esta versión:
 
@@ -145,14 +151,47 @@ Nuevo en esta versión:
 - la lista de verificación pública para creadores de campañas ahora cubre complementos de campaña, promoción de códigos de inserción, decisiones de envío alternativo/envío gratuito, expectativas impositivas, destinatarios de informes y transferencia de cumplimiento.
 - Ahora existe una ruta de lista de verificación de creadores en español en `/es/creator-campaign-checklist/`.
 
-## Próximo
+### v1.0.0 — Plataforma de lanzamiento público
 
-El trabajo aún planeado después de `0.9.5` incluye:
+Este lanzamiento trasladó a The Pool de una infraestructura de campaña reutilizable a una plataforma con forma de producción con una superficie de operaciones de navegador privada.
 
-- un panel de administración y herramientas de operador más sólidas en torno a la campaña, la plataforma y los datos de los seguidores
-- una historia de editor de contenido más sólida que la configuración actual de Pages CMS
+Nuevo en esta versión:
+
+- Panel de administración privado en `/admin/` y `/es/admin/` para configuraciones de plataforma con alcance de roles, edición de campañas, complementos, informes, análisis, seguidores, herramientas de marketing y usuarios.
+- autenticación de administrador de enlace mágico por correo electrónico con sesiones firmadas, protecciones CSRF/origen, soporte de desafío Turnstile opcional y API de navegador seguras que no exponen `ADMIN_SECRET`
+- edición del panel de control para configuraciones de campaña, bloques de contenido, niveles, elementos de soporte, complementos de campaña, objetivos ambiciosos, elementos en curso, entradas de diario, decisiones, complementos de plataforma y configuraciones de plataforma
+- Panel de control Gestión de usuarios respaldada por Worker KV en `admin-users:v1`, incluidos correos electrónicos de notificación para usuarios recién creados cuando se configura Resend
+- Panel de control Herramientas de marketing para referencias y creación de URL UTM, códigos de referencia guardados, controles de creación de inserciones reutilizables y fragmentos de lanzamiento copiables.
+- Vistas de análisis, informes y soportes con ámbito de función con tablas ordenables/filtrables, visualización del centavo exacto de dólar, descargas CSV y vistas previas de informes de solo lectura.
+- accesibilidad al panel de control, i18n, SEO/noindex, seguridad, capacidad de respuesta para dispositivos móviles/tabletas y pases DRY UI
+- verificación de la versión final en los flujos del navegador de administración, comprobaciones de regresión previas a la fusión y humo Podman local para las pestañas principales del panel
+
+### v1.0.1: Parche de análisis y medios del panel de control
+
+Esta versión puntual mejoró el flujo de trabajo del nuevo panel después de la versión 1.0.0 y agregó los datos analíticos necesarios para generar informes de ingresos más precisos.
+
+Nuevo en esta versión:
+
+- Las promesas recién cobradas capturan los ID de transacción reales de la tarifa de transacción del saldo de Stripe, neto, bruto, cargo y saldo cuando estén disponibles.
+- Dashboard Analytics prefiere las tarifas reales almacenadas de Stripe cuando estén disponibles y etiqueta claramente los valores mixtos o estimados.
+- Los superadministradores pueden reponer los registros de compromisos cargados más antiguos con datos de transacciones de saldo de Stripe sin escaneos de la lista KV.
+- Los editores de contenido de campañas y diarios pueden organizar cargas de imágenes, videos y audio con vistas previas inmediatas y publicarlas en los directorios de activos de campaña correctos.
+- Las cargas del panel conservan el origen en el Worker, mientras que las herramientas del repositorio manejan la compresión de imágenes sin pérdidas y la generación de derivados WebM.
+- `npm run media:optimize`, `npm run media:optimize:check` y el flujo de trabajo de GitHub Actions "Optimizar medios del panel" admiten la canalización de medios posterior a la carga
+- Los seguidores y Analytics devuelven vistas vacías de solo lectura para campañas sin índices de compromiso en lugar de bloquear paneles de campaña nuevos o vacíos.
+
+## Funciones futuras
+
+El trabajo aún planeado después de `1.0.1` incluye:
+
 - Trabajo adicional en la calculadora de impuestos para una cobertura más amplia en EE. UU. e internacional, una mayor profundidad de las jurisdicciones locales y flujos de trabajo de actualización de datos tributarios más claros.
-- soporte de precios más flexible para variantes complementarias
+- Análisis de ingresos netos después de las tarifas de procesador asignadas, utilizando datos reales de tarifas de Stripe cuando estén disponibles.
+- Herramientas de marketing de campaña más completas, como la composición de anuncios y el seguimiento de carritos abandonados que tengan en cuenta el consentimiento.
+- diferentes precios por variación adicional
+- Enlaces de campaña reutilizables para "compartir en" para destinos seleccionados como correo electrónico, SMS, X, Facebook, Bluesky, Threads y copiar enlace.
+- Páginas de vista previa de campañas protegidas por correo electrónico para superadministradores, usuarios de campañas y revisores invitados.
+- lanzar registros de recordatorio para próximas campañas con consentimiento, manejo de cancelación de suscripción y escrituras KV limitadas
+- zona horaria predeterminada de la plataforma configurable en lugar de asumir la hora de la montaña en todas partes
 
 ## Problemas conocidos
 

@@ -10,7 +10,7 @@ This page is the **fastest way to get oriented** before you dive into the full d
 
 ## Last Updated
 
-April 21, 2026
+May 29, 2026
 
 ## Common Questions
 
@@ -60,7 +60,8 @@ Yes. The Pool is **open source** and documented for contributors, maintainers, a
 2. [Project Overview](/docs/development/project-overview/) for the system map and architecture boundaries.
 3. [Workflows](/docs/development/workflows/) for pledge lifecycle, state, and Worker routes.
 4. [Pledge Worker](/docs/operations/worker/) for secrets, KV setup, and API endpoints.
-5. [Testing Guide](/docs/operations/testing/) before shipping any behavioral change.
+5. [Admin Dashboard](/docs/operations/admin-dashboard/) when you are editing campaigns, settings, add-ons, reports, analytics, marketing links, media, or users.
+6. [Testing Guide](/docs/operations/testing/) before shipping any behavioral change.
 
 ## Browse By Section
 
@@ -69,4 +70,4 @@ Start with the section that matches the kind of work you are doing:
 - [Overview](/docs/overview/) for public-facing context, platform framing, and policy pages.
 - [Development](/docs/development/) for contributor setup, architecture, customization, embeds, localization, and extension work.
 - [Operations](/docs/operations/) for Worker setup, local environments, shipping, security, accessibility, SEO, and merge readiness.
-- [Reference](/docs/reference/) for CMS editing, roadmap context, agent roles, and shared process templates.
+- [Reference](/docs/reference/) for release notes, roadmap context, and shared process templates.

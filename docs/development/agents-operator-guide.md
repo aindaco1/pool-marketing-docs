@@ -17,6 +17,7 @@ Use this alongside:
 - [docs/I18N.md](/docs/development/internationalization/) for locale routing and translation rules
 - [docs/SEO.md](/docs/operations/seo/) for metadata, share cards, and indexing behavior
 - [docs/EMBEDS.md](/docs/development/campaign-embeds/) for the hosted campaign embed system
+- [docs/DASHBOARD.md](/docs/operations/admin-dashboard/) for the browser admin dashboard and editing model
 
 ## Project Shape
 
@@ -26,11 +27,12 @@ The Pool is a split system:
 - the API/payment/runtime side is a Cloudflare Worker in `worker/`
 - Stripe handles payment collection and saved payment methods
 - content and campaign configuration mostly live in markdown/front matter under `_campaigns/`
+- the private admin dashboard is the supported browser editing and operations surface for settings, add-ons, campaigns, reports, analytics, supporters, marketing links, and users
 
 The important boundary is:
 
 - the site renders UI, campaign content, cart flows, localized pages, embeds, and SEO metadata
-- the Worker is the canonical source for checkout validation, pledge persistence, live stats, emails, settlement, and share-card SVG generation
+- the Worker is the canonical source for checkout validation, pledge persistence, live stats, emails, settlement, and share-card PNG/SVG generation
 
 If a change affects pricing, campaign totals, availability, pledge state, email content, or live campaign status, assume the Worker is involved even if the first symptom is on the site.
 
@@ -39,7 +41,7 @@ If a change affects pricing, campaign totals, availability, pledge state, email 
 When you need to understand or change behavior, start here:
 
 - [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml): canonical fork-facing configuration
-- [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml): local overrides only
+- `_config.local.yml`: local overrides only
 - [`_campaigns/`](https://github.com/your-org/your-project/tree/main/_campaigns): campaign content, tiers, goals, diary data, community hooks, campaign-scoped merch
 - [`_data/i18n/`](https://github.com/your-org/your-project/tree/main/_data/i18n): shared UI/runtime/email copy by language
 - [`_layouts/`](https://github.com/your-org/your-project/tree/main/_layouts) and [`_includes/`](https://github.com/your-org/your-project/tree/main/_includes): public pages, campaign pages, embeds, SEO, localized routing helpers
@@ -48,6 +50,7 @@ When you need to understand or change behavior, start here:
 - [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml): Worker env wiring mirrored from site config plus local/dev defaults
 - [`tests/`](https://github.com/your-org/your-project/tree/main/tests): unit, security, and E2E expectations
 - [`scripts/`](https://github.com/your-org/your-project/tree/main/scripts): local dev, merge gate, smoke tests, reports, and sync helpers
+- [`docs/DASHBOARD.md`](/docs/operations/admin-dashboard/): private admin dashboard editing and operations reference
 
 ## Safe Workflow
 
@@ -71,6 +74,8 @@ Useful focused checks:
 - `bundle exec jekyll build --quiet`
 - `npx vitest run <targeted test files>`
 - `node --check <js file>`
+- `node --check assets/js/admin-dashboard.js` when the dashboard script changed
+- `npx playwright test tests/e2e/admin-dashboard.spec.ts --project=chromium` when dashboard UI or admin Worker contracts changed
 - `./scripts/test-worker.sh --podman`
 - `./scripts/test-e2e.sh --podman`
 
@@ -80,9 +85,10 @@ Useful focused checks:
 
 Start with:
 
+- the dashboard **Campaigns** tab for normal browser edits
 - [`_campaigns/<slug>.md`](https://github.com/your-org/your-project/tree/main/_campaigns)
 - campaign assets under [`assets/images/campaigns/<slug>/`](https://github.com/your-org/your-project/tree/main/assets/images/campaigns)
-- supporting docs in [docs/CMS.md](/docs/reference/cms-integration/)
+- supporting docs in [docs/DASHBOARD.md](/docs/operations/admin-dashboard/)
 
 Check:
 
@@ -96,10 +102,13 @@ Check:
 
 Start with:
 
+- the dashboard **Settings** and **Add-ons** tabs for normal browser edits
 - [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml)
 - [docs/CUSTOMIZATION.md](/docs/development/customization-guide/)
 
 Do not put canonical fork settings in `_config.local.yml`. Keep that file for machine-local overrides like localhost URLs and local-only flags.
+
+Dashboard publish buttons write GitHub-backed settings through the Worker-controlled GitHub path and start the normal deploy flow. Dashboard user management is different: **Settings -> Users** saves directly to Worker KV at `admin-users:v1`, does not commit to GitHub, and does not use the Settings publish button.
 
 If you change values that are mirrored into the Worker, restart the local stack or run:
 
@@ -148,6 +157,7 @@ If you touch deliverability-sensitive behavior, also sanity-check:
 
 Start with:
 
+- dashboard **Marketing** tab if the task is only building a campaign embed snippet or saved referral URL
 - embed routes and layout in [`embed/`](https://github.com/your-org/your-project/tree/main/embed) and [`_layouts/campaign-embed.html`](https://github.com/your-org/your-project/blob/main/_layouts/campaign-embed.html)
 - embed client/runtime in [`assets/js/campaign-embed.js`](https://github.com/your-org/your-project/blob/main/assets/js/campaign-embed.js)
 - embed styles in [`assets/partials/_embed.scss`](https://github.com/your-org/your-project/blob/main/assets/partials/_embed.scss)
@@ -177,6 +187,8 @@ These are the easiest places for forks or LLMs to accidentally cause drift.
 ### 1. `_config.yml` is canonical
 
 Do not treat `_config.local.yml` as a second source of truth.
+
+Admin dashboard changes that publish platform settings or platform add-ons should ultimately land back in `_config.yml` through the Worker-controlled GitHub path. Runtime-only admin users and saved marketing referral codes are the exception; those live in Worker KV.
 
 ### 2. Worker-mirrored settings must stay in sync
 
@@ -212,7 +224,7 @@ Countdowns, pledge controls, and embed/share-preview state should respect the ef
 - Campaign embeds: [docs/EMBEDS.md](/docs/development/campaign-embeds/)
 - Shipping and USPS behavior: [docs/SHIPPING.md](/docs/operations/shipping/)
 - Add-on product model: [docs/ADD_ON_PRODUCTS.md](/docs/development/add-on-products/)
-- CMS/editor flow: [docs/CMS.md](/docs/reference/cms-integration/)
+- Dashboard/editor flow: [docs/DASHBOARD.md](/docs/operations/admin-dashboard/)
 - Security posture and guardrails: [docs/SECURITY.md](/docs/operations/security/)
 - Release/merge checklist mindset: [docs/MERGE_SMOKE_CHECKLIST.md](/docs/operations/merge-smoke-checklist/)
 

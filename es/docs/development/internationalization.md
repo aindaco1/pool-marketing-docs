@@ -29,13 +29,15 @@ El modelo i18n actual cubre:
   - `/pledge-cancelled/`
   - `/manage/`
   - `/community/`
+  - `/admin/`
   - `/creator-campaign-checklist/`
   - páginas de la comunidad de seguidores
-- Copia localizada en tiempo de ejecución propiedad del sitio para carrito, pago, gestión de compromiso, flujos de la comunidad, cuentas regresivas de la campaña (incluido el estado del tiempo restante del lector de pantalla), estados de carga/vídeo principal y títulos insertados, avance de la comunidad de seguidores, pestañas del diario, controles de la fase de producción, etiquetas de la galería, texto de estado de estadísticas en vivo y el generador/widget de inserción de la campaña.
+- copia localizada en tiempo de ejecución propiedad del sitio para carrito, pago, gestión de promesa, autenticación de administrador/panel de control/vistas previas de informes/exploración de seguidores/vista previa de contenido, flujos de la comunidad, cuentas regresivas de la campaña (incluido el estado del tiempo restante del lector de pantalla), estados de carga/vídeo principal y títulos de inserción, avance de la comunidad de seguidores en Chrome, pestañas del diario, controles de la fase de producción, etiquetas de galería, texto de estado de estadísticas en vivo y el generador/widget de inserción de la campaña.
+- El cambio de idioma del administrador conserva el estado de vista seguro, como los filtros de campaña y los hashes, pero elimina los tokens de enlace mágico `admin_login` antes de vincularlos al idioma alternativo.
 - etiquetas de sección de complementos de campaña localizadas tanto en el carrito como en Manage Pledge, además de una copia de ayuda para el pago, como resúmenes de los botones del carrito, etiquetas de ubicación fiscal y una copia del siguiente paso del pago alojado
 - Cambio de pie de página de campaña localizado y formato de fecha de campaña localizado para Chrome de campaña pública
 - Correos electrónicos de apoyo de Worker localizados y enlaces `/manage/` / `/community/:slug/` localizados basados en `preferredLang` persistente
-- rutas localizadas de tarjetas compartidas de campañas de trabajadores como `/share/campaign/:slug.svg?lang=es`
+- rutas localizadas de tarjetas compartidas de campañas de trabajadores como `/share/campaign/:slug.png?lang=es`
 - metadatos públicos localizados y sugerencias de lenguaje de datos estructurados en páginas públicas y páginas de campaña localizadas
 
 El inglés sigue siendo la configuración regional predeterminada. El español es el lugar secundario preclasificado.
@@ -66,6 +68,9 @@ i18n:
     manage:
       en: /manage/
       es: /es/manage/
+    admin:
+      en: /admin/
+      es: /es/admin/
     community_index:
       en: /community/
       es: /es/community/
@@ -105,6 +110,7 @@ Esto incluye:
 - etiquetas de estado
 - progreso/metatexto
 - carrito/pagar/Administrar copia en tiempo de ejecución de promesa
+- Pestañas del panel de administración, filtros, etiquetas de formulario generadas, etiquetas de opciones, texto de ayuda, copia de carga de medios, copia de informe/soporte/análisis/marketing y controles del editor de contenido
 - Etiquetas de la sección de complementos de la campaña y copia auxiliar de pago alojada/personalizada.
 - copia en tiempo de ejecución de la comunidad
 - cuenta regresiva de la campaña / video-heroe / comunidad-de-seguidores / diario / fase-de-producción / galería / copia de estadísticas en vivo
@@ -169,6 +175,21 @@ Cargas útiles de configuración regional en tiempo de ejecución:
 - [/_includes/runtime-messages-json.html](https://github.com/your-org/your-project/blob/main/_includes/runtime-messages-json.html)
 - [activos/js/pool-config.js](https://github.com/your-org/your-project/blob/main/assets/js/pool-config.js)
 
+Localización del panel de administración:
+
+- La copia estática del shell de administración en [/_layouts/admin.html](https://github.com/your-org/your-project/blob/main/_layouts/admin.html) usa el asistente de traducción Liquid compartido
+- La copia de administración en tiempo de ejecución está incluida en el catálogo de administración completo emitido por `runtime-messages-json.html`.
+- Los campos de Configuración y Campañas generados provienen de Worker JSON, pero [assets/js/admin-dashboard.js](https://github.com/your-org/your-project/blob/main/assets/js/admin-dashboard.js) los localiza con claves deterministas:
+  - `settings_section_*` para secciones de la barra lateral de configuración de nivel superior
+  - `settings_field_*_label`, `settings_field_*_help` y `settings_field_*_placeholder` para configuraciones de plataforma editables
+  - `settings_readonly_*_label` y `settings_readonly_*_help` para diagnósticos de solo lectura de plataforma y filas de estado secreto
+  - `campaign_field_*_label` y `campaign_field_*_help` para configuraciones de campaña y colecciones propiedad de la campaña
+  - `campaign_readonly_*_label` y `campaign_readonly_*_help` para filas de solo lectura de campaña
+  - Teclas `settings_option_*`, `campaign_option_*` y genéricas `option_*` para opciones de selección/casilla de verificación
+- Los controles del editor de contenido, el estado/errores de carga de medios por etapas, las etiquetas de configuración de medios/texto de ayuda, la configuración de la galería y los controles de subtítulos flotantes de la galería también están localizados en tiempo de ejecución; actualice inglés y español juntos al agregar un nuevo control de medios de administración
+- el trabajador debe seguir devolviendo valores estables del campo `path`; el cliente deriva claves i18n de esas rutas para que las bifurcaciones puedan agregar campos sin duplicar el código de renderizado
+- los datos de campaña creados por el creador, los cuerpos del diario, los nombres de complementos, las opciones de decisión y otro contenido guardado se muestran como creados; el catálogo compartido solo localiza la interfaz de usuario del panel circundante
+
 Comportamiento actual importante:
 
 - el selector de idioma del pie de página es la superficie de cambio de configuración regional compartida
@@ -196,7 +217,7 @@ Comportamiento práctico:
 - Si no se captura ninguna preferencia local, los correos electrónicos vuelven al inglés.
 - si un partidario se compromete o administra desde `/es/...`, el trabajador puede persistir `preferredLang=es`
 - Los correos electrónicos de los seguidores y las URL de enlaces mágicos utilizan el modelo de ruta en español, como `/es/manage/?t=...`.
-- Las tarjetas compartidas de campaña también se pueden solicitar según la configuración regional, como `/share/campaign/sunder.svg?lang=es`
+- Las tarjetas compartidas de campaña también se pueden solicitar según la configuración regional, como `/share/campaign/sunder.png?lang=es`
 
 ## Qué hace y qué no hace un archivo YAML de configuración regional
 
@@ -222,7 +243,8 @@ El soporte completo de idiomas también necesita:
 3. Agregue rutas de páginas públicas localizadas a `i18n.pages`.
 4. Agregue páginas de origen localizadas para contenido de formato largo como `/about/`, `/terms/`, `/manage/` o páginas de índice de la comunidad seleccionadas cuando sea necesario.
 5. Verifique las rutas de recopilación generadas, como `/es/campaigns/{slug}/`, y cualquier ruta de inserción con reconocimiento regional que exponga su implementación.
-6. Ejecute la pila local y verifique tanto la copia de la interfaz de usuario compartida como las rutas localizadas:
+6. Para cambios en el panel de administración, agregue claves `admin` coincidentes en cada archivo local antes del envío. En particular, los campos generados necesitan las claves deterministas `settings_field_*`, `settings_readonly_*`, `campaign_field_*` o `campaign_readonly_*` descritas anteriormente.
+7. Ejecute la pila local y verifique tanto la copia de la IU compartida como las rutas localizadas, incluidas `/admin/` y `/es/admin/` cuando las cadenas de la IU del administrador cambiaron:
 
 ```bash
 npm run podman:doctor
@@ -234,5 +256,6 @@ npm run podman:doctor
 Todavía intencionalmente fuera del alcance de este modelo:
 
 - traducción automática de cuerpos de campaña, entradas de diario o contenido de publicaciones de la comunidad escritos por creadores
+- traducción automática de configuraciones de campaña guardadas creadas por el administrador, nombres de complementos, opciones de decisión, etiquetas de referencia u otro contenido almacenado como datos de campaña/plataforma
 - reglas de impuestos, envío o precios específicos de la localidad
 - un canal de traducción automática en el repositorio

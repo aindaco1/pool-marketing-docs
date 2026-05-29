@@ -26,11 +26,12 @@ Creators define campaigns in Markdown; backers pledge through The Pool’s first
 | **Frontend** | GitHub Pages (Jekyll + Sass + cart runtime) | Campaign pages, cart, UX |
 | **Payments** | Stripe (Checkout Sessions in setup mode + off-session charges) | Secure payment fields, saved payment methods, then charge cards later |
 | **API/Glue** | Cloudflare Worker (`worker.example.com`) | Handles checkout bootstrap, webhooks, tip-aware totals, recovery, and reporting data |
+| **Admin UI** | Private dashboard (`/admin/`, `/es/admin/`) | Role-scoped settings, campaigns, add-ons, analytics, reports, supporters, marketing tools, and users |
 | **Automation** | Worker cron + GitHub Action | Auto-settle (batched) + state transitions |
 | **Storage** | Markdown / YAML | Campaign definitions & state |
 | **Styling** | Sass + generated theme vars | Shared design system for public pages, checkout, pledge management, and branded checkout/email surfaces |
 
-All code is versioned and auditable — no external DB is required, and campaign editing can stay in-repo or flow through Pages CMS.
+All code is versioned and auditable. Campaign editing now flows through the private admin dashboard or direct repo edits, with publishable changes still committed back to the repo through the Worker-controlled GitHub path.
 
 ## Plan Efficiency Notes For Forks
 
@@ -38,7 +39,8 @@ The current architecture is deliberately optimized so Cloudflare deployments spe
 
 - campaign pages and the manage page prefer one combined `/live/:slug` read instead of separate stats + inventory requests
 - the browser caches live stats and inventory in `localStorage` for the configured TTLs, and hidden tabs stop refreshing until visible again
-- single-campaign reports, settlement helpers, admin broadcast audience lookups, and stats / inventory reconciliation all prefer the `campaign-pledges:{slug}` index before falling back to full `pledge:` scans, and rebuild paths now repair stale indexes when they detect drift
+- dashboard reports, supporters, analytics, settlement helpers, admin broadcast audience lookups, and stats / inventory reconciliation all prefer the `campaign-pledges:{slug}` index and avoid expensive namespace scans on normal read paths
+- dashboard content loads/previews, report previews/downloads, supporter filters, analytics views, and marketing referral lists are designed to add zero KV writes
 - limited-tier write paths now ask the per-campaign coordinator for reservation-aware availability, while public inventory stays in KV as a projection
 - rate limiting still fails closed, but repeated blocked requests inside the same window no longer rewrite the same KV counter on every hit
 
@@ -86,10 +88,10 @@ For current Cloudflare limits, see:
    - Charges are aggregated by email within each campaign — one charge per supporter per campaign.
    - Updates pledge status to `charged` or `payment_failed` in KV.
    - Triggers GitHub Pages rebuild and Cloudflare cache purge on state transitions.
-5. **Worker report pass** runs at 7:00 AM Mountain Time:
-   - Sends daily campaign-scoped pledge-ledger emails for live campaigns that configure `runner_report_emails`.
-   - Sends one post-deadline fulfillment flow per campaign, splitting campaign-runner rows from platform-fulfillment rows when needed.
-   - Supports manual preview/send through `POST /admin/report/campaign-runner`, including dry-run responses for recipients, campaign/platform row counts, filenames, and idempotency-marker state.
+5. **Reports and fulfillment exports** use the same campaign-runner report builders:
+   - The admin dashboard previews pledge and fulfillment reports for campaigns the admin can access and downloads the visible report as CSV.
+   - Dashboard report previews/downloads do not send email and do not write sent markers.
+   - Scheduled or script-driven fulfillment automation can still use the Worker report paths where configured.
 
 **Pricing rules:**
 - Campaign progress uses subtotal only.
@@ -140,6 +142,7 @@ For current Cloudflare limits, see:
 │   └── js/               # Cart, campaign, and runtime scripts
 ├── worker/               # Cloudflare Worker (worker.example.com)
 │   └── src/              # Stripe setup, webhooks, email, votes, tokens, tip-aware totals
+├── admin.md              # Private admin dashboard route
 ├── scripts/              # Automation & reporting scripts
 ├── tests/e2e/            # Playwright end-to-end tests
 └── .github/workflows/    # Deploy action
@@ -154,11 +157,12 @@ For current Cloudflare limits, see:
 3. ✅ Cloudflare Worker deployed (`worker.example.com`) with Stripe + Worker signing secrets.  
 4. ✅ Stripe webhook configured → Worker `/webhooks/stripe`.  
 5. ✅ Repo secrets set: `STRIPE_SECRET_KEY`, `CHECKOUT_INTENT_SECRET`, and admin/email secrets.  
-6. ✅ Daily Worker cron enabled (7 AM UTC / midnight MT) — check via `GET /admin/cron/status`.  
+6. ✅ Daily Worker cron enabled (6 AM UTC and 7 AM UTC for MDT/MST midnight checks) — check via `GET /admin/cron/status`.
 7. ✅ Cloudflare cache purge configured (preferred: API token/account ID; legacy email/key auth still works if explicitly configured).  
 8. ✅ Test campaign runs end-to-end in Stripe test mode.
 9. ✅ Long-form content sanitizes Markdown link schemes and only renders structured embeds from exact approved origins.
 10. ✅ Missing-pledge magic-link reads fail closed with `404`.
+11. ✅ Private admin dashboard emits `noindex`, uses magic-link auth, and keeps user/referral KV mutations separate from GitHub-backed publish flows.
 
 ---
 
@@ -167,7 +171,7 @@ For current Cloudflare limits, see:
 - **Static first:** GitHub Pages provides transparency and version control for every campaign state.  
 - **Minimal backend:** Cloudflare Worker replaces a full app server.  
 - **Automation over ops:** GitHub Actions perform all time-based events.  
-- **Open handoff:** Everything editable as Markdown — safe for future collaborators.
+- **Open handoff:** Campaign and platform state remains reviewable as Markdown/YAML, even when routine edits happen through the dashboard.
 - **Design consistency:** Uses the same visual language as dust-wave-shop for brand coherence.
 
 ## Critical Learnings

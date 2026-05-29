@@ -86,6 +86,11 @@ Actualmente, cada producto admite:
 - `variant_option_name`
 - `variants`
 
+El panel de administración privado expone los complementos de la plataforma en **Complementos** y los complementos de campaña en la subpestaña **Complementos** de cada campaña. El panel mantiene intactos los ID de productos y variantes heredados, pero los nuevos productos y variantes derivan ID de solo lectura de su nombre/etiqueta, por lo que las bifurcaciones no necesitan crear slugs manualmente. Las imágenes de productos cargadas a través del panel se guardan en el directorio de activos correspondiente:
+
+- complementos de plataforma: `assets/images/add-ons/`
+- complementos de campaña: `assets/images/campaign-add-ons/`
+
 Ejemplo:
 
 ```yml
@@ -127,6 +132,7 @@ Complementos físicos versus digitales:
 - para complementos físicos, las bifurcaciones pueden:
   - hacer referencia a un `shipping_preset` compartido como `tshirt` o `sticker`
   - o proporcionar metadatos `shipping` explícitos en línea
+- Cuando un complemento físico no tiene un envío preestablecido, el panel de administración expone campos explícitos de peso y dimensiones del paquete en la fila debajo del selector preestablecido.
 
 Ejemplo de metadatos de envío explícitos:
 
@@ -176,6 +182,7 @@ El flujo de complementos actual tiene en cuenta intencionalmente el inventario:
 - Aparece un mensaje de stock bajo cuando la cantidad restante es igual o inferior a `low_stock_threshold`
 - Las variantes agotadas se eliminan de la superficie compartida del estado del producto a menos que ya estén seleccionadas en un compromiso existente.
 - El inventario adicional se cuenta a partir de los registros de promesas persistentes, no de los borradores del carrito en progreso.
+- los superadministradores pueden configurar anulaciones de inventario de complementos de plataforma en el panel sin editar `_config.yml`; esas anulaciones se almacenan por separado de la línea base configurada
 
 ## Modelo de interfaz de usuario
 

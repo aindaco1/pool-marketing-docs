@@ -42,6 +42,7 @@ upcoming → live → post
 | **Stripe** | Checkout Sessions in setup mode (custom on-site payment step) + PaymentIntents (charge later) |
 | **Cloudflare Worker** | Backend: checkout, webhooks, pledge storage (KV), combined live reads, stats, auto-settle cron |
 | **Jekyll** | Static pages + campaign markdown |
+| **Admin dashboard** | Private browser workspace for settings, campaigns, add-ons, reports, analytics, supporters, marketing links, and users |
 
 ---
 
@@ -55,7 +56,7 @@ upcoming → live → post
 5. CONFIRM    → Stripe confirms the setup, then Worker persists one pledge per campaign in KV, sends campaign-specific supporter email(s), and refreshes live campaign reads before success UX completes
 6. MANAGE     → Backer uses magic link to cancel/modify/update card
 7. DEADLINE   → Worker cron (midnight MT) checks campaigns
-8. CHARGE     → If funded + deadline passed: aggregate by email within each campaign, charge once per supporter per campaign
+8. CHARGE     → If funded + deadline passed: aggregate by email within each campaign, charge once per supporter per campaign, and store actual Stripe fee/net data when Stripe returns balance transaction details
 9. COMPLETE   → Update pledge_status to 'charged' or 'payment_failed'
 ```
 
@@ -75,6 +76,8 @@ Pledges are stored in Cloudflare KV. Key patterns:
 | `pending-extras:{orderId}` | Temporary storage for support items/custom amount during checkout |
 | `pending-tiers:{orderId}` | Temporary storage for additional tiers when Stripe metadata would be too large |
 | `checkout-intent:{orderId}` | Canonicalized checkout payload used to fan bundled checkout into campaign-scoped pledges |
+| `admin-users:v1` | Runtime dashboard users saved from **Settings -> Users** |
+| `admin-marketing-referrals:{campaignSlug}` | Saved referral code metadata for the dashboard Marketing tab |
 
 Scarce-tier reservations and committed claim state now live in the per-campaign Durable Object coordinator rather than KV. `tier-inventory:{campaignSlug}` remains the public projection used by `/inventory/:slug` and `/live/:slug`.
 
@@ -128,6 +131,18 @@ Each history entry tracks a pledge event with full context:
 
 **Status values:** `active`, `cancelled`, `charged`, `payment_failed`
 
+Charged pledges can also carry Stripe financial metadata:
+
+- `stripePaymentIntentId`
+- `stripeChargeId`
+- `stripeBalanceTransactionId`
+- `stripeFinancials.source`
+- `stripeFinancials.grossAmount`
+- `stripeFinancials.feeAmount`
+- `stripeFinancials.netAmount`
+
+Dashboard Analytics prefers those actual fee/net values for charged pledges and falls back to estimates only for active pledges or older charged rows that have not been backfilled.
+
 ---
 
 ## Magic Link Tokens
@@ -174,6 +189,8 @@ Create a setup-mode Stripe Checkout Session from the first-party cart state for 
 **Response:**  
 - custom mode: `{ checkoutUiMode, sessionId, clientSecret, publishableKey, orderId }`
 - hosted fallback: `{ checkoutUiMode: "hosted", url }`
+
+If custom checkout is selected but the current environment does not have a Stripe publishable key, the Worker uses the hosted fallback response instead of failing the checkout start.
 
 **Data flow:**
 1. Cart.js passes the selected tip percent plus the current first-party cart items
@@ -349,53 +366,44 @@ Send a custom announcement email with optional CTA link to all campaign supporte
 - `ctaLabel` + `ctaUrl` (optional) — Adds a prominent button linking to the URL
 - `dryRun` (optional) — Returns recipient list without sending
 
-### `POST /admin/report/campaign-runner`
-Preview or manually send a campaign-runner report for one campaign.
+### Browser Admin Dashboard
 
-**Headers:** `Authorization: Bearer ADMIN_SECRET`  
-**Request:**
-```json
-{
-  "campaignSlug": "hand-relations",
-  "reportType": "pledge",
-  "dryRun": true,
-  "markAsSent": false
-}
-```
+The private dashboard is available at `/admin/` and `/es/admin/`. It uses magic-link sign-in and a cookie-backed Worker session; browser code never receives `ADMIN_SECRET`.
 
-**Fields:**
-- `campaignSlug` (required) — Campaign to report on
-- `reportType` (optional) — `pledge` or `fulfillment` (`pledge` by default)
-- `dryRun` (optional) — Returns recipients, row counts, filename, and marker state without sending
-- `markAsSent` (optional) — On live sends, writes the matching report marker so the scheduled run does not immediately duplicate the email; defaults to `true` when `dryRun` is false
+Primary flows:
 
-Recipients still come from the campaign’s `runner_report_emails` front matter field.
-For `reportType: "fulfillment"`, the Worker may also send a separate platform-fulfillment email to `platform.support_email` when platform add-on rows exist.
+- Dashboard summary, analytics, reports, supporters, content loads, and content previews are read-only browsing flows.
+- Campaign content/settings and platform settings/add-ons publish through Worker validation and GitHub-backed commits.
+- **Settings -> Users** saves directly to Worker KV at `admin-users:v1`.
+- Saved referral codes in **Marketing** save to campaign-scoped KV.
+- **Reports** previews pledge/fulfillment rows and downloads CSVs; it does not send email and does not mark reports as sent.
+- **Analytics** uses stored actual Stripe fee/net data when available and exposes a super-admin backfill for older charged pledges.
+- Content-editor media uploads stage files locally, upload on publish, and commit source-preserved assets through the GitHub-backed path.
+- **Secrets & credentials** reports configured/missing status only; it does not expose or store secret values.
 
-**Dry-run example:**
+Report preview/download endpoints used by the dashboard:
+
 ```bash
-curl -X POST http://localhost:8787/admin/report/campaign-runner \
-  -H 'Content-Type: application/json' \
-  -H 'Authorization: Bearer YOUR_ADMIN_SECRET' \
-  -d '{"campaignSlug":"hand-relations","reportType":"pledge","dryRun":true}'
+curl "http://localhost:8787/admin/reports/campaign-runner/preview?campaignSlug=hand-relations&reportType=pledge"
 ```
 
-**Manual send example:**
 ```bash
-curl -X POST http://localhost:8787/admin/report/campaign-runner \
-  -H 'Content-Type: application/json' \
-  -H 'Authorization: Bearer YOUR_ADMIN_SECRET' \
-  -d '{"campaignSlug":"hand-relations","reportType":"fulfillment","dryRun":false,"markAsSent":true}'
+curl "http://localhost:8787/admin/reports/campaign-runner.csv?campaignSlug=hand-relations&reportType=fulfillment"
 ```
 
-**Operational notes:**
-- run a dry run first when validating recipients, CSV shape, or subject-prefix customization
-- use `reportType=pledge` for the daily live-campaign ledger and `reportType=fulfillment` for the one-time post-deadline export
-- report subjects stay concise and emoji-free for deliverability, using the configured prefix plus report kind and campaign title
-- pledge emails and fulfillment emails intentionally use different summary/body content so fulfillment sends stay focused on delivery work instead of campaign-momentum stats
-- fulfillment dry runs now expose `campaignRowCount`, `platformRowCount`, and `platformRecipient` so operators can confirm both fulfillment audiences before sending
-- fulfillment live sends split by fulfiller: campaign-runner recipients get only campaign rows, while `support_email` gets the platform slice when present
-- keep `markAsSent=false` only for deliberate preview-style sends that should not suppress the next scheduled report
+For authenticated browser use these endpoints require the dashboard session cookie and CSRF/origin protections where applicable. Script-driven admin endpoints that still use `Authorization: Bearer ADMIN_SECRET` remain separate from the browser dashboard contract.
+
+Stripe financials backfill for super admins:
+
+```bash
+curl -X POST "http://localhost:8787/admin/analytics/stripe-financials/backfill" \
+  -H 'Content-Type: application/json' \
+  -H 'x-pool-admin-csrf: <dashboard-csrf-token>' \
+  --cookie "pool_admin_session=<session-cookie>" \
+  -d '{"campaignSlug":"hand-relations","dryRun":true}'
+```
+
+The backfill uses `campaign-pledges:{slug}` indexes and grouped PaymentIntent lookups, not KV namespace scans.
 
 ### `POST /admin/recover-checkout`
 Recover a missed Stripe webhook by manually creating a pledge from a completed checkout session.
@@ -474,12 +482,12 @@ Supporter-only community page:
 
 ## Charging Flow (Worker Cron)
 
-The Worker has a scheduled trigger that runs daily at **7:00 AM UTC** (midnight Mountain Time):
+The Worker has scheduled triggers at **6:00 AM UTC** and **7:00 AM UTC** so daily checks line up with midnight Mountain Time in both MDT and MST:
 
 ```toml
 # wrangler.toml
 [triggers]
-crons = ["0 7 * * *"]
+crons = ["0 6 * * *", "0 7 * * *"]
 ```
 
 **What it does:**
@@ -545,7 +553,7 @@ The Worker handles all pledge-related email via Resend.
 
 ### Resend Integration (Worker)
 
-The Worker sends supporter emails after Stripe webhook confirms the setup-mode session:
+The Worker sends supporter emails after Stripe webhook confirms the setup-mode session. The sender domain must be authorized for the configured Resend API key; for this deployment, pledge confirmations use `The Pool <pledges@site.example.com>` because `site.example.com` is the authorized sending domain.
 
 ```js
 // In Worker: POST /webhooks/stripe handler
@@ -560,12 +568,12 @@ async function sendSupporterEmail(env, { email, campaignSlug, campaignTitle, amo
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      from: 'The Pool <pledges@example.com>',
+      from: env.PLEDGES_EMAIL_FROM,
       to: email,
       subject: `Pledge confirmed | ${campaignTitle}`,
       html: `
         <h1>Thanks for backing ${campaignTitle}!</h1>
-        <p><strong>Pledge amount:</strong> $${(amount / 100).toFixed(0)}</p>
+        <p><strong>Pledge amount:</strong> $${(amount / 100).toFixed(2)}</p>
         <p><strong>Remember:</strong> Your card is saved but won't be charged unless this campaign reaches its goal.</p>
         <hr>
         <h2>Your Supporter Access</h2>

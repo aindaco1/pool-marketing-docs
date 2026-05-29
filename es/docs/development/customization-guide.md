@@ -19,12 +19,20 @@ El modelo de configuración estructurado en [`_config.yml`](https://github.com/y
 Para la mayoría de las bifurcaciones, los principales archivos de personalización son:
 
 - [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml)
-- [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml)
+- `_config.local.yml`
 - [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml)
 
 Utilice `./scripts/dev.sh --podman` para la verificación local después de los cambios de configuración.
 
-Trate [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml) como un archivo de solo anulación. Mantenga la configuración de bifurcación canónica en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) y use el archivo local solo para cosas que deberían diferir en su máquina, como las URL del host local o la visibilidad de la campaña solo local.
+Para ediciones normales del operador, utilice el panel de administración privado en `/admin/` o `/es/admin/`:
+
+- **Configuración** edita la configuración de toda la plataforma y las herramientas de administración de tiempo de ejecución para superadministradores.
+- **Complementos** edita productos complementarios de la plataforma para superadministradores.
+- **Campañas** edita la configuración de la campaña, el contenido de la página, los niveles, los elementos de soporte, los complementos de la campaña, los objetivos ampliados, los elementos en curso, las entradas del diario y las decisiones.
+- **Configuración -> Usuarios** es solo en tiempo de ejecución y se guarda directamente en Worker KV en `admin-users:v1`; no se publica en GitHub.
+- **Secretos y credenciales** tiene un estado de solo lectura. Los valores secretos aún pertenecen a los secretos de los trabajadores, los secretos del repositorio de GitHub o los archivos env locales ignorados.
+
+Trate `_config.local.yml` como un archivo de sólo anulación. Mantenga la configuración de bifurcación canónica en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) y use el archivo local solo para cosas que deberían diferir en su máquina, como las URL del host local o la visibilidad de la campaña solo local.
 
 La ruta local normal ahora está basada en localhost:
 
@@ -41,11 +49,13 @@ La configuración del sitio está organizada en torno a estas secciones orientad
 - `seo`
 - `platform`
 - `pricing`
+- `tax`
 - `shipping`
 - `reports`
 - `i18n`
 - `design`
 - `debug`
+- `add_ons`
 - `checkout`
 - `cache`
 
@@ -101,22 +111,23 @@ Estos valores alimentan:
 Notas:
 
 - `platform.*` es la superficie de marca principal.
-- `platform.version` debe ser la versión canónica del producto legible por máquina para el sitio, mientras que `platform.release_label` puede seguir siendo más amigable para copias públicas como `v0.9.5`.
+- `platform.version` debe ser la versión canónica del producto legible por máquina para el sitio, mientras que `platform.release_label` puede seguir siendo más amigable para copias públicas como `v1.0.1`.
 - `title` / `author` de nivel superior todavía existen en Jekyll, pero trátelos como metadatos/respaldo generales del sitio en lugar de la interfaz principal de personalización de la bifurcación.
 - `platform.default_social_image_path` es el valor predeterminado admitido para tarjetas OG/Twitter cuando una página o campaña no proporciona una imagen más específica.
 - `platform.logo_path` es también la marca reflejada que se utiliza en los correos electrónicos de los seguidores.
+- El dominio en `platform.pledges_email_from` y `platform.updates_email_from` debe estar autorizado por el proveedor de correo electrónico configurado. Con Resend, autorizar `pool.example.com` no autoriza a `example.com` y viceversa.
 
 Ejemplo:
 
 ```yml
 platform:
   name: My Fork
-  version: 0.9.5
-  release_label: v0.9.5
+  version: 1.0.1
+  release_label: v1.0.1
   company_name: Example Studio
   support_email: support@example.com
-  pledges_email_from: "My Fork <pledges@example.com>"
-  updates_email_from: "My Fork <updates@example.com>"
+  pledges_email_from: "My Fork <pledges@pool.example.com>"
+  updates_email_from: "My Fork <updates@pool.example.com>"
   site_url: https://crowdfund.example.com
   worker_url: https://pledge.example.com
   default_creator_name: Example Studio
@@ -128,12 +139,11 @@ platform:
 
 ### `pricing`
 
-Utilice `pricing` para los valores predeterminados de sugerencias de plataforma y matemáticas de compatibilidad de tarifa plana que deben permanecer consistentes en todo el sitio y el trabajador.
+Utilice `pricing` para los valores predeterminados de impuestos y sugerencias de plataforma que deben permanecer consistentes en todo el sitio y el trabajador. Las tarifas de reserva de envío se encuentran bajo `shipping`.
 
 Teclas admitidas:
 
 - `sales_tax_rate`
-- `flat_shipping_rate` (línea base de compatibilidad heredada; use `shipping.*` para el modelo actual de operador/refuerzo)
 - `default_tip_percent`
 - `max_tip_percent`
 
@@ -142,7 +152,6 @@ Ejemplo:
 ```yml
 pricing:
   sales_tax_rate: 0.0825
-  flat_shipping_rate: 4.50
   default_tip_percent: 5
   max_tip_percent: 15
 ```
@@ -363,7 +372,7 @@ Cuando una promesa califica para múltiples opciones de entrega, el carrito comp
 Límite secreto importante:
 
 - mantener `shipping.usps.client_id` en `_config.yml`
-- mantenga el compañero `USPS_CLIENT_SECRET` en Secretos del trabajador o `worker/.dev.vars`
+- mantenga el compañero `USPS_CLIENT_SECRET` en Secretos de trabajador o `worker/.dev.vars`
 - no guardes el secreto en la configuración de Jekyll
 
 La lista de destinos de pago ahora está intencionalmente separada de esas perillas. Mantenga los países de envío permitidos actualmente en [`_data/shipping_countries.yml`](https://github.com/your-org/your-project/blob/main/_data/shipping_countries.yml) en lugar de editar el código de ejecución del navegador.
@@ -496,13 +505,16 @@ add_ons:
 
 Esto está destinado a artículos de catálogo de precio fijo y variantes simples, como tallas de camisa. Es independiente de la campaña `support_items`, que sigue teniendo el alcance de la campaña y la cantidad.
 
+En el panel de administración, los complementos de la plataforma se encuentran en la pestaña **Complementos** de nivel superior, mientras que los complementos con alcance de campaña se encuentran en la subpestaña **Complementos** de la campaña propietaria. Se conservan los ID heredados. Los nuevos ID de producto se derivan del nombre del producto y los nuevos ID de variante se derivan de la etiqueta de variante, por lo que los editores no necesitan escribir los valores slug a mano.
+
 Comportamiento de envío de complementos:
 
 - `category: digital` significa que el complemento nunca contribuye al envío.
-- `category: physical` significa que el complemento participa en la misma calculadora de envío utilizada para niveles físicos y artículos de soporte físico.
+- `category: physical` significa que el complemento participa en la misma calculadora de envío utilizada para los niveles físicos y los artículos de soporte físico.
 - Los complementos físicos pueden:
   - hacer referencia a un `shipping_preset` compartido
   - o proporcione `shipping.weight_oz`, `shipping.packaging_weight_oz`, `shipping.length_in`, `shipping.width_in`, `shipping.height_in` y `shipping.stack_height_in` explícitos
+- en el panel, esos campos explícitos de peso/dimensión aparecen solo para complementos físicos cuando el valor preestablecido de envío es `none`
 
 Comportamiento actual del inventario de complementos:
 
@@ -527,7 +539,7 @@ Por el contrario, los `add_ons.products` globales siguen siendo productos de pla
 
 ### `reports`
 
-Utilice `reports` para conocer el comportamiento de entrega de informes del ejecutor de campaña que debe estar alineado con la programación de los trabajadores y la generación de correo electrónico.
+Utilice `reports` para conocer el comportamiento de los informes de los ejecutores de campañas que deben mantenerse alineados con la programación de los trabajadores y la generación de informes del panel.
 
 Claves admitidas hoy:
 
@@ -685,33 +697,48 @@ Teclas admitidas:
 
 Algunas configuraciones solo afectan la compilación de Jekyll y la interfaz de usuario propiedad del navegador. Otros también se reflejan automáticamente en el entorno del trabajador.
 
-### Cambios seguros solo en el sitio
+### No reflejado por el script de sincronización
 
-Estos se pueden cambiar en `_config.yml` sin cambiar la configuración del trabajador ni preocuparse por el paso de sincronización:
+Estos se pueden cambiar en `_config.yml` sin agregar nuevas entradas de entorno de trabajador:
 
 - `i18n.*`
-- `checkout.stripe_publishable_key`
-- `platform.default_creator_name`
-- `platform.footer_logo_path`
-- `platform.favicon_path`
-- `platform.default_social_image_path`
-- `cache.*`
-- la mayoría de los valores `design.*` que solo son consumidos por el CSS del sitio/tema generado
+- `platform.version`
+- `platform.release_label`
+- `admin.production_site_url`
+- `admin.production_worker_url`
+- `shipping.presets`
+- `add_ons.*`
+- Tema principal de la campaña, incluido `campaign_add_ons`, bloques de contenido, entradas del diario, niveles, elementos de apoyo, objetivos ambiciosos y decisiones.
+- tokens de diseño/diseño que solo son consumidos por el CSS del sitio generado y no por los correos electrónicos de soporte
 
-Estos son los botones de “generación/marca/localización de sitios” más seguros sin impacto matemático del lado del trabajador o del correo electrónico. Cambian el sitio generado, la carga útil de inicio del navegador o la capa del tema, pero no es necesario reflejarlos en el entorno del trabajador.
+Estos valores siguen siendo importantes para el sitio generado y, en algunos casos, para las cargas útiles de API estáticas obtenidas por el trabajador. Simplemente `scripts/sync-worker-config.rb` no los escribe en `worker/wrangler.toml`.
 
 ### Reflejado automáticamente al trabajador
 
 Estos valores de configuración del sitio también se reflejan en los valores del entorno del trabajador en [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml):
 
+- `title` -> `SITE_TITLE`
+- `description` -> `SITE_DESCRIPTION`
+- `author` -> `PLATFORM_AUTHOR`
 - `platform.name` -> `PLATFORM_NAME`
 - `platform.company_name` -> `PLATFORM_COMPANY_NAME`
+- `platform.default_creator_name` -> `PLATFORM_DEFAULT_CREATOR_NAME`
 - `platform.support_email` -> `SUPPORT_EMAIL`
 - `platform.pledges_email_from` -> `PLEDGES_EMAIL_FROM`
 - `platform.updates_email_from` -> `UPDATES_EMAIL_FROM`
 - `platform.logo_path` -> `EMAIL_LOGO_PATH`
-- `platform.site_url` -> `SITE_BASE`
+- `platform.footer_logo_path` -> `PLATFORM_FOOTER_LOGO_PATH`
+- `platform.favicon_path` -> `PLATFORM_FAVICON_PATH`
+- `platform.default_social_image_path` -> `PLATFORM_DEFAULT_SOCIAL_IMAGE_PATH`
+- `platform.site_url` -> `SITE_BASE` y `CORS_ALLOWED_ORIGIN`
 - `platform.worker_url` -> `WORKER_BASE`
+- `seo.default_social_image_alt` -> `SEO_DEFAULT_SOCIAL_IMAGE_ALT`
+- `seo.x_handle` -> `SEO_X_HANDLE`
+- `seo.same_as` -> `SEO_SAME_AS`
+- `seo.index_public_community_hub` -> `SEO_INDEX_PUBLIC_COMMUNITY_HUB`
+- `admin.users` -> `ADMIN_USERS_JSON`
+- `admin.local_test_campaigns` -> `ADMIN_TEST_CAMPAIGNS` en el entorno de desarrollo
+- `checkout.stripe_publishable_key` -> `STRIPE_PUBLISHABLE_KEY`
 - `design.font_body` -> `EMAIL_FONT_FAMILY`
 - `design.font_display` -> `EMAIL_HEADING_FONT_FAMILY`
 - `design.color_text` -> `EMAIL_COLOR_TEXT`
@@ -724,14 +751,16 @@ Estos valores de configuración del sitio también se reflejan en los valores de
 - `tax.provider` -> `TAX_PROVIDER`
 - `tax.origin_country` -> `TAX_ORIGIN_COUNTRY`
 - `tax.use_regional_origin` -> `TAX_USE_REGIONAL_ORIGIN`
+- `tax.nm_grt_api_base` -> `NM_GRT_API_BASE`
 - `tax.zip_tax_api_base` -> `ZIP_TAX_API_BASE`
-- `pricing.flat_shipping_rate` -> `FLAT_SHIPPING_RATE`
+- `pricing.flat_shipping_rate` -> `FLAT_SHIPPING_RATE` (solo compatibilidad con versiones anteriores; prefiera `shipping.fallback_flat_rate`)
 - `pricing.default_tip_percent` -> `DEFAULT_PLATFORM_TIP_PERCENT`
 - `pricing.max_tip_percent` -> `MAX_PLATFORM_TIP_PERCENT`
 - `shipping.origin_zip` -> `SHIPPING_ORIGIN_ZIP`
 - `shipping.origin_country` -> `SHIPPING_ORIGIN_COUNTRY`
 - `shipping.fallback_flat_rate` -> `SHIPPING_FALLBACK_FLAT_RATE`
 - `shipping.free_shipping_default` -> `FREE_SHIPPING_DEFAULT`
+- `shipping.default_option` -> `SHIPPING_DEFAULT_OPTION`
 - `shipping.usps.enabled` -> `USPS_ENABLED`
 - `shipping.usps.client_id` -> `USPS_CLIENT_ID`
 - `shipping.usps.api_base` -> `USPS_API_BASE`
@@ -747,6 +776,19 @@ Estos valores de configuración del sitio también se reflejan en los valores de
 - `reports.campaign_runner.include_stats_summary` -> `CAMPAIGN_RUNNER_INCLUDE_STATS_SUMMARY`
 - `reports.campaign_runner.include_csv_attachment` -> `CAMPAIGN_RUNNER_INCLUDE_CSV_ATTACHMENT`
 - `reports.campaign_runner.email_subject_prefix` -> `CAMPAIGN_RUNNER_EMAIL_SUBJECT_PREFIX`
+- `debug.console_logging_enabled` -> `DEBUG_CONSOLE_LOGGING_ENABLED`
+- `debug.verbose_console_logging` -> `DEBUG_VERBOSE_CONSOLE_LOGGING`
+- `cache.live_stats_ttl_seconds` -> `LIVE_STATS_CACHE_TTL_SECONDS`
+- `cache.live_inventory_ttl_seconds` -> `LIVE_INVENTORY_CACHE_TTL_SECONDS`
+
+Los correos electrónicos del superadministrador de arranque local no se reflejan intencionalmente desde `_config.yml`. Ponlos en `worker/.dev.vars` ignorados como `ADMIN_BOOTSTRAP_EMAILS`; Semillas `npm run secrets:dev` que valoran de `worker/.dev.vars.example` cuando faltan.
+
+El script de sincronización también escribe valores de URL derivados:
+
+- la producción `[vars]` obtiene `CANONICAL_SITE_BASE` / `CANONICAL_WORKER_BASE` de la producción `platform.site_url` / `platform.worker_url`
+- dev `[env.dev.vars]` obtiene `SITE_BASE` / `WORKER_BASE` local de `_config.local.yml`, mientras que `CANONICAL_SITE_BASE` / `CANONICAL_WORKER_BASE` permanecen fijados a los valores de producción de `_config.yml`
+
+La pestaña **Informes** del panel del navegador ofrece vistas previas y descargas CSV de compromiso/cumplimiento para campañas a las que puede acceder el administrador. No envía correos electrónicos de informes y no escribe marcadores de "enviado".
 
 El repositorio mantiene esos valores alineados automáticamente a través de las rutas principales locales/de desarrollo/prueba. Después de cambiarlos, reinicie la pila local para que tanto el sitio como el trabajador recojan los nuevos valores:
 
@@ -762,7 +804,9 @@ npm run sync:worker-config
 
 Ese comando sincroniza los valores reflejados por el trabajador en [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) de `_config.yml` y `_config.local.yml`.
 
-No escribe secretos de los trabajadores. Los secretos de USPS OAuth todavía pertenecen a `wrangler secret` o `worker/.dev.vars`.
+No escribe secretos de trabajador, archivos multimedia ni resultados de optimización. Los secretos de USPS OAuth, las claves secretas de Stripe, las claves de reenvío, las claves ZIP.TAX, los secretos de Turnstile, los tokens de GitHub y las credenciales de implementación de Cloudflare aún pertenecen a los secretos de Worker, los secretos del repositorio de GitHub o los archivos env locales ignorados.
+
+Los medios cargados en el panel tampoco agregan una nueva configuración de script de sincronización. Carga archivos fuente de confirmación en los directorios de activos existentes; `npm run media:optimize` / `npm run media:optimize:check` y el flujo de trabajo **Optimizar medios del panel** manejan la compresión de imágenes y los derivados de WebM fuera del Worker.
 
 Las principales rutas de validación local/de desarrollo ya llaman a esa sincronización automáticamente:
 
@@ -784,7 +828,7 @@ Todavía a nivel de código hoy:
 - cambiar proveedores de inserción compatibles
 - ampliar las listas permitidas de CSP para hosts externos arbitrarios
 - cambiar el estilo de campo propiedad de Stripe más allá del puente de token de diseño admitido y la API de apariencia de Stripe
-- introducir estructuras de diseño, plantillas de página o bloques de contenido completamente nuevos
+- introducir estructuras de diseño, plantillas de página o tipos de bloques de contenido completamente nuevos
 - cambiar el comportamiento del alojamiento de fuentes/CSP más allá de las pilas de fuentes actualmente admitidas
 
 Tenga en cuenta también:
@@ -792,19 +836,21 @@ Tenga en cuenta también:
 - no todas las fichas de Sass están expuestas a propósito
 - no todas las variables de entorno de trabajador pertenecen a `_config.yml`
 - la superficie de soporte está curada para evitar regresiones de seguridad y mantenimiento
+- el panel carga archivos de confirmación en los directorios de activos existentes y actualiza los campos de configuración/campaña; La optimización de imágenes y la generación de derivados WebM se ejecutan en la canalización de medios externos, mientras que agregar una nueva categoría de carga o backend de almacenamiento sigue siendo un trabajo a nivel de código.
 
 ## Flujo de trabajo seguro para horquillas
 
-1. Actualización `_config.yml`.
-2. Ejecute `npm run sync:worker-config` si está editando configuraciones fuera de los puntos de entrada normales y desea actualizar `worker/wrangler.toml` inmediatamente.
-3. Ejecutar:
+1. Prefiere el panel de administración para configuraciones/campañas/ediciones de complementos admitidas. Utilice ediciones directas de archivos al revisar los cambios generados, cambiar campos no admitidos o trabajar sin el trabajador.
+2. Si edita archivos directamente, actualice `_config.yml` o el `_campaigns/*.md` correspondiente.
+3. Ejecute `npm run sync:worker-config` si está editando configuraciones fuera de los puntos de entrada normales y desea actualizar `worker/wrangler.toml` inmediatamente.
+4. Ejecutar:
 
 ```bash
 npm run podman:doctor
 ./scripts/dev.sh --podman
 ```
 
-4. Verificar:
+5. Verificar:
 
 - marca de encabezado/pie de página
 - metaimagen / favicon
@@ -814,8 +860,9 @@ npm run podman:doctor
 - Estilo de interfaz de usuario de pago de franjas
 - Gestionar compromiso
 - correos electrónicos de seguidores
+- Estado de publicación del panel de administración, estado de secretos de solo lectura y visibilidad de la campaña con alcance de función cuando se cambian los campos del panel
 
-5. Ejecute las comprobaciones pertinentes:
+6. Ejecute las comprobaciones pertinentes:
 
 ```bash
 npx vitest run tests/unit/config-boot.test.ts tests/unit/cart-provider.test.ts tests/unit/manage-page.test.ts tests/unit/worker-business-logic.test.ts
@@ -828,7 +875,8 @@ Al agregar nuevas perillas de personalización, prefiera este orden:
 
 1. ponga el valor orientado al sitio en `_config.yml`
 2. reflejarlo en el entorno del trabajador solo si el proceso de pago, los informes o los correos electrónicos lo necesitan
-3. documentarlo aquí
-4. Mantenga la superficie soportada seleccionada en lugar de exponer cada detalle de implementación.
+3. si necesita Worker env, actualice `scripts/sync-worker-config.rb` en `TOP_LEVEL_ORDER`, `DEV_ENV_ORDER` y `build_mirror_values`
+4. documentarlo aquí
+5. Mantenga la superficie soportada seleccionada en lugar de exponer cada detalle de implementación.
 
 Esto mantiene la personalización flexible sin convertir la plataforma en un motor de temas inestable de forma libre.

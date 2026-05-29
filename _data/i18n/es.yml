@@ -37,7 +37,7 @@ home:
   demo_cta: Demo
   stats:
     stack_label: Stack
-    stack_value: Jekyll + Stripe + Cloudflare Worker + Resend + Pages CMS
+    stack_value: Jekyll + Stripe + Cloudflare Worker + Resend + panel de administración
     hosting_label: Operación de bajo costo
     hosting_value: Hosting estático primero, con llamadas dinámicas enfocadas en checkout, estado en vivo y reportes
     supporter_label: Flujo del backer

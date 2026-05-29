@@ -1,14 +1,14 @@
 ---
 title: Worker de promesas
 parent: Operaciones
-nav_order: 1
+nav_order: 2
 render_with_liquid: false
 lang: es
 ---
 
-# The Pool - Worker de promesas
+# The Pool - Trabajador comprometido
 
-Cloudflare Worker se encarga de la canonicalización de pagos propios, la integración de Stripe, la gestión de promesas y la autenticación de patrocinadores en el ámbito de los pedidos.
+Cloudflare Worker se encarga de la canonicalización del pago propio, la integración de Stripe, la gestión de promesas, la autenticación de seguidores con ámbito de pedido y las API del panel de administración del navegador privado.
 
 Para el desarrollo local diario, prefiera la ruta Podman de raíz de repositorio:
 
@@ -31,6 +31,7 @@ La entrega de informes de campaña sigue el mismo patrón:
 - la sincronización de toda la implementación y el comportamiento del correo electrónico/informes se encuentran en `_config.yml` en `reports.campaign_runner`
 - el espejo del trabajador lleva esas configuraciones no secretas a `wrangler.toml`
 - el núcleo de informes compartido en `worker/src/reports.js` ahora impulsa tanto los correos electrónicos de los ejecutores programados como los asistentes de exportación del shell local para que la lógica CSV permanezca en un solo lugar.
+- el panel del navegador La pestaña Informes ofrece vistas previas y descargas CSV de compromiso/cumplimiento sin enviar correos electrónicos ni escribir marcadores de envío
 
 La configuración de Worker reflejada ahora también incluye los indicadores de depuración compartidos:
 
@@ -50,7 +51,7 @@ El cálculo de impuestos ahora se dirige a través de una costura de proveedor e
 - `TAX_PROVIDER=nm_grt` utiliza el conjunto de datos inicial de Nuevo México suministrado y puede refinar las búsquedas de direcciones de calles de Nuevo México con la API gratuita EDAC GRT.
 - `TAX_PROVIDER=zip_tax` agrega búsquedas de EE. UU. a nivel local/jurisdiccional a través de ZIP.TAX y recurre a `offline_rules` para destinos fuera de EE. UU./CA
 
-La configuración del proveedor no secreto se refleja desde la raíz del repositorio `_config.yml` en [`wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) como `TAX_PROVIDER`, `TAX_ORIGIN_COUNTRY`, `TAX_USE_REGIONAL_ORIGIN`, `NM_GRT_API_BASE` y `ZIP_TAX_API_BASE`. Si habilita `zip_tax`, configure también `ZIP_TAX_API_KEY` como secreto de trabajador o en [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars). Actualice el archivo inicial de Nuevo México suministrado con `node ../scripts/update-nm-grt-starter.mjs`.
+La configuración del proveedor no secreto se refleja desde la raíz del repositorio `_config.yml` en [`wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) como `TAX_PROVIDER`, `TAX_ORIGIN_COUNTRY`, `TAX_USE_REGIONAL_ORIGIN`, `NM_GRT_API_BASE` y `ZIP_TAX_API_BASE`. Si habilita `zip_tax`, configure también `ZIP_TAX_API_KEY` como secreto de trabajador o en `worker/.dev.vars`. Actualice el archivo inicial de Nuevo México suministrado con `node ../scripts/update-nm-grt-starter.mjs`.
 
 En el flujo actual del navegador, se permite intencionalmente que las vistas previas de impuestos permanezcan provisionales. Si el carrito o el pago personalizado aún no tiene suficientes datos de ubicación, el sitio muestra `--` y espera a que `/tax/quote` o `/checkout-intent/start` finalicen el resultado del impuesto. Las búsquedas de Nuevo México son la ruta integrada más exacta en este momento y normalmente necesitan datos completos de direcciones a nivel de calle, no solo código postal/estado, antes de que el trabajador pueda devolver un resultado de GRT local confiable.
 
@@ -92,10 +93,25 @@ Actualice `wrangler.toml` con los ID devueltos.
 
 ### 2. Configurar secretos
 
+Los secretos del desarrollo local viven en `worker/.dev.vars` ignorados. La ruta de configuración más segura es:
+
+```bash
+npm run secrets:dev
+```
+
+El asistente crea `worker/.dev.vars` a partir de [`worker/.dev.vars.example`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars.example) cuando es necesario, aplica permisos solo locales, genera secretos de firma para el desarrollo local y solicita claves de proveedor opcionales sin devolver los valores al terminal. Los lanzadores de desarrollo también ejecutan este asistente en modo no interactivo, por lo que los secretos de firma locales existen antes de que se inicie Wrangler.
+
+Los secretos de producción pertenecen a los secretos de los trabajadores de Cloudflare:
+
 ```bash
 # Stripe API Keys
 wrangler secret put STRIPE_SECRET_KEY_LIVE
 wrangler secret put STRIPE_SECRET_KEY_TEST
+
+# Browser publishable keys for on-site Stripe fields. These are not secrets;
+# set them through dashboard Settings or Worker vars, not `wrangler secret`.
+STRIPE_PUBLISHABLE_KEY_LIVE=pk_live_...
+STRIPE_PUBLISHABLE_KEY_TEST=pk_test_...
 
 # Stripe Webhook Secrets
 wrangler secret put STRIPE_WEBHOOK_SECRET_LIVE
@@ -113,6 +129,13 @@ wrangler secret put RESEND_API_KEY
 # Admin endpoints
 wrangler secret put ADMIN_SECRET
 
+# Browser admin sessions and bootstrap access
+wrangler secret put ADMIN_SESSION_SECRET
+# _config.yml admin.users seeds ADMIN_USERS_JSON; dashboard user edits save to
+# the PLEDGES KV key admin-users:v1 and do not publish to GitHub.
+# Local dev reads ADMIN_BOOTSTRAP_EMAILS from worker/.dev.vars as a
+# recovery/bootstrap super-admin path.
+
 # USPS OAuth secret (keep the client id in site config)
 wrangler secret put USPS_CLIENT_SECRET
 
@@ -120,15 +143,21 @@ wrangler secret put USPS_CLIENT_SECRET
 wrangler secret put ZIP_TAX_API_KEY
 ```
 
+No almacene valores secretos en `_config.yml`, campaña YAML, KV, borradores de configuración de administrador ni documentación confirmada. Las claves publicables de Stripe son claves públicas del navegador y pueden almacenarse en la configuración del panel o en las variables de implementación. El panel de administración solo informa si las credenciales de tiempo de ejecución aparecen configuradas; no lee ni persiste valores secretos.
+
+Se debe permitir que la clave API de reenvío se envíe desde el dominio configurado en `PLEDGES_EMAIL_FROM` y `UPDATES_EMAIL_FROM`. Para la implementación en vivo de Dust Wave, esas direcciones de remitente usan `site.example.com`; autorizar solo un dominio raíz no autoriza a los remitentes de subdominios, y autorizar solo un subdominio no autoriza a los remitentes de dominios raíz.
+
+El pago personalizado requiere la clave publicable de Stripe correspondiente para el `APP_MODE` actual. Si el trabajador está configurado para el pago personalizado pero no hay una clave publicable disponible, el pago vuelve al pago alojado en Stripe en lugar de devolver `503`, por lo que los compromisos aún pueden continuar mientras se configura la clave publicable.
+
 La configuración de USPS para este repositorio se divide intencionalmente:
 
-- mantenga `shipping.usps.client_id` en la raíz del repositorio [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) o [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml)
-- mantener `USPS_CLIENT_SECRET` en Secretos del trabajador o [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars)
+- mantenga `shipping.usps.client_id` en la raíz del repositorio [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) o `_config.local.yml`
+- mantener `USPS_CLIENT_SECRET` en Secretos de trabajador o `worker/.dev.vars`
 - Si desea señalar al trabajador en USPS TEM para realizar pruebas, configure también `shipping.usps.api_base` o `USPS_API_BASE`.
 
 Actualmente, The Pool solo necesita USPS OAuth más el conjunto de productos predeterminado de opciones de precio/envío para el cálculo de cotizaciones en vivo. **No** requiere la configuración de etiquetas/envío/EPA de USPS a menos que el proyecto crezca posteriormente hasta convertirse en la generación de etiquetas.
 
-Ejemplo de archivo local `worker/.dev.vars`:
+Ejemplo de archivo `worker/.dev.vars` local:
 
 ```dotenv
 STRIPE_SECRET_KEY_TEST=sk_test_your_test_key
@@ -171,7 +200,7 @@ npm run deploy
 npm run deploy:worker
 ```
 
-En GitHub, los envíos a `main` también implementan el trabajador automáticamente a través de `.github/workflows/deploy.yml`. La configuración preferida utiliza los secretos del repositorio `CLOUDFLARE_API_TOKEN` y `CLOUDFLARE_ACCOUNT_ID`. Como alternativa temporal, el flujo de trabajo también acepta la autenticación heredada de Cloudflare a través de `CLOUDFLARE_EMAIL` y `CLOUDFLARE_KEY`.
+En GitHub, los envíos a `main` también implementan el trabajador automáticamente a través de `.github/workflows/deploy.yml`. La configuración preferida utiliza los secretos del repositorio `CLOUDFLARE_API_TOKEN` y `CLOUDFLARE_ACCOUNT_ID`. Como alternativa temporal, el flujo de trabajo también acepta la autenticación heredada de Cloudflare a través de `CLOUDFLARE_EMAIL` y `CLOUDFLARE_KEY`. El trabajo de implementación de páginas requiere `pages: write` y `id-token: write`; mantenga esos permisos explícitos si el flujo de trabajo se copia en una bifurcación.
 
 ## Puntos finales API
 
@@ -257,6 +286,7 @@ Este es el punto final del lado del trabajador que impulsa [`scripts/check-proje
 - Los enlaces de Markdown se reescriben a menos que utilicen un esquema de destino incluido en la lista permitida (`http:`, `https:`, `mailto:` o enlaces internos).
 - Los enlaces externos de Markdown obtienen automáticamente `target="_blank"` y `rel="noopener noreferrer"`.
 - Las incrustaciones estructuradas solo se muestran cuando la URL del proveedor es una URL incrustada aprobada por `https://` Spotify, YouTube o Vimeo.
+- Los bloques de video locales pueden incluir una imagen de póster opcional; sin uno, la interfaz de usuario del navegador genera un póster del primer fotograma a partir del recurso de vídeo del mismo origen sin cambiar el bloque almacenado.
 
 ### POST /promesa/método-de-pago/inicio
 Inicie una sesión de Stripe para actualizar el método de pago.
@@ -269,14 +299,17 @@ Inicie una sesión de Stripe para actualizar el método de pago.
 
 Devuelve un arranque de sesión personalizado para el flujo `Update Card` en el sitio o una URL alternativa alojada.
 
-### OBTENER /share/campaign/:slug.svg
-Devuelve una tarjeta compartida SVG pública para una campaña.
+### OBTENER /share/campaign/:slug.png
+Devolver una tarjeta compartida PNG pública para una campaña.
 
 Parámetros de consulta opcionales:
 
-- `lang=en|es` para localizar la copia de la interfaz de usuario de la campaña y el enlace de la campaña en el pie de página
+- `lang=en|es` para localizar la copia de la interfaz de usuario de la campaña
 
-La tarjeta renderizada utiliza datos de la campaña en vivo, incluido el estado actual, el total prometido, el progreso del objetivo y los metadatos del creador/categoría. Las etiquetas `og:image` / `twitter:image` de la página de campaña apuntan a esta ruta para que las vistas previas sociales permanezcan alineadas con la campaña activa y el estado de inserción.
+La tarjeta renderizada utiliza datos de la campaña en vivo, incluido el estado actual, el total comprometido, el progreso del objetivo, los metadatos del creador/categoría y el cuadrado de la campaña `hero_image` como imagen de vista previa incrustada. The Worker rasteriza el mismo diseño de tarjeta SVG en PNG para que los rastreadores sociales obtengan una imagen compatible sin perder el estilo de vista previa más rico. Las páginas de campaña utilizan esta ruta PNG compatible con rastreadores para los metadatos `og:image`/`twitter:image`, a menos que una campaña proporcione explícitamente un `social_image` estático. La tarjeta visible no imprime la URL de la campaña; la URL permanece disponible a través de los metadatos de Open Graph circundantes.
+
+### OBTENER /share/campaign/:slug.svg
+Devuelve el mismo concepto de tarjeta compartida de campaña que SVG para herramientas internas de vista previa/depuración. Utilice la ruta PNG para los metadatos sociales públicos porque algunos rastreadores externos rechazan las imágenes SVG.
 
 ### ENVIAR /webhooks/raya
 Punto final del webhook de Stripe (firma verificada).
@@ -309,6 +342,44 @@ Devuelve recuentos de entregas de webhooks recientes por día, resultados, resú
 Resumen de rendimiento de muestra solo para administradores.
 
 Devuelve muestras de tiempos de reloj de pared para rutas de mutación clave, como inicio de pago, finalización de pago, escrituras de compromiso de gestión, cotizaciones de envío y abandono de pago. Esto está pensado como una ayuda de ajuste para la tapa `cpu_ms` desplegada, no como un sistema de seguimiento de alta cardinalidad.
+
+### Panel de administración del navegador
+
+Los shells privados `/admin/` y `/es/admin/` utilizan rutas de trabajo respaldadas por cookies en lugar de exponer `ADMIN_SECRET` en el código del navegador:
+
+- `POST /admin/auth/start` verifica Cloudflare Turnstile primero cuando `TURNSTILE_SECRET_KEY` está configurado y luego envía un enlace mágico localizado de corta duración para un correo electrónico de administrador autorizado. Los trabajadores desplegados envían el enlace por correo electrónico a través de Reenviar; El desarrollo local puede exponer el enlace en la respuesta JSON solo para configuraciones de prueba/localhost o `ADMIN_EXPOSE_LOGIN_LINK=true` explícito.
+- `POST /admin/auth/exchange` intercambia ese token único por la cookie `pool_admin_session`
+- `GET /admin/session` lee la sesión actual sin actualizarla ni escribirla
+- `POST /admin/logout` borra la sesión
+- `GET /admin/dashboard/summary` lee resúmenes de campañas con alcance de roles
+- `GET /admin/settings` lee una instantánea de configuración/configuración de ámbito de función para el panel
+- `POST /admin/settings/preview` valida los cambios de configuración sin publicar
+- Cargas de paneles de escenario `POST /admin/settings/logo-upload`, `POST /admin/settings/image-upload`, `POST /admin/settings/audio-upload` y `POST /admin/settings/video-upload` a través de la misma ruta de publicación respaldada por GitHub que sus propios campos de configuración/contenido; La optimización de imágenes nativas y la transcodificación de video se ejecutan más adelante en la canalización de medios del repositorio, no dentro del Worker.
+- `POST /admin/settings/publish` valida y publica configuraciones de plataforma, complementos de plataforma, variables de campaña y datos estructurados de campaña a través de confirmaciones respaldadas por GitHub.
+- `POST /admin/users` guarda los usuarios administradores administrados por el panel directamente en `admin-users:v1` en Worker KV y envía por correo electrónico las instrucciones de inicio de sesión de los usuarios recién creados cuando se configura Resend
+- `GET /admin/analytics` lee métricas de ingresos, estado, idioma, referencias y división de campaña/plataforma derivadas de compromisos con alcance de rol sin escribir el estado analítico; La presentación de la moneda en el tablero mantiene los centavos exactos.
+- `POST /admin/analytics/stripe-financials/backfill` permite a los superadministradores reponer los valores netos y de tarifas de Stripe reales a partir de las transacciones de saldo de Stripe para las promesas cobradas, utilizando índices de promesas de campaña en lugar de escaneos de listas de KV.
+- `GET /admin/content/campaign?campaignSlug=...` carga contenido de campaña con alcance de roles en el editor del navegador sin conservar un borrador
+- `POST /admin/content/preview` valida y presenta borradores de contenido de campaña con alcance de roles sin publicar, auditar ni escribir KV
+- `POST /admin/content/publish` valida el mismo borrador, actualiza el archivo Markdown de la campaña a través de GitHub, activa el flujo de trabajo de reconstrucción normal y escribe un evento de auditoría.
+- `GET /admin/supporters?campaignSlug=...` lee filas de seguidores de campaña de `campaign-pledges:{slug}` únicamente; La presentación de la cantidad en el tablero mantiene los centavos exactos.
+- `GET /admin/reports/campaign-runner/preview?campaignSlug=...&reportType=pledge|fulfillment` obtiene una vista previa del resultado del informe compartido del ejecutor de campaña sin enviar correos electrónicos ni escribir marcadores
+- `GET /admin/reports/campaign-runner.csv?campaignSlug=...&reportType=pledge|fulfillment` descarga el mismo informe CSV compartido sin enviar correo electrónico ni escribir marcadores
+- `GET /admin/marketing/referrals?campaignSlug=...` enumera los códigos de referencia de campaña guardados sin escribir ni escanear la verdad del compromiso
+- `POST /admin/marketing/referrals` guarda o actualiza explícitamente un código de referencia de campaña con protección CSRF y una escritura KV con alcance de campaña.
+- `DELETE /admin/marketing/referrals` elimina explícitamente un código de referencia de campaña guardado con protección CSRF y una escritura KV con alcance de campaña.
+- `GET /admin/add-ons/inventory` lee el estado inicial, vendido, restante y de anulación del complemento de plataforma para superadministradores
+- `POST /admin/add-ons/inventory` establece, reabastece o restablece explícitamente las anulaciones de la línea base del inventario de complementos de la plataforma con protección CSRF y registro de auditoría
+
+Las lecturas normales del panel, los filtros de seguidores, la paginación, los análisis derivados de promesas, las listas de referencias de marketing, las vistas previas de informes, las descargas de CSV, las cargas de contenido, las vistas previas de contenido y los borradores del editor local están diseñados para agregar escrituras de KV cero y operaciones de lista de KV cero. Los guardados de usuarios iniciados por el navegador, los guardados de referencias de marketing, las publicaciones de contenido y los cambios de inventario son mutaciones explícitas: los guardados de usuarios escriben `admin-users:v1`, los guardados de referencias escriben una lista de referencias con alcance de campaña, las publicaciones de contenido se comprometen con GitHub, activan el flujo de trabajo de reconstrucción y escriben un evento de auditoría. Si a una campaña anterior le falta su proyección `campaign-pledges:{slug}`, los puntos finales del panel devuelven cero filas o `campaign_index_required` en lugar de recurrir a un escaneo de espacio de nombres; ejecute las herramientas de reparación/reconstrucción de proyecciones existentes explícitamente cuando eso suceda.
+
+Los inicios/intercambios de autenticación de administrador y las mutaciones de administrador de navegador tienen una velocidad limitada a través del enlace `RATELIMIT` y devuelven fallas privadas/sin almacenamiento cuando se aceleran. Las lecturas autenticadas normales, como comprobaciones de sesiones, resúmenes de paneles, filtros de soporte, vistas previas de informes, vistas de análisis y vistas previas de contenido, no están limitadas intencionalmente por la velocidad de KV. Los tokens de inicio de sesión de Magic-link son de un solo uso y las lecturas de sesión no actualizan las sesiones cercanas a su vencimiento ni limpian las sesiones vencidas en la ruta de lectura. Las mutaciones de administrador respaldadas por cookies requieren tanto el token CSRF de sesión como un contexto de recuperación confiable del mismo sitio `Origin`/`Referer` o que no sea entre sitios antes de escrituras duraderas.
+
+Cuando se configura `TURNSTILE_SECRET_KEY`, `POST /admin/auth/start` verifica el desafío Cloudflare Turnstile antes de enviar un correo electrónico con enlace mágico. Mantenga esa protección solo en la ruta de envío para que no agregue vistas de página del panel o escrituras KV al escribir.
+
+El inventario complementario de la plataforma utiliza `_config.yml` como línea base configurada, el estado KV `add-on-inventory-overrides` opcional para reabastecimientos del operador y la verdad del compromiso guardado para los recuentos vendidos. Las vistas de la página de inventario del administrador no cargan la tabla de inventario automáticamente; la lectura del inventario del superadministrador es explícita y puede escanear la verdad del compromiso, mientras que las acciones de configuración/reabastecimiento/restablecimiento escriben solo el estado de anulación más un evento de auditoría.
+
+La sección de la herramienta de marketing mantiene la creación de URL de la campaña, los parámetros UTM/referencia, los accesos directos del creador de incrustaciones, las preferencias de campos locales y los fragmentos de copia en el estado del navegador. Los códigos de referencia guardados son independientes: enumerarlos es una llamada de trabajador con alcance de campaña de solo lectura y guardar uno es una mutación explícita.
 
 ### POST /admin/broadcast/diario
 Envíe una notificación de actualización del diario a todos los partidarios de la campaña. Requiere el encabezado `x-admin-key`.
@@ -377,7 +448,7 @@ Notas:
 - Al omitir `markAsSent`, el valor predeterminado es `true` para envíos en vivo, de modo que la ejecución cron coincidente no duplique inmediatamente el informe.
 - Los destinatarios de la campaña todavía provienen del frente de la campaña `runner_report_emails`.
 - `reportType: "pledge"` es el informe diario de la campaña en vivo.
-- `reportType: "fulfillment"` es el informe único de envío/exportación posterior a la fecha límite.
+- `reportType: "fulfillment"` es el informe único de envío/exportación posterior a la fecha límite
 - Los correos electrónicos de informes utilizan asuntos cortos, sin emojis y que priorizan la entregabilidad con el prefijo configurado más el tipo de informe y el título de la campaña.
 - Los correos electrónicos de compromiso diario incluyen totales de campaña únicamente más una breve nota de impulso/entrenamiento en el cuerpo.
 - envíos de cumplimiento divididos por cumplimiento:
@@ -450,8 +521,8 @@ curl -X POST https://worker.example.com/test/email \
 |`PLATFORM_NAME`|Nombre de la plataforma pública utilizada en las respuestas de los trabajadores y en la copia del correo electrónico|
 |`PLATFORM_COMPANY_NAME`|Nombre de la empresa/autor de la plataforma utilizado para la copia de sugerencias de la plataforma|
 |`SUPPORT_EMAIL`|Contacto de soporte reflejado desde la configuración del sitio|
-|`PLEDGES_EMAIL_FROM`|Identidad del remitente para correos electrónicos relacionados con promesas|
-|`UPDATES_EMAIL_FROM`|Identidad del remitente para correos electrónicos de actualización/hitos/anuncios|
+|`PLEDGES_EMAIL_FROM`|Identidad del remitente de correos electrónicos relacionados con promesas; su dominio debe estar autorizado en Reenviar|
+|`UPDATES_EMAIL_FROM`|Identidad del remitente para correos electrónicos de actualización/hitos/anuncios; su dominio debe estar autorizado en Reenviar|
 |`EMAIL_LOGO_PATH`|Ruta del logotipo de correo electrónico del colaborador reflejada desde `platform.logo_path`|
 |`EMAIL_FONT_FAMILY`|Pila de fuentes del cuerpo del correo electrónico del colaborador reflejada desde `design.font_body`|
 |`EMAIL_HEADING_FONT_FAMILY`|Pila de fuentes de encabezado de correo electrónico de apoyo reflejada desde `design.font_display`|
@@ -477,18 +548,27 @@ curl -X POST https://worker.example.com/test/email \
 |`USPS_RATE_LIMIT_COOLDOWN_SECONDS`|Enfriamiento después de las respuestas de USPS `429`|
 |`DEFAULT_PLATFORM_TIP_PERCENT`|Porcentaje de propina de plataforma predeterminado reflejado desde `pricing.default_tip_percent`|
 |`MAX_PLATFORM_TIP_PERCENT`|Porcentaje máximo de propina de plataforma reflejado desde `pricing.max_tip_percent`|
-|`APP_MODE`|`"test"` o `"live"`: determina qué claves API usar|
+|`APP_MODE`|`"test"` o `"live"`: determina qué claves API utilizar. Las implementaciones de producción deben utilizar `"live"`; `dev` local usa `"test"`.|
+|`CORS_ALLOWED_ORIGIN`|El origen del navegador permite llamar al trabajador desde el panel/sitio|
+|`ADMIN_EXPOSE_LOGIN_LINK`|Trampilla de escape opcional solo local para devolver las URL de inicio de sesión de administrador en las respuestas `/admin/auth/start`. No habilitar en trabajadores desplegados.|
+|`ADMIN_SESSION_SECRET`|Secreto utilizado para las cookies de sesión de administración del navegador|
+|`ADMIN_BOOTSTRAP_EMAILS`|Correos electrónicos de superadministrador de arranque/recuperación opcionales; configure esto en `worker/.dev.vars` para desarrolladores locales|
+|`ADMIN_USERS_JSON`|Usuarios administradores de semilla/recuperación reflejados desde `_config.yml`; Las ediciones del panel de tiempo de ejecución se guardan en KV en `admin-users:v1`.|
+|`ADMIN_TEST_CAMPAIGNS`|Slugs de campaña opcionales separados por comas expuestos a la configuración de prueba del panel de administración local|
+|`TURNSTILE_SECRET_KEY`|Clave secreta de Cloudflare Turnstile para la verificación del desafío de inicio de sesión del correo electrónico del administrador|
+|`ADMIN_TURNSTILE_REQUIRED`|Indicador opcional de cierre fallido para implementaciones que esperan que se configure Turnstile|
+|`ADMIN_TURNSTILE_BYPASS`|Omisión local/solo de prueba para pruebas de autenticación de administrador automatizadas; no habilitar en trabajadores desplegados|
 |`RESEND_RATE_LIMIT_DELAY`|Retraso entre correos electrónicos en ms (predeterminado: 600 ms para mantenerse por debajo del límite de 2 solicitudes por segundo de reenvío)|
 
 Cuando `SITE_BASE` apunta al desarrollador local (`localhost` / `127.0.0.1`), las imágenes de correo electrónico incrustadas aún regresan a la base de activos pública `https://site.example.com` para que los clientes de la bandeja de entrada no reciban URL de imágenes de host local rotas.
 
 Nota de bifurcación: trate esas variables de identidad, marca de correo electrónico, precios y envío como espejos de la configuración estructurada del sitio en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml), especialmente las secciones `platform`, `design`, `pricing` y `shipping`. El carrito/tiempo de ejecución propios y la interfaz de usuario de pago en el sitio personalizada son comportamientos integrados de la plataforma ahora, no opciones de entorno de trabajo que normalmente debería personalizar directamente.
 
-Mantenga `USPS_CLIENT_SECRET` fuera de la configuración del sitio. Pertenece a los secretos del trabajador o [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars).
+Mantenga `USPS_CLIENT_SECRET` fuera de la configuración del sitio. Pertenece a Secretos de trabajador o `worker/.dev.vars`.
 
 Nota de localización: el trabajador ahora localiza los asuntos/el cuerpo del correo electrónico dirigidos a los seguidores y los enlaces `/manage/` / `/community/:slug/` localizados desde el catálogo de configuración regional del sitio compartido. En funcionamiento normal, recupera ese catálogo de `SITE_BASE/assets/i18n.json`; las pruebas y las implementaciones avanzadas pueden inyectar `I18N_CATALOG_JSON` en su lugar. Eso significa que los correos electrónicos de soporte localizados y las rutas localizadas como `/es/manage/` o `/es/community/:slug/` permanecen alineadas con el modelo local del sitio cuando una implementación agrega esas rutas.
 
-The Worker también ofrece vistas previas localizadas de tarjetas compartidas de campaña en `GET /share/campaign/:slug.svg` con una consulta opcional `?lang=es`. Las páginas de la campaña utilizan esa ruta para los metadatos de sus imágenes sociales, y el SVG generado refleja el idioma de estado/progreso de la inserción de la campaña mientras se vincula a la ruta de la campaña pública localizada.
+The Worker también ofrece vistas previas localizadas de tarjetas compartidas de campaña en `GET /share/campaign/:slug.png` con una consulta opcional `?lang=es`. El PNG generado refleja el lenguaje de estado/progreso de la campaña insertada y utiliza la campaña cuadrada `hero_image` dentro de la tarjeta. La ruta SVG permanece disponible en `GET /share/campaign/:slug.svg` para herramientas internas de vista previa/depuración, pero los metadatos públicos de `og:image` deben usar PNG u otra imagen rasterizada estática porque no todos los rastreadores externos aceptan imágenes SVG.
 
 ## Flujo de datos
 
@@ -537,6 +617,17 @@ El entorno `dev`:
 - Conjuntos `APP_MODE=test`
 - Utiliza `STRIPE_SECRET_KEY_TEST`
 - Apunta `SITE_BASE` a localhost
+- Establece `CORS_ALLOWED_ORIGIN` en el origen local de Jekyll.
+- Permite que la ruta de inicio de sesión del administrador devuelva la URL de inicio de sesión de desarrollo local en lugar de requerir la entrega por correo electrónico.
+- Lee `ADMIN_BOOTSTRAP_EMAILS` de `worker/.dev.vars` para acceso de superadministrador de arranque local
+- Guarda las ediciones de gestión de usuarios del panel directamente en la clave PLEDGES KV `admin-users:v1`
+- Utiliza `hand-relations` y `smoke-editable` como campañas `/test/setup` predeterminadas.
+
+Para iniciar ambas campañas de prueba del panel de administración con un trabajador local en ejecución:
+
+```bash
+../scripts/seed-admin-test-campaigns.sh
+```
 
 Agregue `?dev` a la URL de la página de administración para obtener datos simulados: `http://127.0.0.1:4000/manage/?dev`
 
@@ -548,5 +639,7 @@ Las entradas del diario se transmiten automáticamente a los seguidores cuando s
 2. El trabajador recupera datos de la campaña y compara las entradas del diario con lo que se ha enviado.
 3. Las nuevas entradas se transmiten a todos los seguidores de la campaña por correo electrónico.
 4. Las entradas enviadas se rastrean en KV (`diary-sent:{campaignSlug}`) para evitar correos electrónicos duplicados
+
+Las entradas del diario deben tener valores `id` estables. El panel conserva los ID existentes y el trabajador obtiene ID basados ​​en títulos al publicar entradas que aún no tienen uno. Las transmisiones automáticas rastrean los marcadores `id:{entryId}` y aún reconocen los marcadores de fecha heredados, incluidas las cadenas de fecha que solo difieren en el formato de segundos `:00`. La actualización del título de una entrada del diario, visualización de fecha, fase o contenido existente no debería enviar otro correo electrónico automático.
 
 **Configuración:** Asegúrese de que `ADMIN_SECRET` esté configurado como secreto del repositorio de GitHub para que la acción de implementación se autentique. Si la verificación posterior a la implementación recibe una página de desafío de Cloudflare, configure también `DIARY_CHECK_BYPASS_SECRET` más la regla de omisión de WAF correspondiente descrita anteriormente.

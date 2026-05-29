@@ -1,7 +1,7 @@
 ---
 title: "Security Guide"
 parent: "Operations"
-nav_order: 5
+nav_order: 6
 render_with_liquid: false
 ---
 
@@ -17,7 +17,9 @@ This document covers the security architecture, known risks, applied hardening m
 |-----------|-----------|-------------|
 | **Magic Link Tokens** | `/pledge*`, `/pledges`, `/votes` | HMAC-SHA256 signed tokens with 90-day expiry |
 | **Stripe Webhook Signature** | `/webhooks/stripe` | HMAC-SHA256 verification per Stripe spec |
-| **Admin Secret** | `/admin/*` | `Authorization: Bearer <secret>` or `x-admin-key` header |
+| **Admin Dashboard Sessions** | Browser dashboard `/admin/*` APIs | Email magic-link sign-in, signed session cookie, CSRF header on mutations, role/campaign scoping |
+| **Admin Sign-In Challenge** | `POST /admin/auth/start` | Optional Cloudflare Turnstile verification before admin magic-link issuance |
+| **Admin Recovery Secret** | Automation and recovery `/admin/*` endpoints | `Authorization: Bearer <secret>` or `x-admin-key` header for script-driven operations |
 | **Test Mode Guard** | `/test/*` | `APP_MODE === 'test'` environment check |
 
 ### Data Storage (Cloudflare KV)
@@ -35,6 +37,11 @@ This document covers the security architecture, known risks, applied hardening m
 | `pending-extras:{orderId}` | PLEDGES | Temporary support item / custom amount checkout extras | **Low** - ephemeral |
 | `pending-tiers:{orderId}` | PLEDGES | Temporary overflow tier metadata during checkout | **Low** - ephemeral |
 | `cron:lastRun` | PLEDGES | Last cron execution timestamp | **Low** - monitoring |
+| `admin-login:{hash}` | PLEDGES | One-time admin login nonce and email | **Medium** - ephemeral admin auth |
+| `admin-session:{hash}` | PLEDGES | Admin email, role, campaign scope, CSRF token, expiry | **High** - admin auth |
+| `admin-users:v1` | PLEDGES | Runtime admin users and campaign scopes | **High** - access control |
+| `admin-marketing-referrals:{slug}` | PLEDGES | Saved referral code metadata | **Low** - admin-authored marketing data |
+| `admin-audit:{date}:{action}:{id}` | PLEDGES | Recent admin mutation audit events | **Medium** - admin identity + operational metadata |
 | `vote:{slug}:{decision}:{email}` | VOTES | Vote choice | **Medium** - links supporter to vote |
 | `results:{slug}:{decision}` | VOTES | Vote tallies | **Low** - semi-public |
 | `rl:{endpoint}:{ip}` | RATELIMIT | Request count + reset time | **Low** - ephemeral |
@@ -57,6 +64,8 @@ The current security posture is designed around a few core principles:
 ### Access Control And Environment Gating
 
 - magic links are scoped to specific pledge and campaign paths rather than broad user accounts
+- private admin access uses email magic links, signed session cookies, CSRF checks, and role/campaign scoping
+- admin sign-in can require a Cloudflare Turnstile challenge before login nonce writes or magic-link delivery
 - `/test/*` routes are gated behind test mode and are not meant to be reachable in normal deployments
 - admin routes require an explicit secret and are intended to fail closed when not configured correctly
 - supporter voting is keyed to the supporter email identity associated with the authorized pledge, which prevents simple multi-pledge vote amplification
@@ -79,6 +88,8 @@ The current security posture is designed around a few core principles:
 
 - checkout-start payloads validate campaign identifiers, email addresses, cart items, and contribution inputs before canonical reconstruction
 - voting endpoints validate decision identifiers and option values before they reach state-changing logic
+- dashboard settings, campaign fields, content blocks, add-ons, tiers, support items, diary entries, decisions, and user records are normalized server-side before persistence
+- dashboard media uploads are scoped by role, campaign access, upload kind, content type, file size, destination directory, and canonical filename
 - creator-authored labels and rich content are escaped or sanitized by default, with only a very small allowlisted HTML subset preserved
 - structured embeds are allowlisted to exact approved providers and URL shapes instead of broad substring checks
 - markdown link destinations are constrained to safe schemes and internal links
@@ -94,6 +105,8 @@ The current security posture is designed around a few core principles:
 
 - rate limiting is available for expensive routes such as checkout, pledge management, admin operations, and webhooks
 - blocked requests are designed to fail closed without turning abuse into excessive extra KV writes
+- normal dashboard reads, filters, previews, analytics, report downloads, and local editor drafts are designed to avoid KV writes
+- secret values remain in Worker secrets or ignored local files; the dashboard can report configured/missing status but cannot edit or serialize secret values
 - the secret-audit and security test suites are part of the documented verification path
 - the security model assumes operators will keep deployment secrets rotated, scoped, and out of repository history
 
@@ -119,7 +132,9 @@ Before deploying to production, verify these secrets are set:
 | Stripe Webhook Secret | `STRIPE_WEBHOOK_SECRET_LIVE` | 32+ chars |
 | Checkout Intent Secret | `CHECKOUT_INTENT_SECRET` | 32+ chars |
 | Magic Link Secret | `MAGIC_LINK_SECRET` | 32+ chars |
+| Admin Session Secret | `ADMIN_SESSION_SECRET` | 32+ chars |
 | Admin Secret | `ADMIN_SECRET` | 32+ chars |
+| Admin Turnstile Secret | `TURNSTILE_SECRET_KEY` | N/A |
 | Resend API Key | `RESEND_API_KEY` | N/A |
 
 Generate secure secrets:
@@ -156,11 +171,12 @@ If a magic link token is compromised:
 3. To invalidate: delete the pledge from KV (`GET /pledge` will then return `404` for that token)
 4. Optionally: regenerate MAGIC_LINK_SECRET (invalidates ALL tokens)
 
-### Admin Secret Compromise
+### Admin Session Or Secret Compromise
 
-1. Immediately rotate `ADMIN_SECRET` via `wrangler secret put`
-2. Review audit logs for unauthorized admin actions
-3. Re-check campaign stats and pledge data integrity
+1. Immediately rotate `ADMIN_SESSION_SECRET` and `ADMIN_SECRET` via `wrangler secret put`
+2. Clear active `admin-session:*` keys from the Worker KV namespace
+3. Review `admin-audit:*` events and GitHub commits for unauthorized admin actions
+4. Re-check campaign stats, pledge data, settings, and admin user scopes
 
 ### Stripe Webhook Secret Compromise
 

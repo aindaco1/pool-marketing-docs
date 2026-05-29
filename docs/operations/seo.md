@@ -1,7 +1,7 @@
 ---
 title: "SEO"
 parent: "Operations"
-nav_order: 9
+nav_order: 10
 render_with_liquid: false
 ---
 
@@ -31,10 +31,11 @@ The current baseline includes:
 - secure social-image tags where the page image is already HTTPS
 - social image alt metadata
 - state-aware campaign social titles and descriptions
-- Worker-generated campaign share-card SVG images for social previews
+- Worker-generated campaign share-card PNGs for public social metadata, with SVG retained for internal preview/debug tooling
 - generated [`robots.txt`](/robots.txt)
 - generated [`sitemap.xml`](/sitemap.xml)
 - explicit `noindex,nofollow` on tokenized or supporter-only layouts
+- explicit `noindex,nofollow,noarchive`, `sitemap: false`, robots disallows, and disabled social metadata on the private admin dashboard
 - conservative `Organization` / `WebSite` JSON-LD
 - conservative campaign `CreativeWork` plus breadcrumb JSON-LD, both aligned with the active page language where supported
 - campaign `CreativeWork` JSON-LD now also includes `headline`, `mainEntityOfPage`, `isPartOf`, and published/modified timestamps so public campaign pages read more like real editorial landing pages than anonymous blobs
@@ -49,12 +50,14 @@ The main implementation files are:
 - [/robots.txt](/robots.txt)
 - [/sitemap.xml](/sitemap.xml)
 
-Campaign social previews now use a Worker route in the shape:
+Campaign social previews default to a Worker-generated, crawler-friendly PNG that uses live campaign progress. A campaign can still override that with `social_image` when it needs a fixed static raster image, ideally JPEG or PNG at `1200 x 630`.
 
-- `/share/campaign/{slug}.svg?lang=en`
-- `/share/campaign/{slug}.svg?lang=es`
+The public Open Graph route is:
 
-That route generates a state-aware share card from live campaign data so the social image stays closer to the hosted embed’s visual language than a raw hero image alone.
+- `/share/campaign/{slug}.png?lang=en`
+- `/share/campaign/{slug}.png?lang=es`
+
+That route generates a state-aware SVG card from live campaign data, then rasterizes it to PNG so shared links stay crawler-safe while still showing pledged total, goal progress, campaign state, and the campaign's square `hero_image` with the richer share-card styling. The Worker also keeps the SVG version at `/share/campaign/{slug}.svg?lang={lang}` for internal preview/debug tooling, but SVG is not the public metadata default because some external crawlers reject it.
 
 ## Indexing Contract
 
@@ -72,6 +75,8 @@ Non-indexable by default:
 - cart and checkout flows
 - pledge success / cancelled pages
 - `/manage/`
+- `/admin/`
+- `/es/admin/`
 - supporter community pages
 - tokenized routes and user-specific query-string access paths
 
@@ -81,6 +86,14 @@ This is enforced through a mix of:
 - `robots.txt`
 - sitemap inclusion rules
 - sitemap `lastmod` hints for public pages and campaigns
+
+Admin dashboard contract:
+
+- [admin.md](https://github.com/your-org/your-project/blob/main/admin.md) and [es/admin/index.html](https://github.com/your-org/your-project/blob/main/es/admin/index.html) must keep `indexable: false` and `sitemap: false`
+- [/_layouts/admin.html](https://github.com/your-org/your-project/blob/main/_layouts/admin.html) must call `seo-meta.html` with `indexable=false` and `social=false`
+- [`robots.txt`](/robots.txt) must disallow `/admin/` and `/es/admin/`
+- [`sitemap.xml`](/sitemap.xml) must not include admin routes
+- the admin layout must not emit JSON-LD or Open Graph/Twitter social-preview metadata; the dashboard is a private app surface, not a public search result or share target
 
 ## Structured Data
 
@@ -125,7 +138,7 @@ Public metadata also derives a few safe values automatically:
 - `og:image:secure_url` when the chosen social image already resolves to HTTPS
 - `article:published_time` / `article:modified_time` on campaign pages when campaign dates are available
 - campaign preview copy from campaign state (`upcoming`, `live`, `funded`, `ended`)
-- campaign preview images from the Worker share-card route rather than directly from the hero image alone
+- campaign preview images from `social_image` when configured, otherwise the Worker-generated PNG share-card route
 - `WebSite.availableLanguage`, localized breadcrumb roots, and campaign `CreativeWork.inLanguage` from the configured locale model
 
 Forks can override part of that behavior in a bounded way:
@@ -156,7 +169,7 @@ Forks can safely customize:
 - organization social-profile links
 - whether the public community hub should remain indexable
 - page and campaign descriptive copy that already exists in the content model
-- campaign preview inputs that already exist in the content model, such as campaign title, blurb, category, creator, and hero imagery
+- campaign preview inputs that already exist in the content model, such as campaign title, the first long-content text block used for social descriptions, category, creator, a `funded: true` flag for successful post-campaign metadata before settlement, and the square hero image used inside generated share cards
 
 Forks should not assume support for:
 
@@ -169,10 +182,11 @@ Forks should not assume support for:
 When checking a deployment manually:
 
 - page source for home/about/terms/campaign pages has correct title, description, canonical, OG, and Twitter tags
-- campaign pages emit the Worker share-card SVG as the social image and include the correct locale-aware route in that image URL
+- campaign pages emit a crawler-friendly `social_image` when configured, otherwise the Worker share-card PNG route
 - `robots.txt` is reachable and only exposes intended public crawl paths
 - `sitemap.xml` is reachable and only includes intended public URLs
 - private/tokenized pages emit `noindex` where appropriate
+- `/admin/` and `/es/admin/` emit `noindex,nofollow,noarchive`, do not appear in `sitemap.xml`, and do not emit social-preview or JSON-LD metadata
 - JSON-LD validates cleanly
 - localized pages keep coherent canonical and alternate links
 - localized campaign pages keep coherent canonical and alternate links

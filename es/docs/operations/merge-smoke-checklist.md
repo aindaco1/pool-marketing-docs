@@ -1,7 +1,7 @@
 ---
 title: Checklist de smoke tests antes del merge
 parent: Operaciones
-nav_order: 4
+nav_order: 5
 render_with_liquid: false
 lang: es
 ---
@@ -58,6 +58,8 @@ Ese guión comienza:
 - Reenvío del webhook CLI de Stripe al trabajador local
 
 Utilice el ensayo local para comprobar la integridad del proceso de pago, la entrega de webhooks, la gestión del comportamiento de los enlaces y los puntos finales de administración antes de ejecutar el mismo flujo en la puesta en escena.
+
+Para sucursales con muchos paneles, abra el panel local en `http://127.0.0.1:4000/admin/`. La pila de desarrollo genera los valores predeterminados del administrador de arranque documentados en `README.md` y `worker/README.md`; Los cambios de gestión de usuarios realizados en el panel se guardan en el KV del trabajador local y se restablecen con el estado del KV local.
 
 Para verificaciones de gestión de promesas solo locales, utilice la campaña `smoke-editable`. Se define como `test_only: true`, por lo que aparece en el desarrollo local cuando `_config.local.yml` habilita `show_test_campaigns`, mientras permanece excluido de la página de inicio de producción y de producción `/api/campaigns.json`.
 
@@ -218,7 +220,7 @@ curl -s -X POST \
 1. Ejecute el reabastecimiento del cliente para una campaña con valores `stripeCustomerId` faltantes conocidos.
 2. Resultado esperado:
    - Todos los compromisos calificados en la paginación KV están actualizados.
-   - La repetición de la liquidación después del reabastecimiento reduce o borra los registros de clientes omitidos.
+   - volver a ejecutar la liquidación después del reabastecimiento reduce o borra los registros de clientes omitidos
 
 ```bash
 curl -s -X POST \
@@ -254,6 +256,21 @@ curl -s -X POST \
   "$STAGING_WORKER_URL/admin/milestone-check/<campaign-slug>" | jq
 ```
 
+### 12. Humo en el panel de administración
+
+Ejecute esta sección cuando la sucursal cambie la interfaz de usuario del panel, las rutas de los trabajadores administrativos, la configuración de la campaña, los complementos, las cargas, los informes, los análisis, los seguidores, las herramientas de marketing o la gestión de usuarios.
+
+1. Inicie sesión en `/admin/` con un correo electrónico de administrador autorizado.
+2. Verifique que las pestañas principales se representen sin desbordamiento horizontal en los anchos de escritorio, tableta y dispositivo móvil.
+3. En **Configuración**, confirmar que las secciones publicables muestran un botón `Publish` deshabilitado hasta que se realice un cambio real. Confirme que **Usuarios**, **Secretos y credenciales** y **Diagnóstico en tiempo de ejecución** no muestren una acción de publicación no utilizada.
+4. En **Configuración -> Usuarios**, cree o edite un usuario de campaña, guarde y confirme que el cambio entre en vigor sin un flujo de publicación de GitHub.
+5. En **Campañas**, cambie las subpestañas de la campaña y verifique que el contenido, los niveles, los complementos de la campaña, las entradas del diario y las decisiones se carguen solo para la campaña seleccionada.
+6. En **Contenido** y **Entradas del diario**, agregue/edite un bloque de contenido, verifique el comportamiento de la vista previa WYSIWYG y confirme que `Save Draft` solo se habilita cuando el borrador local difiere del valor guardado.
+7. En **Complementos** y **Complementos** de campaña, verifique que los productos físicos muestren campos preestablecidos de envío/paquete, que los productos digitales oculten los campos de envío y que los ID de producto/variante deriven de nombres/etiquetas para nuevas entradas.
+8. En **Análisis**, **Informes** y **Colaboradores**, verifique que la vista predeterminada `All` solo muestre las campañas disponibles para el administrador actual, los montos en dólares muestren los centavos exactos cuando corresponda y la exportación CSV coincida con las filas visibles.
+9. En **Marketing**, guarde/edite/elimine un código de referencia, verifique que el creador de URL se borre después de guardar/actualizar y confirme que el creador de campañas integrado todavía funciona.
+10. Para `/es/admin/`, verifique que las etiquetas de pestañas traducidas y la navegación en tableta/móvil no se desborden.
+
 ## Plantilla de aprobación
 
 Registre el resultado del humo en el PR o en las notas de la versión:
@@ -269,6 +286,7 @@ Smoke completed on <date> in <staging|local>.
 - Settlement dry/live: pass
 - Backfill: pass
 - Broadcast pagination/milestones: pass
+- Admin dashboard smoke, if relevant: pass
 
 Notes:
 - <any intentional behavior observed>

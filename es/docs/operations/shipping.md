@@ -1,14 +1,14 @@
 ---
 title: Envíos
 parent: Operaciones
-nav_order: 7
+nav_order: 8
 render_with_liquid: false
 lang: es
 ---
 
 # Envíos
 
-Este documento describe el modelo de envío actual en The Pool, incluido su flujo de precios centrado en el trabajador, la superficie de configuración orientada a la fork, el límite de integración de USPS y el árbol de reglas que ahora siguen el carrito, el pago, la gestión de promesas, los informes y los correos electrónicos.
+Este documento describe el modelo de envío actual en The Pool, incluido su flujo de precios centrado en el trabajador, la superficie de configuración orientada a la bifurcación, el límite de integración de USPS y el árbol de reglas que ahora siguen el carrito, el pago, la gestión de promesas, los informes y los correos electrónicos.
 
 La verificación en vivo de credenciales de USPS ahora está conectada al flujo de trabajo local. El repositorio incluye un asistente de humo de USPS dedicado además de regresiones automatizadas para los flujos de envío del carrito, el pago y la gestión de compromisos.
 
@@ -297,7 +297,33 @@ tiers:
 
 ### Artículos de soporte
 
-Permitir los mismos metadatos de envío en artículos de soporte físico si admitimos complementos físicos allí.
+Los artículos de soporte físico pueden usar la misma forma de metadatos de envío que los niveles físicos y los complementos cuando una campaña necesita cumplimiento para un artículo de soporte:
+
+```yml
+support_items:
+  - id: prop-materials
+    label: Prop materials
+    category: physical
+    shipping_preset: poster
+```
+
+O metadatos explícitos del paquete:
+
+```yml
+support_items:
+  - id: prop-materials
+    label: Prop materials
+    category: physical
+    shipping:
+      weight_oz: 8
+      packaging_weight_oz: 2
+      length_in: 12
+      width_in: 9
+      height_in: 1
+      stack_height_in: 0.25
+```
+
+El panel de administración sigue la misma interfaz de usuario condicional para niveles, elementos de soporte, complementos de plataforma y complementos de campaña: los elementos digitales ocultan los campos de envío; los elementos físicos pueden seleccionar un ajuste preestablecido; Los elementos físicos sin ajustes preestablecidos exponen campos explícitos de peso y dimensión.
 
 ## Estrategia de embalaje
 
@@ -352,10 +378,10 @@ En este repositorio, eso se asigna a:
 
 Para una configuración local de estilo de producción normal, los valores mínimos que necesita este repositorio son:
 
-- [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) o [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml)
+- [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) o `_config.local.yml`
   - `shipping.usps.enabled: true`
   - `shipping.usps.client_id: "<your Consumer Key>"`
-- [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars)
+- `worker/.dev.vars`
   - `USPS_CLIENT_SECRET=<your Consumer Secret>`
 
 Si desea realizar pruebas con USPS TEM con las mismas credenciales de producción que describe USPS, configure también:
@@ -367,7 +393,7 @@ o
 Para pruebas locales:
 
 - configure `shipping.usps.client_id` en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) o su ruta de anulación local
-- establezca `USPS_CLIENT_SECRET=...` en [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars)
+- establecer `USPS_CLIENT_SECRET=...` en `worker/.dev.vars`
 - ejecutar:
 
 ```bash
@@ -472,6 +498,8 @@ La interfaz de usuario de carrito/administración puede permanecer estructuralme
 - mostrar el envío en filas de resumen
 - Continuar recopilando la dirección de envío para pedidos físicos.
 - no hay nueva interfaz de usuario del operador orientada al usuario en v1
+
+El panel de administración es una interfaz orientada al operador para los mismos metadatos de envío. No debería introducir un segundo modelo de envío. Los nuevos campos del panel deben serializarse en `shipping_preset`, `shipping_fallback_flat_rate`, `shipping_options` o los campos del paquete anidado `shipping.*` que ya consume el trabajador.
 
 ## Estrategia de prueba
 
@@ -640,6 +668,7 @@ La implementación del envío está en buen estado cuando:
 - Los artículos calificados con tarifa manual como `sticker` y `signed_script` omiten USPS y utilizan la tabla plana documentada.
 - Los complementos de campaña heredan las reglas de envío y las anulaciones de la campaña propietaria.
 - Los complementos globales físicos se combinan en un envío de plataforma separado en lugar de tomar prestado el envío de la campaña.
+- Los editores de productos del panel de administración ocultan el envío de artículos digitales y muestran campos preestablecidos/paquetes solo para artículos físicos.
 - Los cambios de cantidad afectan las matemáticas del envío correctamente.
 - el pago, la gestión de promesas, los totales de promesas guardadas, los correos electrónicos, los informes y las exportaciones de cumplimiento permanecen alineados con el monto de envío almacenado
 - Los carritos que requieren código postal permanecen en modo de estimación hasta que se completa el código postal

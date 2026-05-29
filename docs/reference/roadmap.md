@@ -9,6 +9,12 @@ render_with_liquid: false
 
 This roadmap is organized as a release history of the real project states we actually used, rather than a flat completed-features list.
 
+## Current Milestone
+
+**v1.0.1**
+
+The v1.0 feature set and release-hardening pass are complete. v1.0.1 adds admin content-editor media uploads, actual Stripe fee/net capture for analytics, dashboard media optimization tooling, and friendlier empty dashboard states for new campaigns without pledge indexes.
+
 ## Release History
 
 ### v0.5 — WME Launch
@@ -133,7 +139,7 @@ New in this version:
 
 ### v0.9.5 — Local Runtime Parity And Creator Launch Handoff
 
-This is the current local release milestone reflected in the app and docs. The focus was keeping local Worker development aligned with production deployment behavior while tightening the public handoff material creators need before launch.
+This release kept local Worker development aligned with production deployment behavior while tightening the public handoff material creators need before launch.
 
 New in this version:
 
@@ -144,14 +150,47 @@ New in this version:
 - the public Campaign Creator Checklist now covers campaign add-ons, embed-code promotion, shipping fallback/free-shipping decisions, tax expectations, report recipients, and fulfillment handoff
 - a Spanish creator checklist route now exists at `/es/creator-campaign-checklist/`
 
-## Next
+### v1.0.0 — Public Launch Platform
 
-Work still planned after `0.9.5` includes:
+This release moved The Pool from reusable campaign infrastructure to a production-shaped platform with a private browser operations surface.
 
-- an admin dashboard and stronger operator tooling around campaign, platform, and supporter data
-- a stronger content-editor story than the current Pages CMS setup
+New in this version:
+
+- private admin dashboard at `/admin/` and `/es/admin/` for role-scoped platform settings, campaign editing, add-ons, reports, analytics, supporters, marketing tools, and users
+- email magic-link admin authentication with signed sessions, CSRF/origin protections, optional Turnstile challenge support, and safe browser APIs that do not expose `ADMIN_SECRET`
+- dashboard editing for campaign settings, content blocks, tiers, support items, campaign add-ons, stretch goals, ongoing items, diary entries, decisions, platform add-ons, and platform settings
+- dashboard Users management backed by Worker KV at `admin-users:v1`, including notification emails for newly created users when Resend is configured
+- dashboard Marketing tools for referral and UTM URL building, saved referral codes, reusable embed-builder controls, and copyable launch snippets
+- role-scoped Analytics, Reports, and Supporters views with sortable/filterable tables, exact-cent dollar display, CSV downloads, and read-only report previews
+- dashboard accessibility, i18n, SEO/noindex, security, mobile/tablet responsiveness, and DRY UI passes
+- final release verification across admin browser flows, pre-merge regression checks, and local Podman smoke for the dashboard's main tabs
+
+### v1.0.1 — Dashboard Media And Analytics Patch
+
+This point release tightened the new dashboard workflow after v1.0.0 and added the analytics data needed for more accurate revenue reporting.
+
+New in this version:
+
+- newly charged pledges capture actual Stripe balance transaction fee, net, gross, charge, and balance transaction IDs when available
+- dashboard Analytics prefers stored actual Stripe fees when available and labels mixed or estimated values clearly
+- super admins can backfill older charged pledge records with Stripe balance transaction data without KV list scans
+- campaign and diary content editors can stage image, video, and audio uploads with immediate previews and publish them into the correct campaign asset directories
+- dashboard uploads stay source-preserving in the Worker, while repository tooling handles lossless image compression and WebM derivative generation
+- `npm run media:optimize`, `npm run media:optimize:check`, and the "Optimize dashboard media" GitHub Actions workflow support the post-upload media pipeline
+- Supporters and Analytics return empty read-only views for campaigns without pledge indexes instead of blocking new or empty campaign dashboards
+
+## Future Features
+
+Work still planned after `1.0.1` includes:
+
 - further tax-calculator work for broader US and international coverage, better local-jurisdiction depth, and clearer tax-data refresh workflows
-- more flexible pricing support for add-on variants
+- net revenue analytics after allocated processor fees, using actual Stripe fee data where available
+- richer campaign marketing tools such as announcement composition and consent-aware abandoned-cart follow-up
+- different prices per add-on variation
+- reusable "share to" campaign links for curated destinations such as email, SMS, X, Facebook, Bluesky, Threads, and copy-link
+- email-protected campaign preview pages for super admins, campaign users, and invited reviewers
+- launch reminder signups for upcoming campaigns with consent, unsubscribe handling, and bounded KV writes
+- configurable platform default timezone instead of assuming Mountain Time everywhere
 
 ## Known Issues
 

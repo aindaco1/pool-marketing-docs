@@ -27,11 +27,12 @@ Los creadores definen campañas en Markdown; los patrocinadores se comprometen a
 |**Frontal**|Páginas de GitHub (Jekyll + Sass + tiempo de ejecución del carrito)|Páginas de campaña, carrito, UX|
 |**Pagos**|Stripe (Sesiones de pago en modo configuración + cargos fuera de sesión)|Campos de pago seguros, métodos de pago guardados y luego tarjetas de cargo|
 |**API/pegamento**|Trabajador de Cloudflare (`worker.example.com`)|Maneja el arranque de pago, webhooks, totales con reconocimiento de propinas, recuperación y datos de informes.|
+|**IU de administrador**|Panel privado (`/admin/`, `/es/admin/`)|Configuraciones, campañas, complementos, análisis, informes, seguidores, herramientas de marketing y usuarios basados en roles|
 |**Automatización**|cron de trabajador + acción de GitHub|Auto-liquidación (por lotes) + transiciones de estado|
 |**Almacenamiento**|Rebaja / YAML|Definiciones y estado de la campaña|
 |**Estilo**|Sass + vars de tema generados|Sistema de diseño compartido para páginas públicas, pago, gestión de promesas y superficies de pago/correo electrónico de marca.|
 
-Todo el código está versionado y es auditable: no se requiere una base de datos externa y la edición de campañas puede permanecer en el repositorio o fluir a través de Pages CMS.
+Todo el código está versionado y auditable. La edición de la campaña ahora fluye a través del panel de administración privado o ediciones directas del repositorio, y los cambios publicables aún se confirman en el repositorio a través de la ruta de GitHub controlada por el trabajador.
 
 ## Planificar notas de eficiencia para bifurcaciones
 
@@ -39,7 +40,8 @@ La arquitectura actual está optimizada deliberadamente para que las implementac
 
 - Las páginas de campaña y la página de administración prefieren una lectura combinada de `/live/:slug` en lugar de estadísticas y solicitudes de inventario separadas.
 - el navegador almacena en caché las estadísticas en vivo y el inventario en `localStorage` para los TTL configurados, y las pestañas ocultas dejan de actualizarse hasta que vuelven a ser visibles.
-- Los informes de campaña única, los asistentes de liquidación, las búsquedas de audiencia de transmisiones de administrador y las estadísticas/conciliación de inventario prefieren el índice `campaign-pledges:{slug}` antes de recurrir a escaneos completos de `pledge:`, y las rutas de reconstrucción ahora reparan índices obsoletos cuando detectan desviaciones.
+- Los informes del panel, los partidarios, los análisis, los asistentes de liquidación, las búsquedas de audiencia de transmisión de administradores y las estadísticas/conciliación de inventario prefieren el índice `campaign-pledges:{slug}` y evitan costosas exploraciones de espacios de nombres en rutas de lectura normales.
+- Las cargas/vistas previas de contenido del panel, vistas previas/descargas de informes, filtros de soporte, vistas de análisis y listas de referencias de marketing están diseñadas para agregar cero escrituras de KV.
 - Las rutas de escritura de nivel limitado ahora solicitan al coordinador de cada campaña la disponibilidad según la reserva, mientras que el inventario público permanece en KV como proyección.
 - La limitación de velocidad aún falla al cerrarse, pero las solicitudes bloqueadas repetidas dentro de la misma ventana ya no reescriben el mismo contador KV en cada visita.
 
@@ -47,7 +49,7 @@ Eso significa que el límite real para la mayoría de las bifurcaciones suele se
 
 ## Forma de desarrollo local
 
-La ruta local de baja fricción recomendada ahora utiliza Podman:
+La ruta local de baja fricción recomendada ahora usa Podman:
 
 - `./scripts/dev.sh --podman` arranca a Jekyll y al Trabajador en contenedores desarraigados
 - `npm run podman:doctor` comprueba primero la preparación del host
@@ -83,14 +85,14 @@ Para conocer los límites actuales de Cloudflare, consulte:
    - Registra los latidos del corazón (`cron:lastRun` en KV) para su monitoreo.
    - Activa la reconstrucción del sitio cuando pasa `goal_deadline` (`live` → `post`).
    - Si se financia, envía la liquidación por lotes a través del autoencadenamiento `/admin/settle-dispatch`.
-   - Cada lote (6 promesas) se ejecuta en una invocación de Trabajador separada para mantenerse dentro de los límites de las subrequests.
+   - Cada lote (6 promesas) se ejecuta en una invocación de Trabajador separada para permanecer dentro de los límites de las subrequests.
    - Los cargos se agregan por correo electrónico dentro de cada campaña: un cargo por seguidor por campaña.
    - Actualiza el estado del compromiso a `charged` o `payment_failed` en KV.
    - Activa la reconstrucción de páginas de GitHub y la purga de caché de Cloudflare en transiciones de estado.
-5. **Pase de informe de trabajador** válido a las 7:00 a. m., hora de la montaña:
-   - Envía correos electrónicos diarios sobre el libro mayor de compromisos relacionados con la campaña para campañas activas que configuran `runner_report_emails`.
-   - Envía un flujo de cumplimiento posterior a la fecha límite por campaña, dividiendo las filas del ejecutor de campaña de las filas de cumplimiento de la plataforma cuando sea necesario.
-   - Admite vista previa/envío manual a través de `POST /admin/report/campaign-runner`, incluidas respuestas de prueba para destinatarios, recuentos de filas de campaña/plataforma, nombres de archivos y estado del marcador de idempotencia.
+5. **Los informes y las exportaciones de cumplimiento** utilizan los mismos creadores de informes de campaña:
+   - El panel de administración muestra una vista previa de los informes de compromiso y cumplimiento de las campañas a las que el administrador puede acceder y descarga el informe visible como CSV.
+   - Las vistas previas/descargas de informes del panel no envían correos electrónicos ni escriben marcadores de envío.
+   - La automatización de cumplimiento programada o basada en secuencias de comandos aún puede usar las rutas del informe de trabajo cuando esté configurada.
 
 **Reglas de precios:**
 - El progreso de la campaña utiliza únicamente el subtotal.
@@ -141,6 +143,7 @@ Para conocer los límites actuales de Cloudflare, consulte:
 │   └── js/               # Cart, campaign, and runtime scripts
 ├── worker/               # Cloudflare Worker (worker.example.com)
 │   └── src/              # Stripe setup, webhooks, email, votes, tokens, tip-aware totals
+├── admin.md              # Private admin dashboard route
 ├── scripts/              # Automation & reporting scripts
 ├── tests/e2e/            # Playwright end-to-end tests
 └── .github/workflows/    # Deploy action
@@ -155,11 +158,12 @@ Para conocer los límites actuales de Cloudflare, consulte:
 3. ✅ Cloudflare Worker implementado (`worker.example.com`) con secretos de firma de Stripe + Worker.
 4. ✅ Webhook de banda configurado → Trabajador `/webhooks/stripe`.
 5. ✅ Conjunto de secretos de repositorio: `STRIPE_SECRET_KEY`, `CHECKOUT_INTENT_SECRET` y secretos de administrador/correo electrónico.
-6. ✅ Cron de trabajador diario habilitado (7 a. m. UTC / medianoche MT): verifique a través de `GET /admin/cron/status`.
+6. ✅ Cron de trabajador diario habilitado (6 a. m. UTC y 7 a. m. UTC para verificaciones de medianoche MDT/MST): verifique a través de `GET /admin/cron/status`.
 7. ✅ Purga de caché de Cloudflare configurada (preferido: token de API/ID de cuenta; correo electrónico heredado/autenticación de clave aún funciona si se configura explícitamente).
 8. ✅ La campaña de prueba se ejecuta de un extremo a otro en el modo de prueba de Stripe.
 9. ✅ El contenido de formato largo desinfecta los esquemas de enlaces de Markdown y solo muestra incrustaciones estructuradas de orígenes aprobados exactos.
 10. ✅ Las lecturas de enlaces mágicos de promesas faltantes fallan al cerrarse con `404`.
+11. ✅ El panel de administración privado emite `noindex`, utiliza autenticación de enlace mágico y mantiene las mutaciones KV de usuario/referencia separadas de los flujos de publicación respaldados por GitHub.
 
 ---
 
@@ -168,7 +172,7 @@ Para conocer los límites actuales de Cloudflare, consulte:
 - **Estático primero:** GitHub Pages proporciona transparencia y control de versiones para cada estado de la campaña.
 - **Backend mínimo:** Cloudflare Worker reemplaza un servidor de aplicaciones completo.
 - **Automatización sobre operaciones:** GitHub Actions realiza todos los eventos basados en tiempo.
-- **Transferencia abierta:** Todo lo editable como Markdown: seguro para futuros colaboradores.
+- **Transferencia abierta:** El estado de la campaña y la plataforma sigue siendo revisable como Markdown/YAML, incluso cuando las ediciones de rutina se realizan a través del panel.
 - **Coherencia del diseño:** Utiliza el mismo lenguaje visual que Dust-wave-shop para lograr coherencia de marca.
 
 ## Aprendizajes críticos

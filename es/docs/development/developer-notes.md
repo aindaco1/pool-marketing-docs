@@ -15,7 +15,7 @@ lang: es
 - **Cloudflare Worker**: API de backend, almacenamiento de promesas (KV), envío de correo electrónico
 - **Stripe** — Sesiones de pago en modo de configuración para el paso de pago en el sitio, además de PaymentIntents para cargos posteriores
 - **Reenviar**: correos electrónicos transaccionales (confirmación del colaborador, hitos, errores)
-- **Pages CMS**: edición visual de campañas a través de [app.pagescms.org](https://app.pagescms.org)
+- **Panel de administración privado**: edición, configuración, complementos, informes, análisis, seguidores y herramientas de marketing de campañas basadas en roles
 
 ### Perillas de plano libre aptas para horquillas
 
@@ -33,14 +33,18 @@ La configuración ahora utiliza un modelo de configuración estructurado en [`_c
 - nivel superior `title` / `description`
 - `seo`
 - `platform`
+- `admin`
 - `pricing`
+- `tax`
 - `shipping`
+- `reports`
 - `design`
 - `debug`
+- `add_ons`
 - `checkout`
 - `cache`
 
-Trate [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml) como un archivo de anulación ligero para las URL de host local y otras diferencias locales de la máquina, no como un segundo lugar para duplicar la configuración de bifurcación canónica.
+Trate `_config.local.yml` como un archivo de anulación fino para las URL de host local y otras diferencias locales de la máquina, no como un segundo lugar para duplicar la configuración de bifurcación canónica.
 
 El objetivo de sincronización es [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) y los puntos de entrada de desarrollo/pruebas admitidos por el repositorio lo mantienen alineado automáticamente.
 
@@ -48,37 +52,16 @@ Consulte [CUSTOMIZATION.md](/es/docs/development/customization-guide/) para cono
 
 Valores de trabajador reflejados actuales que vale la pena tratar como parte de la superficie de personalización admitida:
 
-- `PLATFORM_NAME`
-- `PLATFORM_COMPANY_NAME`
-- `SUPPORT_EMAIL`
-- `PLEDGES_EMAIL_FROM`
-- `UPDATES_EMAIL_FROM`
-- `EMAIL_LOGO_PATH`
-- `EMAIL_FONT_FAMILY`
-- `EMAIL_HEADING_FONT_FAMILY`
-- `EMAIL_COLOR_TEXT`
-- `EMAIL_COLOR_MUTED`
-- `EMAIL_COLOR_SURFACE`
-- `EMAIL_COLOR_BORDER`
-- `EMAIL_COLOR_PRIMARY`
-- `EMAIL_BUTTON_RADIUS`
-- `SALES_TAX_RATE`
-- `FLAT_SHIPPING_RATE`
-- `SHIPPING_ORIGIN_ZIP`
-- `SHIPPING_ORIGIN_COUNTRY`
-- `SHIPPING_FALLBACK_FLAT_RATE`
-- `FREE_SHIPPING_DEFAULT`
-- `USPS_ENABLED`
-- `USPS_CLIENT_ID`
-- `USPS_API_BASE`
-- `USPS_TIMEOUT_MS`
-- `USPS_QUOTE_CACHE_TTL_SECONDS`
-- `USPS_FAILURE_COOLDOWN_SECONDS`
-- `USPS_RATE_LIMIT_COOLDOWN_SECONDS`
-- `DEFAULT_PLATFORM_TIP_PERCENT`
-- `MAX_PLATFORM_TIP_PERCENT`
+- Vars de identidad, URL y SEO: `SITE_TITLE`, `SITE_DESCRIPTION`, `PLATFORM_NAME`, `PLATFORM_COMPANY_NAME`, `PLATFORM_AUTHOR`, `PLATFORM_DEFAULT_CREATOR_NAME`, `SITE_BASE`, `WORKER_BASE`, `CANONICAL_SITE_BASE`, `CANONICAL_WORKER_BASE`, `CORS_ALLOWED_ORIGIN`, `SEO_*`.
+- vars de administración: producción `ADMIN_USERS_JSON`, `ADMIN_TEST_CAMPAIGNS` solo para desarrolladores y `ADMIN_BOOTSTRAP_EMAILS` solo local en `worker/.dev.vars`
+- vars de pago y precios: `STRIPE_PUBLISHABLE_KEY`, `SALES_TAX_RATE`, `FLAT_SHIPPING_RATE`, `DEFAULT_PLATFORM_TIP_PERCENT`, `MAX_PLATFORM_TIP_PERCENT`
+- vars de impuestos y envío: `TAX_PROVIDER`, `TAX_ORIGIN_COUNTRY`, `TAX_USE_REGIONAL_ORIGIN`, `NM_GRT_API_BASE`, `ZIP_TAX_API_BASE`, `SHIPPING_ORIGIN_ZIP`, `SHIPPING_ORIGIN_COUNTRY`, `SHIPPING_FALLBACK_FLAT_RATE`, `FREE_SHIPPING_DEFAULT`, `SHIPPING_DEFAULT_OPTION`, `USPS_*`
+- vars de diseño y correo electrónico: `SUPPORT_EMAIL`, `PLEDGES_EMAIL_FROM`, `UPDATES_EMAIL_FROM`, `EMAIL_*`, `PLATFORM_FOOTER_LOGO_PATH`, `PLATFORM_FAVICON_PATH`, `PLATFORM_DEFAULT_SOCIAL_IMAGE_PATH`
+- vars de campaña-runner, caché y depuración: `CAMPAIGN_RUNNER_*`, `LIVE_STATS_CACHE_TTL_SECONDS`, `LIVE_INVENTORY_CACHE_TTL_SECONDS`, `DEBUG_CONSOLE_LOGGING_ENABLED`, `DEBUG_VERBOSE_CONSOLE_LOGGING`
 
 El repositorio ahora incluye `npm run sync:worker-config`, que sincroniza esos valores reflejados de `_config.yml`/`_config.local.yml` en `worker/wrangler.toml`. Las rutas principales de desarrollo local, prueba, solo para trabajadores y previas a la fusión lo llaman automáticamente. La verificación de artefactos propios de la puerta de fusión también recurre a la ruta de compilación respaldada por Podman cuando el host Bundler/Jekyll no está disponible.
+
+Al agregar una nueva configuración visible para el trabajador, actualice `scripts/sync-worker-config.rb` en tres lugares: `TOP_LEVEL_ORDER`, `DEV_ENV_ORDER` y `build_mirror_values`. No añadas secretos a este camino; el script de sincronización es solo para configuraciones de repositorios no secretos.
 
 El desarrollo del trabajador local ahora apunta al Nodo 24 para que coincida con las acciones de GitHub. La imagen de Podman Worker tiene como valor predeterminado el Nodo 24, mientras que los scripts de ayuda del host prefieren el Nodo 24 y recurren al Nodo 22 en lugar de forzar la antigua ruta del Nodo 20 que Wrangler 4 ya no admite. El trabajador compartido `compatibility_date` debe moverse deliberadamente con las actualizaciones de Wrangler/tiempo de ejecución para que el comportamiento de Miniflare local y el comportamiento de los trabajadores implementados permanezcan alineados.
 
@@ -205,56 +188,20 @@ Esto se aplica a TODOS los parámetros de inclusión. Sin `include.`, Jekyll no 
 
 Esto se aplica a `support_items`, `decisions`, `stretch_goals`, `diary` y cualquier otro campo de matriz.
 
-## Configuración del CMS de páginas
+## Edición del panel de administración
 
-El CMS está configurado en `.pages.yml` en la raíz del repositorio. Define:
+El panel privado en `/admin/` ahora es el editor y la superficie de operaciones basados ​​en navegador compatibles. Lee de `_config.yml`, `_campaigns/*.md`, índices de compromiso de Worker KV y configuraciones de tiempo de ejecución de Worker, luego escribe a través de la ruta de persistencia correcta para cada flujo de trabajo.
 
-- **Rutas de medios**: dónde van las cargas (`assets/images/campaigns/`)
-- **Colecciones**: tipos de contenido (campañas, páginas)
-- **Campos**: campos de formulario para cada tipo de contenido
+- La configuración respaldada por GitHub y el contenido de la campaña se publican a través de la validación del trabajador y la ruta normal de reconstrucción/implementación.
+- Los usuarios guardan directamente en Worker KV en `admin-users:v1`.
+- Los códigos de referencia de marketing se guardan en KV con ámbito de campaña.
+- El borrador del contenido se guarda en el navegador hasta su publicación.
+- Los secretos permanecen en Secretos del trabajador o se ignoran `.dev.vars`; el panel solo muestra el estado configurado/faltante.
+- Los informes, los análisis, la exploración de los asistentes, las vistas previas de contenido, el filtrado de tablas y las descargas de CSV son flujos del panel de solo lectura y no deben agregar escrituras KV.
+- Las cargas de imágenes/vídeo/audio utilizan los directorios de activos existentes, normalizan los nombres de archivos y luego publican a través de la misma ruta respaldada por GitHub que el campo que actualizan.
+- La optimización de los medios está deliberadamente fuera del Trabajador. Utilice `npm run media:optimize` localmente, `npm run media:optimize:check` antes de fusionar cuando los medios cargados cambien, o deje que el flujo de trabajo de GitHub Actions `Optimize dashboard media` se ejecute después de que las cargas del panel lleguen a `main`.
 
-### Agregar un nuevo campo de campaña
-
-1. Editar `.pages.yml`
-2. Encuentra la colección `campaigns`
-3. Agregue un nuevo campo a la matriz `fields`:
-
-```yaml
-- name: my_new_field
-  label: My New Field
-  type: string
-  description: "Help text for editors"
-```
-
-4. Confirmar y enviar: Pages CMS recargará la configuración
-
-### Tipos de campo
-
-|Tipo|Usar para|
-|------|---------|
-|`string`|texto corto|
-|`number`|Enteros o decimales|
-|`boolean`|Alterna (verdadero/falso)|
-|`date`|Selector de fecha|
-|`select`|Desplegable con opciones|
-|`image`|Subir imagen|
-|`rich-text`|editor de rebajas|
-|`object`|Campos anidados|
-|`object` + `list: true`|Elementos repetibles (niveles, entradas de diario)|
-
-### Rutas de medios por campo
-
-Anule la ruta de medios global para campos específicos:
-
-```yaml
-- name: hero_image
-  type: image
-  media:
-    input: assets/images/campaigns
-    output: /assets/images/campaigns
-```
-
-Consulte [CMS.md](/es/docs/reference/cms-integration/) para obtener la guía de edición completa.
+Consulte [DASHBOARD.md](/es/docs/operations/admin-dashboard/) para obtener la referencia completa del panel.
 
 ## Modelo de contenido de campaña
 
@@ -285,7 +232,7 @@ long_content:
 
 El complemento `_plugins/campaign_state.rb` establece el estado en el momento de la compilación. El cron del trabajador activa una reconstrucción del sitio cuando las fechas cruzan la medianoche MT.
 
-**Aplicación de Mountain Time**: el complemento Jekyll convierte UTC a Mountain Time antes de comparar fechas, para que las campañas no finalicen antes de tiempo en los servidores CI basados ​​en UTC. El cron de trabajador y el cron de acciones de GitHub se ejecutan a las 7 a. m. UTC (medianoche MT) para activar transiciones de estado.
+**Cumplimiento del horario de montaña**: el complemento Jekyll evalúa las fechas en la zona horaria `America/Denver` antes de compararlas, por lo que las campañas realizan la transición a la medianoche, hora de la montaña, en servidores CI basados ​​en UTC y aún respetan el horario de verano. Los cronogramas de reconstrucción de Worker y GitHub Actions deben tener en cuenta los límites de fecha límite de lanzamiento de MST y MDT.
 
 ### Zona horaria del temporizador de cuenta regresiva
 
@@ -320,7 +267,16 @@ Entrecomilla cadenas con caracteres especiales para evitar problemas de análisi
 - **`creator_image`** (opcional): imagen cuadrada para el creador (círculo de 48 píxeles en la barra lateral)
 - **Nivel `image`** (opcional): Imagen ancha mostrada encima del nombre del nivel
 
-**Requisitos de vídeo:** WebM, 16:9, máx. 1920x1080
+**Requisitos de video:** Se prefiere WebM para los videos de campaña cargados; se recomienda 16:9 y un máximo de 1920 x 1080. El panel de administración acepta cargas de videos destacados de hasta 100 MB o URL de YouTube/Vimeo, y obtiene una vista previa de archivos de video existentes o incrustaciones a través de la misma política de seguridad de contenido que la página de campaña pública. Los bloques de vídeo de contenido local pueden especificar un `poster` opcional; cuando se omiten, las vistas del editor público/administrador generan un póster transitorio desde el primer fotograma del vídeo y mantienen el vídeo reproducible cargado de forma diferida hasta su reproducción.
+
+**Rutas de carga del panel:** El panel escribe los recursos cargados en el modelo de activos estáticos actual:
+
+- Imágenes/vídeos de campaña: `assets/images/campaigns/<slug>/` y `assets/videos/campaigns/<slug>/`.
+- Nivel/soporte/diario/imágenes de decisión: el directorio de activos de la campaña propietario, a menos que ya exista una ruta más específica.
+- complementos de plataforma: `assets/images/add-ons/`
+- complementos de campaña: `assets/images/campaign-add-ons/`
+
+Mantenga el manejo de carga sin pérdidas siempre que sea posible. La optimización de imágenes reduce bytes solo cuando el resultado optimizado es menor. La conversión de vídeo genera derivados WebM de alta calidad junto al archivo fuente cargado y reescribe las referencias literales de campaña/configuración a la ruta WebM después de que exista el derivado; Los vídeos de origen permanecen en el repositorio para revertirlos o volverlos a codificar en el futuro.
 
 ### Nivel destacado
 
@@ -345,6 +301,10 @@ long_content:
     provider: youtube
     video_id: "abc123"
     caption: "Behind the scenes"
+  - type: video
+    provider: local
+    src: /assets/videos/campaigns/example/proof.webm
+    caption: "Proof of concept"
   - type: gallery
     layout: grid
     images:
@@ -401,6 +361,8 @@ tiers:
 - `shipping_fallback_flat_rate` opcional a nivel de campaña cuando una campaña específica necesita un respaldo plano diferente al predeterminado de implementación global
 - `shipping_options` opcional a nivel de campaña para el conjunto de políticas de envío limitado para patrocinadores (`signature_required`, `adult_signature_required`)
 
+En el panel de administración, los ID de nivel son de solo lectura para los editores: los ID heredados se conservan, mientras que los ID de nivel nuevos se derivan del nombre. `shipping_preset` se oculta para niveles digitales. Si un nivel físico no tiene un valor preestablecido, se muestran campos explícitos de peso/dimensión del paquete.
+
 **Productos complementarios de plataforma**: los productos globales o los artículos de venta adicional ahora tienen una ruta de configuración separada en `add_ons` en [/_config.yml](https://github.com/your-org/your-project/blob/main/_config.yml). Ese catálogo está destinado a productos de precio fijo en toda la plataforma con variantes simples, como tallas de camisa, y no debe modelarse como la campaña `support_items`. The Worker refleja el catálogo a través de [/api/add-ons.json](https://github.com/your-org/your-project/blob/main/api/add-ons.json), expone una instantánea del inventario actual a través de `/add-ons/inventory`, incluye selecciones de complementos a nivel de paquete más una campaña ancla durante el proceso de pago, conserva esos complementos vinculados al ancla en el compromiso sin contarlos para los totales de objetivos de campaña y ahora los expone por separado en las exportaciones de compromiso y cumplimiento. Tanto Cart como Manage Pledge consumen la misma lógica de estado del producto que tiene en cuenta el inventario, incluidos mensajes de stock bajo y filtrado de variantes agotadas.
 
 - Los complementos `category: digital` nunca contribuyen al envío
@@ -408,7 +370,7 @@ tiers:
 - Los complementos físicos pueden usar `shipping_preset` para ajustes preestablecidos compartidos como `tshirt` y `sticker`.
 - o pueden definir `shipping.weight_oz`, `shipping.packaging_weight_oz`, `shipping.length_in`, `shipping.width_in`, `shipping.height_in` y `shipping.stack_height_in` explícitos.
 
-El carrito propio todavía lleva la categoría física a través de la carga útil de intención de pago, y las futuras cotizaciones de envío del lado del trabajador utilizarán las medidas de envío preestablecidas o explícitas en lugar de una suposición de tarifa fija codificada.
+El carrito propio todavía lleva la categoría física a través de la carga útil de intención de pago, y las cotizaciones de envío del lado del trabajador utilizan las medidas de envío preestablecidas o explícitas en lugar de una suposición de tarifa fija codificada. El panel utiliza el mismo editor de productos para complementos de plataforma y complementos de campaña, conserva los ID heredados, deriva nuevos ID de productos/variantes a partir de nombres/etiquetas y muestra campos de paquete solo para productos físicos sin ajustes preestablecidos.
 
 ### Fases de producción
 
@@ -434,6 +396,8 @@ decisions:
     eligible: backers       # backers | public
     status: open            # open | closed
 ```
+
+`vote` y `poll` actualmente utilizan la misma mecánica de envío y conteo solo para seguidores. Utilice `vote` cuando el resultado esté destinado a decidir un resultado, y utilice `poll` cuando el resultado sea una retroalimentación de asesoramiento o una recopilación de preferencias. La distinción es intencionalmente semántica/visual por ahora; Las versiones futuras pueden superponer diferentes flujos de trabajo de copia pública, informes o resultados sobre los mismos datos almacenados.
 
 ### Diario de producción
 
@@ -473,7 +437,7 @@ diary:
     body: "Simple text without rich content."
 ```
 
-**Difusiones por correo electrónico:** Cuando se agregan e implementan entradas del diario, la acción de GitHub activa `/admin/diary/check`, que envía correos electrónicos de actualización a todos los partidarios de la campaña. El extracto del correo electrónico se extrae automáticamente de los bloques de texto (primeros 200 caracteres, sin rebajas).
+**Difusiones por correo electrónico:** Cuando se agregan e implementan entradas del diario, la acción de GitHub activa `/admin/diary/check`, que envía correos electrónicos de actualización a todos los partidarios de la campaña. La verificación automática envía sólo las entradas que no se han difundido antes. Las entradas del diario utilizan valores `id` estables para el seguimiento de transmisiones; el panel conserva las identificaciones existentes y el trabajador deriva las identificaciones basadas en títulos para las entradas recién agregadas. Los marcadores de fechas heredados aún se reconocen, por lo que las ediciones de entradas más antiguas no se reenvían. El extracto del correo electrónico se extrae automáticamente de los bloques de texto (primeros 200 caracteres, sin rebajas).
 
 **Configuración requerida:** Agregue `ADMIN_SECRET` como secreto del repositorio de GitHub (Configuración → Secretos → Acciones). Debe coincidir con el `ADMIN_SECRET` del trabajador. Sin él, las transmisiones diarias por correo electrónico fallarán silenciosamente.
 
@@ -918,12 +882,12 @@ worker/src/
 
 ### Activador cron (establecimiento automático)
 
-El trabajador tiene un activador programado que se ejecuta diariamente a las **7:00 a. m. UTC** (medianoche, hora estándar de la montaña):
+El trabajador ha programado activadores a las **6:00 a. m. UTC** y **7:00 a. m. UTC**, por lo que las comprobaciones del ciclo de vida se ejecutan a medianoche, hora de la montaña, tanto en MDT como en MST:
 
 ```toml
 # wrangler.toml
 [triggers]
-crons = ["0 7 * * *"]
+crons = ["0 6 * * *", "0 7 * * *"]
 ```
 
 **Qué hace:**
@@ -934,7 +898,7 @@ crons = ["0 7 * * *"]
 3. Agrega promesas por correo electrónico dentro de cada campaña para que cada partidario reciba UN cargo por campaña.
 4. Envía correos electrónicos de pago exitoso/pago fallido según corresponda
 
-**Nota sobre la zona horaria:** Durante el horario de verano (MDT), el cron se ejecuta a la 1:00 a.m. MT en lugar de a medianoche.
+**Nota sobre la zona horaria:** Los horarios UTC duplicados son intencionales. Uno se alinea con la medianoche MDT, el otro se alinea con la medianoche MST. La lógica del acuerdo/Estado todavía verifica las fechas de campaña antes de realizar cualquier trabajo duradero, por lo que la campaña fuera de temporada es inofensiva.
 
 ### Módulo de fichas
 
@@ -1048,7 +1012,7 @@ El trabajador liquida campañas automáticamente mediante un activador cron diar
 Las promesas canceladas nunca se cobran. También puede activar la liquidación manualmente a través de `POST /admin/settle/:slug`.
 
 **¿En qué zona horaria están las fechas límite?**
-Todas las fechas límite utilizan **Hora de la Montaña (MST/MDT)**. Una campaña con `goal_deadline: 2025-12-20` finaliza a las 11:59:59 p.m. MST de esa fecha. El activador cron se ejecuta a las 7:00 a. m. UTC (medianoche MST). El temporizador de cuenta atrás en las páginas de la campaña detecta automáticamente el horario de verano y utiliza las -06:00 (MDT) durante los meses de verano y las -07:00 (MST) el resto del año.
+Todas las fechas límite utilizan **Hora de la Montaña (MST/MDT)**. Una campaña con `goal_deadline: 2025-12-20` finaliza a las 11:59:59 p.m. MST de esa fecha. Los activadores de cron se ejecutan tanto a las 6:00 a. m. UTC como a las 7:00 a. m. UTC, por lo que las comprobaciones diarias cubren la medianoche MDT y la medianoche MST. El temporizador de cuenta atrás en las páginas de la campaña detecta automáticamente el horario de verano y utiliza las -06:00 (MDT) durante los meses de verano y las -07:00 (MST) el resto del año.
 
 ---
 
@@ -1228,11 +1192,11 @@ Las plantillas de campañas públicas ahora también obtienen más Chrome compar
 
 Los correos electrónicos de soporte de los trabajadores también consumen el catálogo de configuración regional compartido y el `preferredLang` persistente adjunto para pagar y administrar los flujos, por lo que los correos electrónicos de soporte localizados y los enlaces `/manage/` / `/community/:slug/` localizados permanecen alineados con el modelo de configuración regional del sitio.
 
-El selector de idioma de pie de página compartido también conserva la cadena de consulta y el hash actuales, lo cual es importante para rutas tokenizadas como `/manage/?t=...` y enlaces de comunidad de seguidores.
+El conmutador de idioma de pie de página compartido también conserva la cadena de consulta y el hash actuales, lo cual es importante para rutas tokenizadas como `/manage/?t=...` y enlaces de comunidad de seguidores.
 
 Límite importante:
 
-- un archivo YAML local es la fuente principal para Chrome del sitio compartido, copia de la interfaz de usuario en tiempo de ejecución y copia del correo electrónico del colaborador.
+- un archivo YAML de configuración regional es la fuente principal para Chrome del sitio compartido, copia de la interfaz de usuario en tiempo de ejecución y copia del correo electrónico del asistente del trabajador.
 - No es un cambio mágico de traducción de sitio completo por sí solo.
 - Las páginas de formato largo y otras rutas con mucho contenido aún necesitan archivos fuente localizados cuando desea una copia de la página traducida real.
 
@@ -1305,6 +1269,7 @@ npm run test:e2e:ui        # Interactive UI mode
 
 **La cobertura de la prueba incluye:**
 - Botones de navegación y niveles de campaña
+- Pestañas del panel de administración, visibilidad de configuración/campaña con alcance de función, comportamiento del editor de contenido, configuración de medios, cargas, análisis/informes/partidarios/vistas de marketing, menús responsivos para tabletas/móviles y cobertura de ruta en español
 - Entrada de monto personalizado → sincronización del precio del carrito propio
 - Entrada de artículos de soporte → sincronización de precios de carritos propios
 - Estados deshabilitados en campañas no activas
@@ -1404,6 +1369,7 @@ Ese índice sigue siendo la vía rápida preferida para informes, liquidaciones 
 |`POST /stats/:slug/check`|Comprobación de deriva de proyección de solo lectura para una campaña|
 |`POST /admin/projections/check`|Comprobación de deriva de proyección de solo lectura para todas las campañas|
 |`POST /admin/backfill-customers/:slug`|Crear clientes de Stripe para las promesas que les faltan|
+|`POST /admin/analytics/stripe-financials/backfill`|Rellene la tarifa de transacción/valores netos del saldo real de Stripe para las promesas cobradas utilizando índices de promesas de campaña|
 |`GET /admin/cron/status`|Comprobar el latido del cron|
 
 **Comprobando el estado del cron:**

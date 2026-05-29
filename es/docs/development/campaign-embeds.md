@@ -19,7 +19,7 @@ El constructor sigue vivo:
 - `/embed/campaign/`
 - `/es/embed/campaign/`
 
-Las páginas de la campaña se vinculan a ese creador a través de la barra lateral de la campaña, y el creador genera un fragmento de copiar y pegar para la campaña actual.
+Las páginas de la campaña se vinculan a ese creador a través de la barra lateral de la campaña, y el creador genera un fragmento de copiar y pegar para la campaña actual. El panel de administración privado también incorpora la misma interfaz de usuario del creador en la pestaña **Marketing** para que los administradores puedan crear enlaces de referencia/UTM y fragmentos de inserción de campañas desde un espacio de trabajo sin duplicar la lógica de inserción.
 
 ## Lo que no es
 
@@ -28,7 +28,7 @@ La inserción no es lo mismo que una vista previa rica en redes sociales.
 - la inserción es una superficie `iframe` interactiva en vivo destinada a sitios web y cualquier host que permita pegar HTML
 - La vista previa social es una superficie de metadatos e imágenes utilizada por plataformas como X, Slack, Discord, iMessage y objetivos desplegables similares.
 
-Esas plataformas no mostrarán el widget de inserción completo. En su lugar, utilizan metadatos de página y el SVG de tarjeta compartida de campaña generado por los trabajadores.
+Esas plataformas no mostrarán el widget de inserción completo. En su lugar, utilizan metadatos de página y el PNG de tarjeta compartida de campaña generado por los trabajadores.
 
 ## Contrato de URL actual
 
@@ -83,16 +83,21 @@ Para mantener los enlaces compartidos alineados con el lenguaje visual de la ins
 
 - metadatos de descripción/título de campaña conscientes del estado
 - metadatos localizados en idiomas alternativos
-- una ruta SVG de tarjeta compartida generada por el trabajador en `/share/campaign/{slug}.svg?lang={lang}`
+- una ruta PNG de tarjeta compartida generada por el trabajador en `/share/campaign/{slug}.png?lang={lang}` para metadatos `og:image` seguros para rastreadores
+- una anulación estática opcional de `social_image` cuando una campaña necesita una imagen social rasterizada fija
+- una ruta SVG de tarjeta compartida generada por el trabajador en `/share/campaign/{slug}.svg?lang={lang}` para herramientas internas de vista previa/depuración
 
-Esa tarjeta compartida es el complemento de vista previa social de la inserción, no un reemplazo.
+Esa tarjeta compartida es la vista previa en vivo que acompaña a la inserción. Utilice la ruta PNG para metadatos sociales públicos porque es más segura para rastreadores externos que SVG.
 
 ## Archivos principales de implementación
 
 - `_layouts/campaign-embed.html`
 - `embed/campaign/index.html`
 - `es/embed/campaign/index.html`
+- `_includes/campaign-embed-builder.html`
+- `_layouts/admin.html`
 - `assets/js/campaign-embed.js`
+- `assets/js/admin-dashboard.js`
 - `assets/partials/_embed.scss`
 - `worker/src/index.js`
 
@@ -102,6 +107,7 @@ Al validar la inserción manualmente:
 
 - el botón de la barra lateral de la campaña abre el generador de configuración regional correcto
 - el fragmento de iframe copiado conserva la configuración regional y las opciones seleccionadas
+- la pestaña Marketing muestra los mismos controles del creador debajo de los códigos de referencia guardados
 - el widget cambia de tamaño automáticamente después de pegarlo
 - el widget CTA y cerrar `X` apuntan a la página de campaña localizada correcta
 - Los estados compacto/completo y de medios ocultos aún se muestran limpiamente en dispositivos móviles.

@@ -23,16 +23,17 @@ DOCS = [
   { src: "docs/EMBEDS.md", dest: "docs/development/campaign-embeds.md", title: "Campaign Embeds", parent: "Development", nav_order: 7 },
   { src: "docs/ADD_ON_PRODUCTS.md", dest: "docs/development/add-on-products.md", title: "Add-On Products", parent: "Development", nav_order: 8 },
   { src: "docs/AGENTS.md", dest: "docs/development/agents-operator-guide.md", title: "Agents & Operator Guide", parent: "Development", nav_order: 9 },
-  { src: "worker/README.md", dest: "docs/operations/worker.md", title: "Pledge Worker", parent: "Operations", nav_order: 1 },
-  { src: "docs/PODMAN.md", dest: "docs/operations/podman-local-dev.md", title: "Podman Local Dev", parent: "Operations", nav_order: 2 },
-  { src: "docs/TESTING.md", dest: "docs/operations/testing.md", title: "Testing Guide", parent: "Operations", nav_order: 3 },
-  { src: "docs/MERGE_SMOKE_CHECKLIST.md", dest: "docs/operations/merge-smoke-checklist.md", title: "Merge Smoke Checklist", parent: "Operations", nav_order: 4 },
-  { src: "docs/SECURITY.md", dest: "docs/operations/security.md", title: "Security Guide", parent: "Operations", nav_order: 5 },
-  { src: "tests/security/README.md", dest: "docs/operations/security-test-suite.md", title: "Security Test Suite", parent: "Operations", nav_order: 6 },
-  { src: "docs/SHIPPING.md", dest: "docs/operations/shipping.md", title: "Shipping", parent: "Operations", nav_order: 7 },
-  { src: "docs/ACCESSIBILITY.md", dest: "docs/operations/accessibility.md", title: "Accessibility", parent: "Operations", nav_order: 8 },
-  { src: "docs/SEO.md", dest: "docs/operations/seo.md", title: "SEO", parent: "Operations", nav_order: 9 },
-  { src: "docs/CMS.md", dest: "docs/reference/cms-integration.md", title: "CMS Integration", parent: "Reference", nav_order: 1 },
+  { src: "docs/DASHBOARD.md", dest: "docs/operations/admin-dashboard.md", title: "Admin Dashboard", parent: "Operations", nav_order: 1 },
+  { src: "worker/README.md", dest: "docs/operations/worker.md", title: "Pledge Worker", parent: "Operations", nav_order: 2 },
+  { src: "docs/PODMAN.md", dest: "docs/operations/podman-local-dev.md", title: "Podman Local Dev", parent: "Operations", nav_order: 3 },
+  { src: "docs/TESTING.md", dest: "docs/operations/testing.md", title: "Testing Guide", parent: "Operations", nav_order: 4 },
+  { src: "docs/MERGE_SMOKE_CHECKLIST.md", dest: "docs/operations/merge-smoke-checklist.md", title: "Merge Smoke Checklist", parent: "Operations", nav_order: 5 },
+  { src: "docs/SECURITY.md", dest: "docs/operations/security.md", title: "Security Guide", parent: "Operations", nav_order: 6 },
+  { src: "tests/security/README.md", dest: "docs/operations/security-test-suite.md", title: "Security Test Suite", parent: "Operations", nav_order: 7 },
+  { src: "docs/SHIPPING.md", dest: "docs/operations/shipping.md", title: "Shipping", parent: "Operations", nav_order: 8 },
+  { src: "docs/ACCESSIBILITY.md", dest: "docs/operations/accessibility.md", title: "Accessibility", parent: "Operations", nav_order: 9 },
+  { src: "docs/SEO.md", dest: "docs/operations/seo.md", title: "SEO", parent: "Operations", nav_order: 10 },
+  { src: "CHANGELOG.md", dest: "docs/reference/changelog.md", title: "Changelog", parent: "Reference", nav_order: 1 },
   { src: "docs/ROADMAP.md", dest: "docs/reference/roadmap.md", title: "Roadmap", parent: "Reference", nav_order: 2 },
   { src: "docs/PULL_REQUEST_TEMPLATE.md", dest: "docs/reference/pull-request-template.md", title: "Pull Request Template", parent: "Reference", nav_order: 3 }
 ].freeze
@@ -144,6 +145,8 @@ SECURITY_HARDENING_REWRITE = <<~MARKDOWN.freeze
   ### Access Control And Environment Gating
 
   - magic links are scoped to specific pledge and campaign paths rather than broad user accounts
+  - private admin access uses email magic links, signed session cookies, CSRF checks, and role/campaign scoping
+  - admin sign-in can require a Cloudflare Turnstile challenge before login nonce writes or magic-link delivery
   - `/test/*` routes are gated behind test mode and are not meant to be reachable in normal deployments
   - admin routes require an explicit secret and are intended to fail closed when not configured correctly
   - supporter voting is keyed to the supporter email identity associated with the authorized pledge, which prevents simple multi-pledge vote amplification
@@ -166,6 +169,8 @@ SECURITY_HARDENING_REWRITE = <<~MARKDOWN.freeze
 
   - checkout-start payloads validate campaign identifiers, email addresses, cart items, and contribution inputs before canonical reconstruction
   - voting endpoints validate decision identifiers and option values before they reach state-changing logic
+  - dashboard settings, campaign fields, content blocks, add-ons, tiers, support items, diary entries, decisions, and user records are normalized server-side before persistence
+  - dashboard media uploads are scoped by role, campaign access, upload kind, content type, file size, destination directory, and canonical filename
   - creator-authored labels and rich content are escaped or sanitized by default, with only a very small allowlisted HTML subset preserved
   - structured embeds are allowlisted to exact approved providers and URL shapes instead of broad substring checks
   - markdown link destinations are constrained to safe schemes and internal links
@@ -181,6 +186,8 @@ SECURITY_HARDENING_REWRITE = <<~MARKDOWN.freeze
 
   - rate limiting is available for expensive routes such as checkout, pledge management, admin operations, and webhooks
   - blocked requests are designed to fail closed without turning abuse into excessive extra KV writes
+  - normal dashboard reads, filters, previews, analytics, report downloads, and local editor drafts are designed to avoid KV writes
+  - secret values remain in Worker secrets or ignored local files; the dashboard can report configured/missing status but cannot edit or serialize secret values
   - the secret-audit and security test suites are part of the documented verification path
   - the security model assumes operators will keep deployment secrets rotated, scoped, and out of repository history
 
@@ -200,6 +207,12 @@ ROADMAP_REWRITE = <<~MARKDOWN.freeze
   # Roadmap
 
   This roadmap is organized as a release history of the real project states we actually used, rather than a flat completed-features list.
+
+  ## Current Milestone
+
+  **v1.0.1**
+
+  The v1.0 feature set and release-hardening pass are complete. v1.0.1 adds admin content-editor media uploads, actual Stripe fee/net capture for analytics, dashboard media optimization tooling, and friendlier empty dashboard states for new campaigns without pledge indexes.
 
   ## Release History
 
@@ -325,7 +338,7 @@ ROADMAP_REWRITE = <<~MARKDOWN.freeze
 
   ### v0.9.5 — Local Runtime Parity And Creator Launch Handoff
 
-  This is the current local release milestone reflected in the app and docs. The focus was keeping local Worker development aligned with production deployment behavior while tightening the public handoff material creators need before launch.
+  This release kept local Worker development aligned with production deployment behavior while tightening the public handoff material creators need before launch.
 
   New in this version:
 
@@ -336,14 +349,47 @@ ROADMAP_REWRITE = <<~MARKDOWN.freeze
   - the public Campaign Creator Checklist now covers campaign add-ons, embed-code promotion, shipping fallback/free-shipping decisions, tax expectations, report recipients, and fulfillment handoff
   - a Spanish creator checklist route now exists at `/es/creator-campaign-checklist/`
 
-  ## Next
+  ### v1.0.0 — Public Launch Platform
 
-  Work still planned after `0.9.5` includes:
+  This release moved The Pool from reusable campaign infrastructure to a production-shaped platform with a private browser operations surface.
 
-  - an admin dashboard and stronger operator tooling around campaign, platform, and supporter data
-  - a stronger content-editor story than the current Pages CMS setup
+  New in this version:
+
+  - private admin dashboard at `/admin/` and `/es/admin/` for role-scoped platform settings, campaign editing, add-ons, reports, analytics, supporters, marketing tools, and users
+  - email magic-link admin authentication with signed sessions, CSRF/origin protections, optional Turnstile challenge support, and safe browser APIs that do not expose `ADMIN_SECRET`
+  - dashboard editing for campaign settings, content blocks, tiers, support items, campaign add-ons, stretch goals, ongoing items, diary entries, decisions, platform add-ons, and platform settings
+  - dashboard Users management backed by Worker KV at `admin-users:v1`, including notification emails for newly created users when Resend is configured
+  - dashboard Marketing tools for referral and UTM URL building, saved referral codes, reusable embed-builder controls, and copyable launch snippets
+  - role-scoped Analytics, Reports, and Supporters views with sortable/filterable tables, exact-cent dollar display, CSV downloads, and read-only report previews
+  - dashboard accessibility, i18n, SEO/noindex, security, mobile/tablet responsiveness, and DRY UI passes
+  - final release verification across admin browser flows, pre-merge regression checks, and local Podman smoke for the dashboard's main tabs
+
+  ### v1.0.1 — Dashboard Media And Analytics Patch
+
+  This point release tightened the new dashboard workflow after v1.0.0 and added the analytics data needed for more accurate revenue reporting.
+
+  New in this version:
+
+  - newly charged pledges capture actual Stripe balance transaction fee, net, gross, charge, and balance transaction IDs when available
+  - dashboard Analytics prefers stored actual Stripe fees when available and labels mixed or estimated values clearly
+  - super admins can backfill older charged pledge records with Stripe balance transaction data without KV list scans
+  - campaign and diary content editors can stage image, video, and audio uploads with immediate previews and publish them into the correct campaign asset directories
+  - dashboard uploads stay source-preserving in the Worker, while repository tooling handles lossless image compression and WebM derivative generation
+  - `npm run media:optimize`, `npm run media:optimize:check`, and the "Optimize dashboard media" GitHub Actions workflow support the post-upload media pipeline
+  - Supporters and Analytics return empty read-only views for campaigns without pledge indexes instead of blocking new or empty campaign dashboards
+
+  ## Future Features
+
+  Work still planned after `1.0.1` includes:
+
   - further tax-calculator work for broader US and international coverage, better local-jurisdiction depth, and clearer tax-data refresh workflows
-  - more flexible pricing support for add-on variants
+  - net revenue analytics after allocated processor fees, using actual Stripe fee data where available
+  - richer campaign marketing tools such as announcement composition and consent-aware abandoned-cart follow-up
+  - different prices per add-on variation
+  - reusable "share to" campaign links for curated destinations such as email, SMS, X, Facebook, Bluesky, Threads, and copy-link
+  - email-protected campaign preview pages for super admins, campaign users, and invited reviewers
+  - launch reminder signups for upcoming campaigns with consent, unsubscribe handling, and bounded KV writes
+  - configurable platform default timezone instead of assuming Mountain Time everywhere
 
   ## Known Issues
 
@@ -357,6 +403,18 @@ def rewrite_copy(content, current_src)
     rewritten.gsub!(from, to)
   end
 
+  local_only_file_references = [
+    "[`_config.local.yml`](../_config.local.yml)",
+    "[`_config.local.yml`](_config.local.yml)",
+    "[`worker/.dev.vars`](../worker/.dev.vars)",
+    "[`worker/.dev.vars`](worker/.dev.vars)"
+  ]
+
+  local_only_file_references.each do |reference|
+    label = reference[/\[`([^`]+)`\]/, 1]
+    rewritten.gsub!(reference, "`#{label}`")
+  end
+
   rewritten.gsub!(/^\s*_Last updated:\s+.*?_\s*$\n?/i, "")
 
   rewritten = strip_sections(
@@ -367,7 +425,7 @@ def rewrite_copy(content, current_src)
   case current_src
   when "README.md"
     rewritten.sub!(
-      /\*\*Dust Wave's open-source crowdfunding platform\*\* — \[site\.example\.com\]\(https:\/\/site\.example\.com\)\n\nCurrent release milestone: \*\*v[\d.]+\*\*\. The Pool will treat \*\*v1\.0\*\* as the wider public launch milestone once the remaining roadmap items are complete\.\n\n/,
+      /\*\*Dust Wave's open-source crowdfunding platform\*\* — \[site\.example\.com\]\(https:\/\/site\.example\.com\)\n\n/,
       "**Open-source crowdfunding platform starter**\n\n"
     )
     rewritten.gsub!(/\n\*🄯 Dust Wave\*\n/, "\n")
@@ -378,10 +436,7 @@ def rewrite_copy(content, current_src)
       "**The Pool** is Dust Wave's crowdfunding platform for independent film and creative projects, built on open-source technology.",
       "**The Pool** is an open-source crowdfunding platform for independent film and creative projects."
     )
-    rewritten.sub!(
-      /\nThe current platform release milestone is \*\*v[\d.]+\*\*\. Dust Wave is reserving \*\*v1\.0\*\* for the wider public launch once the remaining roadmap items are complete\.\n/,
-      "\n"
-    )
+    rewritten.gsub!(/\nThe current platform release milestone is \*\*[^*]+\*\*\.[^\n]*\n/, "\n")
     rewritten.gsub!(/\n\*The Pool is created and maintained by.*\n/, "\n")
     rewritten.gsub!(
       "Those support Dust Wave directly, do not count toward a campaign's funding goal, and can be digital or physical.",

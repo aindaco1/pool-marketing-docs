@@ -7,10 +7,11 @@ lang: es
 
 # Operaciones
 
-Esta sección cubre el compromiso de trabajador, las opciones de tiempo de ejecución local, los controles de calidad y las reglas operativas que protegen el comportamiento de pago y cumplimiento.
+Esta sección cubre el panel de administración, el trabajador de compromiso, las opciones de tiempo de ejecución local, los controles de calidad y las reglas operativas que protegen el comportamiento de pago y cumplimiento.
 
 ## Tiempo de ejecución local y servicios
 
+- [Panel de administración](/es/docs/operations/admin-dashboard/) para edición de campañas, informes, análisis, herramientas de marketing, carga de medios y gestión de usuarios basados ​​en navegador.
 - [Worker de promesas](/es/docs/operations/worker/) para secretos, espacios de nombres KV, webhooks, variables de entorno y puntos finales API.
 - [Podman Local Dev](/es/docs/operations/podman-local-dev/) para la pila local en contenedores, la matriz de soporte y el flujo de solución de problemas.
 
@@ -24,6 +25,6 @@ Esta sección cubre el compromiso de trabajador, las opciones de tiempo de ejecu
 ## Barandillas de Comercio y Plataforma
 
 - [Shipping](/es/docs/operations/shipping/) para el modelo de envío centrado en el trabajador, el límite de integración de USPS y la política alternativa.
-- [Calculadora de impuestos](/es/docs/operations/tax-calculator/) para modos de proveedor, configuración reflejada, comportamiento provisional en navegador y verificación del impuesto en checkout.
+- [Calculadora de impuestos](/es/docs/operations/tax-calculator/) para modos de proveedor, configuración reflejada, comportamiento provisional del navegador y verificación de impuestos de pago.
 - [Accesibilidad](/es/docs/operations/accessibility/) para prioridades actuales, superficies críticas, cobertura y comprobaciones manuales.
 - [SEO](/es/docs/operations/seo/) para reglas de indexación, metadatos, datos estructurados y expectativas de validación.

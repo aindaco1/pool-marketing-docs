@@ -14,7 +14,7 @@ render_with_liquid: false
 - **Cloudflare Worker** — Backend API, pledge storage (KV), email sending
 - **Stripe** — Checkout Sessions in setup mode for the on-site payment step, plus PaymentIntents for later charging
 - **Resend** — Transactional emails (supporter confirmation, milestones, failures)
-- **Pages CMS** — Visual campaign editing via [app.pagescms.org](https://app.pagescms.org)
+- **Private admin dashboard** — Role-scoped campaign editing, settings, add-ons, reports, analytics, supporters, and marketing tools
 
 ### Fork-Friendly Free-Plan Knobs
 
@@ -32,14 +32,18 @@ The config now uses a structured settings model in [`_config.yml`](https://githu
 - top-level `title` / `description`
 - `seo`
 - `platform`
+- `admin`
 - `pricing`
+- `tax`
 - `shipping`
+- `reports`
 - `design`
 - `debug`
+- `add_ons`
 - `checkout`
 - `cache`
 
-Treat [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml) as a thin override file for localhost URLs and other machine-local differences, not as a second place to duplicate the canonical fork settings.
+Treat `_config.local.yml` as a thin override file for localhost URLs and other machine-local differences, not as a second place to duplicate the canonical fork settings.
 
 The sync target is [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml), and the repo’s supported dev/test entry points keep it aligned automatically.
 
@@ -47,37 +51,16 @@ See [CUSTOMIZATION.md](/docs/development/customization-guide/) for the supported
 
 Current mirrored Worker values worth treating as part of the supported customization surface:
 
-- `PLATFORM_NAME`
-- `PLATFORM_COMPANY_NAME`
-- `SUPPORT_EMAIL`
-- `PLEDGES_EMAIL_FROM`
-- `UPDATES_EMAIL_FROM`
-- `EMAIL_LOGO_PATH`
-- `EMAIL_FONT_FAMILY`
-- `EMAIL_HEADING_FONT_FAMILY`
-- `EMAIL_COLOR_TEXT`
-- `EMAIL_COLOR_MUTED`
-- `EMAIL_COLOR_SURFACE`
-- `EMAIL_COLOR_BORDER`
-- `EMAIL_COLOR_PRIMARY`
-- `EMAIL_BUTTON_RADIUS`
-- `SALES_TAX_RATE`
-- `FLAT_SHIPPING_RATE`
-- `SHIPPING_ORIGIN_ZIP`
-- `SHIPPING_ORIGIN_COUNTRY`
-- `SHIPPING_FALLBACK_FLAT_RATE`
-- `FREE_SHIPPING_DEFAULT`
-- `USPS_ENABLED`
-- `USPS_CLIENT_ID`
-- `USPS_API_BASE`
-- `USPS_TIMEOUT_MS`
-- `USPS_QUOTE_CACHE_TTL_SECONDS`
-- `USPS_FAILURE_COOLDOWN_SECONDS`
-- `USPS_RATE_LIMIT_COOLDOWN_SECONDS`
-- `DEFAULT_PLATFORM_TIP_PERCENT`
-- `MAX_PLATFORM_TIP_PERCENT`
+- identity, URL, and SEO vars: `SITE_TITLE`, `SITE_DESCRIPTION`, `PLATFORM_NAME`, `PLATFORM_COMPANY_NAME`, `PLATFORM_AUTHOR`, `PLATFORM_DEFAULT_CREATOR_NAME`, `SITE_BASE`, `WORKER_BASE`, `CANONICAL_SITE_BASE`, `CANONICAL_WORKER_BASE`, `CORS_ALLOWED_ORIGIN`, `SEO_*`
+- admin vars: production `ADMIN_USERS_JSON`, dev-only `ADMIN_TEST_CAMPAIGNS`, and local-only `ADMIN_BOOTSTRAP_EMAILS` in `worker/.dev.vars`
+- checkout and pricing vars: `STRIPE_PUBLISHABLE_KEY`, `SALES_TAX_RATE`, `FLAT_SHIPPING_RATE`, `DEFAULT_PLATFORM_TIP_PERCENT`, `MAX_PLATFORM_TIP_PERCENT`
+- tax and shipping vars: `TAX_PROVIDER`, `TAX_ORIGIN_COUNTRY`, `TAX_USE_REGIONAL_ORIGIN`, `NM_GRT_API_BASE`, `ZIP_TAX_API_BASE`, `SHIPPING_ORIGIN_ZIP`, `SHIPPING_ORIGIN_COUNTRY`, `SHIPPING_FALLBACK_FLAT_RATE`, `FREE_SHIPPING_DEFAULT`, `SHIPPING_DEFAULT_OPTION`, `USPS_*`
+- email and design vars: `SUPPORT_EMAIL`, `PLEDGES_EMAIL_FROM`, `UPDATES_EMAIL_FROM`, `EMAIL_*`, `PLATFORM_FOOTER_LOGO_PATH`, `PLATFORM_FAVICON_PATH`, `PLATFORM_DEFAULT_SOCIAL_IMAGE_PATH`
+- campaign-runner, cache, and debug vars: `CAMPAIGN_RUNNER_*`, `LIVE_STATS_CACHE_TTL_SECONDS`, `LIVE_INVENTORY_CACHE_TTL_SECONDS`, `DEBUG_CONSOLE_LOGGING_ENABLED`, `DEBUG_VERBOSE_CONSOLE_LOGGING`
 
 The repo now includes `npm run sync:worker-config`, which syncs those mirrored values from `_config.yml` / `_config.local.yml` into `worker/wrangler.toml`. The main local dev, test, Worker-only, and pre-merge paths call it automatically. The merge gate’s first-party artifact check also falls back to the Podman-backed build path when host Bundler/Jekyll is unavailable.
+
+When adding a new Worker-visible config setting, update `scripts/sync-worker-config.rb` in three places: `TOP_LEVEL_ORDER`, `DEV_ENV_ORDER`, and `build_mirror_values`. Do not add secrets to this path; the sync script is for non-secret repo config only.
 
 Local Worker development now targets Node 24 to match GitHub Actions. The Podman Worker image defaults to Node 24, while host helper scripts prefer Node 24 and fall back to Node 22 rather than forcing the old Node 20 path that Wrangler 4 no longer supports. The shared Worker `compatibility_date` should move deliberately with Wrangler/runtime updates so local Miniflare behavior and deployed Workers behavior stay aligned.
 
@@ -204,56 +187,20 @@ This applies to ALL include parameters. Without `include.`, Jekyll can't properl
 
 This applies to `support_items`, `decisions`, `stretch_goals`, `diary`, and any other array field.
 
-## Pages CMS Configuration
+## Admin Dashboard Editing
 
-The CMS is configured in `.pages.yml` at the repo root. It defines:
+The private dashboard at `/admin/` is now the supported browser-based editor and operations surface. It reads from `_config.yml`, `_campaigns/*.md`, Worker KV pledge indexes, and Worker runtime settings, then writes through the correct persistence path for each workflow.
 
-- **Media paths** — Where uploads go (`assets/images/campaigns/`)
-- **Collections** — Content types (campaigns, pages)
-- **Fields** — Form fields for each content type
+- GitHub-backed settings and campaign content publish through Worker validation and the normal rebuild/deploy path.
+- Users save directly to Worker KV at `admin-users:v1`.
+- Marketing referral codes save to campaign-scoped KV.
+- Draft content saves in the browser until published.
+- Secrets stay in Worker secrets or ignored `.dev.vars`; the dashboard only shows configured/missing status.
+- Reports, analytics, supporter browsing, content previews, table filtering, and CSV downloads are read-only dashboard flows and should not add KV writes.
+- Image/video/audio uploads use the existing asset directories, normalize filenames, and then publish through the same GitHub-backed path as the field they update.
+- Media optimization is deliberately outside the Worker. Use `npm run media:optimize` locally, `npm run media:optimize:check` before merge when uploaded media changed, or let the `Optimize dashboard media` GitHub Actions workflow run after dashboard uploads reach `main`.
 
-### Adding a New Campaign Field
-
-1. Edit `.pages.yml`
-2. Find the `campaigns` collection
-3. Add a new field to the `fields` array:
-
-```yaml
-- name: my_new_field
-  label: My New Field
-  type: string
-  description: "Help text for editors"
-```
-
-4. Commit and push — Pages CMS will reload the config
-
-### Field Types
-
-| Type | Use For |
-|------|---------|
-| `string` | Short text |
-| `number` | Integers or decimals |
-| `boolean` | Toggles (true/false) |
-| `date` | Date picker |
-| `select` | Dropdown with options |
-| `image` | Image upload |
-| `rich-text` | Markdown editor |
-| `object` | Nested fields |
-| `object` + `list: true` | Repeatable items (tiers, diary entries) |
-
-### Per-Field Media Paths
-
-Override the global media path for specific fields:
-
-```yaml
-- name: hero_image
-  type: image
-  media:
-    input: assets/images/campaigns
-    output: /assets/images/campaigns
-```
-
-See [CMS.md](/docs/reference/cms-integration/) for the full editing guide.
+See [DASHBOARD.md](/docs/operations/admin-dashboard/) for the full dashboard reference.
 
 ## Campaign Content Model
 
@@ -284,7 +231,7 @@ long_content:
 
 The `_plugins/campaign_state.rb` plugin sets state at build time. The Worker cron triggers a site rebuild when dates cross midnight MT.
 
-**Mountain Time enforcement**: The Jekyll plugin converts UTC to Mountain Time before comparing dates, so campaigns don't end early on UTC-based CI servers. The Worker cron and GitHub Actions cron both run at 7 AM UTC (midnight MT) to trigger state transitions.
+**Mountain Time enforcement**: The Jekyll plugin evaluates dates in the `America/Denver` timezone before comparing dates, so campaigns transition at midnight Mountain Time on UTC-based CI servers and still respect daylight saving time. The Worker and GitHub Actions rebuild schedules should account for both MST and MDT launch/deadline boundaries.
 
 ### Countdown Timer Timezone
 
@@ -319,7 +266,16 @@ Quote strings with special characters to avoid YAML parsing issues.
 - **`creator_image`** (optional): Square image for creator (48px circle in sidebar)
 - **Tier `image`** (optional): Wide image shown above tier name
 
-**Video requirements:** WebM, 16:9, max 1920x1080
+**Video requirements:** WebM is preferred for uploaded campaign videos, with 16:9 and max 1920x1080 recommended. The admin dashboard accepts hero video uploads up to 100 MB or YouTube/Vimeo URLs, and previews existing video files or embeds through the same content-security policy as the public campaign page. Local content video blocks may specify an optional `poster`; when omitted, public/admin editor views generate a transient poster from the video's first frame and keep the playable video lazy-loaded until play.
+
+**Dashboard upload paths:** The dashboard writes uploaded assets into the current static asset model:
+
+- campaign images/videos: `assets/images/campaigns/<slug>/` and `assets/videos/campaigns/<slug>/`
+- tier/support/diary/decision images: the owning campaign asset directory unless a more specific existing path is already present
+- platform add-ons: `assets/images/add-ons/`
+- campaign add-ons: `assets/images/campaign-add-ons/`
+
+Keep upload handling lossless where possible. Image optimization reduces bytes only when the optimized result is smaller. Video conversion generates high-quality WebM derivatives beside the uploaded source file and rewrites literal campaign/config references to the WebM path after the derivative exists; source videos stay in the repository for rollback or future re-encoding.
 
 ### Featured Tier
 
@@ -344,6 +300,10 @@ long_content:
     provider: youtube
     video_id: "abc123"
     caption: "Behind the scenes"
+  - type: video
+    provider: local
+    src: /assets/videos/campaigns/example/proof.webm
+    caption: "Proof of concept"
   - type: gallery
     layout: grid
     images:
@@ -400,6 +360,8 @@ tiers:
 - optional `shipping_fallback_flat_rate` at the campaign level when a specific campaign needs a different flat fallback than the global deployment default
 - optional `shipping_options` at the campaign level for the limited backer-facing shipping policy set (`signature_required`, `adult_signature_required`)
 
+In the admin dashboard, tier IDs are read-only for editors: legacy IDs are preserved, while new tier IDs derive from the name. `shipping_preset` hides for digital tiers. If a physical tier has no preset, explicit package weight/dimension fields are shown.
+
 **Platform add-on products**: Global merch or upsell items now have a separate config path under `add_ons` in [/_config.yml](https://github.com/your-org/your-project/blob/main/_config.yml). That catalog is intended for fixed-price platform-wide products with simple variants, like shirt sizes, and should not be modeled as campaign `support_items`. The Worker mirrors the catalog through [/api/add-ons.json](https://github.com/your-org/your-project/blob/main/api/add-ons.json), exposes a current inventory snapshot through `/add-ons/inventory`, carries bundle-level add-on selections plus an anchor campaign through checkout, persists those anchor-bound add-ons on the pledge without counting them toward campaign-goal totals, and now exposes them separately in pledge and fulfillment exports. Cart and Manage Pledge both consume the same inventory-aware product-state logic, including low-stock messaging and sold-out variant filtering.
 
 - `category: digital` add-ons never contribute to shipping
@@ -407,7 +369,7 @@ tiers:
 - physical add-ons can use `shipping_preset` for shared presets like `tshirt` and `sticker`
 - or they can define explicit `shipping.weight_oz`, `shipping.packaging_weight_oz`, `shipping.length_in`, `shipping.width_in`, `shipping.height_in`, and `shipping.stack_height_in`
 
-The first-party cart still carries the physical category through the checkout-intent payload, and future Worker-side shipping quotes will use the preset or explicit shipping measurements rather than a hardcoded flat-fee assumption.
+The first-party cart still carries the physical category through the checkout-intent payload, and Worker-side shipping quotes use the preset or explicit shipping measurements rather than a hardcoded flat-fee assumption. The dashboard uses the same product editor for platform add-ons and campaign add-ons, preserves legacy IDs, derives new product/variant IDs from names/labels, and shows package fields only for physical products with no preset.
 
 ### Production Phases
 
@@ -433,6 +395,8 @@ decisions:
     eligible: backers       # backers | public
     status: open            # open | closed
 ```
+
+`vote` and `poll` currently use the same supporter-only submission and tallying mechanics. Use `vote` when the result is intended to decide an outcome, and use `poll` when the result is advisory feedback or preference-gathering. The distinction is intentionally semantic/display-facing for now; future versions can layer different public copy, reporting, or outcome workflows on top of the same stored data.
 
 ### Production Diary
 
@@ -472,7 +436,7 @@ diary:
     body: "Simple text without rich content."
 ```
 
-**Email broadcasts:** When diary entries are added and deployed, the GitHub Action triggers `/admin/diary/check` which sends update emails to all campaign supporters. The email excerpt is auto-extracted from text blocks (first 200 chars, markdown stripped).
+**Email broadcasts:** When diary entries are added and deployed, the GitHub Action triggers `/admin/diary/check` which sends update emails to all campaign supporters. The automatic check sends only entries that have not been broadcast before. Diary entries use stable `id` values for broadcast tracking; the dashboard preserves existing IDs, and the Worker derives title-based IDs for newly added entries. Legacy date markers are still recognized so edits to older entries do not resend. The email excerpt is auto-extracted from text blocks (first 200 chars, markdown stripped).
 
 **Required setup:** Add `ADMIN_SECRET` as a GitHub repository secret (Settings → Secrets → Actions). This must match the Worker's `ADMIN_SECRET`. Without it, diary email broadcasts will silently fail.
 
@@ -917,12 +881,12 @@ worker/src/
 
 ### Cron Trigger (Auto-Settle)
 
-The Worker has a scheduled trigger that runs daily at **7:00 AM UTC** (midnight Mountain Standard Time):
+The Worker has scheduled triggers at **6:00 AM UTC** and **7:00 AM UTC** so lifecycle checks run at midnight Mountain Time in both MDT and MST:
 
 ```toml
 # wrangler.toml
 [triggers]
-crons = ["0 7 * * *"]
+crons = ["0 6 * * *", "0 7 * * *"]
 ```
 
 **What it does:**
@@ -933,7 +897,7 @@ crons = ["0 7 * * *"]
 3. Aggregates pledges by email within each campaign so each supporter gets ONE charge per campaign
 4. Sends charge-success / payment-failed emails as appropriate
 
-**Timezone note:** During daylight saving time (MDT), the cron runs at 1:00 AM MT instead of midnight.
+**Timezone note:** The duplicate UTC schedules are intentional. One aligns with midnight MDT, the other aligns with midnight MST. The settlement/state logic still checks campaign dates before doing any durable work, so the off-season run is harmless.
 
 ### Token Module
 
@@ -1047,7 +1011,7 @@ The Worker automatically settles campaigns via a daily cron trigger (runs at mid
 Cancelled pledges are never charged. You can also manually trigger settlement via `POST /admin/settle/:slug`.
 
 **What timezone are deadlines in?**  
-All deadlines use **Mountain Time (MST/MDT)**. A campaign with `goal_deadline: 2025-12-20` ends at 11:59:59 PM MST on that date. The cron trigger runs at 7:00 AM UTC (midnight MST). The countdown timer on campaign pages automatically detects DST and uses -06:00 (MDT) during summer months and -07:00 (MST) the rest of the year.
+All deadlines use **Mountain Time (MST/MDT)**. A campaign with `goal_deadline: 2025-12-20` ends at 11:59:59 PM MST on that date. Cron triggers run at both 6:00 AM UTC and 7:00 AM UTC so daily checks cover midnight MDT and midnight MST. The countdown timer on campaign pages automatically detects DST and uses -06:00 (MDT) during summer months and -07:00 (MST) the rest of the year.
 
 ---
 
@@ -1304,6 +1268,7 @@ npm run test:e2e:ui        # Interactive UI mode
 
 **Test coverage includes:**
 - Campaign navigation and tier buttons
+- Admin dashboard tabs, role-scoped campaign/settings visibility, content editor behavior, media settings, uploads, analytics/reports/supporters/marketing views, responsive tablet/mobile menus, and Spanish route coverage
 - Custom amount input → first-party cart price sync
 - Support item input → first-party cart price sync
 - Disabled states on non-live campaigns
@@ -1403,6 +1368,7 @@ That index is still the preferred fast path for reports, settlement, and admin r
 | `POST /stats/:slug/check` | Read-only projection drift check for one campaign |
 | `POST /admin/projections/check` | Read-only projection drift check for all campaigns |
 | `POST /admin/backfill-customers/:slug` | Create Stripe customers for pledges missing them |
+| `POST /admin/analytics/stripe-financials/backfill` | Backfill actual Stripe balance transaction fee/net values for charged pledges using campaign pledge indexes |
 | `GET /admin/cron/status` | Check cron heartbeat |
 
 **Checking cron health:**

@@ -1,7 +1,7 @@
 ---
 title: "Testing Guide"
 parent: "Operations"
-nav_order: 3
+nav_order: 4
 render_with_liquid: false
 ---
 
@@ -21,10 +21,12 @@ npm run test:e2e           # E2E tests (Playwright) — fully automated browser 
 npm run test:e2e:headless  # CI mode
 npm run test:e2e:headless:podman  # Automated browser suite with Playwright in Podman
 npm run test:e2e:parity    # First-party critical-path browser flows
+npx playwright test tests/e2e/admin-dashboard.spec.ts --project=chromium  # Focused admin dashboard browser suite
 npm run podman:doctor      # Cross-platform Podman readiness check
 npm run test:security      # Security pen tests (Worker must be running)
 npm run test:security:podman  # Security pen tests with a one-shot Podman-backed stack
 npm run test:security:staging  # Security tests against a staging worker, if you maintain one
+npm run media:optimize:check   # Check dashboard-uploaded media for pending optimization/derivatives
 ./scripts/test-checkout.sh --podman  # Manual checkout helper against the Podman stack
 ./scripts/test-e2e.sh --podman       # Automated browser helper against the Podman stack
 npm run test:usps          # Live USPS credential + quote sanity check
@@ -71,6 +73,8 @@ Fast, isolated tests for JS functions in `tests/unit/`.
 | `email-broadcasts` | Diary excerpt extraction (with ellipsis truncation), diary/milestone tracking helpers, milestone checking logic, rate limiting |
 | `email-tip` | Tip-aware supporter email breakdowns across confirmation / modified / cancelled / failed / charged emails |
 | `votes` | Email-based vote storage/dedup, vote status retrieval, campaign results, result aggregation |
+| `admin-dashboard` | Dashboard dirty-state tracking, settings serialization, content/editor normalization, staged media uploads, actual Stripe fee analytics/backfill, referral URL helpers, responsive/i18n support utilities |
+| `media-optimization-script` | Changed-file selection, lossless image optimization decisions, video derivative naming, and source-to-WebM reference rewrites |
 
 ### Running
 
@@ -125,11 +129,17 @@ Recent security hardening that the gate now covers includes:
 - exact-origin validation for structured embeds (`spotify`, `youtube`, `vimeo`)
 - serialized limited-tier inventory reservations at checkout start and confirmation at successful persistence time
 
+Media optimization is intentionally separate from the pre-merge gate because it depends on native tools such as FFmpeg and image optimizers. When a branch includes dashboard-uploaded or manually-added media, run:
+
+```bash
+npm run media:optimize:check
+```
+
 The local Worker defaults in [worker/wrangler.toml](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) now match that first-party setup. `./scripts/dev.sh --podman` now auto-generates a local `CHECKOUT_INTENT_SECRET` in `worker/.dev.vars` if it is missing, so fresh local checkout starts do not fail closed on an uninitialized dev secret.
 
 For local work, prefer `./scripts/dev.sh --podman`. It starts Jekyll and the Worker in rootless Podman containers while preserving the same ports and local Wrangler state.
 
-[`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml) is now an override-only layer, not a second base config. When you change or add fork-facing settings, prefer [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) unless the value should truly differ only on your local machine.
+`_config.local.yml` is now an override-only layer, not a second base config. When you change or add fork-facing settings, prefer [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) unless the value should truly differ only on your local machine.
 
 The browser helper scripts support the same mode:
 
@@ -173,7 +183,7 @@ The current Podman scope is intentionally narrow:
 
 Use [docs/PODMAN.md](/docs/operations/podman-local-dev/) for the exact setup and current limitations.
 
-If you change `pricing.sales_tax_rate` or `pricing.flat_shipping_rate` in the Jekyll config, the repo now auto-syncs the mirrored Worker values in [worker/wrangler.toml](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) through the main dev/test paths. Restart `./scripts/dev.sh --podman` before testing checkout math so both services pick up the new values.
+If you change `pricing.sales_tax_rate` or `shipping.fallback_flat_rate` in the Jekyll config, the repo now auto-syncs the mirrored Worker values in [worker/wrangler.toml](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) through the main dev/test paths. Restart `./scripts/dev.sh --podman` before testing checkout math so both services pick up the new values.
 
 If you tune free-plan read behavior, keep these in sync too:
 
@@ -230,7 +240,7 @@ git worktree remove ../pool-main-check
 
 Run these against staging before merge when a staging environment exists. If no staging environment exists for The Pool, run the same checklist locally with `./scripts/dev.sh --podman` and record that exception in the PR/release notes.
 
-1. Start a new checkout on a live test campaign and confirm `/checkout-intent/start` returns a custom-session bootstrap in custom mode, or a hosted URL in hosted fallback mode.
+1. Start a new checkout on a live test campaign and confirm `/checkout-intent/start` returns a custom-session bootstrap when the matching Stripe publishable key is configured, or a hosted URL when hosted fallback is intentionally used.
 2. Complete a pledge and verify the webhook stores the pledge, stats update, and confirmation email path stays healthy.
 3. Modify a pledge with tier/support/custom amount changes and verify totals, history, and inventory update correctly.
 4. Cancel an uncharged pledge and verify stats and inventory are released correctly.
@@ -382,6 +392,14 @@ Browser-based tests for full user flows in `tests/e2e/`.
 - Verify checkout order summary preview appears immediately and resolves to tip-aware totals
 - Worker API integration test coverage for live stats and checkout bootstrap
 
+**Admin Dashboard Coverage Highlights:**
+- Magic-link sign-in, role-scoped tabs, and campaign-user access restrictions
+- Settings, Add-ons, Campaigns, Analytics, Reports, Supporters, and Marketing tab behavior
+- Content editor WYSIWYG block editing, link/media settings, diary editor reuse, draft state, publish state, and mobile preview
+- Saved marketing referral codes, campaign URL builder, CSV exports, sorting, and zero-write read flows
+- Desktop/tablet/mobile responsiveness, including compact Spanish tablet menus
+- Axe checks for the authenticated dashboard shell
+
 ### Running
 
 ```bash
@@ -390,6 +408,7 @@ npm run test:e2e:quick     # Headed mode (requires running server)
 npm run test:e2e:headless  # CI mode (headless)
 npm run test:e2e:parity    # Critical cart/manage browser regressions
 npm run test:e2e:ui        # Interactive UI mode
+npx playwright test tests/e2e/admin-dashboard.spec.ts --project=chromium
 ```
 
 ### Adding Tests
@@ -418,7 +437,7 @@ Penetration tests for the Worker API. Located in `tests/security/`.
 | Auth Bypass | Dev-token bypass, token validation, expiry, tampering |
 | Webhook Security | Stripe signature verification, duplicate-event handling, shipping address injection, removed legacy webhook handling |
 | Authorization | Admin endpoints, cross-user access, test endpoint guards |
-| Input Validation | XSS, injection, overflow, malformed input, hasPhysical flag abuse, shipping fee manipulation, additionalTiers/supportItems injection |
+| Input Validation | XSS, injection, overflow, malformed input, dashboard field normalization, hasPhysical flag abuse, shipping fee manipulation, additionalTiers/supportItems injection |
 | Rate Limiting | Burst requests, DoS resilience |
 
 ### Running
@@ -512,7 +531,7 @@ npx wrangler dev --env dev --port 8787
 ### Verify Domain (for production)
 
 1. Go to **Domains** → **Add Domain**
-2. Add your verified sending domain
+2. Add the exact sender domain used by `PLEDGES_EMAIL_FROM` / `UPDATES_EMAIL_FROM` (for this deployment, `site.example.com`)
 3. Add the DNS records Resend provides
 4. Wait for verification
 
@@ -835,7 +854,7 @@ Expected: Returns `{ success: true }` and triggers GitHub workflow.
 ## 8. Production Checklist
 
 - [ ] Switch Stripe to live keys
-- [ ] Verify your sending domain in Resend
+- [ ] Verify the Resend sender domain used by `PLEDGES_EMAIL_FROM` and `UPDATES_EMAIL_FROM` (for this deployment, `site.example.com`)
 - [ ] Deploy Worker: `wrangler deploy`
 - [ ] Set up Stripe webhook in dashboard → `https://worker.example.com/webhooks/stripe`
 - [ ] Test with a real $1 pledge
@@ -856,7 +875,10 @@ Expected: Returns `{ success: true }` and triggers GitHub workflow.
 - `MAGIC_LINK_SECRET` — Random 32+ char string for HMAC token signing
 - `RESEND_API_KEY` — Resend API key for supporter emails (re_...)
 - `ADMIN_SECRET` — Random string for admin API endpoints
-- `GITHUB_TOKEN` — (optional) GitHub PAT with `workflow` scope for rebuild triggers
+- `GITHUB_TOKEN` — GitHub PAT with repo/workflow access for dashboard publish actions and rebuild triggers; optional only when you are not testing GitHub-backed publishing
+- `ADMIN_BOOTSTRAP_EMAILS` — Optional local/recovery super-admin email list for dashboard sign-in; local dev reads this from `worker/.dev.vars`
+- `ADMIN_USERS_JSON` — Optional seed/recovery admin user list mirrored from `_config.yml`; dashboard Users edits save to KV at `admin-users:v1`
+- `CORS_ALLOWED_ORIGIN` — Must match the site origin for browser dashboard requests; local Podman derives this for `http://127.0.0.1:4000`
 
 ### Cloudflare KV
 - **Namespace**: `PLEDGES` — Stores pledge data and aggregated stats
@@ -873,7 +895,7 @@ Expected: Returns `{ success: true }` and triggers GitHub workflow.
 - Product catalog not required; amounts come from Worker-canonicalized first-party cart items
 
 ### Resend Dashboard
-- **Domain**: Verify your sending domain for the configured transactional sender
+- **Domain**: Verify the domain portion of the sender addresses configured in `_config.yml` / Worker env. For this deployment, `PLEDGES_EMAIL_FROM` is `The Pool <pledges@site.example.com>`, so Resend must authorize `site.example.com`.
 - **API Key**: Create key with "Sending access" permission
 - Used for: All supporter-facing pledge email (confirmation, manage/community access, diary updates, announcements, charge success, payment failure, cancellations)
 - Local dev note: even when `SITE_BASE` points at `127.0.0.1`, embedded email images still use the public `https://site.example.com` asset base so inbox previews do not show broken localhost image URLs.

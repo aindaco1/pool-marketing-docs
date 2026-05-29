@@ -10,6 +10,7 @@ lang: es
 
 **The Pool** es una plataforma de financiación colectiva de código abierto para proyectos creativos y cinematográficos independientes.
 
+
 ## Compromiso de todo o nada
 
 Cuando respaldas un proyecto en The Pool, tu tarjeta se guarda de forma segura a través de Stripe, pero **no se te cobra hasta que la campaña alcanza su objetivo**. Si el proyecto no alcanza su objetivo de financiación antes de la fecha límite, nunca se realizará ningún cargo en su tarjeta.
@@ -40,58 +41,60 @@ Para el acceso a la comunidad de seguidores, The Pool mantiene la sesión de apo
 
 ## Umm, entonces, ¿cómo funciona de nuevo?
 
-1. **Buscar**: encuentre un proyecto que desee apoyar
-2. **Compromiso**: agregue una o más campañas a su carrito, opcionalmente agregue una propina del 0% al 15% para el mantenimiento de la plataforma y continúe con el paso de pago seguro de The Pool impulsado por Stripe. Las recompensas físicas pueden agregar envío calculado por el trabajador durante el proceso de pago, incluidas cotizaciones respaldadas por USPS, tarifas alternativas configuradas o anulaciones de envío gratuito cuando una implementación las permita. Algunas implementaciones también pueden mostrar un selector de opciones de entrega limitado para actualizaciones de firmas nacionales. El impuesto puede aparecer como una estimación hasta que el proceso de pago tenga suficientes detalles de facturación o ubicación de envío para calcular un total final.
-También puede ver complementos de plataforma opcionales. Estos apoyan directamente al operador de la plataforma, no cuentan para el objetivo de financiación de la campaña y pueden ser digitales o físicos. Cuando tienen un inventario limitado, el stock refleja las promesas guardadas en lugar de los carritos en progreso.
-Algunas campañas también pueden ofrecer complementos de campaña. Estos usan la misma interfaz de usuario de tarjeta adicional, pero cuentan para el financiamiento total de esa campaña y siguen las reglas de envío de esa campaña.
-3. **Guardar tarjeta**: Stripe guarda de forma segura tu método de pago dentro del flujo de pago (aún sin cargo)
-4. **Espera**: la campaña continúa hasta la fecha límite (todos los horarios en horario de montaña)
-5. **Resultado**: si se financia una campaña, se cobra su contribución para esa campaña. Si no es así, no pasa nada.
+1. **Buscar**: encuentre una campaña que desee ayudar a darle vida.
+2. **Construya su compromiso**: agregue una o más campañas a su carrito, elija las recompensas o complementos que desee y decida si desea incluir un consejo de plataforma opcional. Si su promesa incluye artículos físicos, el proceso de pago muestra los detalles de envío e impuestos tan pronto como tenga suficiente información para calcularlos.
+3. **Guarde su método de pago**: ingrese los detalles de pago a través de Stripe. Su tarjeta se guarda de forma segura, pero no se le cobra cuando realiza una promesa.
+4. **Sigue la campaña**: la campaña permanece abierta hasta la fecha límite, que se muestra en la zona horaria configurada del sitio.
+5. **Ver el resultado**: si la campaña alcanza su objetivo, su contribución se cargará una vez finalizada la campaña. Si no alcanza su objetivo, no se le cobra.
 
-Varias promesas del mismo correo electrónico se combinan en un solo cargo cuando la misma campaña tiene éxito. Los consejos y complementos de plataforma opcionales van al operador de la plataforma para ayudar a mantener la implementación y no cuentan para el objetivo de financiación de un proyecto.
+Algunos pagos pueden incluir complementos de plataforma, complementos de campaña, actualizaciones de entrega, tarifas de envío, impuestos o una propina de plataforma opcional. El pago explica qué cuenta para el objetivo de la campaña y qué respalda la plataforma por separado.
+
+Varias promesas del mismo correo electrónico se combinan en un solo cargo cuando la misma campaña tiene éxito. Los consejos y complementos de plataforma opcionales apoyan al equipo que opera la plataforma y no cuentan para el objetivo de financiación de un proyecto.
 
 ## Para creadores
 
-The Pool está diseñado para cineastas y otros creativos con características como:
+The Pool está diseñado para cineastas y equipos creativos que necesitan una campaña que puedan ejecutar sin enviar seguidores a través de un laberinto de cuentas, complementos o herramientas desconectadas.
 
-- **Tarifa de plataforma del 0 % para los organizadores**: los partidarios pueden agregar opcionalmente una propina de plataforma del 0 % al 15 % para ayudar a mantener la plataforma sin reducir los fondos de la campaña.
-- **Pago propio**: The Pool controla el carrito, los sidecars de pago y el flujo de revisión de promesas, mientras que Stripe maneja de forma segura los detalles de pago.
-- **Niveles físicos y digitales**: ofrezca recompensas tangibles con captura de la dirección de envío en el momento del pago, soporte de cotizaciones respaldado por USPS, controles de política de envío alternativo/gratuito, actualizaciones de opciones de entrega limitadas y reglas impositivas configuradas para la implementación que pueden variar desde una tarifa fija hasta cálculos basados ​​en la ubicación respaldados por el proveedor.
-- **Complementos de plataforma opcionales**: ofrece un pequeño catálogo global de productos junto con los compromisos de campaña, con inventario por variante, conocimiento de existencias bajas basado en los compromisos guardados y soporte de envío para complementos físicos.
-- **Complementos de campaña opcionales**: permite que una campaña ofrezca productos de propiedad de la campaña a través del mismo carrito/interfaz de usuario del complemento Administrar promesa mientras se sigue contando ese producto para el subtotal de la campaña y se utilizan reglas de envío específicas de la campaña.
-- **Informes de los ejecutores de la campaña**: envíe libros de contabilidad de compromisos diarios con alcance de campaña durante las campañas en vivo, además de exportaciones de cumplimiento posteriores a la fecha límite, con elementos gestionados por la plataforma enrutados por separado cuando sea necesario, para que los creadores puedan realizar un seguimiento del soporte y la entrega sin paneles de cuenta.
-- **Widgets de campañas en vivo integrables**: brinde a los propietarios de campañas un generador de inserciones alojado que genera código iframe de copiar y pegar para compartir el progreso de la campaña en vivo en otros sitios.
-- **Fases de producción**: divide tu presupuesto en fases que los seguidores pueden financiar directamente
-- **Metas ambiciosas**: desbloquear posibilidades creativas adicionales a medida que aumenta la financiación
-- **Decisiones de la comunidad**: deja que tus patrocinadores voten sobre las opciones creativas publicadas.
-- **Diario de producción**: mantén a tu comunidad comprometida con las actualizaciones
-- **Soporte continuo**: acepte contribuciones después de que finalice su campaña principal
-- **Acceso para seguidores sin cuenta**: los patrocinadores gestionan sus promesas y se unen a páginas comunitarias exclusivas para seguidores a través de enlaces mágicos de correo electrónico en lugar de crear cuentas.
-- **Flujos de seguidores preparados para la configuración regional**: las cadenas de interfaz de usuario compartidas, las páginas de resultados de promesas, `/manage/`, las rutas de la comunidad de seguidores y los correos electrónicos de los seguidores pueden seguir el modelo de idioma configurado de la implementación, con el inglés como valor predeterminado y configuraciones regionales adicionales en capas a través de la configuración más contenido traducido.
-- **Contenido enriquecido más seguro**: el texto de la campaña y las entradas del diario admiten Markdown e incrustaciones aprobadas, mientras que el HTML sin formato inseguro y los enlaces o esquemas de incrustación peligrosos se bloquean en el momento de la renderización.
-- **IU orientada a la accesibilidad**: los cuadros de diálogo fáciles de usar con el teclado, los enlaces para saltar, las pestañas, los controles deslizantes, los flujos de la comunidad de seguidores y las interacciones de campañas públicas son parte de la base de la plataforma, con comprobaciones de accesibilidad automatizadas que cubren páginas públicas críticas, estados de resultados de promesas y flujos de pago.
+- **Sin tarifa de plataforma del organizador**: los fondos de la campaña permanecen con el proyecto. Los seguidores pueden elegir una propina de plataforma opcional del 0% al 15% que ayuda a sostener The Pool sin reducir la financiación de la campaña.
+- **Pago de promesas integrado**: los seguidores hacen promesas a través del carrito y el flujo de revisión de The Pool, mientras que Stripe maneja de forma segura los detalles de pago para cualquier cargo de campaña posterior.
+- **Niveles de recompensa que se ajusten al proyecto**: ofrezca niveles digitales o físicos, recopile detalles de envío cuando sea necesario, establezca límites de cantidad y utilice las reglas de impuestos y envío configuradas para la campaña.
+- **Complementos de plataforma opcionales**: ofrezca productos de la plataforma junto con promesas cuando esté habilitado, con inventario y manejo de envío separados que no cuentan para el objetivo de financiamiento de una campaña.
+- **Complementos de campaña**: vende productos o extras específicos de la campaña en el mismo flujo de compromiso y, al mismo tiempo, mantienes los ingresos, el inventario y los envíos vinculados a esa campaña.
+- **Panel de administración privado**: brinde a los miembros confiables del equipo un espacio de trabajo enfocado en la configuración de la campaña, el contenido de la página, las recompensas, las actualizaciones, las decisiones, los informes, los seguidores, los análisis y los enlaces de marketing.
+- **Informes cuando los necesite**: obtenga una vista previa y descargue archivos CSV de compromiso o cumplimiento desde el panel, con correos electrónicos opcionales de los ejecutores de campaña durante las campañas activas.
+- **Inserciones para promoción**: genere widgets de campañas en vivo para sitios asociados, páginas de prensa, carteras de creadores o páginas de patrocinadores.
+- **Fases de producción**: muestra a los seguidores qué partes del presupuesto pueden ayudar a financiar.
+- **Metas ambiciosas**: haga visibles los hitos creativos adicionales a medida que aumenta el soporte.
+- **Decisiones de la comunidad**: invita a los patrocinadores a votar sobre opciones creativas seleccionadas.
+- **Diario de producción**: comparta actualizaciones que mantengan a los seguidores interesados desde el lanzamiento hasta el cumplimiento.
+- **Soporte continuo**: siga aceptando soporte después de que finalice la campaña principal, cuando la campaña esté configurada para ello.
+- **Acceso para seguidores sin cuenta**: los patrocinadores gestionan sus promesas y visitan páginas exclusivas para seguidores a través de enlaces de correo electrónico seguros en lugar de crear otra contraseña.
+- **Flujos de soporte multilingüe**: comience con inglés y agregue páginas de soporte, correos electrónicos, contenido de campaña y pantallas de administración traducidas cuando una implementación necesite más idiomas.
+- **Contenido enriquecido más seguro**: escriba páginas de campaña y publicaciones de diario con Markdown e incrustaciones de medios aprobados, con HTML inseguro y enlaces peligrosos bloqueados en el momento de la renderización.
+- **Experiencia orientada a la accesibilidad**: las páginas de campaña, el proceso de pago, los cuadros de diálogo, las pestañas, los controles deslizantes y los flujos de apoyo se crean y prueban para uso con teclado y lector de pantalla.
 
 ## La tecnología
 
-The Pool se ejecuta en una arquitectura estática moderna:
+The Pool es una pila de financiación colectiva estática. Las páginas públicas se generan con anticipación, mientras que el trabajo del servidor confiable permanece detrás de los trabajadores de Cloudflare en cuanto a precios, promesas, acceso de administrador, datos de cumplimiento y liquidación.
 
-|capa|Plataforma|Rol|
-|-------|----------|------|
-|Interfaz|[Páginas de GitHub](https://docs.github.com/en/pages)|Sitio estático de Jekyll|
-|Carrito|The Pool|Carrito propio, sidecars de pago y revisión de compromisos|
-|Pagos|[Raya](https://stripe.com)|Campos de pago seguros, tarjetas guardadas y cargos fuera de sesión|
-|backend|[Trabajadores de Cloudflare](https://workers.cloudflare.com)|Precios canónicos, almacenamiento de promesas, estadísticas en vivo, datos de cumplimiento, liquidación|
-|Correo electrónico|[Reenviar](https://resend.com)|Confirmaciones, actualizaciones, notificaciones.|
+|Área|¿Qué lo ejecuta?|Por qué es importante para las horquillas|
+|------|--------------|--------------------------|
+|Sitio público|[Páginas de GitHub](https://docs.github.com/en/pages) y Jekyll|Las páginas de campaña, los documentos, el contenido traducido y los metadatos públicos siguen siendo fáciles de alojar y revisar en Git.|
+|Experiencia de compromiso|El tiempo de ejecución del carrito de The Pool|El carrito, la selección de recompensas, los complementos, la revisión de promesas y la administración de enlaces mágicos siguen siendo propios.|
+|Pagos|[Raya](https://stripe.com)|Stripe posee los campos de pago confidenciales, los métodos de pago guardados y los cargos posteriores.|
+|backend|[Trabajadores de Cloudflare](https://workers.cloudflare.com) y KV|El trabajador valida los totales, almacena las promesas, proporciona estadísticas en vivo, potencia las API de administración y maneja el estado de cumplimiento/liquidación.|
+|Panel de administración|El panel privado de The Pool|Los usuarios autorizados pueden administrar campañas, contenido, informes, seguidores, análisis, enlaces de marketing, complementos y usuarios sin editar archivos directamente.|
+|Correo electrónico|[Reenviar](https://resend.com)|Los correos electrónicos de confirmación, los enlaces de apoyo, las actualizaciones de campañas y las notificaciones de cargos utilizan una ruta de correo electrónico transaccional.|
 
-La plataforma se basa en servicios que ofrecen niveles gratuitos, y The Pool fue diseñado desde el principio para operar de manera efectiva dentro de esos niveles gratuitos siempre que sea posible.
+La pila está diseñada para ser práctica para equipos pequeños y tenedores. Cada servicio importante tiene un nivel gratuito y la plataforma evita el trabajo dinámico innecesario siempre que sea posible. Las páginas de campañas públicas son estáticas, los datos públicos en vivo se combinan y se almacenan en caché del navegador, y el trabajador está reservado para operaciones que necesitan confianza del lado del servidor.
 
-Para las bifurcaciones, eso significa que las páginas estáticas permanecen en las páginas de GitHub, las lecturas públicas en vivo se combinan agresivamente y se almacenan en caché del navegador, y la mayor parte del uso de Cloudflare Worker está reservado para las partes sensibles a la seguridad del ciclo de vida del compromiso, mientras que las configuraciones de impuestos, envío, SEO, localización y registro permanecen reflejadas o limitadas a través de la configuración para que la interfaz de usuario local, el pago, los informes, los correos electrónicos y los metadatos públicos permanezcan alineados.
+El panel de administración sigue la misma disciplina de costos. La navegación, el filtrado, las vistas previas, los análisis, los informes y los borradores locales evitan las escrituras en KV. Las escrituras duraderas ocurren solo cuando un administrador guarda explícitamente el estado del panel o publica un cambio de campaña/plataforma.
 
-Las bifurcaciones también pueden cambiar el nombre del sitio público, el estilo de pago en el sitio y los correos electrónicos de los seguidores a través de la configuración sin cambiar la mecánica de compromiso subyacente. El objetivo es permitir que los creadores o estudios adapten la presentación manteniendo constante el modelo de financiación de todo o nada y el flujo de acceso de los seguidores.
+La personalización se basa principalmente en la configuración. Los impuestos, el envío, el SEO, la localización, el registro, la identidad del correo electrónico, la configuración del panel, la marca pública, el estilo de pago y la presentación del correo electrónico del colaborador se mantienen alineados a través de la configuración para que una bifurcación pueda cambiar la presentación sin reescribir el modelo de compromiso.
 
-Esa arquitectura también deja espacio para reforzar la accesibilidad sin sacrificar el modelo de seguridad de la plataforma: los flujos circundantes de carrito, pago y administración utilizan una semántica más sólida de diálogo, enfoque, teclado, región en vivo y puntos de referencia, mientras que Stripe continúa siendo propietario de los campos de pago sensibles dentro de su interfaz de usuario segura.
+Para los desarrolladores, los límites son intencionalmente claros: el contenido estático pertenece al sitio, las matemáticas de compromiso confiables pertenecen al Trabajador, los detalles de pago pertenecen a Stripe, el correo electrónico transaccional pertenece a Resend y las operaciones con alcance de rol pertenecen al panel de administración.
 
-El lado público también es intencionalmente fácil de rastrear sin exponer el acceso exclusivo de los seguidores: las páginas públicas y las páginas de campaña emiten metadatos consistentes y datos estructurados conservadores, mientras que las páginas privadas con enlaces mágicos, como Manage Pledge y los flujos de la comunidad de seguidores, permanecen fuera de la indexación de búsqueda.
+La misma arquitectura admite accesibilidad y SEO sin debilitar la seguridad. Las páginas públicas emiten metadatos rastreables y datos estructurados conservadores, mientras que las páginas privadas con enlaces mágicos, como Manage Pledge, las páginas de la comunidad de seguidores y el panel de administración, permanecen fuera de la indexación de búsqueda. Los flujos de pago y administración agregan teclado, enfoque, diálogo, región en vivo y comportamiento de puntos de referencia alrededor de la interfaz de usuario de pago seguro de Stripe en lugar de reemplazarla.
 
 ## Código abierto
 

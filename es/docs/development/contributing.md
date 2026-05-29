@@ -64,7 +64,9 @@ bundle exec jekyll clean
 4. `docs/DEV_NOTES.md`: notas de integración, modelo de contenido y errores
 5. `docs/TESTING.md`: guía de prueba completa (incluye configuración de secretos)
 6. `docs/ROADMAP.md` — Funciones planificadas
-7. `docs/CMS.md` — Configuración de Pages CMS y edición de campañas
+7. `docs/DASHBOARD.md` — Operaciones y edición del panel de administración
+
+Para cambios en la interfaz de usuario del tablero, lea también `docs/ACCESSIBILITY.md`, `docs/I18N.md`, `docs/SECURITY.md` y `docs/SEO.md`; el shell de administración tiene requisitos explícitos para el acceso al teclado, cadenas en español, normalización de entrada y `noindex`.
 
 ### Configuración de páginas de GitHub
 
@@ -82,7 +84,7 @@ bundle exec jekyll clean
 
 ---
 
-## Estado actual (abril de 2026)
+## Estado actual (mayo de 2026)
 
 ✅ **Completado:**
 - Jekyll + estructura del sitio de carrito propio
@@ -108,7 +110,7 @@ bundle exec jekyll clean
 - Lanzamiento de campaña de producción (Hand Relations)
 - Ruta de desarrollo/pruebas local respaldada por Podman
 - Protección más explícita contra la sobreventa de inventario a través de la coordinación de objetos duraderos
-- Integración de Pages CMS para la edición visual de campañas
+- Panel de administración privado para edición de campañas, configuraciones, complementos, análisis, informes, seguidores, enlaces de marketing y administración de usuarios según los roles.
 
 🚧 **En progreso:**
 - Rediseño de tipografía, elementos y diseños.
@@ -129,7 +131,7 @@ bundle exec jekyll clean
 
 ### Solicitudes de extracción
 - Mantenga las relaciones públicas enfocadas y por debajo de ~300 líneas cuando sea posible
-- Complete la plantilla de relaciones públicas, incluya capturas de pantalla para los cambios en la interfaz de usuario
+- Complete la plantilla de relaciones públicas, incluya capturas de pantalla para los cambios en la interfaz de usuario e incluya capturas de pantalla de escritorio/tableta/móvil para los cambios en el diseño del panel de administración.
 - Problemas de enlace con `Closes #123`
 
 ### Etiquetas
@@ -146,6 +148,7 @@ bundle exec jekyll clean
 - [] Hojee `_layouts/` y `_includes/` para ver la integración del carrito propio
 - [] Revisar los scripts de carrito y compromiso de `assets/js/`
 - [] Lea `worker/src/` para comprender el backend (almacenamiento de promesas, estadísticas, carga)
+- [] Abra `/admin/` localmente con la ruta de correo electrónico predeterminada del administrador de desarrollo y comprenda la división de publicación del panel versus KV-save
 - [] Verifique que `CNAME` esté configurado en el dominio de su sitio público
 
 ---
@@ -156,6 +159,7 @@ bundle exec jekyll clean
 - **Cloudflare Worker**: Los mismos secretos que env vars; establecer `SITE_BASE`
 - **Stripe**: para entornos alojados, cree un webhook para `https://worker.example.com/webhooks/stripe`
 - **Pago personalizado local**: agregue `STRIPE_PUBLISHABLE_KEY_TEST` a `worker/.dev.vars`
+- **Panel de administración**: el desarrollador local otorga acceso de superadministrador de arranque a través de `ADMIN_BOOTSTRAP_EMAILS` en `worker/.dev.vars` ignorado; Los administradores de la bifurcación deben colocar el acceso de producción en `_config.yml` `admin.users`, `ADMIN_USERS_JSON` o en la pantalla de usuarios del panel. La pantalla de Usuarios se guarda en KV, no en GitHub.
 
 Consulte [TESTING.md](/es/docs/operations/testing/) para obtener una referencia completa de los secretos.
 
@@ -164,6 +168,7 @@ Consulte [TESTING.md](/es/docs/operations/testing/) para obtener una referencia 
 ## Notas de seguridad
 
 - Los secretos solo se encuentran en GitHub Actions + Cloudflare vars; nunca en repositorio
+- La sección **Secretos y credenciales** del panel de control tiene un estado de solo lectura. No agregue edición secreta ni persistencia secreta a `_config.yml`, campaña YAML, registros de usuarios de KV o borradores del panel.
 - Validar firmas de webhooks de Stripe
 - Nunca confirmes claves o tokens API
 

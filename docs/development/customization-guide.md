@@ -18,12 +18,20 @@ The structured config model in [`_config.yml`](https://github.com/your-org/your-
 For most forks, the main customization files are:
 
 - [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml)
-- [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml)
+- `_config.local.yml`
 - [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml)
 
 Use `./scripts/dev.sh --podman` for local verification after config changes.
 
-Treat [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml) as an override-only file. Keep canonical fork settings in [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml), and use the local file only for things that should differ on your machine, like localhost URLs or local-only campaign visibility.
+For normal operator edits, use the private admin dashboard at `/admin/` or `/es/admin/`:
+
+- **Settings** edits platform-wide configuration and runtime admin tools for super admins.
+- **Add-ons** edits platform add-on products for super admins.
+- **Campaigns** edits campaign settings, page content, tiers, support items, campaign add-ons, stretch goals, ongoing items, diary entries, and decisions.
+- **Settings -> Users** is runtime-only and saves directly to Worker KV at `admin-users:v1`; it does not publish to GitHub.
+- **Secrets & credentials** is read-only status. Secret values still belong in Worker secrets, GitHub repository secrets, or ignored local env files.
+
+Treat `_config.local.yml` as an override-only file. Keep canonical fork settings in [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml), and use the local file only for things that should differ on your machine, like localhost URLs or local-only campaign visibility.
 
 The normal local path is now localhost-based:
 
@@ -40,11 +48,13 @@ The site config is organized around these fork-facing sections:
 - `seo`
 - `platform`
 - `pricing`
+- `tax`
 - `shipping`
 - `reports`
 - `i18n`
 - `design`
 - `debug`
+- `add_ons`
 - `checkout`
 - `cache`
 
@@ -100,22 +110,23 @@ These values feed:
 Notes:
 
 - `platform.*` is the primary branding surface.
-- `platform.version` should be the canonical machine-readable product version for the site, while `platform.release_label` can stay friendlier for public-facing copy such as `v0.9.5`.
+- `platform.version` should be the canonical machine-readable product version for the site, while `platform.release_label` can stay friendlier for public-facing copy such as `v1.0.1`.
 - top-level `title` / `author` still exist in Jekyll, but treat them as general site metadata / fallback rather than the main fork-customization interface.
 - `platform.default_social_image_path` is the supported default for OG/Twitter cards when a page or campaign does not provide a more specific image.
 - `platform.logo_path` is also the mirrored brand mark used in supporter emails.
+- The domain in `platform.pledges_email_from` and `platform.updates_email_from` must be authorized by the configured email provider. With Resend, authorizing `pool.example.com` does not authorize `example.com`, and vice versa.
 
 Example:
 
 ```yml
 platform:
   name: My Fork
-  version: 0.9.5
-  release_label: v0.9.5
+  version: 1.0.1
+  release_label: v1.0.1
   company_name: Example Studio
   support_email: support@example.com
-  pledges_email_from: "My Fork <pledges@example.com>"
-  updates_email_from: "My Fork <updates@example.com>"
+  pledges_email_from: "My Fork <pledges@pool.example.com>"
+  updates_email_from: "My Fork <updates@pool.example.com>"
   site_url: https://crowdfund.example.com
   worker_url: https://pledge.example.com
   default_creator_name: Example Studio
@@ -127,12 +138,11 @@ platform:
 
 ### `pricing`
 
-Use `pricing` for the flat-rate compatibility math and platform-tip defaults that must stay consistent across the site and Worker.
+Use `pricing` for tax and platform-tip defaults that must stay consistent across the site and Worker. Shipping fallback fees live under `shipping`.
 
 Supported keys:
 
 - `sales_tax_rate`
-- `flat_shipping_rate` (legacy compatibility baseline; use `shipping.*` for the current carrier/fallback model)
 - `default_tip_percent`
 - `max_tip_percent`
 
@@ -141,7 +151,6 @@ Example:
 ```yml
 pricing:
   sales_tax_rate: 0.0825
-  flat_shipping_rate: 4.50
   default_tip_percent: 5
   max_tip_percent: 15
 ```
@@ -495,6 +504,8 @@ add_ons:
 
 This is meant for fixed-price catalog items and simple variants like shirt sizes. It is separate from campaign `support_items`, which remain campaign-scoped and amount-based.
 
+In the admin dashboard, platform add-ons live in the top-level **Add-ons** tab, while campaign-scoped add-ons live in the owning campaign's **Add-Ons** subtab. Legacy IDs are preserved. New product IDs derive from the product name, and new variant IDs derive from the variant label, so editors do not need to type slug values by hand.
+
 Add-on shipping behavior:
 
 - `category: digital` means the add-on never contributes to shipping
@@ -502,6 +513,7 @@ Add-on shipping behavior:
 - physical add-ons can either:
   - reference a shared `shipping_preset`
   - or provide explicit `shipping.weight_oz`, `shipping.packaging_weight_oz`, `shipping.length_in`, `shipping.width_in`, `shipping.height_in`, and `shipping.stack_height_in`
+- in the dashboard, those explicit weight/dimension fields appear only for physical add-ons when the shipping preset is `none`
 
 Current add-on inventory behavior:
 
@@ -526,7 +538,7 @@ By contrast, global `add_ons.products` remain platform merch:
 
 ### `reports`
 
-Use `reports` for campaign-runner report delivery behavior that must stay aligned with Worker scheduling and email generation.
+Use `reports` for campaign-runner report behavior that must stay aligned with Worker scheduling and dashboard report generation.
 
 Supported keys today:
 
@@ -684,33 +696,48 @@ Supported keys:
 
 Some settings only affect the Jekyll build and browser-owned UI. Others are also reflected into the Worker env automatically.
 
-### Safe Site-Only Changes
+### Not Mirrored By The Sync Script
 
-These can be changed in `_config.yml` without changing Worker config or worrying about the sync step:
+These can be changed in `_config.yml` without adding new Worker env entries:
 
 - `i18n.*`
-- `checkout.stripe_publishable_key`
-- `platform.default_creator_name`
-- `platform.footer_logo_path`
-- `platform.favicon_path`
-- `platform.default_social_image_path`
-- `cache.*`
-- most `design.*` values that are only consumed by the generated site/theme CSS
+- `platform.version`
+- `platform.release_label`
+- `admin.production_site_url`
+- `admin.production_worker_url`
+- `shipping.presets`
+- `add_ons.*`
+- campaign front matter, including `campaign_add_ons`, content blocks, diary entries, tiers, support items, stretch goals, and decisions
+- design/layout tokens that are only consumed by the generated site CSS and not by supporter emails
 
-These are the safest “site generation / branding / localization without Worker-side math or email impact” knobs. They change the generated site, browser boot payload, or theme layer, but they do not need to be mirrored into Worker env.
+These values still matter to the generated site and, in some cases, to Worker-fetched static API payloads. They are simply not written into `worker/wrangler.toml` by `scripts/sync-worker-config.rb`.
 
 ### Auto-Mirrored To Worker
 
 These site-config values are also reflected into the Worker env values in [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml):
 
+- `title` -> `SITE_TITLE`
+- `description` -> `SITE_DESCRIPTION`
+- `author` -> `PLATFORM_AUTHOR`
 - `platform.name` -> `PLATFORM_NAME`
 - `platform.company_name` -> `PLATFORM_COMPANY_NAME`
+- `platform.default_creator_name` -> `PLATFORM_DEFAULT_CREATOR_NAME`
 - `platform.support_email` -> `SUPPORT_EMAIL`
 - `platform.pledges_email_from` -> `PLEDGES_EMAIL_FROM`
 - `platform.updates_email_from` -> `UPDATES_EMAIL_FROM`
 - `platform.logo_path` -> `EMAIL_LOGO_PATH`
-- `platform.site_url` -> `SITE_BASE`
+- `platform.footer_logo_path` -> `PLATFORM_FOOTER_LOGO_PATH`
+- `platform.favicon_path` -> `PLATFORM_FAVICON_PATH`
+- `platform.default_social_image_path` -> `PLATFORM_DEFAULT_SOCIAL_IMAGE_PATH`
+- `platform.site_url` -> `SITE_BASE` and `CORS_ALLOWED_ORIGIN`
 - `platform.worker_url` -> `WORKER_BASE`
+- `seo.default_social_image_alt` -> `SEO_DEFAULT_SOCIAL_IMAGE_ALT`
+- `seo.x_handle` -> `SEO_X_HANDLE`
+- `seo.same_as` -> `SEO_SAME_AS`
+- `seo.index_public_community_hub` -> `SEO_INDEX_PUBLIC_COMMUNITY_HUB`
+- `admin.users` -> `ADMIN_USERS_JSON`
+- `admin.local_test_campaigns` -> `ADMIN_TEST_CAMPAIGNS` in the dev env
+- `checkout.stripe_publishable_key` -> `STRIPE_PUBLISHABLE_KEY`
 - `design.font_body` -> `EMAIL_FONT_FAMILY`
 - `design.font_display` -> `EMAIL_HEADING_FONT_FAMILY`
 - `design.color_text` -> `EMAIL_COLOR_TEXT`
@@ -723,14 +750,16 @@ These site-config values are also reflected into the Worker env values in [`work
 - `tax.provider` -> `TAX_PROVIDER`
 - `tax.origin_country` -> `TAX_ORIGIN_COUNTRY`
 - `tax.use_regional_origin` -> `TAX_USE_REGIONAL_ORIGIN`
+- `tax.nm_grt_api_base` -> `NM_GRT_API_BASE`
 - `tax.zip_tax_api_base` -> `ZIP_TAX_API_BASE`
-- `pricing.flat_shipping_rate` -> `FLAT_SHIPPING_RATE`
+- `pricing.flat_shipping_rate` -> `FLAT_SHIPPING_RATE` (legacy compatibility only; prefer `shipping.fallback_flat_rate`)
 - `pricing.default_tip_percent` -> `DEFAULT_PLATFORM_TIP_PERCENT`
 - `pricing.max_tip_percent` -> `MAX_PLATFORM_TIP_PERCENT`
 - `shipping.origin_zip` -> `SHIPPING_ORIGIN_ZIP`
 - `shipping.origin_country` -> `SHIPPING_ORIGIN_COUNTRY`
 - `shipping.fallback_flat_rate` -> `SHIPPING_FALLBACK_FLAT_RATE`
 - `shipping.free_shipping_default` -> `FREE_SHIPPING_DEFAULT`
+- `shipping.default_option` -> `SHIPPING_DEFAULT_OPTION`
 - `shipping.usps.enabled` -> `USPS_ENABLED`
 - `shipping.usps.client_id` -> `USPS_CLIENT_ID`
 - `shipping.usps.api_base` -> `USPS_API_BASE`
@@ -746,6 +775,19 @@ These site-config values are also reflected into the Worker env values in [`work
 - `reports.campaign_runner.include_stats_summary` -> `CAMPAIGN_RUNNER_INCLUDE_STATS_SUMMARY`
 - `reports.campaign_runner.include_csv_attachment` -> `CAMPAIGN_RUNNER_INCLUDE_CSV_ATTACHMENT`
 - `reports.campaign_runner.email_subject_prefix` -> `CAMPAIGN_RUNNER_EMAIL_SUBJECT_PREFIX`
+- `debug.console_logging_enabled` -> `DEBUG_CONSOLE_LOGGING_ENABLED`
+- `debug.verbose_console_logging` -> `DEBUG_VERBOSE_CONSOLE_LOGGING`
+- `cache.live_stats_ttl_seconds` -> `LIVE_STATS_CACHE_TTL_SECONDS`
+- `cache.live_inventory_ttl_seconds` -> `LIVE_INVENTORY_CACHE_TTL_SECONDS`
+
+Local bootstrap super-admin emails are intentionally not mirrored from `_config.yml`. Put them in ignored `worker/.dev.vars` as `ADMIN_BOOTSTRAP_EMAILS`; `npm run secrets:dev` seeds that value from `worker/.dev.vars.example` when missing.
+
+The sync script also writes derived URL values:
+
+- production `[vars]` gets `CANONICAL_SITE_BASE` / `CANONICAL_WORKER_BASE` from the production `platform.site_url` / `platform.worker_url`
+- dev `[env.dev.vars]` gets local `SITE_BASE` / `WORKER_BASE` from `_config.local.yml`, while `CANONICAL_SITE_BASE` / `CANONICAL_WORKER_BASE` stay pinned to the production values from `_config.yml`
+
+The browser dashboard **Reports** tab previews and downloads pledge/fulfillment CSVs for campaigns the admin can access. It does not send report emails and does not write “sent” markers.
 
 The repo keeps those values aligned automatically through the main local/dev/test paths. After changing them, restart the local stack so the site and Worker both pick up the new values:
 
@@ -761,7 +803,9 @@ npm run sync:worker-config
 
 That command syncs the Worker-mirrored values in [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) from `_config.yml` and `_config.local.yml`.
 
-It does not write Worker secrets. USPS OAuth secrets still belong in `wrangler secret` or `worker/.dev.vars`.
+It does not write Worker secrets, media files, or optimization outputs. USPS OAuth secrets, Stripe secret keys, Resend keys, ZIP.TAX keys, Turnstile secrets, GitHub tokens, and Cloudflare deploy credentials still belong in Worker secrets, GitHub repository secrets, or ignored local env files.
+
+Dashboard-uploaded media also does not add new sync-script config. Uploads commit source files into the existing asset directories; `npm run media:optimize` / `npm run media:optimize:check` and the **Optimize dashboard media** workflow handle image compression and WebM derivatives outside the Worker.
 
 The main local/dev validation paths already call that sync automatically:
 
@@ -783,7 +827,7 @@ Still code-level today:
 - changing supported embed providers
 - expanding CSP allowlists for arbitrary external hosts
 - changing Stripe-owned field styling beyond the supported design-token bridge and Stripe’s appearance API
-- introducing brand-new layout structures, page templates, or content blocks
+- introducing brand-new layout structures, page templates, or content block types
 - changing font hosting/CSP behavior beyond the currently supported font stacks
 
 Also note:
@@ -791,19 +835,21 @@ Also note:
 - not every Sass token is exposed on purpose
 - not every Worker env var belongs in `_config.yml`
 - the supported surface is curated to avoid security and maintenance regressions
+- dashboard uploads commit files into the existing asset directories and update config/campaign fields; image optimization and WebM derivative generation run in the external media pipeline, while adding a new upload category or storage backend is still code-level work
 
 ## Safe Workflow For Forks
 
-1. Update `_config.yml`.
-2. Run `npm run sync:worker-config` if you are editing config outside the normal entry points and want to refresh `worker/wrangler.toml` immediately.
-3. Run:
+1. Prefer the admin dashboard for supported settings/campaign/add-on edits. Use direct file edits when reviewing generated changes, changing unsupported fields, or working without the Worker.
+2. If editing files directly, update `_config.yml` or the relevant `_campaigns/*.md`.
+3. Run `npm run sync:worker-config` if you are editing config outside the normal entry points and want to refresh `worker/wrangler.toml` immediately.
+4. Run:
 
 ```bash
 npm run podman:doctor
 ./scripts/dev.sh --podman
 ```
 
-4. Verify:
+5. Verify:
 
 - header/footer branding
 - meta image / favicon
@@ -813,8 +859,9 @@ npm run podman:doctor
 - Stripe payment UI styling
 - Manage Pledge
 - supporter emails
+- admin dashboard publish state, read-only secrets status, and role-scoped campaign visibility when dashboard fields changed
 
-5. Run the relevant checks:
+6. Run the relevant checks:
 
 ```bash
 npx vitest run tests/unit/config-boot.test.ts tests/unit/cart-provider.test.ts tests/unit/manage-page.test.ts tests/unit/worker-business-logic.test.ts
@@ -827,7 +874,8 @@ When adding new customization knobs, prefer this order:
 
 1. put the site-facing value in `_config.yml`
 2. mirror it to Worker env only if checkout, reports, or emails need it
-3. document it here
-4. keep the supported surface curated instead of exposing every implementation detail
+3. if it needs Worker env, update `scripts/sync-worker-config.rb` in `TOP_LEVEL_ORDER`, `DEV_ENV_ORDER`, and `build_mirror_values`
+4. document it here
+5. keep the supported surface curated instead of exposing every implementation detail
 
 That keeps customization flexible without turning the platform into an unstable free-form theme engine.
