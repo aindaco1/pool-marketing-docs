@@ -18,6 +18,7 @@ Esta sección cubre el panel de administración, el trabajador de compromiso, la
 ## Comprobaciones de calidad, seguridad y liberación
 
 - [Guía de pruebas](/es/docs/operations/testing/) para puertas automatizadas, ejecuciones de regresión manual y patrones de creación de pruebas.
+- [Rendimiento](/es/docs/operations/performance/) para la carga de páginas públicas, la minificación de activos generados, la precarga por intención y las expectativas de validación.
 - [Fusionar lista de verificación de humo](/es/docs/operations/merge-smoke-checklist/) para que el operador pueda verificar, modificar y cancelar la verificación antes de fusionar.
 - [Guía de seguridad](/es/docs/operations/security/) para conocer la arquitectura de seguridad, las notas de protección y el historial de vulnerabilidades.
 - [Security Test Suite](/es/docs/operations/security-test-suite/) para las comprobaciones de estilo de penetración que validan el contrato de seguridad.

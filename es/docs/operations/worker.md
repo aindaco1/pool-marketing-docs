@@ -23,7 +23,7 @@ La ruta Podman de raíz de repositorio ejecuta el trabajador con el nodo 24, que
 
 Si trabaja específicamente desde el directorio `worker/`, los scripts Worker npm ahora ejecutan automáticamente el espejo de configuración primero para que `worker/wrangler.toml` permanezca alineado con la raíz del repositorio `_config.yml`/`_config.local.yml`.
 
-Trate `_config.local.yml` como un archivo de solo anulación para valores específicos del host local. La configuración canónica de orientación hacia la bifurcación debe residir en la raíz del repositorio `_config.yml`, y el espejo del trabajador seguirá desde allí.
+Trate `_config.local.yml` como un archivo de anulación únicamente para valores específicos del host local. La configuración canónica de orientación hacia la bifurcación debe residir en la raíz del repositorio `_config.yml`, y el espejo del trabajador seguirá desde allí.
 
 La entrega de informes de campaña sigue el mismo patrón:
 
@@ -39,6 +39,14 @@ La configuración de Worker reflejada ahora también incluye los indicadores de 
 - `DEBUG_VERBOSE_CONSOLE_LOGGING`
 
 Estos provienen de `debug.console_logging_enabled` y `debug.verbose_console_logging` en la raíz del repositorio [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml), y ambos están predeterminados en `true`, por lo que los trabajadores locales y desplegados permanecen detallados a menos que una bifurcación rechace explícitamente el inicio de sesión.
+
+El espejo Worker también incluye los botones de captación previa de intención pública utilizados por las páginas públicas generadas:
+
+- `INTENT_PREFETCH_ENABLED`
+- `INTENT_PREFETCH_DELAY_MS`
+- `INTENT_PREFETCH_LIMIT`
+
+Estos provienen de `performance.intent_prefetch_*` en la configuración de raíz del repositorio y los superadministradores los pueden editar en **Configuración -> Rendimiento avanzado**. Están reflejados para lograr paridad de configuración y visibilidad operativa; el tiempo de ejecución de captación previa real todavía se carga solo en diseños estáticos públicos y rechaza rutas privadas, tokenizadas, de pago, de administración, de soporte y de consultas confidenciales en el navegador.
 
 La protección DoS de ruta de escritura ahora requiere un espacio de nombres KV `RATELIMIT`. Si falta ese enlace, el trabajador no se cierra con `503` en lugar de ejecutarse sin protección contra abusos. Las lecturas públicas de datos en vivo se mantienen intencionalmente amplias para los picos de campaña, mientras que el pago, la gestión de promesas y las mutaciones de administración utilizan los límites más estrictos por IP documentados en [`docs/SECURITY.md`](/es/docs/operations/security/). Ese requisito agrega seguridad, no una nueva suposición de que cada bifurcación debe superar inmediatamente el plan Workers Free.
 
@@ -157,7 +165,7 @@ La configuración de USPS para este repositorio se divide intencionalmente:
 
 Actualmente, The Pool solo necesita USPS OAuth más el conjunto de productos predeterminado de opciones de precio/envío para el cálculo de cotizaciones en vivo. **No** requiere la configuración de etiquetas/envío/EPA de USPS a menos que el proyecto crezca posteriormente hasta convertirse en la generación de etiquetas.
 
-Ejemplo de archivo `worker/.dev.vars` local:
+Ejemplo de archivo local `worker/.dev.vars`:
 
 ```dotenv
 STRIPE_SECRET_KEY_TEST=sk_test_your_test_key
@@ -204,7 +212,7 @@ En GitHub, los envíos a `main` también implementan el trabajador automáticame
 
 ## Puntos finales API
 
-### POST /intención-de-compra/inicio
+### POST /checkout-intent/start
 Canonicalice la carga útil del carrito propio y cree una sesión de pago en modo de configuración de Stripe para una nueva contribución.
 
 ```json
@@ -232,17 +240,17 @@ El trabajador reconstruye el nivel, el complemento del paquete, el soporte perso
 
 Cuando un compromiso califica para mejoras de envío, el Trabajador también mantiene la opción de entrega limitada seleccionada (`standard`, `signature_required` o `adult_signature_required`) para que el carrito, la Gestión del compromiso, el total del compromiso almacenado y los correos electrónicos de los seguidores permanezcan alineados.
 
-Las reservas y los reclamos de nivel limitado se serializan a través de un coordinador de objetos duraderos por campaña antes de que se actualice la instantánea del inventario de KV, por lo que los inicios, reintentos, modificaciones y finalizaciones de webhooks simultáneos no pueden sobrevender las escasas recompensas.
+Las reservas y los reclamos de nivel limitado se serializan a través de un coordinador de objetos duraderos por campaña antes de que se actualice la instantánea del inventario de KV, por lo que los inicios de pago simultáneos, los reintentos, las modificaciones y las finalizaciones de webhooks no pueden sobrevender las escasas recompensas.
 
-### OBTENER /pledges?token={token}
+### GET /pledges?token={token}
 Obtenga la(s) promesa(s) autorizada(s) mediante un token de enlace mágico.
 
 Comportamiento actual: el token devuelve solo su propia orden autorizada.
 
-### OBTENER /compromiso?token={token}
+### GET /pledge?token={token}
 Obtenga detalles de compromiso único (punto final heredado).
 
-### POST /promesa/cancelar
+### POST /pledge/cancel
 Cancelar un compromiso activo.
 
 ```json
@@ -252,7 +260,7 @@ Cancelar un compromiso activo.
 }
 ```
 
-### POST /promesa/modificar
+### POST /pledge/modify
 Cambie los niveles, la cantidad o el soporte personalizado para un compromiso activo.
 
 ```json
@@ -270,12 +278,12 @@ Todos los campos excepto `token` son opcionales. Los cambios se rastrean en la m
 
 El trabajador valida el pedido solicitado con la carga útil del token y vuelve a calcular los totales a partir del estado del compromiso almacenado más las definiciones de la campaña. Los cambios estructurales al mismo precio, como un intercambio de variante adicional, todavía cuentan como cambios de compromiso reales para fines de persistencia y correo electrónico a los seguidores.
 
-### ENVIAR /estadísticas/:slug/check
+### POST /stats/:slug/check
 Ejecute una verificación de desviación de proyección de solo lectura para una campaña.
 
 Requiere autenticación de administrador y devuelve si el índice de campaña almacenado, la proyección de estadísticas y la proyección de inventario de niveles todavía están sincronizados con la verdad del compromiso activo.
 
-### ENVIAR /admin/proyecciones/verificar
+### POST /admin/projections/check
 Ejecute la misma verificación de deriva de solo lectura en todas las campañas.
 
 Este es el punto final del lado del trabajador que impulsa [`scripts/check-projections.sh`](https://github.com/your-org/your-project/blob/main/scripts/check-projections.sh) y las nuevas afirmaciones de humo de compromiso mutable.
@@ -288,7 +296,7 @@ Este es el punto final del lado del trabajador que impulsa [`scripts/check-proje
 - Las incrustaciones estructuradas solo se muestran cuando la URL del proveedor es una URL incrustada aprobada por `https://` Spotify, YouTube o Vimeo.
 - Los bloques de video locales pueden incluir una imagen de póster opcional; sin uno, la interfaz de usuario del navegador genera un póster del primer fotograma a partir del recurso de vídeo del mismo origen sin cambiar el bloque almacenado.
 
-### POST /promesa/método-de-pago/inicio
+### POST /pledge/payment-method/start
 Inicie una sesión de Stripe para actualizar el método de pago.
 
 ```json
@@ -299,7 +307,7 @@ Inicie una sesión de Stripe para actualizar el método de pago.
 
 Devuelve un arranque de sesión personalizado para el flujo `Update Card` en el sitio o una URL alternativa alojada.
 
-### OBTENER /share/campaign/:slug.png
+### GET /share/campaign/:slug.png
 Devolver una tarjeta compartida PNG pública para una campaña.
 
 Parámetros de consulta opcionales:
@@ -308,13 +316,13 @@ Parámetros de consulta opcionales:
 
 La tarjeta renderizada utiliza datos de la campaña en vivo, incluido el estado actual, el total comprometido, el progreso del objetivo, los metadatos del creador/categoría y el cuadrado de la campaña `hero_image` como imagen de vista previa incrustada. The Worker rasteriza el mismo diseño de tarjeta SVG en PNG para que los rastreadores sociales obtengan una imagen compatible sin perder el estilo de vista previa más rico. Las páginas de campaña utilizan esta ruta PNG compatible con rastreadores para los metadatos `og:image`/`twitter:image`, a menos que una campaña proporcione explícitamente un `social_image` estático. La tarjeta visible no imprime la URL de la campaña; la URL permanece disponible a través de los metadatos de Open Graph circundantes.
 
-### OBTENER /share/campaign/:slug.svg
+### GET /share/campaign/:slug.svg
 Devuelve el mismo concepto de tarjeta compartida de campaña que SVG para herramientas internas de vista previa/depuración. Utilice la ruta PNG para los metadatos sociales públicos porque algunos rastreadores externos rechazan las imágenes SVG.
 
-### ENVIAR /webhooks/raya
+### POST /webhooks/stripe
 Punto final del webhook de Stripe (firma verificada).
 
-### POST /impuesto/cotización
+### POST /tax/quote
 Devuelve una vista previa de impuestos calculados por el trabajador para la interfaz de usuario del carrito/pago.
 
 ```json
@@ -333,12 +341,12 @@ El flujo actual del navegador utiliza esto para la visualización de impuestos d
 
 Si la carga útil no incluye suficientes detalles de destino para el proveedor configurado, el Trabajador puede devolver una respuesta de resultado provisional/sin impuestos y dejar que el navegador siga mostrando `--` hasta que el pago tenga un mejor destino de facturación o envío.
 
-### OBTENER /admin/observability/webhooks?days=2
+### GET /admin/observability/webhooks?days=2
 Resumen de observabilidad del webhook solo para administradores.
 
 Devuelve recuentos de entregas de webhooks recientes por día, resultados, resúmenes de tipos de eventos, estadísticas de duración y una breve ventana de eventos recientes para reintentos de depuración, errores de firma y picos de tráfico inesperados.
 
-### OBTENER /admin/observabilidad/rendimiento?días=2
+### GET /admin/observability/performance?days=2
 Resumen de rendimiento de muestra solo para administradores.
 
 Devuelve muestras de tiempos de reloj de pared para rutas de mutación clave, como inicio de pago, finalización de pago, escrituras de compromiso de gestión, cotizaciones de envío y abandono de pago. Esto está pensado como una ayuda de ajuste para la tapa `cpu_ms` desplegada, no como un sistema de seguimiento de alta cardinalidad.
@@ -381,7 +389,7 @@ El inventario complementario de la plataforma utiliza `_config.yml` como línea 
 
 La sección de la herramienta de marketing mantiene la creación de URL de la campaña, los parámetros UTM/referencia, los accesos directos del creador de incrustaciones, las preferencias de campos locales y los fragmentos de copia en el estado del navegador. Los códigos de referencia guardados son independientes: enumerarlos es una llamada de trabajador con alcance de campaña de solo lectura y guardar uno es una mutación explícita.
 
-### POST /admin/broadcast/diario
+### POST /admin/broadcast/diary
 Envíe una notificación de actualización del diario a todos los partidarios de la campaña. Requiere el encabezado `x-admin-key`.
 
 ```json
@@ -393,7 +401,7 @@ Envíe una notificación de actualización del diario a todos los partidarios de
 }
 ```
 
-### POST /admin/diario/verificar
+### POST /admin/diary/check
 Verifique todas las campañas en busca de nuevas entradas del diario y transmítalas automáticamente. Lo llaman GitHub Actions después de la implementación. Requiere el encabezado `Authorization: Bearer {ADMIN_SECRET}`.
 
 Si la seguridad de la zona de Cloudflare desafía la solicitud de GitHub Actions antes de que llegue al trabajador, establezca un secreto de repositorio llamado `DIARY_CHECK_BYPASS_SECRET` y agregue una regla de omisión WAF de Cloudflare para `POST /admin/diary/check` cuando `X-Pool-Diary-Check` coincida con ese secreto. Mantenga `ADMIN_SECRET` habilitado; el encabezado de omisión es solo una señal de regla de borde, no una autenticación de trabajador.
@@ -418,7 +426,7 @@ Devoluciones:
 }
 ```
 
-### POST /admin/broadcast/hito
+### POST /admin/broadcast/milestone
 Envíe notificaciones de hitos a todos los seguidores de la campaña. Requiere el encabezado `x-admin-key`.
 
 ```json
@@ -482,7 +490,7 @@ Orientación operativa:
 - El comportamiento en toda la implementación proviene de `_config.yml` bajo `reports.campaign_runner`, mientras que los destinatarios por campaña permanecen al frente.
 - para el cumplimiento, valide tanto el corredor como la plataforma antes de enviar si una campaña incluye complementos de plataforma
 
-### ENVIAR /prueba/correo electrónico
+### POST /test/email
 Envíe un correo electrónico de prueba de cualquier tipo. En modo de prueba (`APP_MODE=test`), no se requiere autenticación. En producción, requiere el encabezado `x-admin-key`.
 
 ```json
@@ -558,6 +566,9 @@ curl -X POST https://worker.example.com/test/email \
 |`TURNSTILE_SECRET_KEY`|Clave secreta de Cloudflare Turnstile para la verificación del desafío de inicio de sesión del correo electrónico del administrador|
 |`ADMIN_TURNSTILE_REQUIRED`|Indicador opcional de cierre fallido para implementaciones que esperan que se configure Turnstile|
 |`ADMIN_TURNSTILE_BYPASS`|Omisión local/solo de prueba para pruebas de autenticación de administrador automatizadas; no habilitar en trabajadores desplegados|
+|`INTENT_PREFETCH_ENABLED`|Indicador habilitado de captación previa de intención de documento público reflejado desde la configuración del sitio|
+|`INTENT_PREFETCH_DELAY_MS`|Retraso de desplazamiento/enfoque antes de que comience la captación previa de documentos públicos|
+|`INTENT_PREFETCH_LIMIT`|Precargas máximas de documentos públicos por vista de página|
 |`RESEND_RATE_LIMIT_DELAY`|Retraso entre correos electrónicos en ms (predeterminado: 600 ms para mantenerse por debajo del límite de 2 solicitudes por segundo de reenvío)|
 
 Cuando `SITE_BASE` apunta al desarrollador local (`localhost` / `127.0.0.1`), las imágenes de correo electrónico incrustadas aún regresan a la base de activos pública `https://site.example.com` para que los clientes de la bandeja de entrada no reciban URL de imágenes de host local rotas.

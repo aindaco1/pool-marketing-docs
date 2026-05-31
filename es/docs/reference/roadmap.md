@@ -12,9 +12,9 @@ Esta hoja de ruta está organizada como un historial de lanzamiento de los estad
 
 ## Hito actual
 
-**v1.0.1**
+**v1.0.2**
 
-El conjunto de funciones v1.0 y el pase de liberación reforzada están completos. v1.0.1 agrega cargas de medios del editor de contenido del administrador, captura neta/tarifa real de Stripe para análisis, herramientas de optimización de medios del panel y estados del panel vacíos más amigables para nuevas campañas sin índices de compromiso.
+El conjunto de funciones v1.0 y el pase de liberación reforzada están completos. v1.0.2 agrega trabajo de rendimiento de páginas públicas, minificación de activos generados, captación previa segura de intenciones, enlaces para compartir campañas con CTA con reconocimiento de estado y controles de rendimiento administrativo.
 
 ## Historial de lanzamientos
 
@@ -159,7 +159,7 @@ Nuevo en esta versión:
 
 - Panel de administración privado en `/admin/` y `/es/admin/` para configuraciones de plataforma con alcance de roles, edición de campañas, complementos, informes, análisis, seguidores, herramientas de marketing y usuarios.
 - autenticación de administrador de enlace mágico por correo electrónico con sesiones firmadas, protecciones CSRF/origen, soporte de desafío Turnstile opcional y API de navegador seguras que no exponen `ADMIN_SECRET`
-- edición del panel de control para configuraciones de campaña, bloques de contenido, niveles, elementos de soporte, complementos de campaña, objetivos ambiciosos, elementos en curso, entradas de diario, decisiones, complementos de plataforma y configuraciones de plataforma
+- edición del panel para configuración de campaña, bloques de contenido, niveles, elementos de soporte, complementos de campaña, objetivos ambiciosos, elementos en curso, entradas de diario, decisiones, complementos de plataforma y configuración de plataforma
 - Panel de control Gestión de usuarios respaldada por Worker KV en `admin-users:v1`, incluidos correos electrónicos de notificación para usuarios recién creados cuando se configura Resend
 - Panel de control Herramientas de marketing para referencias y creación de URL UTM, códigos de referencia guardados, controles de creación de inserciones reutilizables y fragmentos de lanzamiento copiables.
 - Vistas de análisis, informes y soportes con ámbito de función con tablas ordenables/filtrables, visualización del centavo exacto de dólar, descargas CSV y vistas previas de informes de solo lectura.
@@ -180,15 +180,30 @@ Nuevo en esta versión:
 - `npm run media:optimize`, `npm run media:optimize:check` y el flujo de trabajo de GitHub Actions "Optimizar medios del panel" admiten la canalización de medios posterior a la carga
 - Los seguidores y Analytics devuelven vistas vacías de solo lectura para campañas sin índices de compromiso en lugar de bloquear paneles de campaña nuevos o vacíos.
 
+### v1.0.2: rendimiento, uso compartido y pulido de administración
+
+Esta versión puntual hizo que las páginas públicas fueran más livianas y predecibles, al mismo tiempo que agregó controles para compartir más seguros y una pequeña superficie de rendimiento de administración para los operadores de bifurcaciones.
+
+Nuevo en esta versión:
+
+- Las barras de progreso de la campaña y los marcadores de hitos representan clases estáticas de ancho y posición, por lo que la primera carga ya no espera a JavaScript para evitar diseños de marcadores colapsados.
+- las páginas públicas cargan primero un cargador liviano de tiempo de ejecución de carrito y difieren la pila completa del carrito hasta que el estado persistente del carrito, el estado de recuperación o la intención clara del partidario lo requieran.
+- La captura previa de documentos públicos del mismo origen sigue un pequeño modelo de intención local con listas de rutas permitidas, exclusiones de consultas confidenciales, protecciones de red, límites bajos por página y una superficie de configuración habilitada de forma predeterminada.
+- Configuración -> Rendimiento avanzado expone la habilitación de captación previa de intención, el retraso y el límite de vista de página para superadministradores, con la configuración del trabajador reflejada a través de `INTENT_PREFETCH_*`
+- Las páginas de producción crean CSS y JavaScript `_site` generados minify después de la salida de Jekyll, mientras que Cloudflare sigue siendo responsable de la compresión de transferencia.
+- Las páginas de la campaña muestran enlaces para compartir con íconos reutilizables para Bluesky, X, Threads, Facebook, SMS y correo electrónico con URL localizadas y texto CTA con reconocimiento de estado cuando sea compatible.
+- Los controles para compartir responsivos aparecen debajo de la breve propaganda en dispositivos móviles/tabletas y encima del botón de inserción solo en computadoras de escritorio.
+- El inicio de sesión por correo electrónico del administrador mantiene el desafío Turnstile existente después de un intento de inicio de sesión y utiliza el estilo de mensaje de estado del panel compartido para obtener comentarios de autenticación más destacados.
+- La lista de verificación pública para creadores de campañas y la lista de verificación en español describen los cambios que enfrentan los creadores desde la versión 0.9.5 hasta la v1.0.2, incluida la planificación de enlaces compartidos y la carga de medios en el panel.
+
 ## Funciones futuras
 
-El trabajo aún planeado después de `1.0.1` incluye:
+El trabajo aún planeado después de `1.0.2` incluye:
 
 - Trabajo adicional en la calculadora de impuestos para una cobertura más amplia en EE. UU. e internacional, una mayor profundidad de las jurisdicciones locales y flujos de trabajo de actualización de datos tributarios más claros.
 - Análisis de ingresos netos después de las tarifas de procesador asignadas, utilizando datos reales de tarifas de Stripe cuando estén disponibles.
 - Herramientas de marketing de campaña más completas, como la composición de anuncios y el seguimiento de carritos abandonados que tengan en cuenta el consentimiento.
 - diferentes precios por variación adicional
-- Enlaces de campaña reutilizables para "compartir en" para destinos seleccionados como correo electrónico, SMS, X, Facebook, Bluesky, Threads y copiar enlace.
 - Páginas de vista previa de campañas protegidas por correo electrónico para superadministradores, usuarios de campañas y revisores invitados.
 - lanzar registros de recordatorio para próximas campañas con consentimiento, manejo de cancelación de suscripción y escrituras KV limitadas
 - zona horaria predeterminada de la plataforma configurable en lugar de asumir la hora de la montaña en todas partes

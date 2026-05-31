@@ -18,6 +18,7 @@ Utilice esto junto con:
 - [docs/I18N.md](/es/docs/development/internationalization/) para reglas de traducción y enrutamiento local
 - [docs/SEO.md](/es/docs/operations/seo/) para metadatos, tarjetas compartidas y comportamiento de indexación
 - [docs/EMBEDS.md](/es/docs/development/campaign-embeds/) para el sistema de inserción de campaña alojado
+- [docs/PERFORMANCE.md](/es/docs/operations/performance/) para obtener rendimiento de páginas públicas, minificación de activos generados, compresión de Cloudflare y captación previa de intenciones segura
 - [docs/DASHBOARD.md](/es/docs/operations/admin-dashboard/) para el panel de administración del navegador y el modelo de edición
 
 ## Forma del proyecto
@@ -86,7 +87,7 @@ Comprobaciones útiles y enfocadas:
 
 Comience con:
 
-- la pestaña **Campañas** del panel de control para realizar ediciones normales del navegador
+- la pestaña **Campañas** del panel para ediciones normales del navegador
 - [`_campaigns/<slug>.md`](https://github.com/your-org/your-project/tree/main/_campaigns)
 - activos de campaña en [`assets/images/campaigns/<slug>/`](https://github.com/your-org/your-project/tree/main/assets/images/campaigns)
 - documentos de soporte en [docs/DASHBOARD.md](/es/docs/operations/admin-dashboard/)
@@ -209,11 +210,11 @@ Si agrega una nueva página pública, ruta de inserción o flujo específico de 
 
 ### 6. Los flujos tokenizados/privados no deberían volverse indexables
 
-`/manage/`, las páginas de resultados de compromiso y las rutas privadas/con token deben permanecer fuera de la indexación de búsqueda y deben preservar el comportamiento de token/consulta al cambiar de idioma.
+`/manage/`, las páginas de resultados de promesas y las rutas privadas/con token deben permanecer fuera de la indexación de búsqueda y deben preservar el comportamiento de token/consulta al cambiar de idioma.
 
 ### 7. Las campañas finalizadas no deben comportarse como las activas.
 
-Las cuentas regresivas, los controles de promesas y el estado de inserción/compartición previa deben respetar el estado efectivo de la campaña, especialmente después de las fechas límite.
+Las cuentas regresivas, los controles de compromiso y el estado de inserción/compartición previa deben respetar el estado efectivo de la campaña, especialmente después de las fechas límite.
 
 ## Los mejores documentos para trabajos específicos
 

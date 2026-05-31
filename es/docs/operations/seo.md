@@ -32,6 +32,7 @@ La línea de base actual incluye:
 - etiquetas seguras de imágenes sociales donde la imagen de la página ya es HTTPS
 - metadatos alternativos de imágenes sociales
 - Títulos y descripciones sociales de campañas conscientes del estado.
+- Texto de intención de enlace compartido de campaña consciente del estado para plataformas que aceptan copia de mensajes, mientras que Facebook y otros destinos que priorizan la tarjeta siguen confiando en la URL de la página y los metadatos de Open Graph.
 - PNG de tarjetas compartidas de campaña generadas por los trabajadores para metadatos sociales públicos, con SVG retenido para herramientas internas de vista previa/depuración
 - generado [`robots.txt`](/robots.txt)
 - generado [`sitemap.xml`](/sitemap.xml)
@@ -59,6 +60,12 @@ La ruta pública de Open Graph es:
 - `/share/campaign/{slug}.png?lang=es`
 
 Esa ruta genera una tarjeta SVG con reconocimiento de estado a partir de datos de campaña en vivo, luego la rasteriza a PNG para que los enlaces compartidos permanezcan seguros para los rastreadores y al mismo tiempo muestren el total comprometido, el progreso de los objetivos, el estado de la campaña y el cuadrado `hero_image` de la campaña con el estilo de tarjeta compartida más rico. El trabajador también mantiene la versión SVG en `/share/campaign/{slug}.svg?lang={lang}` para herramientas internas de vista previa/depuración, pero SVG no es el valor predeterminado de metadatos públicos porque algunos rastreadores externos lo rechazan.
+
+Los enlaces para compartir páginas de la campaña mantienen la misma separación de preocupaciones:
+
+- Los metadatos de Open Graph y Twitter controlan las vistas previas del rastreador y las imágenes de tarjetas compartidas.
+- Las URL compartidas de plataforma incluyen texto de intención más completo y con reconocimiento de estado solo cuando el destino admite texto de mensaje.
+- Las URL compartidas conservan solo parámetros de consulta UTM/referencia seguros y no agregan URL de imágenes ni estados privados a la URL compartida.
 
 ## Contrato de indexación
 
@@ -184,6 +191,7 @@ Al verificar una implementación manualmente:
 
 - La fuente de la página para las páginas de inicio/acerca de/términos/campaña tiene el título, la descripción y las etiquetas canónicas, OG y de Twitter correctos.
 - Las páginas de campaña emiten un `social_image` compatible con rastreadores cuando se configuran; de lo contrario, la ruta PNG de la tarjeta compartida del trabajador.
+- Los enlaces visibles para compartir de la campaña utilizan la URL canónica de la campaña y no reemplazan el contrato de tarjeta social basado en metadatos.
 - `robots.txt` es accesible y solo expone las rutas de rastreo públicas previstas.
 - `sitemap.xml` es accesible y solo incluye URL públicas previstas.
 - las páginas privadas/tokenizadas emiten `noindex` cuando corresponda
@@ -205,3 +213,5 @@ Esta implementación se guió por la guía de Google Search Central sobre:
 - datos estructurados de ruta de navegación
 
 La regla básica sigue siendo simple: los metadatos públicos deben reflejar contenido público visible, y los flujos privados/solo para seguidores deben permanecer fuera de la intención de búsqueda.
+
+---

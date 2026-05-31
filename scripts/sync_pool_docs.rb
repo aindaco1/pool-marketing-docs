@@ -33,6 +33,7 @@ DOCS = [
   { src: "docs/SHIPPING.md", dest: "docs/operations/shipping.md", title: "Shipping", parent: "Operations", nav_order: 8 },
   { src: "docs/ACCESSIBILITY.md", dest: "docs/operations/accessibility.md", title: "Accessibility", parent: "Operations", nav_order: 9 },
   { src: "docs/SEO.md", dest: "docs/operations/seo.md", title: "SEO", parent: "Operations", nav_order: 10 },
+  { src: "docs/PERFORMANCE.md", dest: "docs/operations/performance.md", title: "Performance", parent: "Operations", nav_order: 11 },
   { src: "CHANGELOG.md", dest: "docs/reference/changelog.md", title: "Changelog", parent: "Reference", nav_order: 1 },
   { src: "docs/ROADMAP.md", dest: "docs/reference/roadmap.md", title: "Roadmap", parent: "Reference", nav_order: 2 },
   { src: "docs/PULL_REQUEST_TEMPLATE.md", dest: "docs/reference/pull-request-template.md", title: "Pull Request Template", parent: "Reference", nav_order: 3 }
@@ -210,9 +211,9 @@ ROADMAP_REWRITE = <<~MARKDOWN.freeze
 
   ## Current Milestone
 
-  **v1.0.1**
+  **v1.0.2**
 
-  The v1.0 feature set and release-hardening pass are complete. v1.0.1 adds admin content-editor media uploads, actual Stripe fee/net capture for analytics, dashboard media optimization tooling, and friendlier empty dashboard states for new campaigns without pledge indexes.
+  The v1.0 feature set and release-hardening pass are complete. v1.0.2 adds public-page performance work, generated asset minification, safe intent prefetching, campaign share links with state-aware CTAs, and admin performance controls.
 
   ## Release History
 
@@ -378,15 +379,30 @@ ROADMAP_REWRITE = <<~MARKDOWN.freeze
   - `npm run media:optimize`, `npm run media:optimize:check`, and the "Optimize dashboard media" GitHub Actions workflow support the post-upload media pipeline
   - Supporters and Analytics return empty read-only views for campaigns without pledge indexes instead of blocking new or empty campaign dashboards
 
+  ### v1.0.2 — Performance, Sharing, And Admin Polish
+
+  This point release made public pages lighter and more predictable while adding safer sharing controls and a small admin performance surface for fork operators.
+
+  New in this version:
+
+  - campaign progress bars and milestone markers render static width and position classes so first load no longer waits for JavaScript to avoid collapsed marker layouts
+  - public pages load a lightweight cart-runtime loader first and defer the full cart stack until persisted cart state, recovery state, or clear supporter intent requires it
+  - same-origin public document prefetching follows a small local intent model with route allowlists, sensitive-query exclusions, network guards, low per-page limits, and a default-enabled config surface
+  - Settings -> Advanced performance exposes intent-prefetch enablement, delay, and page-view limit for super admins, with Worker config mirroring through `INTENT_PREFETCH_*`
+  - production Pages builds minify generated `_site` CSS and JavaScript after Jekyll output, while Cloudflare remains responsible for transfer compression
+  - campaign pages render reusable icon-only share links for Bluesky, X, Threads, Facebook, SMS, and email with localized URLs and state-aware CTA text where supported
+  - responsive share controls appear below the short blurb on mobile/tablet and above the embed button only on desktop
+  - admin email sign-in keeps the existing Turnstile challenge after a login attempt and uses the shared dashboard status-message styling for more prominent auth feedback
+  - the public Campaign Creator Checklist and Spanish checklist describe creator-facing changes from v0.9.5 through v1.0.2, including share-link planning and dashboard media uploads
+
   ## Future Features
 
-  Work still planned after `1.0.1` includes:
+  Work still planned after `1.0.2` includes:
 
   - further tax-calculator work for broader US and international coverage, better local-jurisdiction depth, and clearer tax-data refresh workflows
   - net revenue analytics after allocated processor fees, using actual Stripe fee data where available
   - richer campaign marketing tools such as announcement composition and consent-aware abandoned-cart follow-up
   - different prices per add-on variation
-  - reusable "share to" campaign links for curated destinations such as email, SMS, X, Facebook, Bluesky, Threads, and copy-link
   - email-protected campaign preview pages for super admins, campaign users, and invited reviewers
   - launch reminder signups for upcoming campaigns with consent, unsubscribe handling, and bounded KV writes
   - configurable platform default timezone instead of assuming Mountain Time everywhere
@@ -394,6 +410,16 @@ ROADMAP_REWRITE = <<~MARKDOWN.freeze
   ## Known Issues
 
   **Credit Card Autofill**: credit-card number, expiry, and CVC fields live inside Stripe-controlled secure UI, so browser autofill support there is constrained by Stripe rather than the surrounding app.
+MARKDOWN
+
+CHANGELOG_102_ENTRY = <<~MARKDOWN.freeze
+  ## v1.0.2 - 2026-05-31
+
+  - Added public-page performance work with static campaign progress rendering, lazy first-party cart runtime loading, and conservative same-origin intent prefetching.
+  - Added generated asset minification for Pages builds through `npm run assets:minify` and `npm run assets:minify:check`, while keeping source assets readable and leaving transfer compression to Cloudflare.
+  - Added campaign share links for Bluesky, X, Threads, Facebook, SMS, and email with localized URLs, local icon fallbacks, and state-aware CTA text where supported.
+  - Exposed **Settings -> Advanced performance** controls for public intent prefetching and mirrored `performance.intent_prefetch_*` into Worker-facing `INTENT_PREFETCH_*` values.
+  - Updated public about/terms copy, creator checklist guidance, performance documentation, testing notes, and release metadata for v1.0.2.
 MARKDOWN
 
 def rewrite_copy(content, current_src)
@@ -448,6 +474,10 @@ def rewrite_copy(content, current_src)
     )
     rewritten.gsub!("*The Pool is created and maintained by [Dust Wave](https://example.com).*", "")
     rewritten.gsub!(/^\*The Pool is created and maintained by .*?\*$/m, "")
+  when "CHANGELOG.md"
+    unless rewritten.match?(/^## v1\.0\.2\b/)
+      rewritten.sub!("# Changelog\n\n", "# Changelog\n\n#{CHANGELOG_102_ENTRY}\n")
+    end
   when "docs/PULL_REQUEST_TEMPLATE.md"
     rewritten.sub!(/\n## Rollback Plan\n<!-- How to revert safely if needed -->\n?\z/, "\n")
   when "docs/TESTING.md"

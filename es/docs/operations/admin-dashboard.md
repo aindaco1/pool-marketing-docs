@@ -127,6 +127,16 @@ La configuración del informe del ejecutor de campaña controla el sistema de in
 
 La pestaña Informes sigue siendo la interfaz de usuario preferida del navegador para generar y descargar archivos CSV bajo demanda.
 
+### Rendimiento avanzado
+
+La configuración de rendimiento avanzada expone los controles públicos seguros de captación previa de intenciones:
+
+- habilitar o deshabilitar la captura previa de documentos públicos
+- ajuste el retardo de desplazamiento/enfoque antes de que comience la captación previa
+- limitar el número de documentos precargados por vista de página
+
+Los valores predeterminados son intencionalmente conservadores y se aplican solo a enlaces de documentos públicos del mismo origen. El tiempo de ejecución excluye los enlaces de administración, pago, gestión de compromiso, comunidad de seguidores, tokenizados, externos y de consultas confidenciales. La publicación de estas configuraciones actualiza `_config.yml`, refleja las variables de trabajo `INTENT_PREFETCH_*` y requiere la reconstrucción estática normal antes de que las páginas públicas usen los nuevos valores.
+
 ### Diseño
 
 La configuración de diseño expone variables seleccionadas del tema, como la fuente del cuerpo, la fuente del encabezado, los colores del texto, los colores de superficie/borde/primarios y el radio del botón.

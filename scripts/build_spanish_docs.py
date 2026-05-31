@@ -53,6 +53,7 @@ TITLE_OVERRIDES = {
     "Workflows": "Flujos de trabajo",
     "Shipping": "Envíos",
     "Accessibility": "Accesibilidad",
+    "Performance": "Rendimiento",
     "SEO": "SEO",
 }
 
@@ -222,6 +223,9 @@ def rewrite_docs_links(text: str) -> str:
 
 
 def translate_line(line: str) -> str:
+    if re.match(r"^#{1,6}\s+(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\s+/\S+", line):
+        return line
+
     if line in BODY_OVERRIDES:
         return BODY_OVERRIDES[line]
 
@@ -278,6 +282,11 @@ def translate_body(body: str) -> str:
             continue
 
         if in_fence:
+            translated_lines.append(line)
+            continue
+
+        if re.match(r"^#{1,6}\s+(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\s+/\S+", line):
+            flush_pending()
             translated_lines.append(line)
             continue
 

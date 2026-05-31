@@ -36,6 +36,7 @@ El modelo i18n actual cubre:
 - El cambio de idioma del administrador conserva el estado de vista seguro, como los filtros de campaña y los hashes, pero elimina los tokens de enlace mágico `admin_login` antes de vincularlos al idioma alternativo.
 - etiquetas de sección de complementos de campaña localizadas tanto en el carrito como en Manage Pledge, además de una copia de ayuda para el pago, como resúmenes de los botones del carrito, etiquetas de ubicación fiscal y una copia del siguiente paso del pago alojado
 - Cambio de pie de página de campaña localizado y formato de fecha de campaña localizado para Chrome de campaña pública
+- Etiquetas localizadas de enlaces para compartir de campañas, además de texto de intención de compartir con reconocimiento del estado para campañas próximas, activas, financiadas y finalizadas.
 - Correos electrónicos de apoyo de Worker localizados y enlaces `/manage/` / `/community/:slug/` localizados basados en `preferredLang` persistente
 - rutas localizadas de tarjetas compartidas de campañas de trabajadores como `/share/campaign/:slug.png?lang=es`
 - metadatos públicos localizados y sugerencias de lenguaje de datos estructurados en páginas públicas y páginas de campaña localizadas
@@ -110,10 +111,11 @@ Esto incluye:
 - etiquetas de estado
 - progreso/metatexto
 - carrito/pagar/Administrar copia en tiempo de ejecución de promesa
-- Pestañas del panel de administración, filtros, etiquetas de formulario generadas, etiquetas de opciones, texto de ayuda, copia de carga de medios, copia de informe/soporte/análisis/marketing y controles del editor de contenido
+- Pestañas del panel de administración, filtros, etiquetas de formulario generadas, etiquetas de opciones, texto de ayuda, copia de carga de medios, copia de informe/soporte/análisis/marketing y controles del editor de contenido.
 - Etiquetas de la sección de complementos de la campaña y copia auxiliar de pago alojada/personalizada.
 - copia en tiempo de ejecución de la comunidad
 - cuenta regresiva de la campaña / video-heroe / comunidad-de-seguidores / diario / fase-de-producción / galería / copia de estadísticas en vivo
+- Etiquetas para compartir de campaña y mensajes con intención de compartir para Bluesky, X, Threads, Facebook, SMS y correo electrónico.
 - creador de inserción de campaña/copia de widget
 - Copia del correo electrónico del partidario del trabajador
 
@@ -198,6 +200,7 @@ Comportamiento actual importante:
 - Stripe se inicializa con la configuración regional actual donde sea compatible, por lo que las etiquetas de campo propiedad de Stripe y la validación también se pueden localizar
 - Los resúmenes de activación del carrito y la copia auxiliar de ubicación de impuestos provienen del catálogo local compartido, por lo que el pago personalizado sigue siendo traducible sin cadenas codificadas separadas.
 - Las plantillas de campañas públicas ahora enrutan cadenas de Chrome compartidas a través de datos locales en lugar de inglés codificado cuando sea práctico, incluido el CTA/estado de carga del video principal, títulos insertados del video principal, texto de adelanto de la comunidad de seguidores, diario cromado, etiquetas de la fase de producción, etiquetas de accesibilidad de la galería, copia del compromiso de la barra lateral de la campaña, texto de estado del lector de pantalla de cuenta regresiva y fechas de la campaña localizadas.
+- Las páginas de campaña utilizan etiquetas para compartir localizadas y texto de intención de compartir con reconocimiento del estado, al tiempo que dejan los títulos y anuncios publicitarios de las campañas escritos por los creadores tal como fueron escritos.
 - Las páginas de campaña ahora exponen el cambio de idioma del pie de página localizado a través de la campaña generada `localized_paths`
 - el generador de inserción de campaña alojada y el widget extraen sus cadenas de generador/tiempo de ejecución del catálogo de configuración regional compartido y conservan los enlaces de retorno de la campaña que tienen en cuenta la configuración regional.
 - Los metadatos públicos y JSON-LD ahora también siguen el idioma de la página activa, la ruta de inicio localizada y el conjunto de idiomas admitidos para que las páginas localizadas no emitan sugerencias de rastreo solo en inglés por accidente.
@@ -217,7 +220,7 @@ Comportamiento práctico:
 - Si no se captura ninguna preferencia local, los correos electrónicos vuelven al inglés.
 - si un partidario se compromete o administra desde `/es/...`, el trabajador puede persistir `preferredLang=es`
 - Los correos electrónicos de los seguidores y las URL de enlaces mágicos utilizan el modelo de ruta en español, como `/es/manage/?t=...`.
-- Las tarjetas compartidas de campaña también se pueden solicitar según la configuración regional, como `/share/campaign/sunder.png?lang=es`
+- Las tarjetas compartidas de campaña también se pueden solicitar según la configuración regional, como `/share/campaign/sunder.png?lang=es`.
 
 ## Qué hace y qué no hace un archivo YAML de configuración regional
 

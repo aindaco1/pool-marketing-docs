@@ -19,6 +19,7 @@ lang: es
 - Todas las fechas límite de la campaña utilizan Mountain Time (MST/MDT).
 - Los votos de la comunidad se limitan a las opciones publicadas en la página de seguidores de una campaña y las decisiones cerradas no aceptan nuevos votos.
 - Si un enlace de administración apunta a un compromiso que ya no existe, The Pool lo trata como no disponible en lugar de reconstruir el acceso al compromiso del marcador de posición.
+- Las páginas de campañas públicas pueden incluir enlaces para compartir para plataformas externas, SMS y correo electrónico. Esos enlaces son solo para URL de campañas públicas y no incluyen tokens de administración de promesas, de pago, de comunidad de seguidores, de administración o de enlace mágico.
 
 ## Procesamiento de pagos
 
@@ -70,6 +71,8 @@ Esta sección se aplica solo a campañas que solicitan explícitamente envíos c
 - Los complementos de plataforma con inventario limitado utilizan el estado de promesa guardado, no los borradores del carrito en progreso, para determinar el stock restante.
 - Los complementos de campaña con inventario limitado también utilizan el estado del compromiso guardado, no los borradores del carrito en progreso, para determinar el stock restante.
 - El acceso a la comunidad de seguidores en el navegador puede recordarse para la sesión actual por conveniencia, pero el enlace mágico enviado por correo electrónico sigue siendo la fuente de verdad para el acceso.
+- Las páginas públicas pueden precargar páginas públicas elegibles del mismo origen después de pasar el cursor, enfocar o tocar para agilizar la navegación normal. Este comportamiento de captación previa excluye enlaces de administración, pago, gestión de compromiso, comunidad de seguidores, tokenizados, externos y de consultas confidenciales.
+- Los enlaces para compartir de la campaña pueden preservar la referencia pública segura o los parámetros de consulta UTM para que los responsables de la campaña puedan comprender las fuentes de promoción pública. No conservan tokens, pedidos, correos electrónicos, sesiones ni otros parámetros de consulta confidenciales.
 - No vendemos su información. Lo compartimos solo cuando sea necesario para el procesamiento de pagos, la entrega de correos electrónicos transaccionales, el cálculo de cotizaciones de envío y el cumplimiento de recompensas.
 
 ## Plataforma y tecnología
@@ -77,13 +80,13 @@ Esta sección se aplica solo a campañas que solicitan explícitamente envíos c
 The Pool es una [plataforma de financiación colectiva de código abierto](https://github.com/your-org/your-project) construida con:
 
 - **Jekyll en [GitHub Pages](https://docs.github.com/en/pages)** — Generación de sitios estáticos
-- **Tiempo de ejecución del carrito del grupo**: gestión de carritos propios, complementos de pago y revisión de compromisos
+- **Tiempo de ejecución del carrito del grupo**: administración de carrito propia, complementos de pago, revisión de compromisos y carga diferida de páginas públicas hasta que el estado del carrito o la intención del patrocinador requieran el conjunto completo del carrito.
 - **[Stripe](https://stripe.com)** — Campos de pago seguros, métodos de pago guardados y procesamiento de pagos
 - **[Cloudflare Workers](https://workers.cloudflare.com)** — API backend para validación de promesas canónicas, almacenamiento de promesas, estadísticas en vivo y liquidación de campañas automatizada
 - **Panel de administración privado**: edición de campañas según roles, informes, análisis, vistas de seguidores, enlaces de marketing, gestión de usuarios y operaciones de plataforma.
 - **[Resend](https://resend.com)** — Correos electrónicos transaccionales (confirmaciones, actualizaciones, notificaciones de cargos)
 
-Los datos de la promesa se almacenan en Cloudflare KV. Esta arquitectura significa menores costos generales y una mayor parte de su contribución se destina directamente al proyecto, con puntas de plataforma opcionales que ayudan a cubrir el mantenimiento de The Pool.
+Los datos de la promesa se almacenan en Cloudflare KV. Esta arquitectura significa menores costos generales y una mayor parte de su contribución se destina directamente al proyecto, con puntas de plataforma opcionales que ayudan a cubrir el mantenimiento de The Pool. Las compilaciones de producción también minimizan los activos CSS/JS generados después de la generación del sitio estático, mientras que Cloudflare maneja la compresión de transferencia en el borde.
 
 ## Preguntas
 

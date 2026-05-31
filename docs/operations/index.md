@@ -17,6 +17,7 @@ This section covers the admin dashboard, pledge Worker, local runtime options, q
 ## Quality, Security, And Release Checks
 
 - [Testing Guide](/docs/operations/testing/) for automated gates, manual regression runs, and test authoring patterns.
+- [Performance](/docs/operations/performance/) for public-page loading, generated asset minification, intent prefetching, and validation expectations.
 - [Merge Smoke Checklist](/docs/operations/merge-smoke-checklist/) for operator-ready checkout, modify, and cancel verification before merge.
 - [Security Guide](/docs/operations/security/) for the security architecture, hardening notes, and vulnerability history.
 - [Security Test Suite](/docs/operations/security-test-suite/) for the penetration-style checks that validate the security contract.

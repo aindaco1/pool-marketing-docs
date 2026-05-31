@@ -8,6 +8,14 @@ lang: es
 
 # Registro de cambios
 
+## v1.0.2 - 2026-05-31
+
+- Se agregó trabajo de rendimiento de la página pública con representación estática del progreso de la campaña, carga diferida del tiempo de ejecución del carrito propio y captación previa conservadora de la intención del mismo origen.
+- Se agregó minificación de activos generados para compilaciones de páginas a través de `npm run assets:minify` y `npm run assets:minify:check`, manteniendo al mismo tiempo los activos de origen legibles y dejando la compresión de transferencia a Cloudflare.
+- Se agregaron enlaces para compartir campañas para Bluesky, X, Threads, Facebook, SMS y correo electrónico con URL localizadas, iconos locales alternativos y texto de CTA con reconocimiento de estado cuando sea compatible.
+- Se expusieron controles de **Configuración -> Rendimiento avanzado** para la captación previa de intención pública y se reflejó `performance.intent_prefetch_*` en valores `INTENT_PREFETCH_*` orientados al Worker.
+- Se actualizó la copia pública de Acerca de/Términos, la guía de lista de verificación para creadores, la documentación de rendimiento, las notas de prueba y los metadatos de versión para v1.0.2.
+
 ## v1.0.1 - 2026-05-29
 
 - Se agregó la tarifa de transacción de saldo real de Stripe/captura neta para promesas cobradas recientemente y una ruta de reposición de superadministrador para registros de promesas cobradas más antiguas.
@@ -29,7 +37,7 @@ lang: es
 - Se agregó manejo de carga en el panel para medios de campaña, activos de marca, imágenes complementarias y videos destacados utilizando directorios de activos basados en convenciones y nombres de archivos estilo slug.
 - Se agregó un panel de administración de usuarios respaldado por Worker KV en `admin-users:v1`, separado de los flujos de publicación respaldados por GitHub.
 - Se agregaron correos electrónicos de notificación para los usuarios del panel recién creados cuando se configura Reenviar; las ediciones del usuario no reenvían invitaciones.
-- Se agregaron herramientas de marketing en el panel para la creación de URL de referencia/UTM, códigos de referencia guardados, interfaz de usuario de creación de inserción reutilizable y fragmentos de lanzamiento copiables.
+- Se agregaron herramientas de marketing en el panel para la creación de URL UTM/referencias, códigos de referencia guardados, interfaz de usuario de creación de inserciones reutilizable y fragmentos de lanzamiento copiables.
 - Se corrigieron las vistas previas de inserción de marketing para campañas con medios destacados de YouTube o Vimeo para que las barras de progreso, los hitos y las etiquetas de objetivos ampliados permanezcan contenidos.
 - Se agregaron vistas de análisis, informes y partidarios del panel de control con alcance de rol con tablas ordenables/filtrables, visualización del centavo exacto de dólar y descargas CSV; Las vistas previas/descargas de informes no envían correos electrónicos ni escriben marcadores de envío.
 - Se preservó el objetivo de nivel gratuito KV de Cloudflare Workers manteniendo las lecturas normales del panel, las vistas previas, los filtros, los análisis y los borradores locales en cero escrituras KV.

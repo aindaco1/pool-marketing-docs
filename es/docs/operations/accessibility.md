@@ -57,6 +57,7 @@ El reciente pase de refuerzo de accesibilidad agregó:
   - Enfoque la transferencia desde el CTA de soporte móvil a la sección de niveles.
   - Texto de estado de cuenta regresiva del lector de pantalla que refleja el estado del temporizador visual.
   - Semántica de carga y agrupación de videos de héroes más clara.
+  - Enlaces compartidos de campaña de solo íconos con nombres accesibles localizados, imágenes de íconos decorativos ocultos, ubicación debajo del anuncio en dispositivos móviles/tabletas y ubicación en la barra lateral en computadoras de escritorio.
   - Ajuste de pantalla pequeña más seguro para mosaicos de cuenta regresiva, metadatos de creadores y acciones de avance de la comunidad.
 - Semántica del panel de administración y pulido del teclado para:
   - etiquetas de campos compartidos cuyos botones de ayuda no están anidados dentro de las etiquetas
@@ -223,6 +224,7 @@ Las comprobaciones automáticas ayudan, pero estas comprobaciones de accesibilid
 - Las interfaces de campaña con pestañas responden correctamente a la navegación con el teclado.
 - Los controles secundarios de la página de campaña, como las pestañas del diario y las galerías de carrusel, siguen siendo utilizables solo con el teclado.
 - Los widgets de campañas públicas, como cantidades personalizadas, artículos de apoyo y avances de la comunidad de seguidores, siguen siendo utilizables solo con el teclado.
+- Los enlaces para compartir de la campaña tienen nombres útiles y accesibles aunque la interfaz de usuario visible sea solo de íconos.
 - Las galerías de carrusel permanecen enfocables con el teclado y se desplazan correctamente con las teclas de flecha y Inicio/Fin.
 - Los controles deslizantes de punta siguen siendo utilizables con ajustes repetidos de las teclas de flecha.
 - La votación comunitaria sigue siendo operativa con interacción solo con teclado.

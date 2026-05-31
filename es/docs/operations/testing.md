@@ -75,6 +75,10 @@ Pruebas rápidas y aisladas para funciones JS en `tests/unit/`.
 |`email-tip`|Desgloses de correos electrónicos de soporte conscientes de las sugerencias en correos electrónicos de confirmación/modificados/cancelados/fallidos/cargados|
 |`votes`|Almacenamiento/descopia de votos basado en correo electrónico, recuperación del estado de los votos, resultados de campaña, agregación de resultados|
 |`admin-dashboard`|Seguimiento del estado sucio del panel, serialización de configuraciones, normalización de contenido/editor, cargas de medios por etapas, análisis/relleno de tarifas reales de Stripe, ayudas de URL de referencia, utilidades de soporte responsivo/i18n|
+|`campaign-page`|Construcción de URL de enlaces compartidos, preservación segura de consultas, texto compartido con reconocimiento de estado, controles de campañas públicas y comportamiento de las páginas de campaña sensibles al SEO|
+|`page-prefetch`|Listas permitidas de rutas públicas del mismo origen, exclusiones de consultas confidenciales, protecciones de red, manejo de demoras/límites y creación de sugerencias de captación previa de documentos|
+|`cart-runtime-loader`|Arranque diferido en tiempo de ejecución del carrito, detección de carrito persistente/de recuperación, carga idempotente y activadores de intención del usuario|
+|`site-asset-minification`|Comportamiento de minificación CSS/JS generado `_site` y casos de falla del modo de verificación|
 |`media-optimization-script`|Selección de archivos modificados, decisiones de optimización de imágenes sin pérdidas, denominación de derivados de vídeo y reescritura de referencias de fuente a WebM|
 
 ### Correr
@@ -110,11 +114,13 @@ Esto se ejecuta:
 - Cobertura de serialización de inventario de niveles de objetos duraderos en `tests/unit/tier-inventory-do.test.ts`
 - Guiones de humo locales contra la campaña mutable de solo prueba:
   - `scripts/test-worker.sh` para verificaciones de contrato de sitio/trabajador y verificación de `/checkout-intent/start` con formato incorrecto
-  - `scripts/smoke-pledge-management.sh` para una cobertura de modificación/cancelación exitosa en la campaña mutable solo local, utilizando las respuestas de reconstrucción del administrador más verificaciones de deriva de proyección de solo lectura como fuente autorizada de estadísticas/inventario durante el humo.
+  - `scripts/smoke-pledge-management.sh` para una cobertura exitosa de modificación/cancelación en la campaña mutable solo local, utilizando las respuestas de reconstrucción del administrador más verificaciones de deriva de proyección de solo lectura como fuente autorizada de estadísticas/inventario durante el humo.
 El script ahora rota sus IP de solicitud de administrador sintéticas durante esas llamadas de reconstrucción/verificación para que el limitador de velocidad de administrador real no cree un falso negativo en la activación de fusión local.
 - Suite de unidad completa a través de `npm run test:unit`
 - Paquete de seguridad a través de `npm run test:security` contra un trabajador local iniciado automáticamente
 - Suite de seguridad respaldada por Podman a través de `npm run test:security:podman` cuando desea que el sitio/pila de trabajo se inicie y se ejerza en la misma invocación.
+- Verificaciones de artefactos de compilación propios que ejecutan Jekyll, minimizan los activos CSS/JS `_site` generados y verifican que la salida minimizada no tenga ahorros restantes.
+- Rendimiento de páginas públicas y regresiones de uso compartido a través de cobertura de unidades para captación previa de intenciones, carga diferida en tiempo de ejecución del carrito, minificación de activos generados y comportamiento de enlaces compartidos de campañas.
 - Dramaturgo sin cabeza E2E vía `npm run test:e2e:headless`
 
 El script previo a la fusión ahora inicia automáticamente Jekyll con `_config.yml,_config.local.yml` cuando es necesario, de modo que la campaña `smoke-editable` solo local esté disponible durante la activación de la fusión y el arnés Playwright use la misma configuración combinada localmente.
@@ -190,14 +196,28 @@ Si ajusta el comportamiento de lectura del plan gratuito, manténgalos sincroniz
 
 - `cache.live_stats_ttl_seconds`
 - `cache.live_inventory_ttl_seconds`
+- `performance.intent_prefetch_enabled`
+- `performance.intent_prefetch_delay_ms`
+- `performance.intent_prefetch_limit`
 
-Después de cambiar el TTL de la caché localmente, reinicie `./scripts/dev.sh --podman` y vuelva a ejecutar:
+Después de cambiar esos controles de rendimiento o caché localmente, reinicie `./scripts/dev.sh --podman` y vuelva a ejecutar:
 
 ```bash
 npx vitest run tests/unit/live-stats.test.ts tests/unit/manage-page.test.ts tests/unit/config-boot.test.ts
 ```
 
 Esas suites protegen la ruta de lectura combinada `/live/:slug`, el comportamiento de la caché del navegador y el cableado de arranque de configuración del que dependen las bifurcaciones.
+
+Para las superficies públicas de captación previa, enlace compartido y tiempo de ejecución de carrito diferido, utilice:
+
+```bash
+npx vitest run \
+  tests/unit/page-prefetch.test.ts \
+  tests/unit/cart-runtime-loader.test.ts \
+  tests/unit/campaign-page.test.ts \
+  tests/unit/seo-layouts.test.ts \
+  tests/unit/site-asset-minification.test.ts
+```
 
 En GitHub, la misma puerta se ejecuta automáticamente en el flujo de trabajo `Merge Smoke` para solicitudes de extracción dirigidas a `main`.
 
@@ -289,7 +309,7 @@ Antes de reparar una proyección, ahora puede comprobar explícitamente la desvi
 ./scripts/check-projections.sh --podman        # Reuse/start the Podman dev stack first
 ```
 
-Ese script llama a los puntos finales de verificación de deriva del administrador de solo lectura y sale de un valor distinto de cero cuando las proyecciones almacenadas `campaign-pledges:{slug}`, `stats:{slug}` o `tier-inventory:{slug}` ya no coinciden con la verdad del compromiso activo.
+Ese script llama a los puntos finales de verificación de desviación del administrador de solo lectura y sale de un valor distinto de cero cuando las proyecciones almacenadas `campaign-pledges:{slug}`, `stats:{slug}` o `tier-inventory:{slug}` ya no coinciden con la verdad del compromiso activo.
 
 ### Cambios de comportamiento intencionales
 
@@ -433,7 +453,7 @@ Pruebas de penetración para la API Worker. Ubicado en `tests/security/`.
 
 ### Cobertura
 
-|categoría|Pruebas|
+|Categoría|Pruebas|
 |----------|-------|
 |Omisión de autenticación|Omisión de token de desarrollo, validación de token, caducidad, manipulación|
 |Seguridad del webhook|Verificación de firma de franja, manejo de eventos duplicados, inyección de dirección de envío, manejo de webhooks heredados eliminados|

@@ -23,6 +23,9 @@ Si está intentando mantener una bifurcación cómoda en el plan gratuito Cloudf
 
 - `cache.live_stats_ttl_seconds`
 - `cache.live_inventory_ttl_seconds`
+- `performance.intent_prefetch_enabled`
+- `performance.intent_prefetch_delay_ms`
+- `performance.intent_prefetch_limit`
 - `pricing.sales_tax_rate`
 - `shipping.fallback_flat_rate`
 
@@ -50,14 +53,14 @@ El objetivo de sincronización es [`worker/wrangler.toml`](https://github.com/yo
 
 Consulte [CUSTOMIZATION.md](/es/docs/development/customization-guide/) para conocer la superficie de bifurcación sin código admitida, incluidas las configuraciones que son solo para el sitio y las que se reflejan automáticamente en el trabajador.
 
-Valores de trabajador reflejados actuales que vale la pena tratar como parte de la superficie de personalización admitida:
+Valores actuales reflejados de los trabajadores que vale la pena tratar como parte de la superficie de personalización admitida:
 
-- Vars de identidad, URL y SEO: `SITE_TITLE`, `SITE_DESCRIPTION`, `PLATFORM_NAME`, `PLATFORM_COMPANY_NAME`, `PLATFORM_AUTHOR`, `PLATFORM_DEFAULT_CREATOR_NAME`, `SITE_BASE`, `WORKER_BASE`, `CANONICAL_SITE_BASE`, `CANONICAL_WORKER_BASE`, `CORS_ALLOWED_ORIGIN`, `SEO_*`.
+- Identidad, URL y variables SEO: `SITE_TITLE`, `SITE_DESCRIPTION`, `PLATFORM_NAME`, `PLATFORM_COMPANY_NAME`, `PLATFORM_AUTHOR`, `PLATFORM_DEFAULT_CREATOR_NAME`, `SITE_BASE`, `WORKER_BASE`, `CANONICAL_SITE_BASE`, `CANONICAL_WORKER_BASE`, `CORS_ALLOWED_ORIGIN`, `SEO_*`.
 - vars de administración: producción `ADMIN_USERS_JSON`, `ADMIN_TEST_CAMPAIGNS` solo para desarrolladores y `ADMIN_BOOTSTRAP_EMAILS` solo local en `worker/.dev.vars`
 - vars de pago y precios: `STRIPE_PUBLISHABLE_KEY`, `SALES_TAX_RATE`, `FLAT_SHIPPING_RATE`, `DEFAULT_PLATFORM_TIP_PERCENT`, `MAX_PLATFORM_TIP_PERCENT`
 - vars de impuestos y envío: `TAX_PROVIDER`, `TAX_ORIGIN_COUNTRY`, `TAX_USE_REGIONAL_ORIGIN`, `NM_GRT_API_BASE`, `ZIP_TAX_API_BASE`, `SHIPPING_ORIGIN_ZIP`, `SHIPPING_ORIGIN_COUNTRY`, `SHIPPING_FALLBACK_FLAT_RATE`, `FREE_SHIPPING_DEFAULT`, `SHIPPING_DEFAULT_OPTION`, `USPS_*`
 - vars de diseño y correo electrónico: `SUPPORT_EMAIL`, `PLEDGES_EMAIL_FROM`, `UPDATES_EMAIL_FROM`, `EMAIL_*`, `PLATFORM_FOOTER_LOGO_PATH`, `PLATFORM_FAVICON_PATH`, `PLATFORM_DEFAULT_SOCIAL_IMAGE_PATH`
-- vars de campaña-runner, caché y depuración: `CAMPAIGN_RUNNER_*`, `LIVE_STATS_CACHE_TTL_SECONDS`, `LIVE_INVENTORY_CACHE_TTL_SECONDS`, `DEBUG_CONSOLE_LOGGING_ENABLED`, `DEBUG_VERBOSE_CONSOLE_LOGGING`
+- vars de campaña, caché, rendimiento y depuración: `CAMPAIGN_RUNNER_*`, `LIVE_STATS_CACHE_TTL_SECONDS`, `LIVE_INVENTORY_CACHE_TTL_SECONDS`, `INTENT_PREFETCH_ENABLED`, `INTENT_PREFETCH_DELAY_MS`, `INTENT_PREFETCH_LIMIT`, `DEBUG_CONSOLE_LOGGING_ENABLED`, `DEBUG_VERBOSE_CONSOLE_LOGGING`
 
 El repositorio ahora incluye `npm run sync:worker-config`, que sincroniza esos valores reflejados de `_config.yml`/`_config.local.yml` en `worker/wrangler.toml`. Las rutas principales de desarrollo local, prueba, solo para trabajadores y previas a la fusión lo llaman automáticamente. La verificación de artefactos propios de la puerta de fusión también recurre a la ruta de compilación respaldada por Podman cuando el host Bundler/Jekyll no está disponible.
 
@@ -106,7 +109,7 @@ La puerta de fusión ahora divide deliberadamente sus rutas de humo locales:
 
 El arnés Playwright ahora construye un `_site` estático limpio y lo sirve desde un servidor HTTP liviano para comprobaciones del navegador sin cabeza, en lugar de depender de `jekyll serve`.
 
-Nota: el carrito/tiempo de ejecución propios y la interfaz de usuario de pago en el sitio personalizada ahora se tratan como comportamiento integrado de la plataforma, no como opciones de configuración orientadas a la bifurcación. El espacio de nombres de configuración `checkout` ahora es principalmente para configuraciones verdaderamente variables como la clave publicable de Stripe.
+Nota: el carrito/tiempo de ejecución propios y la interfaz de usuario personalizada de pago en el sitio ahora se tratan como comportamientos integrados de la plataforma, no como opciones de configuración orientadas a la bifurcación. El espacio de nombres de configuración `checkout` ahora es principalmente para configuraciones verdaderamente variables como la clave publicable de Stripe.
 
 ## Sistema de diseño
 
@@ -203,6 +206,24 @@ El panel privado en `/admin/` ahora es el editor y la superficie de operaciones 
 
 Consulte [DASHBOARD.md](/es/docs/operations/admin-dashboard/) para obtener la referencia completa del panel.
 
+## Minificación de activos generados
+
+Las implementaciones de páginas de producción mantienen legibles las fuentes del repositorio y minimizan solo el sitio generado. El flujo de trabajo de implementación ejecuta Jekyll y luego ejecuta:
+
+```bash
+npm run assets:minify
+```
+
+Ese script reescribe archivos `_site/assets/**/*.css` y `_site/assets/**/*.js` más pequeños antes de que se cargue el artefacto de GitHub Pages. La minificación de JavaScript es intencionalmente conservadora: elimina los espacios en blanco y simplifica la sintaxis, pero no altera las propiedades ni reescribe los identificadores. CSS se minimiza por completo después de que Sass ya haya producido una salida comprimida.
+
+Utilice esta verificación después de una compilación local de Jekyll cuando cambie la tubería de minificación:
+
+```bash
+npm run assets:minify:check
+```
+
+Cloudflare sigue siendo responsable de la compresión de transferencia en el borde. Mantenga Cloudflare Auto Minify desactivado para que el comportamiento de producción provenga de este paso de compilación controlado por el repositorio en lugar de reescribirlo en el momento del borde.
+
 ## Modelo de contenido de campaña
 
 Cada campaña vive en `_campaigns/<slug>.md`.
@@ -232,7 +253,7 @@ long_content:
 
 El complemento `_plugins/campaign_state.rb` establece el estado en el momento de la compilación. El cron del trabajador activa una reconstrucción del sitio cuando las fechas cruzan la medianoche MT.
 
-**Cumplimiento del horario de montaña**: el complemento Jekyll evalúa las fechas en la zona horaria `America/Denver` antes de compararlas, por lo que las campañas realizan la transición a la medianoche, hora de la montaña, en servidores CI basados ​​en UTC y aún respetan el horario de verano. Los cronogramas de reconstrucción de Worker y GitHub Actions deben tener en cuenta los límites de fecha límite de lanzamiento de MST y MDT.
+**Cumplimiento de la hora de montaña**: el complemento Jekyll evalúa las fechas en la zona horaria `America/Denver` antes de compararlas, por lo que las campañas cambian a medianoche, hora de la montaña en servidores CI basados ​​en UTC y aún respetan el horario de verano. Los cronogramas de reconstrucción de Worker y GitHub Actions deben tener en cuenta los límites de fecha límite/lanzamiento de MST y MDT.
 
 ### Zona horaria del temporizador de cuenta regresiva
 
@@ -321,7 +342,7 @@ Reglas de comportamiento/seguridad de contenido largo:
 **Diseños de galería:**
 - `grid` (predeterminado): cuadrícula de 2 columnas, relación de aspecto 4:3 (1 columna en dispositivos móviles)
 - `logos`: cuadrícula de 2 columnas, relación de aspecto automática con `object-fit: contain` (altura máxima de 200 píxeles): ideal para logotipos de patrocinadores/socios
-- `carousel`: desplazamiento horizontal con ajuste, relación de aspecto 16:9
+- `carousel`: Desplazamiento horizontal con ajuste, relación de aspecto 16:9
 
 ### Metas extendidas
 
@@ -653,7 +674,7 @@ Si Stripe muestra fallas de webhook ("otros errores") para el punto final de pro
 
 ### Tarjetas de prueba de rayas
 
-|tarjeta|Escenario|
+|Tarjeta|Escenario|
 |------|----------|
 |`4242 4242 4242 4242`|Éxito|
 |`4000 0000 0000 3220`|Se requiere 3D Secure|
@@ -1002,7 +1023,7 @@ Utilice `requires_threshold` en el nivel; la plantilla lo oculta hasta `pledged_
 Los Stripe SetupIntents (métodos de pago guardados) no caducan como las retenciones de tarjetas de 7 días, por eso los usamos.
 
 **¿Cómo se cobran las campañas cuando se financian?**
-El trabajador liquida campañas automáticamente mediante un activador cron diario (se ejecuta a medianoche MT). Cuando transcurre el plazo de una campaña y ésta ha cumplido su objetivo, el Trabajador:
+El trabajador liquida campañas automáticamente a través de un activador cron diario (se ejecuta a medianoche MT). Cuando transcurre el plazo de una campaña y ésta ha cumplido su objetivo, el Trabajador:
 1. Agrega todas las promesas activas **por correo electrónico dentro de una campaña** (un cargo por partidario por campaña, no por fila de promesa)
 2. Utiliza el método de pago actualizado más recientemente para cada partidario
 3. Crea un Stripe PaymentIntent por partidario para el monto total de su campaña.
@@ -1192,11 +1213,11 @@ Las plantillas de campañas públicas ahora también obtienen más Chrome compar
 
 Los correos electrónicos de soporte de los trabajadores también consumen el catálogo de configuración regional compartido y el `preferredLang` persistente adjunto para pagar y administrar los flujos, por lo que los correos electrónicos de soporte localizados y los enlaces `/manage/` / `/community/:slug/` localizados permanecen alineados con el modelo de configuración regional del sitio.
 
-El conmutador de idioma de pie de página compartido también conserva la cadena de consulta y el hash actuales, lo cual es importante para rutas tokenizadas como `/manage/?t=...` y enlaces de comunidad de seguidores.
+El selector de idioma de pie de página compartido también conserva la cadena de consulta y el hash actuales, lo cual es importante para rutas tokenizadas como `/manage/?t=...` y enlaces de comunidad de seguidores.
 
 Límite importante:
 
-- un archivo YAML de configuración regional es la fuente principal para Chrome del sitio compartido, copia de la interfaz de usuario en tiempo de ejecución y copia del correo electrónico del asistente del trabajador.
+- un archivo YAML local es la fuente principal para Chrome del sitio compartido, copia de la interfaz de usuario en tiempo de ejecución y copia del correo electrónico del colaborador.
 - No es un cambio mágico de traducción de sitio completo por sí solo.
 - Las páginas de formato largo y otras rutas con mucho contenido aún necesitan archivos fuente localizados cuando desea una copia de la página traducida real.
 

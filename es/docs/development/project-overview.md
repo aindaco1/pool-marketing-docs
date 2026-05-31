@@ -49,7 +49,7 @@ Eso significa que el límite real para la mayoría de las bifurcaciones suele se
 
 ## Forma de desarrollo local
 
-La ruta local de baja fricción recomendada ahora usa Podman:
+La ruta local de baja fricción recomendada ahora utiliza Podman:
 
 - `./scripts/dev.sh --podman` arranca a Jekyll y al Trabajador en contenedores desarraigados
 - `npm run podman:doctor` comprueba primero la preparación del host
@@ -187,5 +187,6 @@ Para conocer los límites actuales de Cloudflare, consulte:
 8. **La seguridad del contenido debe mantenerse en el momento del procesamiento**: las auditorías de creación ayudan, pero la protección real proviene de la desinfección del enlace Markdown en tiempo de ejecución y la validación de inserción del origen exacto.
 9. **Los enlaces mágicos deben requerir filas de compromiso reales**: la validez del token por sí sola no es suficiente; Los registros de promesas faltantes no deberían cerrarse.
 10. **Chrome localizado debe permanecer compartido**: los controles de la página de la campaña y la copia de estado que pertenecen a la plataforma, no al creador, deben fluir a través del catálogo de configuración regional compartido para que las plantillas públicas, la interfaz de usuario en tiempo de ejecución y los correos electrónicos de los seguidores no se separen.
+11. **El trabajo de rendimiento debe permanecer estático primero**: prefiera la salida estable de Jekyll, la minificación de activos generados, la carga en tiempo de ejecución diferida y la captación previa conservadora solo pública antes de agregar complejidad al cliente.
 
 ---

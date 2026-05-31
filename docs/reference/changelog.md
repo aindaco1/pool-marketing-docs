@@ -7,6 +7,14 @@ render_with_liquid: false
 
 # Changelog
 
+## v1.0.2 - 2026-05-31
+
+- Added public-page performance work with static campaign progress rendering, lazy first-party cart runtime loading, and conservative same-origin intent prefetching.
+- Added generated asset minification for Pages builds through `npm run assets:minify` and `npm run assets:minify:check`, while keeping source assets readable and leaving transfer compression to Cloudflare.
+- Added campaign share links for Bluesky, X, Threads, Facebook, SMS, and email with localized URLs, local icon fallbacks, and state-aware CTA text where supported.
+- Exposed **Settings -> Advanced performance** controls for public intent prefetching and mirrored `performance.intent_prefetch_*` into Worker-facing `INTENT_PREFETCH_*` values.
+- Updated public about/terms copy, creator checklist guidance, performance documentation, testing notes, and release metadata for v1.0.2.
+
 ## v1.0.1 - 2026-05-29
 
 - Added actual Stripe balance transaction fee/net capture for newly charged pledges and a super-admin backfill path for older charged pledge records.

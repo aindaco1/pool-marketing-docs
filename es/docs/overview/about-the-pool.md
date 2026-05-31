@@ -13,7 +13,7 @@ lang: es
 
 ## Compromiso de todo o nada
 
-Cuando respaldas un proyecto en The Pool, tu tarjeta se guarda de forma segura a través de Stripe, pero **no se te cobra hasta que la campaña alcanza su objetivo**. Si el proyecto no alcanza su objetivo de financiación antes de la fecha límite, nunca se realizará ningún cargo en su tarjeta.
+Cuando respaldas un proyecto en The Pool, tu tarjeta se guarda de forma segura a través de Stripe, pero **no se te cobra hasta que la campaña alcance su objetivo**. Si el proyecto no alcanza su objetivo de financiación antes de la fecha límite, nunca se realizará ningún cargo en su tarjeta.
 
 Esto protege tanto a los patrocinadores como a los creadores: solo paga por los proyectos que realmente pueden alcanzar su objetivo de financiación.
 
@@ -33,7 +33,7 @@ En lugar de pedirle que cree una contraseña, The Pool utiliza enlaces de correo
 - **Cada compromiso tiene su propio enlace**: su correo electrónico de confirmación incluye un enlace de administración para ese compromiso de campaña específico.
 - **Utilice el enlace de administración para realizar cambios**: desde allí puede revisar su contribución, ajustarla mientras la campaña aún está activa, cancelarla o actualizar su tarjeta guardada.
 - **Los enlaces de la comunidad son solo para seguidores**: si una campaña tiene habilitada la votación comunitaria, el correo electrónico también incluye un enlace de la comunidad de seguidores para esa campaña.
-- **Guarde el correo electrónico**: el enlace es la forma más rápida de regresar a su compromiso más adelante. Si abre la página de la comunidad en un nuevo navegador o después de que se restablece la sesión de su navegador, usar el enlace de correo electrónico nuevamente es la forma más segura de volver a ingresar.
+- **Guarde el correo electrónico**: el enlace es la forma más rápida de regresar a su compromiso más adelante. Si abre la página de la comunidad en un nuevo navegador o después de que se restablece la sesión del navegador, usar el enlace de correo electrónico nuevamente es la forma más segura de volver a ingresar.
 
 Si realizó una copia de seguridad de varias campañas en un solo pago, aún podrá administrarlas por separado después.
 
@@ -51,6 +51,16 @@ Algunos pagos pueden incluir complementos de plataforma, complementos de campañ
 
 Varias promesas del mismo correo electrónico se combinan en un solo cargo cuando la misma campaña tiene éxito. Los consejos y complementos de plataforma opcionales apoyan al equipo que opera la plataforma y no cuentan para el objetivo de financiación de un proyecto.
 
+## Compartir y actuar
+
+Las páginas de la campaña están diseñadas para ser fáciles de compartir sin convertir los flujos de seguidores privados en enlaces públicos.
+
+- **Enlaces para compartir integrados**: las páginas de campaña incluyen objetivos para compartir para Bluesky, X, Threads, Facebook, SMS y correo electrónico. Esos enlaces utilizan la URL de la campaña pública y una copia con reconocimiento de estado donde el destino admite el texto del mensaje.
+- **Vistas previas enriquecidas**: los enlaces de campañas públicas emiten metadatos de Open Graph y Twitter, además de imágenes de tarjetas compartidas de campaña fáciles de rastrear, para que las plataformas sociales puedan mostrar una vista previa útil.
+- **Los enlaces privados permanecen privados**: los enlaces de gestión de compromiso, comunidad de seguidores, pago, administración y tokenizados permanecen fuera de la intención de indexación y uso compartido público.
+- **Primera carga más rápida**: las barras de progreso de la campaña y los hitos muestran posiciones estables antes de que finalice JavaScript, el CSS/JS generado se minimiza para la producción y el tiempo de ejecución completo del carrito espera hasta que haya un estado del carrito o la intención del colaborador.
+- **Captación previa conservadora**: las páginas públicas pueden capturar previamente la probable navegación pública del mismo origen después de pasar el cursor, enfocar o tocar, pero se excluyen los enlaces privados, de pago, de administración, de apoyo, externos y de consultas confidenciales.
+
 ## Para creadores
 
 The Pool está diseñado para cineastas y equipos creativos que necesitan una campaña que puedan ejecutar sin enviar seguidores a través de un laberinto de cuentas, complementos o herramientas desconectadas.
@@ -61,8 +71,10 @@ The Pool está diseñado para cineastas y equipos creativos que necesitan una ca
 - **Complementos de plataforma opcionales**: ofrezca productos de la plataforma junto con promesas cuando esté habilitado, con inventario y manejo de envío separados que no cuentan para el objetivo de financiamiento de una campaña.
 - **Complementos de campaña**: vende productos o extras específicos de la campaña en el mismo flujo de compromiso y, al mismo tiempo, mantienes los ingresos, el inventario y los envíos vinculados a esa campaña.
 - **Panel de administración privado**: brinde a los miembros confiables del equipo un espacio de trabajo enfocado en la configuración de la campaña, el contenido de la página, las recompensas, las actualizaciones, las decisiones, los informes, los seguidores, los análisis y los enlaces de marketing.
+- **Cargas de medios al panel**: organice imágenes, videos y audio del diario y la campaña con vistas previas y luego publíquelos en rutas de recursos de la campaña a través del flujo de trabajo revisable normal.
 - **Informes cuando los necesite**: obtenga una vista previa y descargue archivos CSV de compromiso o cumplimiento desde el panel, con correos electrónicos opcionales de los ejecutores de campaña durante las campañas activas.
 - **Inserciones para promoción**: genere widgets de campañas en vivo para sitios asociados, páginas de prensa, carteras de creadores o páginas de patrocinadores.
+- **Compartir enlaces y vistas previas sociales**: brinde a los seguidores objetivos claros para compartir en la plataforma mientras mantiene las imágenes y descripciones de vista previa social alineadas con el estado actual de la campaña.
 - **Fases de producción**: muestra a los seguidores qué partes del presupuesto pueden ayudar a financiar.
 - **Metas ambiciosas**: haga visibles los hitos creativos adicionales a medida que aumenta el soporte.
 - **Decisiones de la comunidad**: invita a los patrocinadores a votar sobre opciones creativas seleccionadas.
@@ -75,7 +87,7 @@ The Pool está diseñado para cineastas y equipos creativos que necesitan una ca
 
 ## La tecnología
 
-The Pool es una pila de financiación colectiva estática. Las páginas públicas se generan con anticipación, mientras que el trabajo del servidor confiable permanece detrás de los trabajadores de Cloudflare en cuanto a precios, promesas, acceso de administrador, datos de cumplimiento y liquidación.
+The Pool es una pila de financiación colectiva estática. Las páginas públicas se generan con anticipación, mientras que el trabajo del servidor confiable permanece detrás de Cloudflare Workers para determinar precios, promesas, acceso de administrador, datos de cumplimiento y liquidación.
 
 |Área|¿Qué lo ejecuta?|Por qué es importante para las horquillas|
 |------|--------------|--------------------------|
@@ -87,6 +99,8 @@ The Pool es una pila de financiación colectiva estática. Las páginas pública
 |Correo electrónico|[Reenviar](https://resend.com)|Los correos electrónicos de confirmación, los enlaces de apoyo, las actualizaciones de campañas y las notificaciones de cargos utilizan una ruta de correo electrónico transaccional.|
 
 La pila está diseñada para ser práctica para equipos pequeños y tenedores. Cada servicio importante tiene un nivel gratuito y la plataforma evita el trabajo dinámico innecesario siempre que sea posible. Las páginas de campañas públicas son estáticas, los datos públicos en vivo se combinan y se almacenan en caché del navegador, y el trabajador está reservado para operaciones que necesitan confianza del lado del servidor.
+
+El modelo de rendimiento de la página pública permanece estático primero. El sitio minimiza los artefactos de compilación generados, permite que Cloudflare maneje la compresión de transferencia, reserva espacio estable para el progreso de la campaña y los medios, y retrasa el código de carrito propio más pesado hasta que realmente se necesita.
 
 El panel de administración sigue la misma disciplina de costos. La navegación, el filtrado, las vistas previas, los análisis, los informes y los borradores locales evitan las escrituras en KV. Las escrituras duraderas ocurren solo cuando un administrador guarda explícitamente el estado del panel o publica un cambio de campaña/plataforma.
 
