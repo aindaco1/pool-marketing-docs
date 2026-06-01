@@ -69,25 +69,25 @@ home:
     crowd_body: "Use <strong>tiers, custom amounts, campaign add-ons, diary updates,</strong> and <strong>community decisions</strong> to keep your audience engaged."
     crowd_link: Explore creator workflows
   platform_heading: What ships in the starter
-  platform_intro: ""
+  platform_intro: "The starter now reflects the <strong>v1.0.3</strong> source: first-party checkout, role-scoped admin, configurable tax and shipping, launch reminders, localized embeds, and performance-minded media handling."
   platform_cards:
     checkout_title: First-party Stripe checkout
-    checkout_body: "<strong>A browser-owned cart, Worker-verified totals, on-site payment UI, saved payment methods, tax-aware checkout,</strong> and <strong>multi-campaign bundle support</strong>."
+    checkout_body: "<strong>A browser-owned cart with lazy runtime loading, Worker-verified totals, on-site Stripe payment UI, saved payment methods, tax/shipping/tip-aware pricing,</strong> and <strong>multi-campaign bundle support</strong>."
     checkout_link: Review the pledge worker
-    funding_title: All-or-nothing funding model
-    funding_body: "<strong>Campaign state, deadline handling, post-campaign support,</strong> and the <strong>funding logic</strong> needed to save cards now and charge later."
+    funding_title: All-or-nothing campaign lifecycle
+    funding_body: "<strong>Upcoming, live, and post-campaign states, configurable timezone deadlines, opt-in launch reminders, stretch goals,</strong> and the <strong>save-now/charge-later settlement flow</strong>."
     funding_link: Read the platform overview
     merch_title: Add-ons, tax, shipping, and tips
-    merch_body: "<strong>Campaign add-ons, platform merch, configurable tax providers, USPS-backed shipping quotes,</strong> and a <strong>platform tip</strong> model that stays consistent across checkout, emails, and reports."
+    merch_body: "<strong>Platform merch and campaign add-ons with inventory, configurable tax providers, USPS-backed shipping with fallbacks,</strong> and <strong>tip-aware totals</strong> across checkout, emails, reports, and fulfillment exports."
     merch_link: See merch and add-ons
-    community_title: Backer updates and community features
-    community_body: "<strong>Production diary entries, announcement emails, community decisions,</strong> and <strong>campaign-runner reports</strong> for campaigns that keep evolving after launch."
+    community_title: Updates, sharing, and supporter management
+    community_body: "<strong>Production diary entries, announcements, community decisions, order-scoped magic-link pledge management, campaign share links,</strong> and <strong>campaign-runner reports</strong>."
     community_link: Explore campaign workflows
-    customization_title: Fork-first customization
-    customization_body: "<strong>Structured config, design tokens, i18n routing, embed support, themed Stripe Elements,</strong> and <strong>branded supporter emails</strong> so forks can adapt the platform without rewriting core behavior."
+    customization_title: Fork-first admin and customization
+    customization_body: "<strong>Role-scoped admin dashboard, structured config, design tokens, i18n routing, hosted embeds, themed Stripe Elements, branded supporter emails,</strong> and <strong>source-preserving media uploads</strong>."
     customization_link: Open customization docs
-    operations_title: Security, accessibility, and testing
-    operations_body: "<strong>Security hardening, accessibility baselines, smoke checks, Playwright coverage, localized SEO metadata,</strong> and <strong>operational docs</strong> for running a <strong>safer implementation</strong>."
+    operations_title: Performance, security, accessibility, and testing
+    operations_body: "<strong>Lazy cart bootstrapping, responsive WebP media variants, deferred video embeds, asset minification, security hardening, accessibility baselines, Playwright coverage, SEO metadata,</strong> and <strong>operational docs</strong>."
     operations_link: Review operations docs
 support:
   eyebrow: Support The Pool

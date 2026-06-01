@@ -93,39 +93,39 @@
         {% assign platform_intro_lang = site.lang | default: 'en' %}
         {% assign platform_intro = site.data.i18n[platform_intro_lang].home.platform_intro %}
         {% if platform_intro != blank %}
-        <p data-i18n-html="home.platform_intro">The current codebase already covers the parts that usually turn a crowdfunding build into <strong>custom product work</strong>.</p>
+        <p data-i18n-html="home.platform_intro">The starter now reflects the <strong>v1.0.3</strong> source: first-party checkout, role-scoped admin, configurable tax and shipping, launch reminders, localized embeds, and performance-minded media handling.</p>
         {% endif %}
       </div>
 
       <div class="stack-grid">
         <article class="feature-card">
           <h3 data-i18n="home.platform_cards.checkout_title">First-party Stripe checkout</h3>
-          <p data-i18n-html="home.platform_cards.checkout_body">A browser-owned cart, Worker-verified totals, on-site payment UI, saved payment methods, and deferred charging after a successful campaign.</p>
+          <p data-i18n-html="home.platform_cards.checkout_body">A browser-owned cart with lazy runtime loading, Worker-verified totals, on-site Stripe payment UI, saved payment methods, tax/shipping/tip-aware pricing, and multi-campaign bundle support.</p>
           <a href="{{ '/docs/operations/worker/' | relative_url }}" data-i18n="home.platform_cards.checkout_link">Review the pledge worker</a>
         </article>
         <article class="feature-card">
-          <h3 data-i18n="home.platform_cards.funding_title">All-or-nothing funding model</h3>
-          <p data-i18n-html="home.platform_cards.funding_body">Campaign state, deadline handling, post-campaign support, and the funding logic needed to save cards now and charge later.</p>
+          <h3 data-i18n="home.platform_cards.funding_title">All-or-nothing campaign lifecycle</h3>
+          <p data-i18n-html="home.platform_cards.funding_body">Upcoming, live, and post-campaign states, configurable timezone deadlines, opt-in launch reminders, stretch goals, and the save-now/charge-later settlement flow.</p>
           <a href="{{ '/docs/overview/platform/' | relative_url }}" data-i18n="home.platform_cards.funding_link">Read the platform overview</a>
         </article>
         <article class="feature-card">
-          <h3 data-i18n="home.platform_cards.merch_title">Add-ons, shipping, and tips</h3>
-          <p data-i18n-html="home.platform_cards.merch_body">Campaign add-ons, platform merch, USPS-backed shipping quotes, and a platform tip model that stays consistent across checkout, emails, and reports.</p>
+          <h3 data-i18n="home.platform_cards.merch_title">Add-ons, tax, shipping, and tips</h3>
+          <p data-i18n-html="home.platform_cards.merch_body">Platform merch and campaign add-ons with inventory, configurable tax providers, USPS-backed shipping with fallbacks, and tip-aware totals across checkout, emails, reports, and fulfillment exports.</p>
           <a href="{{ '/docs/development/add-on-products/' | relative_url }}" data-i18n="home.platform_cards.merch_link">See merch and add-ons</a>
         </article>
         <article class="feature-card">
-          <h3 data-i18n="home.platform_cards.community_title">Backer updates and community features</h3>
-          <p data-i18n-html="home.platform_cards.community_body">Production diary entries, announcement emails, community decisions, and supporter-facing flows for campaigns that keep evolving after launch.</p>
+          <h3 data-i18n="home.platform_cards.community_title">Updates, sharing, and supporter management</h3>
+          <p data-i18n-html="home.platform_cards.community_body">Production diary entries, announcements, community decisions, order-scoped magic-link pledge management, campaign share links, and campaign-runner reports.</p>
           <a href="{{ '/docs/development/workflows/' | relative_url }}" data-i18n="home.platform_cards.community_link">Explore campaign workflows</a>
         </article>
         <article class="feature-card">
-          <h3 data-i18n="home.platform_cards.customization_title">Fork-first customization</h3>
-          <p data-i18n-html="home.platform_cards.customization_body">Structured config, design tokens, i18n routing, embed support, and dashboard-based editing so forks can adapt the platform without rewriting core behavior.</p>
+          <h3 data-i18n="home.platform_cards.customization_title">Fork-first admin and customization</h3>
+          <p data-i18n-html="home.platform_cards.customization_body">Role-scoped admin dashboard, structured config, design tokens, i18n routing, hosted embeds, themed Stripe Elements, branded supporter emails, and source-preserving media uploads.</p>
           <a href="{{ '/docs/development/customization-guide/' | relative_url }}" data-i18n="home.platform_cards.customization_link">Open customization docs</a>
         </article>
         <article class="feature-card">
-          <h3 data-i18n="home.platform_cards.operations_title">Security, accessibility, and testing</h3>
-          <p data-i18n-html="home.platform_cards.operations_body">Security hardening, accessibility work, smoke checks, Playwright coverage, SEO baselines, and operational docs for running a <strong>safer implementation</strong>.</p>
+          <h3 data-i18n="home.platform_cards.operations_title">Performance, security, accessibility, and testing</h3>
+          <p data-i18n-html="home.platform_cards.operations_body">Lazy cart bootstrapping, responsive WebP media variants, deferred video embeds, asset minification, security hardening, accessibility baselines, Playwright coverage, SEO metadata, and operational docs.</p>
           <a href="{{ '/docs/operations/security/' | relative_url }}" data-i18n="home.platform_cards.operations_link">Review operations docs</a>
         </article>
       </div>

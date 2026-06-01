@@ -69,25 +69,25 @@ home:
     crowd_body: "Usa <strong>tiers, montos personalizados, add-ons de campaña, diary updates</strong> y <strong>community decisions</strong> para mantener a tu audiencia involucrada."
     crowd_link: Explorar workflows de creadores
   platform_heading: Lo que ya trae el starter
-  platform_intro: ""
+  platform_intro: "El starter ya refleja el código <strong>v1.0.3</strong>: checkout propio, admin con roles, impuestos y envíos configurables, recordatorios de lanzamiento, embeds localizados y manejo de media pensado para performance."
   platform_cards:
     checkout_title: Checkout propio con Stripe
-    checkout_body: "<strong>Un carrito propio del navegador, totales verificados por el Worker, UI de pago dentro del sitio, métodos guardados y checkout con impuestos según destino,</strong> además de <strong>soporte para bundles multicampaña</strong>."
+    checkout_body: "<strong>Un carrito propio del navegador con carga lazy del runtime, totales verificados por el Worker, UI de pago Stripe dentro del sitio, métodos guardados y precios con impuestos, envíos y propinas,</strong> además de <strong>soporte para bundles multicampaña</strong>."
     checkout_link: Revisar el worker de pledges
-    funding_title: Modelo todo o nada
-    funding_body: "<strong>Estado de campaña, manejo de deadlines y apoyo post-campaña,</strong> junto con la <strong>lógica de financiamiento</strong> necesaria para guardar tarjetas ahora y cobrar después."
+    funding_title: Ciclo de campaña todo o nada
+    funding_body: "<strong>Estados upcoming, live y post-campaign, deadlines con timezone configurable, recordatorios opt-in de lanzamiento, stretch goals</strong> y el <strong>flujo de settlement para guardar ahora y cobrar después</strong>."
     funding_link: Leer el resumen de la plataforma
     merch_title: Add-ons, impuestos, envíos y propinas
-    merch_body: "<strong>Add-ons de campaña, merch de plataforma, proveedores de impuestos configurables y cotizaciones respaldadas por USPS,</strong> además de un modelo de <strong>propina de plataforma</strong> consistente entre checkout, emails y reportes."
+    merch_body: "<strong>Merch de plataforma y add-ons de campaña con inventario, proveedores de impuestos configurables y envíos USPS con fallbacks,</strong> además de <strong>totales con propina</strong> consistentes entre checkout, emails, reportes y exports de fulfillment."
     merch_link: Ver merch y add-ons
-    community_title: Actualizaciones para backers y funciones de comunidad
-    community_body: "<strong>Entradas de production diary, announcement emails, community decisions</strong> y <strong>reportes para campaign runners</strong> en campañas que siguen creciendo después del lanzamiento."
+    community_title: Updates, compartir y gestión de supporters
+    community_body: "<strong>Entradas de production diary, announcements, community decisions, gestión de pledges con magic links por orden, links para compartir campañas</strong> y <strong>reportes para campaign runners</strong>."
     community_link: Explorar workflows de campaña
-    customization_title: Personalización pensada para forks
-    customization_body: "<strong>Config estructurada, design tokens, rutas i18n, soporte de embeds y Stripe Elements tematizado,</strong> además de <strong>emails para supporters alineados con tu marca</strong> para adaptar la plataforma sin reescribir el comportamiento central."
+    customization_title: Admin y personalización pensados para forks
+    customization_body: "<strong>Admin con roles, config estructurada, design tokens, rutas i18n, embeds hospedados, Stripe Elements tematizado, emails para supporters alineados con tu marca</strong> y <strong>uploads de media que preservan el source</strong>."
     customization_link: Abrir documentación de personalización
-    operations_title: Seguridad, accesibilidad y pruebas
-    operations_body: "<strong>Hardening de seguridad, baselines de accesibilidad, smoke checks, cobertura con Playwright y metadata SEO localizada,</strong> además de <strong>documentación operativa</strong> para correr una <strong>implementación más segura</strong>."
+    operations_title: Performance, seguridad, accesibilidad y pruebas
+    operations_body: "<strong>Bootstrap lazy del carrito, variantes WebP responsivas, embeds de video diferidos, minificación de assets, hardening de seguridad, baselines de accesibilidad, cobertura con Playwright, metadata SEO</strong> y <strong>documentación operativa</strong>."
     operations_link: Revisar documentación de operaciones
 support:
   title: Apoya a The Pool
