@@ -13,7 +13,7 @@ This roadmap is organized as a release history of the real project states we act
 
 **v1.0.3**
 
-The v1.0 feature set and release-hardening pass are complete. v1.0.3 adds PageSpeed-driven public performance fixes, responsive WebP media variants with a `640w` mobile rung, deferred YouTube hero embeds, manual full media reprocessing, and source-preserving dashboard media optimization updates.
+The v1.0 feature set and release-hardening pass are complete. v1.0.3 adds configurable platform timezone handling, opt-in launch reminders for upcoming campaigns, mobile campaign-page performance refinements, and an hourly scheduler heartbeat that avoids baseline Workers KV write churn.
 
 ## Release History
 
@@ -195,19 +195,21 @@ New in this version:
 - admin email sign-in keeps the existing Turnstile challenge after a login attempt and uses the shared dashboard status-message styling for more prominent auth feedback
 - the public Campaign Creator Checklist and Spanish checklist describe creator-facing changes from v0.9.5 through v1.0.2, including share-link planning and dashboard media uploads
 
-### v1.0.3 — Responsive Media And PageSpeed Patch
+### v1.0.3 — Platform Timezone, Launch Reminders, And Media Workflow Hardening
 
-This point release followed the PageSpeed review by reducing avoidable public-page work and making dashboard-uploaded media cheaper to serve without changing campaign Markdown.
+This point release made campaign lifecycle timing configurable for forks, added launch-reminder collection for upcoming campaigns, and tightened media/performance operations for public campaign pages.
 
 New in this version:
 
-- remote-video campaign pages no longer preload hidden fallback hero images, tier images opt into lazy loading and async decoding, default brand logos reserve intrinsic dimensions, and public pages avoid eager Stripe preconnects before cart intent
-- dashboard media optimization generates responsive WebP image variants for PNG, JPEG, and GIF source images at `320w`, `480w`, `640w`, `960w`, and `1600w` while preserving original uploads as source-of-truth fallbacks
-- campaign, tier, card, gallery, and content-image templates serve generated responsive variants when they exist without changing visible page structure or author-facing media paths
-- the **Optimize dashboard media** workflow supports manual `scope=all` runs so existing campaign media can be reprocessed through the same pipeline used for new dashboard uploads
+- super admins can set the default platform timezone from supported IANA timezone options, with Jekyll campaign state, browser countdowns, Worker deadline checks, campaign-runner reports, settlement checks, and admin date/time surfaces sharing the same `platform.timezone` / `PLATFORM_TIMEZONE` model
+- upcoming campaign pages can collect one-time launch reminder signups through a slim localized form with Turnstile, rate limiting, campaign/email dedupe, signed unsubscribe links, and bounded dispatch jobs
+- launch reminder delivery reuses the existing Resend email module, sender configuration, locale catalog, and pacing instead of adding a second email integration
+- the minute-level Worker scheduler now persists `cron:lastRun` hourly instead of every minute, keeping cron health visible without consuming the free-tier KV write budget as baseline churn
+- `_config.local.yml` can blank the reminder Turnstile site key so local development hides the widget consistently with local admin sign-in
+- the Podman media optimizer now includes `optipng` and `gifsicle` for local PNG/GIF source compression through the same repository media workflow
+- responsive image generation now includes a `640w` WebP rung between the existing `480w` and `960w` variants for mobile campaign pages
 - YouTube campaign hero videos render local poster/play facades and defer the remote iframe until supporter play intent
-- generated responsive WebP derivatives are skipped during source optimization so the pipeline does not recursively re-encode browser assets
-- release, creator, and operator docs cover the v1.0.3 performance/media workflow
+- the public creator checklists now describe the creator-facing v1.0.3 changes, including launch reminders, platform timezone expectations, deferred YouTube hero embeds, and responsive WebP variants
 
 ## Future Features
 
@@ -218,8 +220,6 @@ Work still planned after `1.0.3` includes:
 - richer campaign marketing tools such as announcement composition and consent-aware abandoned-cart follow-up
 - different prices per add-on variation
 - email-protected campaign preview pages for super admins, campaign users, and invited reviewers
-- launch reminder signups for upcoming campaigns with consent, unsubscribe handling, and bounded KV writes
-- configurable platform default timezone instead of assuming Mountain Time everywhere
 
 ## Known Issues
 

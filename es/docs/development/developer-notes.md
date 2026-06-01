@@ -14,7 +14,7 @@ lang: es
 - **Tiempo de ejecución del carrito propio**: carrito propiedad del navegador, revisión del pago y flujo de pago de Stripe en el sitio
 - **Cloudflare Worker**: API de backend, almacenamiento de promesas (KV), envío de correo electrónico
 - **Stripe** — Sesiones de pago en modo de configuración para el paso de pago en el sitio, además de PaymentIntents para cargos posteriores
-- **Reenviar**: correos electrónicos transaccionales (confirmación del colaborador, hitos, errores)
+- **Reenviar**: correos electrónicos transaccionales (confirmación del colaborador, recordatorios de lanzamiento, hitos, fallas)
 - **Panel de administración privado**: edición, configuración, complementos, informes, análisis, seguidores y herramientas de marketing de campañas basadas en roles
 
 ### Perillas de plano libre aptas para horquillas
@@ -26,6 +26,7 @@ Si está intentando mantener una bifurcación cómoda en el plan gratuito Cloudf
 - `performance.intent_prefetch_enabled`
 - `performance.intent_prefetch_delay_ms`
 - `performance.intent_prefetch_limit`
+- `launch_reminders.enabled`
 - `pricing.sales_tax_rate`
 - `shipping.fallback_flat_rate`
 
@@ -45,6 +46,7 @@ La configuración ahora utiliza un modelo de configuración estructurado en [`_c
 - `debug`
 - `add_ons`
 - `checkout`
+- `launch_reminders`
 - `cache`
 
 Trate `_config.local.yml` como un archivo de anulación fino para las URL de host local y otras diferencias locales de la máquina, no como un segundo lugar para duplicar la configuración de bifurcación canónica.
@@ -53,14 +55,14 @@ El objetivo de sincronización es [`worker/wrangler.toml`](https://github.com/yo
 
 Consulte [CUSTOMIZATION.md](/es/docs/development/customization-guide/) para conocer la superficie de bifurcación sin código admitida, incluidas las configuraciones que son solo para el sitio y las que se reflejan automáticamente en el trabajador.
 
-Valores actuales reflejados de los trabajadores que vale la pena tratar como parte de la superficie de personalización admitida:
+Valores de trabajador reflejados actuales que vale la pena tratar como parte de la superficie de personalización admitida:
 
-- Identidad, URL y variables SEO: `SITE_TITLE`, `SITE_DESCRIPTION`, `PLATFORM_NAME`, `PLATFORM_COMPANY_NAME`, `PLATFORM_AUTHOR`, `PLATFORM_DEFAULT_CREATOR_NAME`, `SITE_BASE`, `WORKER_BASE`, `CANONICAL_SITE_BASE`, `CANONICAL_WORKER_BASE`, `CORS_ALLOWED_ORIGIN`, `SEO_*`.
+- identidad, URL, zona horaria y variables SEO: `SITE_TITLE`, `SITE_DESCRIPTION`, `PLATFORM_NAME`, `PLATFORM_COMPANY_NAME`, `PLATFORM_AUTHOR`, `PLATFORM_DEFAULT_CREATOR_NAME`, `PLATFORM_TIMEZONE`, `SITE_BASE`, `WORKER_BASE`, `CANONICAL_SITE_BASE`, `CANONICAL_WORKER_BASE`, `CORS_ALLOWED_ORIGIN`, `SEO_*`
 - vars de administración: producción `ADMIN_USERS_JSON`, `ADMIN_TEST_CAMPAIGNS` solo para desarrolladores y `ADMIN_BOOTSTRAP_EMAILS` solo local en `worker/.dev.vars`
 - vars de pago y precios: `STRIPE_PUBLISHABLE_KEY`, `SALES_TAX_RATE`, `FLAT_SHIPPING_RATE`, `DEFAULT_PLATFORM_TIP_PERCENT`, `MAX_PLATFORM_TIP_PERCENT`
 - vars de impuestos y envío: `TAX_PROVIDER`, `TAX_ORIGIN_COUNTRY`, `TAX_USE_REGIONAL_ORIGIN`, `NM_GRT_API_BASE`, `ZIP_TAX_API_BASE`, `SHIPPING_ORIGIN_ZIP`, `SHIPPING_ORIGIN_COUNTRY`, `SHIPPING_FALLBACK_FLAT_RATE`, `FREE_SHIPPING_DEFAULT`, `SHIPPING_DEFAULT_OPTION`, `USPS_*`
 - vars de diseño y correo electrónico: `SUPPORT_EMAIL`, `PLEDGES_EMAIL_FROM`, `UPDATES_EMAIL_FROM`, `EMAIL_*`, `PLATFORM_FOOTER_LOGO_PATH`, `PLATFORM_FAVICON_PATH`, `PLATFORM_DEFAULT_SOCIAL_IMAGE_PATH`
-- vars de campaña, caché, rendimiento y depuración: `CAMPAIGN_RUNNER_*`, `LIVE_STATS_CACHE_TTL_SECONDS`, `LIVE_INVENTORY_CACHE_TTL_SECONDS`, `INTENT_PREFETCH_ENABLED`, `INTENT_PREFETCH_DELAY_MS`, `INTENT_PREFETCH_LIMIT`, `DEBUG_CONSOLE_LOGGING_ENABLED`, `DEBUG_VERBOSE_CONSOLE_LOGGING`
+- vars de campaña-runner, recordatorio de lanzamiento, caché, rendimiento y depuración: `CAMPAIGN_RUNNER_*`, `LAUNCH_REMINDERS_ENABLED`, `LIVE_STATS_CACHE_TTL_SECONDS`, `LIVE_INVENTORY_CACHE_TTL_SECONDS`, `INTENT_PREFETCH_ENABLED`, `INTENT_PREFETCH_DELAY_MS`, `INTENT_PREFETCH_LIMIT`, `DEBUG_CONSOLE_LOGGING_ENABLED`, `DEBUG_VERBOSE_CONSOLE_LOGGING`
 
 El repositorio ahora incluye `npm run sync:worker-config`, que sincroniza esos valores reflejados de `_config.yml`/`_config.local.yml` en `worker/wrangler.toml`. Las rutas principales de desarrollo local, prueba, solo para trabajadores y previas a la fusión lo llaman automáticamente. La verificación de artefactos propios de la puerta de fusión también recurre a la ruta de compilación respaldada por Podman cuando el host Bundler/Jekyll no está disponible.
 
@@ -68,7 +70,7 @@ Al agregar una nueva configuración visible para el trabajador, actualice `scrip
 
 El desarrollo del trabajador local ahora apunta al Nodo 24 para que coincida con las acciones de GitHub. La imagen de Podman Worker tiene como valor predeterminado el Nodo 24, mientras que los scripts de ayuda del host prefieren el Nodo 24 y recurren al Nodo 22 en lugar de forzar la antigua ruta del Nodo 20 que Wrangler 4 ya no admite. El trabajador compartido `compatibility_date` debe moverse deliberadamente con las actualizaciones de Wrangler/tiempo de ejecución para que el comportamiento de Miniflare local y el comportamiento de los trabajadores implementados permanezcan alineados.
 
-Los secretos de USPS OAuth están intencionalmente separados de esa superficie de configuración reflejada. Mantenga `USPS_CLIENT_SECRET` en Secretos de trabajador o `worker/.dev.vars`, no en `_config.yml`.
+Los secretos de USPS OAuth, Turnstile y firma de tokens están intencionalmente separados de esa superficie de configuración reflejada. Mantenga `USPS_CLIENT_SECRET`, `TURNSTILE_SECRET_KEY`, `LAUNCH_REMINDER_TURNSTILE_SECRET_KEY` y `LAUNCH_REMINDER_TOKEN_SECRET` en Secretos de trabajador o `worker/.dev.vars`, no en `_config.yml`.
 
 Los fundamentos de SEO ahora siguen un modelo similar:
 
@@ -109,13 +111,13 @@ La puerta de fusión ahora divide deliberadamente sus rutas de humo locales:
 
 El arnés Playwright ahora construye un `_site` estático limpio y lo sirve desde un servidor HTTP liviano para comprobaciones del navegador sin cabeza, en lugar de depender de `jekyll serve`.
 
-Nota: el carrito/tiempo de ejecución propios y la interfaz de usuario personalizada de pago en el sitio ahora se tratan como comportamientos integrados de la plataforma, no como opciones de configuración orientadas a la bifurcación. El espacio de nombres de configuración `checkout` ahora es principalmente para configuraciones verdaderamente variables como la clave publicable de Stripe.
+Nota: el carrito/tiempo de ejecución propios y la interfaz de usuario de pago en el sitio personalizada ahora se tratan como comportamiento integrado de la plataforma, no como opciones de configuración orientadas a la bifurcación. El espacio de nombres de configuración `checkout` ahora es principalmente para configuraciones verdaderamente variables como la clave publicable de Stripe.
 
 ## Sistema de diseño
 
 El lenguaje visual predeterminado aún comienza con el aspecto editorial más tranquilo de Dust Wave, pero el repositorio actual ya no está limitado a un tema de marca codificado:
 
-- **Tokens de tema**: `design.*` en `_config.yml` alimenta variables CSS generadas en `assets/theme-vars.css`
+- **Tokens de tema**: `design.*` en `_config.yml` alimenta variables CSS generadas en `assets/main.css`; `assets/theme-vars.css` sigue siendo un artefacto de compatibilidad
 - **Estilo de pago**: el sidecar Stripe Elements en el sitio ahora lee la misma superficie simbólica para colores, radio y fuente del cuerpo.
 - **Marca de correo electrónico del colaborador**: un subconjunto seleccionado de `platform.*` + `design.*` se refleja en el entorno del trabajador para que el estilo del logotipo/fuente/color/botón permanezca alineado en el correo electrónico.
 - **Espaciado**: el sistema Sass todavía utiliza internamente un ritmo de diseño basado en 8px
@@ -125,7 +127,7 @@ El lenguaje visual predeterminado aún comienza con el aspecto editorial más tr
 
 ```
 assets/
-├── main.scss              # Entry point with font imports
+├── main.scss              # Entry point with generated theme vars and Sass partial imports
 ├── partials/              # 14 active modular partials
 │   ├── _variables.scss    # Colors, spacing, typography tokens
 │   ├── _mixins.scss       # Breakpoints, button patterns
@@ -149,7 +151,7 @@ assets/
     └── cart-provider.js   # First-party cart/runtime provider
 ```
 
-Jekyll compila `main.scss` → `main.css` automáticamente.
+Jekyll compila `main.scss` → `main.css` automáticamente. Las hojas de estilo de fuentes externas se vinculan desde el encabezado del documento en lugar de importarse desde Sass, por lo que se descubren sin encadenar a través de `main.css`.
 
 ## Jekyll incluye Gotcha
 
@@ -202,7 +204,7 @@ El panel privado en `/admin/` ahora es el editor y la superficie de operaciones 
 - Los secretos permanecen en Secretos del trabajador o se ignoran `.dev.vars`; el panel solo muestra el estado configurado/faltante.
 - Los informes, los análisis, la exploración de los asistentes, las vistas previas de contenido, el filtrado de tablas y las descargas de CSV son flujos del panel de solo lectura y no deben agregar escrituras KV.
 - Las cargas de imágenes/vídeo/audio utilizan los directorios de activos existentes, normalizan los nombres de archivos y luego publican a través de la misma ruta respaldada por GitHub que el campo que actualizan.
-- La optimización de los medios está deliberadamente fuera del Trabajador. Utilice `npm run media:optimize` localmente, `npm run media:optimize:check` antes de fusionar cuando los medios cargados cambien, o deje que el flujo de trabajo de GitHub Actions `Optimize dashboard media` se ejecute después de que las cargas del panel lleguen a `main`. El flujo de trabajo puede ejecutarse manualmente con `scope=all` para reprocesar medios existentes.
+- La optimización de los medios está deliberadamente fuera del Trabajador. Use `npm run media:optimize` localmente, `npm run media:optimize:podman` cuando falten optimizadores nativos del host, `npm run media:optimize:check` o `npm run media:optimize:check:podman` antes de fusionar cuando los medios cargados cambiaron, o deje que el flujo de trabajo de GitHub Actions `Optimize dashboard media` se ejecute después de que las cargas del panel lleguen a `main`. El flujo de trabajo se puede enviar manualmente con `scope=all` para reprocesar los medios existentes.
 
 Consulte [DASHBOARD.md](/es/docs/operations/admin-dashboard/) para obtener la referencia completa del panel.
 
@@ -234,9 +236,9 @@ Cada campaña vive en `_campaigns/<slug>.md`.
 layout: campaign
 title: "CAMPAIGN NAME"
 slug: campaign-slug
-start_date: 2025-01-15   # Campaign goes live at midnight MT on this date
+start_date: 2025-01-15   # Campaign goes live at midnight in the platform timezone
 goal_amount: 25000
-goal_deadline: 2025-12-20  # Campaign ends at 11:59 PM MT on this date
+goal_deadline: 2025-12-20  # Campaign ends at 11:59:59 PM in the platform timezone
 charged: false
 # pledged_amount not needed - live-stats.js fetches from KV and enables late support dynamically
 hero_image: /assets/images/hero.jpg
@@ -251,17 +253,17 @@ long_content:
 - Entre fechas → `live` (se aceptan promesas)
 - Después de `goal_deadline` → `post` (campaña cerrada)
 
-El complemento `_plugins/campaign_state.rb` establece el estado en el momento de la compilación. El cron del trabajador activa una reconstrucción del sitio cuando las fechas cruzan la medianoche MT.
+El complemento `_plugins/campaign_state.rb` establece el estado en el momento de la compilación. El programador de trabajadores activa una reconstrucción del sitio cuando las fechas cruzan la medianoche en la zona horaria de la plataforma configurada.
 
-**Cumplimiento de la hora de montaña**: el complemento Jekyll evalúa las fechas en la zona horaria `America/Denver` antes de compararlas, por lo que las campañas cambian a medianoche, hora de la montaña en servidores CI basados ​​en UTC y aún respetan el horario de verano. Los cronogramas de reconstrucción de Worker y GitHub Actions deben tener en cuenta los límites de fecha límite/lanzamiento de MST y MDT.
+**Cumplimiento de la zona horaria de la plataforma**: el complemento Jekyll, las cuentas regresivas del navegador y la lógica de fecha límite del trabajador usan `platform.timezone`, reflejado en el trabajador como `PLATFORM_TIMEZONE`. Debe ser una zona horaria compatible con IANA y el valor predeterminado es `America/Denver` para compatibilidad.
 
 ### Zona horaria del temporizador de cuenta regresiva
 
-El temporizador de cuenta regresiva de la página de la campaña utiliza **Hora de montaña (MT)** con detección automática de horario de verano:
-- **Próximas campañas**: cuenta regresiva hasta la medianoche MT (00:00:00) en `start_date`
-- **Campañas en vivo**: Cuenta regresiva hasta las 11:59:59 p.m. MT en `goal_deadline`
+El temporizador de cuenta regresiva de la página de la campaña utiliza la zona horaria configurada de la plataforma con manejo automático del horario de verano:
+- **Próximas campañas**: cuenta regresiva hasta la medianoche (00:00:00) en `start_date`
+- **Campañas en vivo**: cuenta regresiva hasta las 11:59:59 p.m. en `goal_deadline`
 
-El temporizador usa `Intl.DateTimeFormat` con `timeZone: 'America/Denver'` y `timeZoneName: 'short'` para detectar si cada fecha cae en MST (UTC-7) o MDT (UTC-6) y luego aplica el desplazamiento correcto. Este enfoque funciona desde cualquier zona horaria del usuario y sigue automáticamente las reglas del horario de verano de EE. UU. sin codificar fechas de transición.
+El temporizador utiliza `Intl.DateTimeFormat` con `platform.timezone` para convertir límites de campaña de solo fecha en instantes absolutos. Esto funciona desde cualquier zona horaria de usuario y sigue las reglas de horario de verano de la zona horaria seleccionada sin codificar fechas de transición.
 
 El trabajador (`worker/src/index.js` y `worker/src/campaigns.js`) utiliza el mismo enfoque basado en `Intl` para el cumplimiento de los plazos y el calendario de liquidación.
 
@@ -297,7 +299,7 @@ Entrecomilla cadenas con caracteres especiales para evitar problemas de análisi
 - complementos de plataforma: `assets/images/add-ons/`
 - complementos de campaña: `assets/images/campaign-add-ons/`
 
-Mantenga el manejo de carga sin pérdidas siempre que sea posible. La optimización de imágenes reduce bytes solo cuando el resultado optimizado es menor y genera variantes WebP responsivas para plantillas públicas sin reescribir las referencias de imagen fuente. El conjunto actual de derivados públicos de imagen es `320w`, `480w`, `640w`, `960w` y `1600w`; los derivados responsivos generados se omiten durante la optimización de origen para que el pipeline no recodifique recursivamente sus propios activos de navegador. La conversión de vídeo genera derivados WebM de alta calidad junto al archivo fuente cargado y reescribe las referencias literales de campaña/configuración a la ruta WebM después de que exista el derivado; Los vídeos de origen permanecen en el repositorio para revertirlos o volverlos a codificar en el futuro.
+Mantenga el manejo de carga sin pérdidas siempre que sea posible. La optimización de imágenes reduce los bytes solo cuando el resultado optimizado es más pequeño y genera variantes WebP responsivas para plantillas públicas sin reescribir las referencias de las imágenes de origen. El conjunto derivado de imágenes públicas actual es `320w`, `480w`, `640w`, `960w` y `1600w`; Los derivados responsivos generados se omiten durante la optimización de la fuente para que la canalización no vuelva a codificar recursivamente sus propios activos del navegador. La conversión de vídeo genera derivados WebM de alta calidad junto al archivo fuente cargado y reescribe las referencias literales de campaña/configuración a la ruta WebM después de que exista el derivado; Los vídeos de origen permanecen en el repositorio para revertirlos o volverlos a codificar en el futuro.
 
 ### Nivel destacado
 
@@ -426,7 +428,7 @@ Las entradas del diario admiten bloques de contenido enriquecido (igual que `lon
 
 ```yaml
 diary:
-  - date: 2026-01-15T09:00:00-07:00  # ISO 8601 with timezone (MT)
+  - date: 2026-01-15T09:00:00-07:00  # ISO 8601 with timezone offset
     title: "Day 14 — Principal Photography"
     phase: production  # fundraising | pre-production | production | post-production | distribution
     content:
@@ -444,8 +446,8 @@ diary:
 ```
 
 **Formato de fecha:** Utilice ISO 8601 con desplazamiento de zona horaria para una clasificación adecuada:
-- MST (invierno): `2026-01-15T09:00:00-07:00`
-- MDT (verano): `2025-10-15T14:00:00-06:00`
+- Ejemplo de invierno: `2026-01-15T09:00:00-07:00`
+- Ejemplo de verano: `2025-10-15T14:00:00-06:00`
 
 Las entradas sin un componente de tiempo (`2026-01-15`) solo muestran la fecha. Entradas con visualización de la hora "15 de enero de 2026 · 9:00 a. m.".
 
@@ -880,6 +882,8 @@ worker/src/
 ├── checkout-intent-do.js # Durable Object nonce coordinator
 ├── tier-inventory-do.js  # Durable Object coordinator for scarce tier claims
 ├── email.js              # Resend email templates
+├── launch-reminders.js   # Campaign-scoped reminder signup, unsubscribe, dispatch jobs
+├── turnstile.js          # Shared Cloudflare Turnstile verification helper
 ├── github.js             # Trigger GitHub Pages rebuilds
 ├── provider-config.js    # Runtime/provider flags
 ├── stats.js              # KV-based stats + inventory cache, milestones
@@ -898,28 +902,32 @@ worker/src/
 |`GET /pledge?token=...`|Obtenga detalles de la promesa para la página de administración|
 |`POST /pledge/cancel`|Cancelar una contribución activa|
 |`POST /pledge/modify`|Cambiar nivel/cantidad|
+|`POST /launch-reminders`|Guarde un recordatorio de suscripción para una próxima campaña|
+|`GET /launch-reminders/unsubscribe?t=...`|Suprimir un recordatorio de lanzamiento relacionado con la campaña|
 |`GET /stats/:slug`|Totales de compromisos en vivo para una campaña|
 |`POST /admin/settle/:slug`|Cargar manualmente todas las promesas financiadas|
 
 ### Activador cron (establecimiento automático)
 
-El trabajador ha programado activadores a las **6:00 a. m. UTC** y **7:00 a. m. UTC**, por lo que las comprobaciones del ciclo de vida se ejecutan a medianoche, hora de la montaña, tanto en MDT como en MST:
+El trabajador utiliza un activador programado a nivel de un minuto. Las tareas individuales verifican la zona horaria de la plataforma configurada y los marcadores de idempotencia antes de realizar un trabajo duradero:
 
 ```toml
 # wrangler.toml
 [triggers]
-crons = ["0 6 * * *", "0 7 * * *"]
+crons = ["* * * * *"]
 ```
 
 **Qué hace:**
-1. Enumera todas las campañas con `goal_deadline` y `goal_amount`.
-2. Para cada campaña en la que haya pasado la fecha límite (en MT) y se haya cumplido el objetivo:
+1. Drena los trabajos de envío de recordatorios de lanzamiento en cola en lotes locales
+2. Enumera todas las campañas con `goal_deadline` y `goal_amount`.
+3. Pone en cola el envío de un recordatorio de lanzamiento único cuando se activa una próxima campaña.
+4. Para cada campaña en la que haya pasado la fecha límite en la zona horaria de la plataforma y se haya cumplido el objetivo:
    - Comprueba si hay promesas activas no cargadas
    - Si es así, ejecuta la misma lógica de liquidación que `/admin/settle/:slug`.
-3. Agrega promesas por correo electrónico dentro de cada campaña para que cada partidario reciba UN cargo por campaña.
-4. Envía correos electrónicos de pago exitoso/pago fallido según corresponda
+5. Agrega promesas por correo electrónico dentro de cada campaña para que cada partidario reciba UN cargo por campaña.
+6. Envía correos electrónicos de pago exitoso/pago fallido según corresponda
 
-**Nota sobre la zona horaria:** Los horarios UTC duplicados son intencionales. Uno se alinea con la medianoche MDT, el otro se alinea con la medianoche MST. La lógica del acuerdo/Estado todavía verifica las fechas de campaña antes de realizar cualquier trabajo duradero, por lo que la campaña fuera de temporada es inofensiva.
+**Nota sobre la zona horaria:** El programador se ejecuta cada minuto, pero el trabajo del ciclo de vida se limita a una pequeña ventana de medianoche en la zona horaria de la plataforma y se reclama una vez por fecha local. Los trabajos de envío de recordatorios de lanzamiento pueden agotarse en cualquier tic programado después de que se reclame la transición en vivo, y los reintentos de correo electrónico de apoyo aún se ejecutan cada 15 minutos dentro del mismo controlador programado.
 
 ### Módulo de fichas
 
@@ -1023,7 +1031,7 @@ Utilice `requires_threshold` en el nivel; la plantilla lo oculta hasta `pledged_
 Los Stripe SetupIntents (métodos de pago guardados) no caducan como las retenciones de tarjetas de 7 días, por eso los usamos.
 
 **¿Cómo se cobran las campañas cuando se financian?**
-El trabajador liquida campañas automáticamente a través de un activador cron diario (se ejecuta a medianoche MT). Cuando transcurre el plazo de una campaña y ésta ha cumplido su objetivo, el Trabajador:
+El trabajador liquida automáticamente las campañas a través del controlador programado una vez por día local después de la medianoche en la zona horaria de la plataforma. Cuando transcurre el plazo de una campaña y ésta ha cumplido su objetivo, el Trabajador:
 1. Agrega todas las promesas activas **por correo electrónico dentro de una campaña** (un cargo por partidario por campaña, no por fila de promesa)
 2. Utiliza el método de pago actualizado más recientemente para cada partidario
 3. Crea un Stripe PaymentIntent por partidario para el monto total de su campaña.
@@ -1033,7 +1041,7 @@ El trabajador liquida campañas automáticamente a través de un activador cron 
 Las promesas canceladas nunca se cobran. También puede activar la liquidación manualmente a través de `POST /admin/settle/:slug`.
 
 **¿En qué zona horaria están las fechas límite?**
-Todas las fechas límite utilizan **Hora de la Montaña (MST/MDT)**. Una campaña con `goal_deadline: 2025-12-20` finaliza a las 11:59:59 p.m. MST de esa fecha. Los activadores de cron se ejecutan tanto a las 6:00 a. m. UTC como a las 7:00 a. m. UTC, por lo que las comprobaciones diarias cubren la medianoche MDT y la medianoche MST. El temporizador de cuenta atrás en las páginas de la campaña detecta automáticamente el horario de verano y utiliza las -06:00 (MDT) durante los meses de verano y las -07:00 (MST) el resto del año.
+Todos los plazos utilizan la zona horaria configurada de la plataforma. Una campaña con `goal_deadline: 2025-12-20` finaliza a las 23:59:59 de esa fecha en `platform.timezone`. El valor predeterminado es `America/Denver`, por lo que las bifurcaciones existentes mantienen el comportamiento anterior hasta que un superadministrador cambia la zona horaria.
 
 ---
 
@@ -1213,11 +1221,11 @@ Las plantillas de campañas públicas ahora también obtienen más Chrome compar
 
 Los correos electrónicos de soporte de los trabajadores también consumen el catálogo de configuración regional compartido y el `preferredLang` persistente adjunto para pagar y administrar los flujos, por lo que los correos electrónicos de soporte localizados y los enlaces `/manage/` / `/community/:slug/` localizados permanecen alineados con el modelo de configuración regional del sitio.
 
-El selector de idioma de pie de página compartido también conserva la cadena de consulta y el hash actuales, lo cual es importante para rutas tokenizadas como `/manage/?t=...` y enlaces de comunidad de seguidores.
+El conmutador de idioma de pie de página compartido también conserva la cadena de consulta y el hash actuales, lo cual es importante para rutas tokenizadas como `/manage/?t=...` y enlaces de comunidad de seguidores.
 
 Límite importante:
 
-- un archivo YAML local es la fuente principal para Chrome del sitio compartido, copia de la interfaz de usuario en tiempo de ejecución y copia del correo electrónico del colaborador.
+- un archivo YAML de configuración regional es la fuente principal para Chrome del sitio compartido, copia de la interfaz de usuario en tiempo de ejecución y copia del correo electrónico del asistente del trabajador.
 - No es un cambio mágico de traducción de sitio completo por sí solo.
 - Las páginas de formato largo y otras rutas con mucho contenido aún necesitan archivos fuente localizados cuando desea una copia de la página traducida real.
 
@@ -1356,7 +1364,7 @@ done
 
 El flujo de liquidación utiliza **invocaciones por lotes autoencadenadas** para mantenerse dentro del límite de 50 subsolicitudes de Cloudflare Worker:
 
-1. **Cron** (`scheduled()`) se ejecuta diariamente a medianoche MT y se envía a `/admin/settle-dispatch/:slug`
+1. **Programador** (`scheduled()`) solicita una ejecución diaria después de la medianoche en la zona horaria de la plataforma y luego envía el trabajo de liquidación
 2. **Envío** lee el índice de promesas de campaña y procesa 6 promesas por lote a través de `/admin/settle-batch`
 3. **Cada lote** es una invocación de trabajador separada con su propio presupuesto de solicitud secundaria
 4. **Se autoencadena** hasta que se procesen todas las promesas, luego establece el marcador `campaign-charged:{slug}`
@@ -1370,7 +1378,7 @@ El flujo de liquidación utiliza **invocaciones por lotes autoencadenadas** para
 Ese índice sigue siendo la vía rápida preferida para informes, liquidaciones y lecturas administrativas, pero las estadísticas y el recálculo de inventario ahora lo tratan como un estado de proyección reparable en lugar de una verdad intocable. Si se desvía de los registros de compromiso activos subyacentes, la ruta de reconstrucción lo reescribe automáticamente.
 |`settlement-job:{slug}`|Seguimiento del progreso del lote (cursor, totales)|
 |`campaign-charged:{slug}`|Marcador de finalización de la liquidación (evita la reubicación)|
-|`cron:lastRun`|Heartbeat: marca de tiempo de la última ejecución cron|
+|`cron:lastRun`|Latido del programador cada hora: última marca de tiempo de ejecución cron persistente|
 |`cron:lastError`|Detalles del último error cron (TTL de 7 días)|
 
 **Comprobaciones de deriva de proyección:**

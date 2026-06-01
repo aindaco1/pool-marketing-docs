@@ -28,6 +28,7 @@ npm run test:security      # Security pen tests (Worker must be running)
 npm run test:security:podman  # Security pen tests with a one-shot Podman-backed stack
 npm run test:security:staging  # Security tests against a staging worker, if you maintain one
 npm run media:optimize:check   # Check dashboard-uploaded media for pending optimization/responsive variants/derivatives
+npm run media:optimize:check:podman  # Same media check inside the Podman toolchain
 ./scripts/test-checkout.sh --podman  # Manual checkout helper against the Podman stack
 ./scripts/test-e2e.sh --podman       # Automated browser helper against the Podman stack
 npm run test:usps          # Live USPS credential + quote sanity check
@@ -36,7 +37,7 @@ npm test                   # Run all tests
 
 `./scripts/test-e2e.sh --podman` es ahora la ruta del navegador totalmente automatizada. Utilice `./scripts/test-checkout.sh --podman` cuando desee específicamente realizar el pago manualmente en un navegador real.
 
-La ruta de prueba del trabajador local ahora prefiere el nodo 24, que coincide con las acciones de GitHub. Los scripts del host recurren al Nodo 22 si una bifurcación lo tiene instalado, pero ya no fuerzan el Nodo 20 porque Wrangler 4 requiere el Nodo 22 o posterior.
+La ruta de prueba del trabajador local ahora prefiere el Nodo 24, que coincide con las Acciones de GitHub. Los scripts del host recurren al Nodo 22 si una bifurcación lo tiene instalado, pero ya no fuerzan el Nodo 20 porque Wrangler 4 requiere el Nodo 22 o posterior.
 
 Para la sección del navegador centrada en la accesibilidad, utilice:
 
@@ -69,13 +70,13 @@ Pruebas rápidas y aisladas para funciones JS en `tests/unit/`.
 |--------|-----------------|
 |`live-stats.js`|`formatMoney`, `updateProgressBar`, `updateMarkerState`, `checkTierUnlocks`, `checkLateSupport`, `updateSupportItems`, `updateTierInventory`|
 |`platform-tip`|Desinfección de propinas, derivación del porcentaje de propinas, cálculo del monto de la propina|
-|`pledge-management`|Cumplimiento de plazos según el horario de verano (MST/MDT a través de Intl), cancelación/modificación/validación del método de pago, transiciones de estado de compromiso, independencia de múltiples campañas, envío en registros de compromiso, forma de respuesta de API|
+|`pledge-management`|Cumplimiento de plazos según el horario de verano a través de la zona horaria configurada de la plataforma, cancelación/modificación/validación del método de pago, transiciones de estado de compromiso, independencia de múltiples campañas, envío en registros de compromiso, forma de respuesta API|
 |`settlement`|Agregación de cargos (incluidas tarifas de envío), éxito o fracaso del pago, flujo de reintento, modo de prueba, casos extremos, liquidación por lotes, índice de compromiso de campaña, envío de liquidación, envío en liquidación, latido cron|
 |`email-broadcasts`|Extracción de extractos del diario (con truncamiento de puntos suspensivos), ayudas de seguimiento del diario/hitos, lógica de verificación de hitos, limitación de velocidad|
-|`email-tip`|Desgloses de correos electrónicos de soporte conscientes de las sugerencias en correos electrónicos de confirmación/modificados/cancelados/fallidos/cargados|
+|`email-tip`|Desgloses de correos electrónicos de soporte conscientes de las sugerencias en correos electrónicos de confirmación/modificados/cancelados/fallidos/cargados, además del enrutamiento de correos electrónicos de recordatorio de lanzamiento a través del remitente de actualizaciones compartidas|
 |`votes`|Almacenamiento/descopia de votos basado en correo electrónico, recuperación del estado de los votos, resultados de campaña, agregación de resultados|
 |`admin-dashboard`|Seguimiento del estado sucio del panel, serialización de configuraciones, normalización de contenido/editor, cargas de medios por etapas, análisis/relleno de tarifas reales de Stripe, ayudas de URL de referencia, utilidades de soporte responsivo/i18n|
-|`campaign-page`|Construcción de URL de enlaces compartidos, preservación segura de consultas, texto compartido con reconocimiento de estado, controles de campañas públicas y comportamiento de las páginas de campaña sensibles al SEO|
+|`campaign-page`|Construcción de URL de enlaces compartidos, preservación segura de consultas, texto compartido con reconocimiento de estado, envío de formularios de recordatorio de lanzamiento, controles de campañas públicas y comportamiento de la página de campaña sensible a SEO|
 |`page-prefetch`|Listas permitidas de rutas públicas del mismo origen, exclusiones de consultas confidenciales, protecciones de red, manejo de demoras/límites y creación de sugerencias de captación previa de documentos|
 |`cart-runtime-loader`|Arranque diferido en tiempo de ejecución del carrito, detección de carrito persistente/de recuperación, carga idempotente y activadores de intención del usuario|
 |`site-asset-minification`|Comportamiento de minificación CSS/JS generado `_site` y casos de falla del modo de verificación|
@@ -109,12 +110,13 @@ Esto se ejecuta:
   - `tests/unit/worker-business-logic.test.ts`
   - `tests/unit/worker-ops-integrity.test.ts`
   - `tests/unit/stats-pagination.test.ts`
+Estas Worker suites cubren la validación del registro de recordatorio de lanzamiento, la supresión de cancelación de suscripción, la idempotencia de envío en cola y la ruta de envío de reenvío compartida.
 - Regresiones del filtro de seguridad de contenido en `tests/unit/content-safety-filter.test.ts`, incluidos esquemas de enlaces Markdown inseguros y validación estricta de URL incrustadas estructuradas
 - Cobertura de auditoría de contenido de campaña en `tests/unit/campaign-content-security.test.ts`, incluido el subconjunto HTML en línea permitido y el rechazo de etiquetas sin procesar no permitidas.
 - Cobertura de serialización de inventario de niveles de objetos duraderos en `tests/unit/tier-inventory-do.test.ts`
 - Guiones de humo locales contra la campaña mutable de solo prueba:
   - `scripts/test-worker.sh` para verificaciones de contrato de sitio/trabajador y verificación de `/checkout-intent/start` con formato incorrecto
-  - `scripts/smoke-pledge-management.sh` para una cobertura exitosa de modificación/cancelación en la campaña mutable solo local, utilizando las respuestas de reconstrucción del administrador más verificaciones de deriva de proyección de solo lectura como fuente autorizada de estadísticas/inventario durante el humo.
+  - `scripts/smoke-pledge-management.sh` para una cobertura de modificación/cancelación exitosa en la campaña mutable solo local, utilizando las respuestas de reconstrucción del administrador más verificaciones de deriva de proyección de solo lectura como fuente autorizada de estadísticas/inventario durante el humo.
 El script ahora rota sus IP de solicitud de administrador sintéticas durante esas llamadas de reconstrucción/verificación para que el limitador de velocidad de administrador real no cree un falso negativo en la activación de fusión local.
 - Suite de unidad completa a través de `npm run test:unit`
 - Paquete de seguridad a través de `npm run test:security` contra un trabajador local iniciado automáticamente
@@ -135,11 +137,13 @@ El reciente refuerzo de seguridad que ahora cubre la puerta incluye:
 - Neutralización del esquema de enlaces de Markdown en contenido de formato largo
 - Validación de origen exacto para incrustaciones estructuradas (`spotify`, `youtube`, `vimeo`)
 - reservas serializadas de inventario de nivel limitado al inicio del pago y confirmación en el momento de persistencia exitosa
+- recordatorio de lanzamiento Verificación de torniquete, almacenamiento de registro deduplicado, supresión de cancelación de suscripción con alcance y envío idempotente
 
 La optimización de medios está intencionalmente separada de la puerta previa a la fusión porque depende de herramientas nativas como FFmpeg y optimizadores de imágenes. Cuando una rama incluye medios cargados en el panel o agregados manualmente, ejecute:
 
 ```bash
 npm run media:optimize:check
+npm run media:optimize:check:podman # use when host-native media tools are missing
 ```
 
 Los valores predeterminados del trabajador local en [worker/wrangler.toml](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) ahora coinciden con la configuración propia. `./scripts/dev.sh --podman` ahora genera automáticamente un `CHECKOUT_INTENT_SECRET` local en `worker/.dev.vars` si falta, por lo que los nuevos inicios de pago local no fallan al cerrarse en un secreto de desarrollo no inicializado.
@@ -309,7 +313,7 @@ Antes de reparar una proyección, ahora puede comprobar explícitamente la desvi
 ./scripts/check-projections.sh --podman        # Reuse/start the Podman dev stack first
 ```
 
-Ese script llama a los puntos finales de verificación de desviación del administrador de solo lectura y sale de un valor distinto de cero cuando las proyecciones almacenadas `campaign-pledges:{slug}`, `stats:{slug}` o `tier-inventory:{slug}` ya no coinciden con la verdad del compromiso activo.
+Ese script llama a los puntos finales de verificación de deriva del administrador de solo lectura y sale de un valor distinto de cero cuando las proyecciones almacenadas `campaign-pledges:{slug}`, `stats:{slug}` o `tier-inventory:{slug}` ya no coinciden con la verdad del compromiso activo.
 
 ### Cambios de comportamiento intencionales
 
@@ -811,7 +815,7 @@ Después de completar un flujo de contribución:
    - `pledgeStatus: "active"`
    - `charged: false`
 
-### Puntos finales de gestión de promesas de prueba
+### Puntos finales de gestión de compromisos de prueba
 
 1. **Obtenga detalles de la promesa (requiere un token válido):**
    ```bash
@@ -876,6 +880,7 @@ Esperado: devuelve `{ success: true }` y activa el flujo de trabajo de GitHub.
 
 - [] Cambiar Stripe a claves en vivo
 - [] Verifique el dominio del remitente de reenvío utilizado por `PLEDGES_EMAIL_FROM` y `UPDATES_EMAIL_FROM` (para esta implementación, `site.example.com`)
+- [] Si los recordatorios de inicio o los widgets de administración de Turnstile están habilitados, verifique que las claves públicas del sitio y los secretos coincidentes de Worker Turnstile estén configurados.
 - [] Implementar trabajador: `wrangler deploy`
 - [] Configurar el webhook de Stripe en el panel → `https://worker.example.com/webhooks/stripe`
 - [ ] Pruebe con una contribución real de $1
@@ -896,6 +901,9 @@ Esperado: devuelve `{ success: true }` y activa el flujo de trabajo de GitHub.
 - `MAGIC_LINK_SECRET`: cadena aleatoria de más de 32 caracteres para la firma de tokens HMAC
 - `RESEND_API_KEY` — Reenviar clave API para correos electrónicos de soporte (re_...)
 - `ADMIN_SECRET`: cadena aleatoria para puntos finales de API de administración
+- `TURNSTILE_SECRET_KEY`: Secreto compartido de Cloudflare Turnstile cuando el inicio de sesión de administrador o los widgets de recordatorio de inicio están habilitados
+- `LAUNCH_REMINDER_TURNSTILE_SECRET_KEY` — Secreto de torniquete específico de recordatorio opcional si no se utiliza el secreto compartido
+- `LAUNCH_REMINDER_TOKEN_SECRET`: secreto de token de cancelación de suscripción de recordatorio opcional; vuelve a `MAGIC_LINK_SECRET`
 - `GITHUB_TOKEN`: GitHub PAT con acceso a repositorio/flujo de trabajo para acciones de publicación del panel y activadores de reconstrucción; opcional solo cuando no estás probando la publicación respaldada por GitHub
 - `ADMIN_BOOTSTRAP_EMAILS`: lista de correo electrónico de superadministrador local/de recuperación opcional para iniciar sesión en el panel; El desarrollador local lee esto de `worker/.dev.vars`.
 - `ADMIN_USERS_JSON`: lista de usuarios administradores de inicialización/recuperación opcional reflejada desde `_config.yml`; Panel de control Las ediciones de los usuarios se guardan en KV en `admin-users:v1`.
@@ -918,5 +926,5 @@ Esperado: devuelve `{ success: true }` y activa el flujo de trabajo de GitHub.
 ### Reenviar panel
 - **Dominio**: Verifique la parte del dominio de las direcciones del remitente configuradas en `_config.yml`/Worker env. Para esta implementación, `PLEDGES_EMAIL_FROM` es `The Pool <pledges@site.example.com>`, por lo que Resend debe autorizar `site.example.com`.
 - **Clave API**: Crear clave con permiso de "Acceso de envío"
-- Se utiliza para: todos los correos electrónicos de compromiso dirigidos a los seguidores (confirmación, acceso a la comunidad/administración, actualizaciones del diario, anuncios, éxito de los cargos, errores de pago, cancelaciones)
+- Se utiliza para: todos los correos electrónicos de compromiso dirigidos a los seguidores (confirmación, administración/acceso a la comunidad, recordatorios de lanzamiento, actualizaciones del diario, anuncios, informes, éxito de carga, fracaso de pago, cancelaciones)
 - Nota del desarrollador local: incluso cuando `SITE_BASE` apunta a `127.0.0.1`, las imágenes de correo electrónico incrustadas aún usan la base de recursos pública `https://site.example.com`, por lo que las vistas previas de la bandeja de entrada no muestran URL de imágenes de host local rotas.

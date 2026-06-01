@@ -8,7 +8,7 @@ lang: es
 
 # The Pool - Trabajador comprometido
 
-Cloudflare Worker se encarga de la canonicalización del pago propio, la integración de Stripe, la gestión de promesas, la autenticación de seguidores con ámbito de pedido y las API del panel de administración del navegador privado.
+Cloudflare Worker se encarga de la canonicalización de pagos propios, la integración de Stripe, la gestión de promesas, la autenticación de seguidores con alcance de pedidos, los recordatorios de lanzamiento de próximas campañas y las API del panel de administración del navegador privado.
 
 Para el desarrollo local diario, prefiera la ruta Podman de raíz de repositorio:
 
@@ -23,7 +23,7 @@ La ruta Podman de raíz de repositorio ejecuta el trabajador con el nodo 24, que
 
 Si trabaja específicamente desde el directorio `worker/`, los scripts Worker npm ahora ejecutan automáticamente el espejo de configuración primero para que `worker/wrangler.toml` permanezca alineado con la raíz del repositorio `_config.yml`/`_config.local.yml`.
 
-Trate `_config.local.yml` como un archivo de anulación únicamente para valores específicos del host local. La configuración canónica de orientación hacia la bifurcación debe residir en la raíz del repositorio `_config.yml`, y el espejo del trabajador seguirá desde allí.
+Trate `_config.local.yml` como un archivo de solo anulación para valores específicos del host local. La configuración canónica de orientación hacia la bifurcación debe residir en la raíz del repositorio `_config.yml`, y el espejo del trabajador seguirá desde allí.
 
 La entrega de informes de campaña sigue el mismo patrón:
 
@@ -68,9 +68,11 @@ El trabajador ahora también escribe resúmenes de observabilidad ligeros en `PL
 - Resultados de entrega del webhook de Stripe e historial de entrega reciente
 - tiempos de reloj de pared muestreados para un pequeño conjunto de rutas de mutación utilizadas para sintonizar la tapa `cpu_ms`
 
-Los informes de ejecución de campaña ahora utilizan ejecuciones programadas dedicadas a las 7:00 a. m., hora de la montaña. El trabajador mantiene esa ventana compatible con MT en el código, mientras que `wrangler.toml` incluye las entradas cron UTC emparejadas necesarias para cubrir tanto MST como MDT de forma segura.
+Los informes de los ejecutores de campaña utilizan la zona horaria de la plataforma configurada. `PLATFORM_TIMEZONE` tiene como valor predeterminado `America/Denver`, y el programador de trabajo de nivel de minutos verifica la hora de envío local configurada antes de enviar para que las bifurcaciones puedan usar cualquier zona horaria compatible con IANA.
 
-La optimización de medios de páginas públicas de campaña sigue siendo una responsabilidad del sitio estático, no del runtime del Worker. El Worker conserva las cargas del panel como archivos fuente; las plantillas de Jekyll, el optimizador de medios del repositorio y el paso de artefactos de despliegue manejan variantes WebP responsivas, fachadas locales de póster para videos hero de YouTube y minificación CSS/JS generada antes de servir el artefacto público de Pages.
+Los recordatorios del próximo lanzamiento de campaña también se ejecutan en el programador de minutos. Las páginas de campañas públicas recopilan recordatorios explícitos por correo electrónico solo mientras se aproxima una campaña; El trabajador almacena claves de registro hash con alcance de campaña, pone en cola un trabajo de envío cuando esa campaña se activa y envía a través del módulo de correo electrónico de reenvío existente con el remitente de las actualizaciones. La ruta del recordatorio no agrega una segunda integración de API de reenvío.
+
+La optimización de los medios de las páginas de campañas públicas sigue siendo una preocupación del sitio estático más que una preocupación del tiempo de ejecución de los trabajadores. El trabajador conserva las cargas del panel como archivos fuente; Las plantillas Jekyll, el optimizador de medios del repositorio y el paso de implementación del artefacto manejan variantes WebP responsivas, fachadas de carteles de héroes locales de YouTube y minificación CSS/JS generada antes de que se publique el artefacto de páginas públicas.
 
 La frecuencia de muestreo predeterminada es `0.1` y se puede anular con `OBSERVABILITY_SAMPLE_RATE=0.05` (o cualquier valor de `0-1`) si una bifurcación desea menos o más escrituras de tiempo muestreadas.
 
@@ -146,6 +148,13 @@ wrangler secret put ADMIN_SESSION_SECRET
 # Local dev reads ADMIN_BOOTSTRAP_EMAILS from worker/.dev.vars as a
 # recovery/bootstrap super-admin path.
 
+# Cloudflare Turnstile challenge verification when public widgets are enabled
+wrangler secret put TURNSTILE_SECRET_KEY
+
+# Optional: scoped launch-reminder Turnstile / unsubscribe-token secrets
+wrangler secret put LAUNCH_REMINDER_TURNSTILE_SECRET_KEY
+wrangler secret put LAUNCH_REMINDER_TOKEN_SECRET
+
 # USPS OAuth secret (keep the client id in site config)
 wrangler secret put USPS_CLIENT_SECRET
 
@@ -167,7 +176,7 @@ La configuración de USPS para este repositorio se divide intencionalmente:
 
 Actualmente, The Pool solo necesita USPS OAuth más el conjunto de productos predeterminado de opciones de precio/envío para el cálculo de cotizaciones en vivo. **No** requiere la configuración de etiquetas/envío/EPA de USPS a menos que el proyecto crezca posteriormente hasta convertirse en la generación de etiquetas.
 
-Ejemplo de archivo local `worker/.dev.vars`:
+Ejemplo de archivo `worker/.dev.vars` local:
 
 ```dotenv
 STRIPE_SECRET_KEY_TEST=sk_test_your_test_key
@@ -242,7 +251,7 @@ El trabajador reconstruye el nivel, el complemento del paquete, el soporte perso
 
 Cuando un compromiso califica para mejoras de envío, el Trabajador también mantiene la opción de entrega limitada seleccionada (`standard`, `signature_required` o `adult_signature_required`) para que el carrito, la Gestión del compromiso, el total del compromiso almacenado y los correos electrónicos de los seguidores permanezcan alineados.
 
-Las reservas y los reclamos de nivel limitado se serializan a través de un coordinador de objetos duraderos por campaña antes de que se actualice la instantánea del inventario de KV, por lo que los inicios de pago simultáneos, los reintentos, las modificaciones y las finalizaciones de webhooks no pueden sobrevender las escasas recompensas.
+Las reservas y los reclamos de nivel limitado se serializan a través de un coordinador de objetos duraderos por campaña antes de que se actualice la instantánea del inventario de KV, por lo que los inicios, reintentos, modificaciones y finalizaciones de webhooks simultáneos no pueden sobrevender las escasas recompensas.
 
 ### GET /pledges?token={token}
 Obtenga la(s) promesa(s) autorizada(s) mediante un token de enlace mágico.
@@ -342,6 +351,28 @@ Devuelve una vista previa de impuestos calculados por el trabajador para la inte
 El flujo actual del navegador utiliza esto para la visualización de impuestos de carrito provisional/pago personalizado. Tiene protección del mismo origen, velocidad limitada y está destinado a vistas previas de la interfaz de usuario de origen en lugar de uso público de terceros.
 
 Si la carga útil no incluye suficientes detalles de destino para el proveedor configurado, el Trabajador puede devolver una respuesta de resultado provisional/sin impuestos y dejar que el navegador siga mostrando `--` hasta que el pago tenga un mejor destino de facturación o envío.
+
+### POST /launch-reminders
+Guarde un registro de recordatorio de lanzamiento público para una próxima campaña.
+
+```json
+{
+  "campaignSlug": "their-love",
+  "email": "supporter@example.com",
+  "preferredLang": "en",
+  "consent": true,
+  "turnstileToken": "optional-widget-token"
+}
+```
+
+El punto final está habilitado por `LAUNCH_REMINDERS_ENABLED`, acepta solo las próximas campañas, requiere consentimiento explícito, límites de velocidad por IP y verifica Cloudflare Turnstile cuando se configura un recordatorio o un secreto compartido de Turnstile. Los registros de registro tienen un alcance de campaña y se deduplican mediante un hash de correo electrónico normalizado, por lo que actualizar o enviar nuevamente actualiza un recordatorio activo en lugar de crear una lista de duplicados.
+
+### GET /launch-reminders/unsubscribe?t={token}
+Suprimir un recordatorio de lanzamiento relacionado con la campaña.
+
+El token está firmado por `LAUNCH_REMINDER_TOKEN_SECRET` o el respaldo `MAGIC_LINK_SECRET` y solo autoriza el hash de campaña/correo electrónico codificado en el token. La ruta para cancelar la suscripción marca la cancelación del registro, escribe un marcador de supresión y devuelve una respuesta HTML sin índice/sin almacenamiento.
+
+El envío del recordatorio de lanzamiento está controlado por un programador: cuando una campaña se activa, el paso del ciclo de vida diario pone en cola un trabajo de envío; las ejecuciones programadas a nivel de minutos agotan ese trabajo en lotes limitados. Cada destinatario recibe un marcador de envío por campaña antes de que avance el trabajo, y la entrega de correo electrónico utiliza el asistente `sendLaunchReminderEmail` existente en `worker/src/email.js`, el generador de carga útil de reenvío compartido y `UPDATES_EMAIL_FROM`.
 
 ### GET /admin/observability/webhooks?days=2
 Resumen de observabilidad del webhook solo para administradores.
@@ -455,7 +486,7 @@ Obtenga una vista previa o envíe manualmente un informe de ejecución de campa�
 Notas:
 
 - `dryRun: true` devuelve destinatarios, recuentos de filas, nombre de archivo y estado del marcador sin enviar
-- Al omitir `markAsSent`, el valor predeterminado es `true` para envíos en vivo, de modo que la ejecución cron coincidente no duplique inmediatamente el informe.
+- Al omitir `markAsSent`, el valor predeterminado es `true` para envíos en vivo, de modo que la ejecución programada coincidente no duplique inmediatamente el informe.
 - Los destinatarios de la campaña todavía provienen del frente de la campaña `runner_report_emails`.
 - `reportType: "pledge"` es el informe diario de la campaña en vivo.
 - `reportType: "fulfillment"` es el informe único de envío/exportación posterior a la fecha límite
@@ -524,7 +555,7 @@ curl -X POST https://worker.example.com/test/email \
 
 ## Variables de entorno
 
-|variable|Descripción|
+|Variable|Descripción|
 |----------|-------------|
 |`SITE_BASE`|URL base del sitio Jekyll|
 |`WORKER_BASE`|URL base pública del Trabajador|
@@ -565,15 +596,24 @@ curl -X POST https://worker.example.com/test/email \
 |`ADMIN_BOOTSTRAP_EMAILS`|Correos electrónicos de superadministrador de arranque/recuperación opcionales; configure esto en `worker/.dev.vars` para desarrolladores locales|
 |`ADMIN_USERS_JSON`|Usuarios administradores de semilla/recuperación reflejados desde `_config.yml`; Las ediciones del panel de tiempo de ejecución se guardan en KV en `admin-users:v1`.|
 |`ADMIN_TEST_CAMPAIGNS`|Slugs de campaña opcionales separados por comas expuestos a la configuración de prueba del panel de administración local|
-|`TURNSTILE_SECRET_KEY`|Clave secreta de Cloudflare Turnstile para la verificación del desafío de inicio de sesión del correo electrónico del administrador|
+|`TURNSTILE_SECRET_KEY`|Clave secreta compartida de Cloudflare Turnstile para el inicio de sesión del correo electrónico del administrador y la verificación del desafío del recordatorio de lanzamiento|
+|`ADMIN_TURNSTILE_SECRET_KEY`|Secreto de torniquete opcional específico del administrador cuando no se utiliza `TURNSTILE_SECRET_KEY`|
 |`ADMIN_TURNSTILE_REQUIRED`|Indicador opcional de cierre fallido para implementaciones que esperan que se configure Turnstile|
 |`ADMIN_TURNSTILE_BYPASS`|Omisión local/solo de prueba para pruebas de autenticación de administrador automatizadas; no habilitar en trabajadores desplegados|
+|`LAUNCH_REMINDERS_ENABLED`|Habilita el manejo público del registro de recordatorios de lanzamiento de próximas campañas; reflejado de `_config.yml`|
+|`LAUNCH_REMINDER_TURNSTILE_SECRET_KEY`|Secreto de torniquete específico de recordatorio opcional cuando no se utiliza `TURNSTILE_SECRET_KEY`|
+|`LAUNCH_REMINDER_TURNSTILE_REQUIRED`|Indicador opcional de cierre fallido para registros de recordatorio cuando se espera un widget de torniquete de recordatorio|
+|`LAUNCH_REMINDER_TURNSTILE_BYPASS`|Omisión local/solo de prueba para la automatización del registro de recordatorios; no habilitar en trabajadores desplegados|
+|`LAUNCH_REMINDER_TOKEN_SECRET`|Secreto de firma de token de cancelación de suscripción opcional; vuelve a `MAGIC_LINK_SECRET`|
+|`LAUNCH_REMINDER_DISPATCH_BATCH_SIZE`|Anulación opcional del tamaño del lote de envío de recordatorio por trabajo|
+|`LAUNCH_REMINDER_DISPATCH_JOB_LIMIT`|Número opcional de trabajos de envío de recordatorios para procesar por tick programado|
 |`INTENT_PREFETCH_ENABLED`|Indicador habilitado de captación previa de intención de documento público reflejado desde la configuración del sitio|
 |`INTENT_PREFETCH_DELAY_MS`|Retraso de desplazamiento/enfoque antes de que comience la captación previa de documentos públicos|
 |`INTENT_PREFETCH_LIMIT`|Precargas máximas de documentos públicos por vista de página|
-|`RESEND_RATE_LIMIT_DELAY`|Retraso entre correos electrónicos en ms (predeterminado: 600 ms para mantenerse por debajo del límite de 2 solicitudes por segundo de reenvío)|
 
 Cuando `SITE_BASE` apunta al desarrollador local (`localhost` / `127.0.0.1`), las imágenes de correo electrónico incrustadas aún regresan a la base de activos pública `https://site.example.com` para que los clientes de la bandeja de entrada no reciban URL de imágenes de host local rotas.
+
+El ritmo de reenvío se centraliza como `RESEND_RATE_LIMIT_DELAY_MS` en `worker/src/email.js` y se reutiliza en transmisiones de seguidores, informes y envío de recordatorios de lanzamiento. Mantenga los nuevos flujos de trabajo de correo electrónico en la ruta compartida `sendResendEmail`/generador de carga útil para que la identidad del remitente, la localización, la marca y el comportamiento del límite de velocidad no se desvíen.
 
 Nota de bifurcación: trate esas variables de identidad, marca de correo electrónico, precios y envío como espejos de la configuración estructurada del sitio en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml), especialmente las secciones `platform`, `design`, `pricing` y `shipping`. El carrito/tiempo de ejecución propios y la interfaz de usuario de pago en el sitio personalizada son comportamientos integrados de la plataforma ahora, no opciones de entorno de trabajo que normalmente debería personalizar directamente.
 

@@ -17,9 +17,11 @@ Este documento cubre la arquitectura de seguridad, los riesgos conocidos, las me
 |Mecanismo|Puntos finales|Descripción|
 |-----------|-----------|-------------|
 |**Fichas de enlace mágico**|`/pledge*`, `/pledges`, `/votes`|Tokens firmados HMAC-SHA256 con vencimiento de 90 días|
+|**Tokens de cancelación de suscripción de recordatorio de lanzamiento**|`GET /launch-reminders/unsubscribe`|Token HMAC con alcance que suprime un registro de recordatorio de campaña/correo electrónico|
 |**Firma de webhook de rayas**|`/webhooks/stripe`|Verificación HMAC-SHA256 según las especificaciones de Stripe|
 |**Sesiones del panel de administración**|API del panel del navegador `/admin/*`|Inicio de sesión mediante enlace mágico por correo electrónico, cookie de sesión firmada, encabezado CSRF sobre mutaciones, alcance de función/campaña|
 |**Desafío de inicio de sesión de administrador**|`POST /admin/auth/start`|Verificación opcional de Cloudflare Turnstile antes de la emisión del enlace mágico del administrador|
+|**Reto de recordatorio de lanzamiento**|`POST /launch-reminders`|Verificación opcional/esperada de Cloudflare Turnstile antes de escribir el recordatorio de registro|
 |**Secreto de recuperación del administrador**|Automatización y recuperación de puntos finales `/admin/*`|Encabezado `Authorization: Bearer <secret>` o `x-admin-key` para operaciones basadas en scripts|
 |**Protección del modo de prueba**|`/test/*`|`APP_MODE === 'test'` verificación del entorno|
 
@@ -27,7 +29,7 @@ Este documento cubre la arquitectura de seguridad, los riesgos conocidos, las me
 
 |Patrón clave|Espacio de nombres|Datos|Sensibilidad|
 |-------------|-----------|------|-------------|
-|`pledge:{orderId}`|PROMESAS|Correo electrónico, monto, ID de Stripe, estado|**Alta** - PII + datos de pago|
+|`pledge:{orderId}`|PROMESAS|Correo electrónico, importe, ID de Stripe, estado|**Alta** - PII + datos de pago|
 |`email:{email}`|PROMESAS|Matriz de ID de pedido|**Medio**: vincula el correo electrónico a las promesas|
 |`stats:{slug}`|PROMESAS|Totales agregados|**Bajo** - público|
 |`tier-inventory:{slug}`|PROMESAS|Recuentos de reclamos de nivel|**Bajo** - público|
@@ -37,12 +39,16 @@ Este documento cubre la arquitectura de seguridad, los riesgos conocidos, las me
 |`settlement-job:{slug}`|PROMESAS|Progreso del lote de liquidación|**Bajo** - efímero|
 |`pending-extras:{orderId}`|PROMESAS|Artículo de soporte temporal/extras de pago de cantidad personalizada|**Bajo** - efímero|
 |`pending-tiers:{orderId}`|PROMESAS|Metadatos de nivel de desbordamiento temporal durante el pago|**Bajo** - efímero|
-|`cron:lastRun`|PROMESAS|Marca de tiempo de la última ejecución cron|**Bajo** - seguimiento|
+|`cron:lastRun`|PROMESAS|Última marca de tiempo de ejecución cron horaria persistente|**Bajo** - seguimiento|
 |`admin-login:{hash}`|PROMESAS|Inicio de sesión único de administrador y correo electrónico|**Medio**: autenticación de administrador efímera|
 |`admin-session:{hash}`|PROMESAS|Correo electrónico de administrador, función, alcance de la campaña, token CSRF, vencimiento|**Alta** - autenticación de administrador|
 |`admin-users:v1`|PROMESAS|Usuarios administradores de tiempo de ejecución y alcances de campaña|**Alto** - control de acceso|
 |`admin-marketing-referrals:{slug}`|PROMESAS|Metadatos del código de referencia guardado|**Bajo**: datos de marketing escritos por el administrador|
 |`admin-audit:{date}:{action}:{id}`|PROMESAS|Eventos recientes de auditoría de mutación de administrador|**Medio**: identidad del administrador + metadatos operativos|
+|`launch-reminder:{slug}:{emailHash}`|PROMESAS|Correo electrónico de recordatorio de próxima campaña y metadatos de suscripción|**Medio**: correo electrónico relacionado con la campaña|
+|`launch-reminder-suppressed:{slug}:{emailHash}`|PROMESAS|Marcador de supresión de recordatorio|**Medio**: hash de correo electrónico con ámbito de campaña|
+|`launch-reminder-sent:{slug}:{emailHash}`|PROMESAS|Recordatorio de envío de marcador de idempotencia|**Bajo** - estado de envío|
+|`launch-reminder-dispatch:{slug}`|PROMESAS|Cursor/progreso del trabajo de envío de recordatorio acotado|**Bajo** - estado operativo|
 |`vote:{slug}:{decision}:{email}`|VOTOS|elección de voto|**Medio** - vincula a un partidario para que vote|
 |`results:{slug}:{decision}`|VOTOS|recuentos de votos|**Bajo** - semipúblico|
 |`rl:{endpoint}:{ip}`|LÍMITE DE TARIFAS|Recuento de solicitudes + tiempo de reinicio|**Bajo** - efímero|
@@ -133,9 +139,10 @@ Antes de implementar en producción, verifique que estos secretos estén configu
 |Secreto del webhook de rayas|`STRIPE_WEBHOOK_SECRET_LIVE`|32+ caracteres|
 |Secreto de intención de pago|`CHECKOUT_INTENT_SECRET`|32+ caracteres|
 |Secreto del enlace mágico|`MAGIC_LINK_SECRET`|32+ caracteres|
+|Secreto del token de recordatorio de lanzamiento|Reserva `LAUNCH_REMINDER_TOKEN_SECRET` o `MAGIC_LINK_SECRET`|32+ caracteres|
 |Secreto de sesión de administrador|`ADMIN_SESSION_SECRET`|32+ caracteres|
 |Secreto de administrador|`ADMIN_SECRET`|32+ caracteres|
-|Secreto del torniquete de administración|`TURNSTILE_SECRET_KEY`|N/A|
+|Secreto del torniquete|`TURNSTILE_SECRET_KEY`, `ADMIN_TURNSTILE_SECRET_KEY` o `LAUNCH_REMINDER_TURNSTILE_SECRET_KEY`|N/A|
 |Reenviar clave API|`RESEND_API_KEY`|N/A|
 
 Generar secretos seguros:

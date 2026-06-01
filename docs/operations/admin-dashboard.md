@@ -89,9 +89,11 @@ Settings are grouped in a left sidebar. Super admins can edit publishable config
 
 ### Platform
 
-Platform identity fields include site title, platform name, company, author, default creator name, support email, site description, email sender names, and app mode.
+Platform identity fields include site title, platform name, company, author, default creator name, support email, site description, email sender names, app mode, and the default platform timezone.
 
 The pledge and update sender fields must use domains authorized for the configured Resend API key. For this deployment, pledge confirmations use `The Pool <pledges@site.example.com>` so the sender domain matches the authorized `site.example.com` Resend domain.
+
+The default timezone field is a select menu backed by supported IANA timezone values. It controls campaign start/deadline boundaries, countdowns, scheduled campaign-runner reports, lifecycle automation, and settlement checks. The default remains `America/Denver` until a super admin changes it.
 
 ### Brand & SEO
 
@@ -122,7 +124,7 @@ Do not store API keys or provider secrets in Settings. Use Worker secrets or ign
 
 ### Campaign Runner Reports
 
-Campaign runner report settings control the scheduled report system: enabled state, Mountain Time send time, subject prefix, pledge/fulfillment report toggles, summary inclusion, and CSV attachment behavior.
+Campaign runner report settings control the scheduled report system: enabled state, platform-timezone send time, subject prefix, pledge/fulfillment report toggles, summary inclusion, and CSV attachment behavior. Super admins set the default platform timezone in the Platform settings section.
 
 The Reports tab is still the preferred browser UI for generating and downloading on-demand CSVs.
 
@@ -324,7 +326,7 @@ Campaign-scoped media uploads require access to that campaign. Super admins can 
 
 The Worker upload endpoint is source-preserving. It validates type, size, campaign scope, directory, and filename, but it does not run native image optimizers or FFmpeg. Lossless image compression and video transcoding run outside the Worker through the repository media pipeline.
 
-Use `npm run media:optimize` locally or the **Optimize dashboard media** GitHub Actions workflow after dashboard uploads land in the repository. Use `npm run media:optimize:check` when reviewing a media-heavy branch and you want to fail on pending image optimizations, responsive WebP variants, or missing video derivatives. The pipeline optimizes images in place when the optimized result is smaller, generates responsive `.webp` image variants for public templates at `320w`, `480w`, `640w`, `960w`, and `1600w`, generates high-quality `.webm` derivatives beside uploaded MP4/MOV files, and rewrites literal `_campaigns` / `_config.yml` references from the uploaded source video to the generated WebM derivative. Original source images and videos remain in the repository for rollback and future re-encoding. Use the workflow's manual `scope=all` option when deployed existing media needs a full reprocess.
+Use `npm run media:optimize` locally or the **Optimize dashboard media** GitHub Actions workflow after dashboard uploads land in the repository. If the host machine does not have the native optimizers installed, use `npm run media:optimize:podman` to run the same script inside the Podman site image with `optipng`, `gifsicle`, `libjpeg-turbo-progs`, `webp`, and `ffmpeg`. Use `npm run media:optimize:check` or `npm run media:optimize:check:podman` when reviewing a media-heavy branch and you want to fail on pending image optimizations, responsive WebP variants, or missing video derivatives. The pipeline optimizes images in place when the optimized result is smaller, generates responsive `.webp` image variants for public templates at `320w`, `480w`, `640w`, `960w`, and `1600w`, generates high-quality `.webm` derivatives beside uploaded MP4/MOV files, and rewrites literal `_campaigns` / `_config.yml` references from the uploaded source video to the generated WebM derivative. Original source images and videos remain in the repository for rollback and future re-encoding. Use the workflow's manual `scope=all` option when deployed existing media needs a full reprocess.
 
 Use meaningful alt text for images that communicate content. Decorative backgrounds can use empty alt text in the public templates.
 
@@ -369,6 +371,7 @@ Check:
 - the email is present in `_config.yml` `admin.users`, `ADMIN_USERS_JSON`, `ADMIN_BOOTSTRAP_EMAILS`, or the KV-backed users list
 - local secrets exist in `worker/.dev.vars`
 - if Turnstile is enabled, `_config.yml` has `admin.turnstile_site_key` and the Worker has `TURNSTILE_SECRET_KEY`
+- if launch reminder Turnstile is enabled, `_config.yml` has `launch_reminders.turnstile_site_key` and the Worker has `TURNSTILE_SECRET_KEY` or `LAUNCH_REMINDER_TURNSTILE_SECRET_KEY`
 - if testing locally with Turnstile enabled, use Cloudflare's test keys or set `ADMIN_TURNSTILE_BYPASS=true` only in a local/test Worker environment
 
 ### Changes Do Not Appear On The Public Site

@@ -10,22 +10,21 @@ lang: es
 
 ## v1.0.3 - 2026-06-01
 
+- Se agregó manejo de zona horaria de plataforma configurable en todo el estado de la campaña de Jekyll, cuentas regresivas del navegador, automatización del ciclo de vida de los trabajadores, informes de los ejecutores de campañas, configuración del panel y duplicación de la configuración de los trabajadores. El valor predeterminado sigue siendo `America/Denver` por motivos de compatibilidad y los superadministradores pueden elegir entre las zonas horarias admitidas por la IANA.
+- Se agregaron recordatorios del próximo lanzamiento de campaña con un formulario de registro público delgado, verificación de Cloudflare Turnstile, deduplicación de campaña/correo electrónico, enlaces de cancelación de suscripción firmados, trabajos de envío de KV limitados y reenvío de entrega a través del módulo de correo electrónico compartido existente.
+- Se redujo el uso de escritura de KV de los trabajadores de referencia al cambiar el latido del programador a nivel de minutos para que persista cada hora en lugar de cada minuto, preservando la visibilidad del estado del cron y manteniendo el presupuesto de escritura de nivel gratuito disponible para mutaciones reales.
+- Se actualizó el desarrollo local para que `_config.local.yml` pueda ocultar los widgets Turnstile de recordatorio de lanzamiento de la misma manera que el inicio de sesión del administrador local puede ocultar su widget Turnstile.
+- Se amplió la imagen y los envoltorios del optimizador de medios de Podman con `optipng` y `gifsicle` para que la compresión de origen PNG/GIF local utilice el mismo flujo de trabajo de medios del repositorio que la generación responsiva de derivados de imágenes y videos.
+- Se agregó un pase de rendimiento de PageSpeed móvil para las páginas de la campaña: los videos principales de YouTube ahora se muestran como carteles locales/fachadas de reproducción y cargan el iframe remoto solo después de la intención de reproducción, evitando el costo inicial de JavaScript/CSS de YouTube.
+- Se agregaron precargas de imágenes de héroe responsivas y un escalón derivado WebP `640w` para que las páginas de campañas móviles puedan elegir activos de navegador más pequeños entre las variantes `480w` y `960w` existentes.
+- Se actualizó el optimizador de medios para omitir los derivados WebP receptivos generados durante la optimización de la fuente, manteniendo actualizados los recursos del navegador generados sin volver a codificarlos de forma recursiva.
+
+## v1.0.2 - 2026-06-01
+
 - Se agregaron correcciones de rendimiento de páginas públicas de la revisión de PageSpeed: las páginas de campañas de video remoto ya no precargan imágenes destacadas ocultas, las imágenes de nivel optan por la decodificación diferida/asíncrona, los logotipos de marca predeterminados reservan sus dimensiones intrínsecas y las páginas públicas evitan las ansiosas preconexiones de Stripe antes de la intención del carrito.
 - Se amplió el proceso de optimización de medios del panel para generar variantes de imágenes WebP responsivas para imágenes de origen PNG, JPEG y GIF, de modo que las plantillas de campañas públicas puedan servir activos de navegador más pequeños y al mismo tiempo mantener las cargas originales como fuentes de respaldo de la verdad.
 - Se agregó una opción manual `scope=all` al flujo de trabajo **Optimizar medios del panel** para que las campañas existentes se puedan reprocesar a través del mismo canal de medios utilizado para las cargas de nuevos paneles.
 - Se actualizaron las plantillas de campaña, nivel, tarjeta, galería y contenido-imagen para usar variantes responsivas generadas cuando existan sin cambiar la estructura de la página visible o las referencias de Markdown de la campaña.
-- Se agregó un pase móvil de PageSpeed para páginas de campaña: los videos hero de YouTube ahora se muestran como fachadas locales con póster/botón de reproducción y cargan el iframe remoto solo después de la intención de reproducción.
-- Se agregaron precargas de imágenes hero responsivas y un tramo derivado WebP `640w`, para que las páginas de campaña móviles puedan elegir activos de navegador más pequeños entre las variantes existentes `480w` y `960w`.
-- Se actualizó la guía del optimizador de medios para omitir derivados WebP responsivos generados durante la optimización de origen, manteniendo los activos de navegador al día sin recodificarlos recursivamente.
-- Se actualizaron la versión y la documentación de creadores/operadores para el flujo de trabajo de rendimiento/medios 1.0.3.
-
-## v1.0.2 - 2026-05-31
-
-- Se agregó trabajo de rendimiento de la página pública con representación estática del progreso de la campaña, carga diferida del tiempo de ejecución del carrito propio y captación previa conservadora de la intención del mismo origen.
-- Se agregó minificación de activos generados para compilaciones de páginas a través de `npm run assets:minify` y `npm run assets:minify:check`, manteniendo al mismo tiempo los activos de origen legibles y dejando la compresión de transferencia a Cloudflare.
-- Se agregaron enlaces para compartir campañas para Bluesky, X, Threads, Facebook, SMS y correo electrónico con URL localizadas, iconos locales alternativos y texto de CTA con reconocimiento de estado cuando sea compatible.
-- Se expusieron controles de **Configuración -> Rendimiento avanzado** para la captación previa de intención pública y se reflejó `performance.intent_prefetch_*` en valores `INTENT_PREFETCH_*` orientados al Worker.
-- Se actualizó la copia pública de Acerca de/Términos, la guía de lista de verificación para creadores, la documentación de rendimiento, las notas de prueba y los metadatos de versión para v1.0.2.
 
 ## v1.0.1 - 2026-05-29
 

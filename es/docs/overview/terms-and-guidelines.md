@@ -8,6 +8,8 @@ lang: es
 
 # Términos y pautas creativas
 
+Estos términos reflejan el hito del lanzamiento de la plataforma The Pool **v1.0.3**.
+
 ## Términos de compromiso
 
 - Todas las promesas son **todo o nada**. Su tarjeta se guarda de forma segura, pero se carga **solo si** la campaña alcanza su objetivo antes de la fecha límite.
@@ -16,7 +18,8 @@ lang: es
 - **No se requiere cuenta**: administre su contribución por completo a través de enlaces de correo electrónico.
 - Cuando esta implementación ofrezca idiomas adicionales, los enlaces de compromiso enviados por correo electrónico y los enlaces de la comunidad de seguidores pueden usar rutas localizadas sin dejar de autorizar el mismo compromiso.
 - Un único pago puede incluir más de una campaña, pero cada campaña se almacena y administra como su propio compromiso después del pago.
-- Todas las fechas límite de la campaña utilizan Mountain Time (MST/MDT).
+- Los recordatorios del próximo lanzamiento de campaña son opcionales y separados de las promesas. Si opta por suscribirse, The Pool envía un recordatorio cuando la campaña se activa e incluye un enlace para cancelar la suscripción.
+- Todas las fechas límite de la campaña utilizan la zona horaria de la plataforma configurada para esta implementación. Esta implementación tiene como valor predeterminado `America/Denver` a menos que los administradores de la plataforma la cambien.
 - Los votos de la comunidad se limitan a las opciones publicadas en la página de seguidores de una campaña y las decisiones cerradas no aceptan nuevos votos.
 - Si un enlace de administración apunta a un compromiso que ya no existe, The Pool lo trata como no disponible en lugar de reconstruir el acceso al compromiso del marcador de posición.
 - Las páginas de campañas públicas pueden incluir enlaces para compartir para plataformas externas, SMS y correo electrónico. Esos enlaces son solo para URL de campañas públicas y no incluyen tokens de administración de promesas, de pago, de comunidad de seguidores, de administración o de enlace mágico.
@@ -35,6 +38,7 @@ lang: es
 - Si hay una opción de entrega disponible para su envío y la cambia al finalizar la compra o en Administrar compromiso, el total de envío almacenado y el total del compromiso se recalculan a partir del estado del compromiso guardado antes de que el cambio persista.
 - Si modifica una promesa, The Pool vuelve a calcular los totales a partir del estado de la promesa guardada y las definiciones de campaña o complemento vigentes para esa implementación, en lugar de confiar en los campos de dinero enviados por el navegador.
 - Los correos electrónicos transaccionales y los enlaces de acceso de los seguidores pueden reflejar la marca configurada de esta implementación y la estructura de ruta localizada, pero cada enlace de administración enviado por correo electrónico aún autoriza solo el compromiso vinculado a ese pedido específico.
+- Los informes programados de los ejecutores de campaña, los cambios de estado de la campaña y las verificaciones de liquidación utilizan la misma zona horaria configurada de la plataforma que las fechas límite de la campaña.
 
 ## Control creativo y envíos
 
@@ -64,6 +68,7 @@ Esta sección se aplica solo a campañas que solicitan explícitamente envíos c
 - Recopilamos solo la información necesaria para procesar las promesas y cumplir con las recompensas: correo electrónico, nombre, detalles de la promesa/pedido y, para recompensas físicas, complementos físicos de campaña o complementos de plataforma física, una dirección de envío.
 - Stripe maneja y almacena todos los detalles de la tarjeta. The Pool no almacena números de tarjeta completos ni valores CVC.
 - Las direcciones de correo electrónico y cualquier detalle de envío necesario para el cumplimiento pueden almacenarse en nuestro sistema para la gestión de promesas, confirmaciones específicas de campañas, actualizaciones de campañas y cumplimiento de recompensas.
+- Si se registra para recibir un recordatorio del próximo lanzamiento de una campaña, su correo electrónico se almacena en registros de recordatorio con alcance de campaña para que The Pool pueda enviar ese recordatorio, evitar envíos duplicados y respetar las cancelaciones de suscripción de esa campaña. Los registros de recordatorio pueden usar Cloudflare Turnstile para reducir el abuso.
 - Los organizadores de la campaña pueden recibir informes del alcance de la campaña o exportaciones de cumplimiento que contengan detalles de los pedidos/partidarios necesarios para ejecutar esa campaña específica, coordinar la entrega o enviar actualizaciones relacionadas con la producción. Esos informes se limitan a la campaña que un partidario respaldó en lugar de exponer promesas de campaña no relacionadas.
 - Los operadores de campaña autorizados también pueden ver filas de seguidores, informes, análisis, datos de cumplimiento y contenido de la campaña relacionados con la campaña a través del panel de administración privado de The Pool. El acceso al panel tiene un alcance de roles: los usuarios de la campaña solo ven las campañas asignadas, mientras que los administradores de la plataforma pueden ver los datos operativos de toda la plataforma necesarios para ejecutar The Pool.
 - Cuando un compromiso incluye artículos complementarios cumplidos por la plataforma, los operadores de la plataforma pueden recibir por separado exportaciones de cumplimiento solo de la plataforma limitadas a los artículos que deben entregar.
@@ -72,21 +77,22 @@ Esta sección se aplica solo a campañas que solicitan explícitamente envíos c
 - Los complementos de campaña con inventario limitado también utilizan el estado del compromiso guardado, no los borradores del carrito en progreso, para determinar el stock restante.
 - El acceso a la comunidad de seguidores en el navegador puede recordarse para la sesión actual por conveniencia, pero el enlace mágico enviado por correo electrónico sigue siendo la fuente de verdad para el acceso.
 - Las páginas públicas pueden precargar páginas públicas elegibles del mismo origen después de pasar el cursor, enfocar o tocar para agilizar la navegación normal. Este comportamiento de captación previa excluye enlaces de administración, pago, gestión de compromiso, comunidad de seguidores, tokenizados, externos y de consultas confidenciales.
+- Las páginas de campañas públicas pueden aplazar las incrustaciones de medios de terceros seleccionados, como vídeos destacados de YouTube, hasta que usted decida reproducirlos. Hasta entonces, la página puede mostrar una imagen de póster local en lugar de comunicarse con ese proveedor de inserción externo.
 - Los enlaces para compartir de la campaña pueden preservar la referencia pública segura o los parámetros de consulta UTM para que los responsables de la campaña puedan comprender las fuentes de promoción pública. No conservan tokens, pedidos, correos electrónicos, sesiones ni otros parámetros de consulta confidenciales.
-- No vendemos su información. Lo compartimos solo cuando sea necesario para el procesamiento de pagos, la entrega de correos electrónicos transaccionales, el cálculo de cotizaciones de envío y el cumplimiento de recompensas.
+- No vendemos su información. Lo compartimos solo cuando sea necesario para el procesamiento de pagos, la entrega de correos electrónicos transaccionales, la prevención de abusos, el cálculo de cotizaciones de envío y el cumplimiento de recompensas.
 
 ## Plataforma y tecnología
 
 The Pool es una [plataforma de financiación colectiva de código abierto](https://github.com/your-org/your-project) construida con:
 
 - **Jekyll en [GitHub Pages](https://docs.github.com/en/pages)** — Generación de sitios estáticos
-- **Tiempo de ejecución del carrito del grupo**: administración de carrito propia, complementos de pago, revisión de compromisos y carga diferida de páginas públicas hasta que el estado del carrito o la intención del patrocinador requieran el conjunto completo del carrito.
+- **Tiempo de ejecución del carrito del grupo**: administración de carrito propia, complementos de pago, revisión de promesas y carga diferida de páginas públicas hasta que el estado del carrito o la intención del patrocinador requieran el conjunto completo del carrito.
 - **[Stripe](https://stripe.com)** — Campos de pago seguros, métodos de pago guardados y procesamiento de pagos
 - **[Cloudflare Workers](https://workers.cloudflare.com)** — API backend para validación de promesas canónicas, almacenamiento de promesas, estadísticas en vivo y liquidación de campañas automatizada
 - **Panel de administración privado**: edición de campañas según roles, informes, análisis, vistas de seguidores, enlaces de marketing, gestión de usuarios y operaciones de plataforma.
-- **[Resend](https://resend.com)** — Correos electrónicos transaccionales (confirmaciones, actualizaciones, notificaciones de cargos)
+- **[Resend](https://resend.com)** — Correos electrónicos transaccionales (confirmaciones, recordatorios de lanzamiento, actualizaciones, notificaciones de cargos)
 
-Los datos de la promesa se almacenan en Cloudflare KV. Esta arquitectura significa menores costos generales y una mayor parte de su contribución se destina directamente al proyecto, con puntas de plataforma opcionales que ayudan a cubrir el mantenimiento de The Pool. Las compilaciones de producción también minimizan los activos CSS/JS generados después de la generación del sitio estático, mientras que Cloudflare maneja la compresión de transferencia en el borde.
+Los datos de la promesa se almacenan en Cloudflare KV. Esta arquitectura significa menores costos generales y una mayor parte de su contribución se destina directamente al proyecto, con puntas de plataforma opcionales que ayudan a cubrir el mantenimiento de The Pool. Las compilaciones de producción también minimizan los activos CSS/JS generados después de la generación del sitio estático, generan variantes de imágenes responsivas para páginas públicas y permiten que Cloudflare maneje la compresión de transferencia en el borde. La automatización del ciclo de vida de la campaña utiliza la zona horaria configurada de la plataforma para que los plazos, las cuentas regresivas, los informes y las comprobaciones de liquidación se mantengan alineados.
 
 ## Preguntas
 

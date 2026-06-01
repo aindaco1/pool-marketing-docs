@@ -16,9 +16,11 @@ This document covers the security architecture, known risks, applied hardening m
 | Mechanism | Endpoints | Description |
 |-----------|-----------|-------------|
 | **Magic Link Tokens** | `/pledge*`, `/pledges`, `/votes` | HMAC-SHA256 signed tokens with 90-day expiry |
+| **Launch Reminder Unsubscribe Tokens** | `GET /launch-reminders/unsubscribe` | Scoped HMAC token that suppresses one campaign/email reminder signup |
 | **Stripe Webhook Signature** | `/webhooks/stripe` | HMAC-SHA256 verification per Stripe spec |
 | **Admin Dashboard Sessions** | Browser dashboard `/admin/*` APIs | Email magic-link sign-in, signed session cookie, CSRF header on mutations, role/campaign scoping |
 | **Admin Sign-In Challenge** | `POST /admin/auth/start` | Optional Cloudflare Turnstile verification before admin magic-link issuance |
+| **Launch Reminder Challenge** | `POST /launch-reminders` | Optional/expected Cloudflare Turnstile verification before reminder signup writes |
 | **Admin Recovery Secret** | Automation and recovery `/admin/*` endpoints | `Authorization: Bearer <secret>` or `x-admin-key` header for script-driven operations |
 | **Test Mode Guard** | `/test/*` | `APP_MODE === 'test'` environment check |
 
@@ -36,12 +38,16 @@ This document covers the security architecture, known risks, applied hardening m
 | `settlement-job:{slug}` | PLEDGES | Settlement batch progress | **Low** - ephemeral |
 | `pending-extras:{orderId}` | PLEDGES | Temporary support item / custom amount checkout extras | **Low** - ephemeral |
 | `pending-tiers:{orderId}` | PLEDGES | Temporary overflow tier metadata during checkout | **Low** - ephemeral |
-| `cron:lastRun` | PLEDGES | Last cron execution timestamp | **Low** - monitoring |
+| `cron:lastRun` | PLEDGES | Last persisted hourly cron execution timestamp | **Low** - monitoring |
 | `admin-login:{hash}` | PLEDGES | One-time admin login nonce and email | **Medium** - ephemeral admin auth |
 | `admin-session:{hash}` | PLEDGES | Admin email, role, campaign scope, CSRF token, expiry | **High** - admin auth |
 | `admin-users:v1` | PLEDGES | Runtime admin users and campaign scopes | **High** - access control |
 | `admin-marketing-referrals:{slug}` | PLEDGES | Saved referral code metadata | **Low** - admin-authored marketing data |
 | `admin-audit:{date}:{action}:{id}` | PLEDGES | Recent admin mutation audit events | **Medium** - admin identity + operational metadata |
+| `launch-reminder:{slug}:{emailHash}` | PLEDGES | Upcoming-campaign reminder email and opt-in metadata | **Medium** - campaign-scoped email |
+| `launch-reminder-suppressed:{slug}:{emailHash}` | PLEDGES | Reminder suppression marker | **Medium** - campaign-scoped email hash |
+| `launch-reminder-sent:{slug}:{emailHash}` | PLEDGES | Reminder send idempotency marker | **Low** - send state |
+| `launch-reminder-dispatch:{slug}` | PLEDGES | Bounded reminder dispatch job cursor/progress | **Low** - operational state |
 | `vote:{slug}:{decision}:{email}` | VOTES | Vote choice | **Medium** - links supporter to vote |
 | `results:{slug}:{decision}` | VOTES | Vote tallies | **Low** - semi-public |
 | `rl:{endpoint}:{ip}` | RATELIMIT | Request count + reset time | **Low** - ephemeral |
@@ -132,9 +138,10 @@ Before deploying to production, verify these secrets are set:
 | Stripe Webhook Secret | `STRIPE_WEBHOOK_SECRET_LIVE` | 32+ chars |
 | Checkout Intent Secret | `CHECKOUT_INTENT_SECRET` | 32+ chars |
 | Magic Link Secret | `MAGIC_LINK_SECRET` | 32+ chars |
+| Launch Reminder Token Secret | `LAUNCH_REMINDER_TOKEN_SECRET` or `MAGIC_LINK_SECRET` fallback | 32+ chars |
 | Admin Session Secret | `ADMIN_SESSION_SECRET` | 32+ chars |
 | Admin Secret | `ADMIN_SECRET` | 32+ chars |
-| Admin Turnstile Secret | `TURNSTILE_SECRET_KEY` | N/A |
+| Turnstile Secret | `TURNSTILE_SECRET_KEY`, `ADMIN_TURNSTILE_SECRET_KEY`, or `LAUNCH_REMINDER_TURNSTILE_SECRET_KEY` | N/A |
 | Resend API Key | `RESEND_API_KEY` | N/A |
 
 Generate secure secrets:

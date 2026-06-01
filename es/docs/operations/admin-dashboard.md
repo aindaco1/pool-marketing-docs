@@ -90,9 +90,11 @@ Las configuraciones están agrupadas en una barra lateral izquierda. Los superad
 
 ### Plataforma
 
-Los campos de identidad de la plataforma incluyen título del sitio, nombre de la plataforma, empresa, autor, nombre del creador predeterminado, correo electrónico de soporte, descripción del sitio, nombres de los remitentes del correo electrónico y modo de aplicación.
+Los campos de identidad de la plataforma incluyen título del sitio, nombre de la plataforma, empresa, autor, nombre del creador predeterminado, correo electrónico de soporte, descripción del sitio, nombres de los remitentes del correo electrónico, modo de aplicación y zona horaria predeterminada de la plataforma.
 
 Los campos de remitente de compromiso y actualización deben utilizar dominios autorizados para la clave API de reenvío configurada. Para esta implementación, las confirmaciones de compromiso utilizan `The Pool <pledges@site.example.com>` para que el dominio del remitente coincida con el dominio de reenvío autorizado `site.example.com`.
+
+El campo de zona horaria predeterminado es un menú de selección respaldado por valores de zona horaria admitidos por IANA. Controla los límites de inicio/fecha límite de la campaña, las cuentas regresivas, los informes programados de los ejecutores de la campaña, la automatización del ciclo de vida y las comprobaciones de liquidación. El valor predeterminado sigue siendo `America/Denver` hasta que un superadministrador lo cambia.
 
 ### Marca y SEO
 
@@ -123,7 +125,7 @@ No almacene claves API ni secretos de proveedores en Configuración. Utilice sec
 
 ### Informes del corredor de campaña
 
-La configuración del informe del ejecutor de campaña controla el sistema de informes programados: estado habilitado, hora de envío de Mountain Time, prefijo de asunto, alternancia de informes de compromiso/cumplimiento, inclusión de resumen y comportamiento de archivos adjuntos CSV.
+La configuración del informe del ejecutor de campaña controla el sistema de informes programados: estado habilitado, hora de envío de la zona horaria de la plataforma, prefijo del asunto, alternancia de informes de compromiso/cumplimiento, inclusión de resumen y comportamiento de archivos adjuntos CSV. Los superadministradores configuran la zona horaria predeterminada de la plataforma en la sección Configuración de la plataforma.
 
 La pestaña Informes sigue siendo la interfaz de usuario preferida del navegador para generar y descargar archivos CSV bajo demanda.
 
@@ -325,7 +327,7 @@ Las cargas de medios relacionadas con la campaña requieren acceso a esa campañ
 
 El punto final de carga del trabajador preserva el origen. Valida el tipo, tamaño, alcance de la campaña, directorio y nombre de archivo, pero no ejecuta optimizadores de imágenes nativos ni FFmpeg. La compresión de imágenes sin pérdidas y la transcodificación de vídeo se ejecutan fuera del Worker a través del canal de medios del repositorio.
 
-Utilice `npm run media:optimize` localmente o el flujo de trabajo **Optimizar medios del panel** de GitHub Actions después de que las cargas del panel lleguen al repositorio. Utilice `npm run media:optimize:check` cuando revise una rama con muchos medios y desee fallar en optimizaciones de imágenes pendientes, variantes WebP responsivas o derivados de video faltantes. La canalización optimiza las imágenes en su lugar cuando el resultado optimizado es más pequeño, genera variantes de imágenes `.webp` responsivas para plantillas públicas en `320w`, `480w`, `640w`, `960w` y `1600w`, genera derivados `.webm` de alta calidad junto a los archivos MP4/MOV cargados y reescribe referencias literales `_campaigns` / `_config.yml` del video fuente cargado al derivado WebM generado. Las imágenes y los vídeos originales permanecen en el repositorio para revertirlos y volver a codificarlos en el futuro. Utilice la opción manual `scope=all` del flujo de trabajo cuando los medios existentes implementados necesiten un reprocesamiento completo.
+Utilice `npm run media:optimize` localmente o el flujo de trabajo **Optimizar medios del panel** de GitHub Actions después de que las cargas del panel lleguen al repositorio. Si la máquina host no tiene instalados los optimizadores nativos, use `npm run media:optimize:podman` para ejecutar el mismo script dentro de la imagen del sitio Podman con `optipng`, `gifsicle`, `libjpeg-turbo-progs`, `webp` y `ffmpeg`. Utilice `npm run media:optimize:check` o `npm run media:optimize:check:podman` cuando revise una rama con muchos medios y desee fallar en optimizaciones de imágenes pendientes, variantes WebP responsivas o derivados de video faltantes. La canalización optimiza las imágenes en su lugar cuando el resultado optimizado es más pequeño, genera variantes de imagen `.webp` responsivas para plantillas públicas en `320w`, `480w`, `640w`, `960w` y `1600w`, genera derivados de `.webm` de alta calidad junto a los archivos MP4/MOV cargados y reescribe `_campaigns` literal. / `_config.yml` hace referencia del vídeo fuente subido al derivado WebM generado. Las imágenes y los vídeos originales permanecen en el repositorio para revertirlos y volver a codificarlos en el futuro. Utilice la opción manual `scope=all` del flujo de trabajo cuando los medios existentes implementados necesiten un reprocesamiento completo.
 
 Utilice texto alternativo significativo para imágenes que comuniquen contenido. Los fondos decorativos pueden utilizar texto alternativo vacío en las plantillas públicas.
 
@@ -370,6 +372,7 @@ Controlar:
 - el correo electrónico está presente en `_config.yml` `admin.users`, `ADMIN_USERS_JSON`, `ADMIN_BOOTSTRAP_EMAILS` o en la lista de usuarios respaldada por KV
 - Los secretos locales existen en `worker/.dev.vars`.
 - si Turnstile está habilitado, `_config.yml` tiene `admin.turnstile_site_key` y el trabajador tiene `TURNSTILE_SECRET_KEY`
+- Si el recordatorio de inicio del torniquete está habilitado, `_config.yml` tiene `launch_reminders.turnstile_site_key` y el trabajador tiene `TURNSTILE_SECRET_KEY` o `LAUNCH_REMINDER_TURNSTILE_SECRET_KEY`.
 - si realiza la prueba localmente con Turnstile habilitado, use las claves de prueba de Cloudflare o configure `ADMIN_TURNSTILE_BYPASS=true` solo en un entorno de trabajo local/de prueba
 
 ### Los cambios no aparecen en el sitio público

@@ -137,6 +137,7 @@ Reconstruir cuando cambies:
 - `Containerfile.dev`
 - `worker/Containerfile.dev`
 - requisitos del paquete del sistema
+- Requisitos del optimizador de medios como `optipng`, `gifsicle`, `libjpeg-turbo-progs`, `webp` o `ffmpeg`.
 - supuestos de arranque de dependencia
 - Supuestos de tiempo de ejecución de Nodo/Wrangler como el trabajador `compatibility_date`
 
@@ -145,6 +146,15 @@ Usar:
 ```bash
 PODMAN_REBUILD=1 ./scripts/dev.sh --podman
 ```
+
+La imagen del sitio también admite los contenedores de optimización de medios locales:
+
+```bash
+npm run media:optimize:podman
+npm run media:optimize:check:podman
+```
+
+Utilice `PODMAN_REBUILD=1 npm run media:optimize:podman` después de los cambios de paquete para que el contenedor del optimizador tenga las herramientas nativas PNG/GIF/JPEG/WebP/video actuales.
 
 ## Pruebas del navegador
 

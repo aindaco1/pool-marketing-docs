@@ -28,7 +28,7 @@ Los creadores definen campañas en Markdown; los patrocinadores se comprometen a
 |**Pagos**|Stripe (Sesiones de pago en modo configuración + cargos fuera de sesión)|Campos de pago seguros, métodos de pago guardados y luego tarjetas de cargo|
 |**API/pegamento**|Trabajador de Cloudflare (`worker.example.com`)|Maneja el arranque de pago, webhooks, totales con reconocimiento de propinas, recuperación y datos de informes.|
 |**IU de administrador**|Panel privado (`/admin/`, `/es/admin/`)|Configuraciones, campañas, complementos, análisis, informes, seguidores, herramientas de marketing y usuarios basados en roles|
-|**Automatización**|cron de trabajador + acción de GitHub|Auto-liquidación (por lotes) + transiciones de estado|
+|**Automatización**|Programador de trabajadores + Acción de GitHub|Auto-liquidación (por lotes) + transiciones de estado|
 |**Almacenamiento**|Rebaja / YAML|Definiciones y estado de la campaña|
 |**Estilo**|Sass + vars de tema generados|Sistema de diseño compartido para páginas públicas, pago, gestión de promesas y superficies de pago/correo electrónico de marca.|
 
@@ -49,7 +49,7 @@ Eso significa que el límite real para la mayoría de las bifurcaciones suele se
 
 ## Forma de desarrollo local
 
-La ruta local de baja fricción recomendada ahora utiliza Podman:
+La ruta local de baja fricción recomendada ahora usa Podman:
 
 - `./scripts/dev.sh --podman` arranca a Jekyll y al Trabajador en contenedores desarraigados
 - `npm run podman:doctor` comprueba primero la preparación del host
@@ -81,8 +81,8 @@ Para conocer los límites actuales de Cloudflare, consulte:
 1. **El visitante se compromete** a través del carrito propio → El trabajador crea una sesión de pago de Stripe en modo de configuración y el segundo sidecar de pago existente monta la interfaz de usuario de pago segura de Stripe en el sitio. Un pago puede incluir artículos de varias campañas. El carrito y el proceso de pago muestran el subtotal, el envío, el impuesto sobre las ventas y la propina de plataforma opcional de un modelo de precios compartido.
 2. **Stripe** guarda una tarjeta a través de ese paso de pago en el sitio y devuelve las identificaciones al Trabajador.
 3. El trabajador almacena los datos de las promesas en **Cloudflare KV** (niveles, artículos de soporte, montos personalizados, dirección de envío, porcentaje/cantidad de propina, ID de Stripe), ampliando un pago combinado en una promesa con alcance de campaña por campaña. El cliente no considera el pago como exitoso hasta que se confirme la persistencia.
-4. **Worker cron** se ejecuta diariamente a medianoche MT:
-   - Registra los latidos del corazón (`cron:lastRun` en KV) para su monitoreo.
+4. **El programador de trabajadores** ejecuta el trabajo del ciclo de vida diario después de la medianoche en la zona horaria de la plataforma configurada:
+   - Registra un latido cada hora (`cron:lastRun` en KV) para monitorear sin convertir el programador de nivel de minutos en una rotación constante de escritura en KV.
    - Activa la reconstrucción del sitio cuando pasa `goal_deadline` (`live` → `post`).
    - Si se financia, envía la liquidación por lotes a través del autoencadenamiento `/admin/settle-dispatch`.
    - Cada lote (6 promesas) se ejecuta en una invocación de Trabajador separada para permanecer dentro de los límites de las subrequests.
@@ -158,10 +158,10 @@ Para conocer los límites actuales de Cloudflare, consulte:
 3. ✅ Cloudflare Worker implementado (`worker.example.com`) con secretos de firma de Stripe + Worker.
 4. ✅ Webhook de banda configurado → Trabajador `/webhooks/stripe`.
 5. ✅ Conjunto de secretos de repositorio: `STRIPE_SECRET_KEY`, `CHECKOUT_INTENT_SECRET` y secretos de administrador/correo electrónico.
-6. ✅ Cron de trabajador diario habilitado (6 a. m. UTC y 7 a. m. UTC para verificaciones de medianoche MDT/MST): verifique a través de `GET /admin/cron/status`.
+6. ✅ Programador de trabajadores a nivel de minutos habilitado con puertas diarias de zona horaria de plataforma: verifique a través de `GET /admin/cron/status`.
 7. ✅ Purga de caché de Cloudflare configurada (preferido: token de API/ID de cuenta; correo electrónico heredado/autenticación de clave aún funciona si se configura explícitamente).
 8. ✅ La campaña de prueba se ejecuta de un extremo a otro en el modo de prueba de Stripe.
-9. ✅ El contenido de formato largo desinfecta los esquemas de enlaces de Markdown y solo muestra incrustaciones estructuradas de orígenes aprobados exactos.
+9. ✅ El contenido de formato largo desinfecta los esquemas de enlaces de Markdown y solo muestra incrustaciones estructuradas de orígenes exactos aprobados.
 10. ✅ Las lecturas de enlaces mágicos de promesas faltantes fallan al cerrarse con `404`.
 11. ✅ El panel de administración privado emite `noindex`, utiliza autenticación de enlace mágico y mantiene las mutaciones KV de usuario/referencia separadas de los flujos de publicación respaldados por GitHub.
 
@@ -183,7 +183,7 @@ Para conocer los límites actuales de Cloudflare, consulte:
 4. **Compilación Sass**: Jekyll compila archivos `.scss` automáticamente cuando `sass:` está configurado en `_config.yml`.
 5. **Prerenderizado de cuenta regresiva**: Calcule los valores iniciales en el momento de la compilación (Jekyll) o el tiempo de renderizado (JS) para evitar el flash "00 00 00 00".
 6. **Flujo de datos de elementos de soporte**: Cart.js extrae elementos de soporte → El trabajador almacena en KV temporal → Webhook se fusiona en el compromiso final.
-7. **Manejo de zona horaria compatible con DST**: toda la lógica de fecha límite (cuenta regresiva de la interfaz, liquidación de trabajadores, transiciones de estado de campaña) utiliza `Intl.DateTimeFormat` con `timeZone: 'America/Denver'` para detectar MST frente a MDT; nunca codifique las compensaciones UTC.
+7. **Manejo de zona horaria compatible con el horario de verano**: toda la lógica de fecha límite (cuenta regresiva frontal, liquidación de trabajadores, transiciones de estado de campaña) utiliza `platform.timezone` / `PLATFORM_TIMEZONE` con `Intl.DateTimeFormat`; el valor predeterminado es `America/Denver`.
 8. **La seguridad del contenido debe mantenerse en el momento del procesamiento**: las auditorías de creación ayudan, pero la protección real proviene de la desinfección del enlace Markdown en tiempo de ejecución y la validación de inserción del origen exacto.
 9. **Los enlaces mágicos deben requerir filas de compromiso reales**: la validez del token por sí sola no es suficiente; Los registros de promesas faltantes no deberían cerrarse.
 10. **Chrome localizado debe permanecer compartido**: los controles de la página de la campaña y la copia de estado que pertenecen a la plataforma, no al creador, deben fluir a través del catálogo de configuración regional compartido para que las plantillas públicas, la interfaz de usuario en tiempo de ejecución y los correos electrónicos de los seguidores no se separen.

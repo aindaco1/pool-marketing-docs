@@ -14,7 +14,7 @@ Esta hoja de ruta está organizada como un historial de lanzamiento de los estad
 
 **v1.0.3**
 
-El conjunto de funciones v1.0 y el pase de liberación reforzada están completos. v1.0.3 agrega correcciones de rendimiento público guiadas por PageSpeed, variantes WebP responsivas con un tramo móvil `640w`, videos hero de YouTube diferidos, reprocesamiento manual completo de medios y actualizaciones de optimización de medios del panel que conservan los archivos fuente.
+El conjunto de funciones v1.0 y el pase de liberación reforzada están completos. v1.0.3 agrega manejo de zona horaria de plataforma configurable, recordatorios de lanzamiento opcionales para próximas campañas, mejoras en el rendimiento de la página de campaña móvil y un latido del programador cada hora que evita la rotación de escritura de Workers KV de referencia.
 
 ## Historial de lanzamientos
 
@@ -159,7 +159,7 @@ Nuevo en esta versión:
 
 - Panel de administración privado en `/admin/` y `/es/admin/` para configuraciones de plataforma con alcance de roles, edición de campañas, complementos, informes, análisis, seguidores, herramientas de marketing y usuarios.
 - autenticación de administrador de enlace mágico por correo electrónico con sesiones firmadas, protecciones CSRF/origen, soporte de desafío Turnstile opcional y API de navegador seguras que no exponen `ADMIN_SECRET`
-- edición del panel para configuración de campaña, bloques de contenido, niveles, elementos de soporte, complementos de campaña, objetivos ambiciosos, elementos en curso, entradas de diario, decisiones, complementos de plataforma y configuración de plataforma
+- edición del panel de control para configuraciones de campaña, bloques de contenido, niveles, elementos de soporte, complementos de campaña, objetivos ambiciosos, elementos en curso, entradas de diario, decisiones, complementos de plataforma y configuraciones de plataforma
 - Panel de control Gestión de usuarios respaldada por Worker KV en `admin-users:v1`, incluidos correos electrónicos de notificación para usuarios recién creados cuando se configura Resend
 - Panel de control Herramientas de marketing para referencias y creación de URL UTM, códigos de referencia guardados, controles de creación de inserciones reutilizables y fragmentos de lanzamiento copiables.
 - Vistas de análisis, informes y soportes con ámbito de función con tablas ordenables/filtrables, visualización del centavo exacto de dólar, descargas CSV y vistas previas de informes de solo lectura.
@@ -192,23 +192,25 @@ Nuevo en esta versión:
 - Configuración -> Rendimiento avanzado expone la habilitación de captación previa de intención, el retraso y el límite de vista de página para superadministradores, con la configuración del trabajador reflejada a través de `INTENT_PREFETCH_*`
 - Las páginas de producción crean CSS y JavaScript `_site` generados minify después de la salida de Jekyll, mientras que Cloudflare sigue siendo responsable de la compresión de transferencia.
 - Las páginas de la campaña muestran enlaces para compartir con íconos reutilizables para Bluesky, X, Threads, Facebook, SMS y correo electrónico con URL localizadas y texto CTA con reconocimiento de estado cuando sea compatible.
-- Los controles para compartir responsivos aparecen debajo de la breve propaganda en dispositivos móviles/tabletas y encima del botón de inserción solo en computadoras de escritorio.
+- Los controles interactivos para compartir aparecen debajo de la breve propaganda en dispositivos móviles/tabletas y encima del botón de inserción solo en computadoras de escritorio.
 - El inicio de sesión por correo electrónico del administrador mantiene el desafío Turnstile existente después de un intento de inicio de sesión y utiliza el estilo de mensaje de estado del panel compartido para obtener comentarios de autenticación más destacados.
 - La lista de verificación pública para creadores de campañas y la lista de verificación en español describen los cambios que enfrentan los creadores desde la versión 0.9.5 hasta la v1.0.2, incluida la planificación de enlaces compartidos y la carga de medios en el panel.
 
-### v1.0.3: Parche de medios responsivos y PageSpeed
+### v1.0.3: zona horaria de la plataforma, recordatorios de lanzamiento y refuerzo del flujo de trabajo de medios
 
-Esta versión puntual siguió la revisión de PageSpeed reduciendo trabajo evitable en páginas públicas y haciendo que los medios cargados desde el panel sean más livianos de servir sin cambiar el Markdown de las campañas.
+Este lanzamiento puntual hizo que el tiempo del ciclo de vida de la campaña fuera configurable para bifurcaciones, agregó una colección de recordatorios de lanzamiento para las próximas campañas y operaciones de medios/rendimiento más estrictas para las páginas de campañas públicas.
 
 Nuevo en esta versión:
 
-- Las páginas de campañas con video remoto ya no precargan imágenes hero alternativas ocultas, las imágenes de niveles usan carga diferida y decodificación asíncrona, los logotipos de marca predeterminados reservan sus dimensiones intrínsecas y las páginas públicas evitan preconexiones tempranas a Stripe antes de la intención del carrito.
-- La optimización de medios del panel genera variantes WebP responsivas para imágenes fuente PNG, JPEG y GIF en `320w`, `480w`, `640w`, `960w` y `1600w`, conservando las cargas originales como respaldo de verdad.
-- Las plantillas de campaña, nivel, tarjeta, galería e imagen de contenido sirven variantes responsivas generadas cuando existen, sin cambiar la estructura visible de la página ni las rutas de medios usadas por autores.
-- El flujo de trabajo **Optimizar medios del panel** admite ejecuciones manuales con `scope=all` para reprocesar medios de campañas existentes mediante el mismo pipeline usado para cargas nuevas del panel.
-- Los videos hero de YouTube de las campañas se muestran como fachadas locales con póster/botón de reproducción y difieren el iframe remoto hasta la intención de reproducción del colaborador.
-- Los derivados WebP responsivos generados se omiten durante la optimización de origen para que el pipeline no recodifique recursivamente sus propios activos de navegador.
-- La documentación de lanzamiento, creadores y operadores cubre el flujo de rendimiento/medios de v1.0.3.
+- Los superadministradores pueden configurar la zona horaria predeterminada de la plataforma desde las opciones de zona horaria admitidas por la IANA, con el estado de la campaña de Jekyll, las cuentas regresivas del navegador, las verificaciones de fechas límite de los trabajadores, los informes de los ejecutores de campaña, las verificaciones de liquidación y las superficies de fecha/hora de administración que comparten el mismo modelo `platform.timezone` / `PLATFORM_TIMEZONE`.
+- Las próximas páginas de la campaña pueden recopilar registros de recordatorio de lanzamiento únicos a través de un formulario localizado delgado con Turnstile, limitación de velocidad, deduplicación de campaña/correo electrónico, enlaces de cancelación de suscripción firmados y trabajos de envío limitados.
+- La entrega de recordatorio de lanzamiento reutiliza el módulo de correo electrónico de reenvío existente, la configuración del remitente, el catálogo de configuración regional y el ritmo en lugar de agregar una segunda integración de correo electrónico.
+- el programador Worker de nivel minuto ahora persiste `cron:lastRun` cada hora en lugar de cada minuto, manteniendo visible el estado del cron sin consumir el presupuesto de escritura KV de nivel gratuito como abandono de referencia.
+- `_config.local.yml` puede borrar la clave del sitio Turnstile de recordatorio para que el desarrollo local oculte el widget de manera coherente con el inicio de sesión del administrador local.
+- El optimizador de medios Podman ahora incluye `optipng` y `gifsicle` para la compresión de fuentes PNG/GIF locales a través del mismo flujo de trabajo de medios del repositorio.
+- La generación de imágenes responsivas ahora incluye un renglón WebP `640w` entre las variantes `480w` y `960w` existentes para páginas de campañas móviles.
+- Los videos de los héroes de la campaña de YouTube muestran fachadas de carteles/juegos locales y posponen el iframe remoto hasta que el partidario tenga la intención de jugar.
+- Las listas de verificación públicas para creadores ahora describen los cambios de la versión 1.0.3 para los creadores, incluidos recordatorios de lanzamiento, expectativas de zona horaria de la plataforma, incrustaciones diferidas de héroes de YouTube y variantes WebP receptivas.
 
 ## Funciones futuras
 
@@ -219,8 +221,6 @@ El trabajo aún planeado después de `1.0.3` incluye:
 - Herramientas de marketing de campaña más completas, como la composición de anuncios y el seguimiento de carritos abandonados que tengan en cuenta el consentimiento.
 - diferentes precios por variación adicional
 - Páginas de vista previa de campañas protegidas por correo electrónico para superadministradores, usuarios de campañas y revisores invitados.
-- lanzar registros de recordatorio para próximas campañas con consentimiento, manejo de cancelación de suscripción y escrituras KV limitadas
-- zona horaria predeterminada de la plataforma configurable en lugar de asumir la hora de la montaña en todas partes
 
 ## Problemas conocidos
 

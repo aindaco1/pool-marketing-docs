@@ -58,6 +58,7 @@ El reciente pase de refuerzo de accesibilidad agregó:
   - Texto de estado de cuenta regresiva del lector de pantalla que refleja el estado del temporizador visual.
   - Semántica de carga y agrupación de videos de héroes más clara.
   - Enlaces compartidos de campaña de solo íconos con nombres accesibles localizados, imágenes de íconos decorativos ocultos, ubicación debajo del anuncio en dispositivos móviles/tabletas y ubicación en la barra lateral en computadoras de escritorio.
+  - Formularios de recordatorio de lanzamiento de próxima campaña con etiquetas de correo electrónico reales, comportamiento de envío fácil de usar con el teclado, Turnstile mostrado solo cuando está configurado y anuncios de estado educados.
   - Ajuste de pantalla pequeña más seguro para mosaicos de cuenta regresiva, metadatos de creadores y acciones de avance de la comunidad.
 - Semántica del panel de administración y pulido del teclado para:
   - etiquetas de campos compartidos cuyos botones de ayuda no están anidados dentro de las etiquetas
@@ -79,7 +80,8 @@ La interfaz de usuario sensible a la accesibilidad más importante en la aplicac
 4. Pestañas de fase de campaña y pestañas de diario
 5. Deslizadores de punta de plataforma
 6. Medios de página de campaña pública y bloques de contenido de formato largo
-7. Configuración del panel de administración, editores de campañas, editores de contenido, informes, análisis, seguidores y herramientas de marketing.
+7. Formularios de recordatorio del lanzamiento de próximas campañas
+8. Configuración del panel de administración, editores de campañas, editores de contenido, informes, análisis, seguidores y herramientas de marketing.
 
 Estas superficies son más importantes porque combinan una interfaz de usuario personalizada, cambios de estado dinámicos y acciones de usuario de alto valor.
 
@@ -126,6 +128,7 @@ La cobertura automatizada actual relacionada con la accesibilidad incluye:
   - `tests/unit/accessibility-critical-surfaces.test.ts`
 - La semántica de la página de la campaña se verifica en:
   - `tests/unit/campaign-page.test.ts`
+  - Esto incluye el comportamiento de envío/estado de recordatorio de lanzamiento y la semántica de control/compartimiento de la página de la campaña.
 - cobertura más amplia de hacha de página pública en:
   - `tests/e2e/accessibility-public-pages.spec.ts`
   - esto cubre actualmente:
@@ -224,6 +227,7 @@ Las comprobaciones automáticas ayudan, pero estas comprobaciones de accesibilid
 - Las interfaces de campaña con pestañas responden correctamente a la navegación con el teclado.
 - Los controles secundarios de la página de campaña, como las pestañas del diario y las galerías de carrusel, siguen siendo utilizables solo con el teclado.
 - Los widgets de campañas públicas, como cantidades personalizadas, artículos de apoyo y avances de la comunidad de seguidores, siguen siendo utilizables solo con el teclado.
+- Los campos de correo electrónico de recordatorio de lanzamiento, los botones de envío, los widgets de Turnstile y los mensajes de estado siguen siendo utilizables sin suposiciones de solo punteros.
 - Los enlaces para compartir de la campaña tienen nombres útiles y accesibles aunque la interfaz de usuario visible sea solo de íconos.
 - Las galerías de carrusel permanecen enfocables con el teclado y se desplazan correctamente con las teclas de flecha y Inicio/Fin.
 - Los controles deslizantes de punta siguen siendo utilizables con ajustes repetidos de las teclas de flecha.

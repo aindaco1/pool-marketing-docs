@@ -28,7 +28,7 @@ upcoming → live → post
 
 | State | UX | Actions |
 |-------|-----|---------|
-| `upcoming` | Buttons disabled, "Coming soon" | Countdown to launch |
+| `upcoming` | Buttons disabled, "Coming soon" | Countdown to launch, optional one-time launch reminder signup |
 | `live` | Pledge buttons active | Cards saved via The Pool's on-site Stripe payment step |
 | `post` | Campaign closed | Charges processed (if funded) |
 
@@ -40,7 +40,7 @@ upcoming → live → post
 |-----------|------|
 | **First-party cart** | Browser-owned cart UI and checkout review state |
 | **Stripe** | Checkout Sessions in setup mode (custom on-site payment step) + PaymentIntents (charge later) |
-| **Cloudflare Worker** | Backend: checkout, webhooks, pledge storage (KV), combined live reads, stats, auto-settle cron |
+| **Cloudflare Worker** | Backend: checkout, webhooks, pledge storage (KV), combined live reads, stats, auto-settle scheduler |
 | **Jekyll** | Static pages + campaign markdown |
 | **Admin dashboard** | Private browser workspace for settings, campaigns, add-ons, reports, analytics, supporters, marketing links, and users |
 
@@ -55,7 +55,7 @@ upcoming → live → post
 4. SAVE CARD  → The existing checkout sidecar keeps the visitor on-site, mounts secure Stripe payment UI, and saves the payment method (no charge)
 5. CONFIRM    → Stripe confirms the setup, then Worker persists one pledge per campaign in KV, sends campaign-specific supporter email(s), and refreshes live campaign reads before success UX completes
 6. MANAGE     → Backer uses magic link to cancel/modify/update card
-7. DEADLINE   → Worker cron (midnight MT) checks campaigns
+7. DEADLINE   → Worker scheduler checks campaigns after midnight in the platform timezone
 8. CHARGE     → If funded + deadline passed: aggregate by email within each campaign, charge once per supporter per campaign, and store actual Stripe fee/net data when Stripe returns balance transaction details
 9. COMPLETE   → Update pledge_status to 'charged' or 'payment_failed'
 ```
@@ -76,6 +76,10 @@ Pledges are stored in Cloudflare KV. Key patterns:
 | `pending-extras:{orderId}` | Temporary storage for support items/custom amount during checkout |
 | `pending-tiers:{orderId}` | Temporary storage for additional tiers when Stripe metadata would be too large |
 | `checkout-intent:{orderId}` | Canonicalized checkout payload used to fan bundled checkout into campaign-scoped pledges |
+| `launch-reminder:{campaignSlug}:{emailHash}` | Upcoming-campaign reminder signup and opt-in metadata |
+| `launch-reminder-suppressed:{campaignSlug}:{emailHash}` | Campaign-scoped reminder unsubscribe marker |
+| `launch-reminder-sent:{campaignSlug}:{emailHash}` | Launch reminder send idempotency marker |
+| `launch-reminder-dispatch:{campaignSlug}` | Bounded dispatch job cursor for a campaign that just became live |
 | `admin-users:v1` | Runtime dashboard users saved from **Settings -> Users** |
 | `admin-marketing-referrals:{campaignSlug}` | Saved referral code metadata for the dashboard Marketing tab |
 
@@ -255,7 +259,7 @@ If the token is valid but its pledge record no longer exists, this route returns
 **Flag logic:**
 - `canModify` / `canCancel`: `true` only if `pledgeStatus === 'active'` AND `!charged` AND deadline not passed
 - `canUpdatePaymentMethod`: `true` if `!charged` (allowed even after deadline for failed payment recovery)
-- `deadlinePassed`: `true` if campaign deadline has passed (Mountain Time)
+- `deadlinePassed`: `true` if campaign deadline has passed in the platform timezone
 
 ### `POST /pledge/cancel`
 Cancel an active pledge.
@@ -351,7 +355,7 @@ Send a custom announcement email with optional CTA link to all campaign supporte
   "campaignSlug": "worst-movie-ever",
   "subject": "Submissions close March 6th!",
   "heading": "Last call for submissions!",
-  "body": "The deadline is this Thursday at midnight MT.",
+  "body": "The deadline is this Thursday at midnight in the platform timezone.",
   "ctaLabel": "Submit Your Reward",
   "ctaUrl": "https://example.com/submit",
   "dryRun": true
@@ -482,21 +486,23 @@ Supporter-only community page:
 
 ## Charging Flow (Worker Cron)
 
-The Worker has scheduled triggers at **6:00 AM UTC** and **7:00 AM UTC** so daily checks line up with midnight Mountain Time in both MDT and MST:
+The Worker has a minute-level scheduled trigger. Daily lifecycle work is gated to a small midnight window in the configured platform timezone and claimed once per local date:
 
 ```toml
 # wrangler.toml
 [triggers]
-crons = ["0 6 * * *", "0 7 * * *"]
+crons = ["* * * * *"]
 ```
 
 **What it does:**
 
-1. Records a heartbeat (`cron:lastRun` in KV)
+1. Records an hourly heartbeat (`cron:lastRun` in KV) so the minute-level scheduler does not burn the free KV write budget
 2. Lists all campaigns with `goal_deadline` and `goal_amount`
-3. For each campaign where deadline has passed (in MT), goal is met, and `campaign-charged:{slug}` is not set:
+3. Drains queued launch reminder dispatch jobs in bounded batches
+4. Queues one launch reminder dispatch job when an upcoming campaign becomes live
+5. For each campaign where deadline has passed in the platform timezone, goal is met, and `campaign-charged:{slug}` is not set:
    - Dispatches batched settlement via `POST /admin/settle-dispatch/:slug`
-4. Triggers GitHub Pages rebuild if any campaign state transitions detected
+6. Triggers GitHub Pages rebuild if any campaign state transitions detected
 
 **Settlement dispatch (self-chaining batches):**
 
@@ -632,6 +638,12 @@ All emails show exact amounts with 2 decimal places (no rounding).
 - Includes: Supporter access links (community + manage), Instagram CTA (if campaign has Instagram URL)
 - Endpoint: `POST /admin/broadcast/announcement`
 
+**Launch Reminder** (sent once when an upcoming campaign becomes live)
+- Subject: "Now live | {Campaign Title}"
+- Contains: Campaign title, localized launch copy, campaign CTA, and unsubscribe link
+- Uses: Signup `preferredLang`, existing Resend sender configuration, suppression markers, and sent markers
+- Note: Reminder signup is separate from pledging and can be cancelled from the reminder email
+
 ---
 
 ## Security Considerations
@@ -644,7 +656,9 @@ All emails show exact amounts with 2 decimal places (no rounding).
 - Sensitive checkout and payment-method bootstrap responses are `private, no-store`
 - First-party checkout and payment-method POSTs enforce trusted `SITE_BASE` origins
 - Browser-stored checkout drafts and in-flight identifiers are session-scoped or time-limited
-- All deadlines evaluated in Mountain Time
+- All deadlines evaluated in the platform timezone
+- Launch reminder signups require explicit campaign/email opt-in, rate limiting, and Turnstile verification when configured
+- Launch reminder unsubscribe links use scoped signed tokens and suppress only that campaign/email reminder
 - Community/voting access revoked immediately when pledge is cancelled
 - `/votes` API checks pledge status on every request (not just token validity)
 
@@ -653,7 +667,7 @@ All emails show exact amounts with 2 decimal places (no rounding).
 ## Race Condition Handling
 
 - `/pledge/cancel` and `/pledge/modify` reject if pledge `charged: true`
-- `/pledge/cancel` and `/pledge/modify` reject if campaign deadline has passed (Mountain Time)
+- `/pledge/cancel` and `/pledge/modify` reject if campaign deadline has passed in the platform timezone
 - Cron checks `pledgeStatus === 'active'` and `!charged` before charging
 - `pledgeStatus` and `charged` flags prevent double-charging
 - Aggregation by email ensures one charge per supporter per campaign even with multiple pledge rows

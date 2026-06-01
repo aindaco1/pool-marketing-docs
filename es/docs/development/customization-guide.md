@@ -56,6 +56,7 @@ La configuración del sitio está organizada en torno a estas secciones orientad
 - `design`
 - `debug`
 - `performance`
+- `launch_reminders`
 - `add_ons`
 - `checkout`
 - `cache`
@@ -93,6 +94,7 @@ Teclas admitidas:
 - `site_url`
 - `worker_url`
 - `default_creator_name`
+- `timezone`
 - `logo_path`
 - `footer_logo_path`
 - `favicon_path`
@@ -106,6 +108,7 @@ Estos valores alimentan:
 - metadatos del título de la aplicación para superficies móviles/compartidas
 - imagen de tarjeta social predeterminada
 - copia alternativa del creador de la campaña
+- Comportamiento de fecha límite/cuenta regresiva de la campaña y ventanas del ciclo de vida programadas del trabajador.
 - pago/Administrar la copia de la interfaz de usuario de Pledge y la configuración del cliente de arranque
 - Marca de correo electrónico del trabajador cuando se refleja
 
@@ -113,6 +116,7 @@ Notas:
 
 - `platform.*` es la superficie de marca principal.
 - `platform.version` debe ser la versión canónica del producto legible por máquina para el sitio, mientras que `platform.release_label` puede seguir siendo más amigable para copias públicas como `v1.0.3`.
+- `platform.timezone` debe ser una zona horaria compatible con la IANA. El valor predeterminado es `America/Denver`, por lo que las bifurcaciones existentes mantienen el comportamiento del ciclo de vida anterior hasta que lo cambien.
 - `title` / `author` de nivel superior todavía existen en Jekyll, pero trátelos como metadatos/respaldo generales del sitio en lugar de la interfaz principal de personalización de la bifurcación.
 - `platform.default_social_image_path` es el valor predeterminado admitido para tarjetas OG/Twitter cuando una página o campaña no proporciona una imagen más específica.
 - `platform.logo_path` es también la marca reflejada que se utiliza en los correos electrónicos de los seguidores.
@@ -132,6 +136,7 @@ platform:
   site_url: https://crowdfund.example.com
   worker_url: https://pledge.example.com
   default_creator_name: Example Studio
+  timezone: America/Denver
   logo_path: /assets/images/brand/logo-square.png
   footer_logo_path: /assets/images/brand/logo-footer.png
   favicon_path: /assets/images/brand/favicon.png
@@ -547,8 +552,8 @@ Claves admitidas hoy:
 - `campaign_runner.enabled`
 - `campaign_runner.daily_pledge_report_enabled`
 - `campaign_runner.fulfillment_report_enabled`
-- `campaign_runner.send_hour_mt`
-- `campaign_runner.send_minute_mt`
+- `campaign_runner.send_hour`
+- `campaign_runner.send_minute`
 - `campaign_runner.include_stats_summary`
 - `campaign_runner.include_csv_attachment`
 - `campaign_runner.email_subject_prefix`
@@ -557,7 +562,7 @@ Comportamiento actual:
 
 - Los destinatarios a nivel de campaña viven en el frente de la campaña como `runner_report_emails`.
 - Si el campo de la campaña falta o está vacío, no se envían correos electrónicos al responsable de la campaña para esa campaña.
-- la ventana de envío todavía se interpreta en Mountain Time, por lo que el tiempo del informe permanece alineado con el resto del modelo del ciclo de vida de la campaña.
+- la ventana de envío se interpreta en `platform.timezone` para que el tiempo del informe permanezca alineado con el resto del modelo del ciclo de vida de la campaña.
 - `email_subject_prefix` se puede configurar como una cadena vacía para desactivar el prefijo por completo
 - cuando el prefijo se omite en tiempo de ejecución, el trabajador vuelve a `[platform.name]`
 - Los temas de los informes son concisos y están orientados a la capacidad de entrega: sin emoji, etiquetas de informe cortas y un patrón consistente de prefijo + tipo de informe + título de campaña.
@@ -576,8 +581,8 @@ reports:
     enabled: true
     daily_pledge_report_enabled: true
     fulfillment_report_enabled: true
-    send_hour_mt: 7
-    send_minute_mt: 0
+    send_hour: 7
+    send_minute: 0
     include_stats_summary: true
     include_csv_attachment: true
     email_subject_prefix: "[My Fork]"
@@ -603,7 +608,7 @@ runner_report_emails:
 
 Utilice `design` para anulaciones seleccionadas del sistema de diseño que no requieren ediciones de Sass.
 
-Estos valores se emiten en la hoja de estilo generada [assets/theme-vars.css](https://github.com/your-org/your-project/blob/main/assets/theme-vars.css), que mantiene el puente de variables de diseño compatible con el estricto CSP del sitio. Las bifurcaciones no necesitan editar Sass solo para cambiar los tokens admitidos.
+Estos valores se emiten en la hoja de estilo generada [assets/main.css](https://github.com/your-org/your-project/blob/main/assets/main.scss), que mantiene el puente de variables de diseño compatible con el estricto CSP del sitio. [assets/theme-vars.css](https://github.com/your-org/your-project/blob/main/assets/theme-vars.css) permanece como un artefacto de compatibilidad, pero los diseños públicos no lo solicitan por separado. Las bifurcaciones no necesitan editar Sass solo para cambiar los tokens admitidos.
 
 Las mismas variables CSS generadas ahora también son el tema del sidecar Stripe Elements en el sitio, por lo que las anulaciones de tipografía/color/radio admitidas se llevan a cabo en la interfaz de usuario de pago personalizada sin agregar una capa de configuración separada solo para el pago.
 
@@ -708,6 +713,30 @@ Estos controlan el tiempo de ejecución seguro de captación previa de documento
 
 Los superadministradores pueden editar estos campos en el panel en **Configuración -> Rendimiento avanzado**. Los cambios publicados actualizan `_config.yml`, reflejan los valores de `INTENT_PREFETCH_*` orientados al trabajador y entran en vigor en las páginas estáticas después de la ruta normal de reconstrucción/implementación.
 
+### `launch_reminders`
+
+Utilice `launch_reminders` para el formulario de recordatorio público único que se muestra en las próximas páginas de la campaña.
+
+Teclas admitidas:
+
+- `enabled`
+- `turnstile_site_key`
+
+Comportamiento actual:
+
+- el formulario solo se muestra para campañas cuyo estado efectivo es `upcoming`
+- la clave pública del sitio se puede borrar en `_config.local.yml` para ocultar el widget localmente
+- el secreto correspondiente pertenece a los secretos del trabajador como `TURNSTILE_SECRET_KEY` o `LAUNCH_REMINDER_TURNSTILE_SECRET_KEY`
+- La lógica de registro, cancelación de suscripción y envío de recordatorios reside en el trabajador y reutiliza el módulo de correo electrónico de reenvío existente.
+
+Ejemplo:
+
+```yml
+launch_reminders:
+  enabled: true
+  turnstile_site_key: "0x..."
+```
+
 ## Configuraciones de solo sitio versus configuraciones reflejadas por trabajadores
 
 Algunas configuraciones solo afectan la compilación de Jekyll y la interfaz de usuario propiedad del navegador. Otros también se reflejan automáticamente en el entorno del trabajador.
@@ -783,14 +812,16 @@ Estos valores de configuración del sitio también se reflejan en los valores de
 - `shipping.usps.quote_cache_ttl_seconds` -> `USPS_QUOTE_CACHE_TTL_SECONDS`
 - `shipping.usps.failure_cooldown_seconds` -> `USPS_FAILURE_COOLDOWN_SECONDS`
 - `shipping.usps.rate_limit_cooldown_seconds` -> `USPS_RATE_LIMIT_COOLDOWN_SECONDS`
+- `platform.timezone` -> `PLATFORM_TIMEZONE`
 - `reports.campaign_runner.enabled` -> `CAMPAIGN_RUNNER_REPORTS_ENABLED`
 - `reports.campaign_runner.daily_pledge_report_enabled` -> `CAMPAIGN_RUNNER_DAILY_PLEDGE_REPORT_ENABLED`
 - `reports.campaign_runner.fulfillment_report_enabled` -> `CAMPAIGN_RUNNER_FULFILLMENT_REPORT_ENABLED`
-- `reports.campaign_runner.send_hour_mt` -> `CAMPAIGN_RUNNER_REPORT_HOUR_MT`
-- `reports.campaign_runner.send_minute_mt` -> `CAMPAIGN_RUNNER_REPORT_MINUTE_MT`
+- `reports.campaign_runner.send_hour` -> `CAMPAIGN_RUNNER_REPORT_HOUR`
+- `reports.campaign_runner.send_minute` -> `CAMPAIGN_RUNNER_REPORT_MINUTE`
 - `reports.campaign_runner.include_stats_summary` -> `CAMPAIGN_RUNNER_INCLUDE_STATS_SUMMARY`
 - `reports.campaign_runner.include_csv_attachment` -> `CAMPAIGN_RUNNER_INCLUDE_CSV_ATTACHMENT`
 - `reports.campaign_runner.email_subject_prefix` -> `CAMPAIGN_RUNNER_EMAIL_SUBJECT_PREFIX`
+- `launch_reminders.enabled` -> `LAUNCH_REMINDERS_ENABLED`
 - `debug.console_logging_enabled` -> `DEBUG_CONSOLE_LOGGING_ENABLED`
 - `debug.verbose_console_logging` -> `DEBUG_VERBOSE_CONSOLE_LOGGING`
 - `performance.intent_prefetch_enabled` -> `INTENT_PREFETCH_ENABLED`
@@ -824,7 +855,15 @@ Ese comando sincroniza los valores reflejados por el trabajador en [`worker/wran
 
 No escribe secretos de trabajador, archivos multimedia ni resultados de optimización generados. Los secretos de USPS OAuth, las claves secretas de Stripe, las claves de reenvío, las claves ZIP.TAX, los secretos de Turnstile, los tokens de GitHub y las credenciales de implementación de Cloudflare aún pertenecen a los secretos de Worker, los secretos del repositorio de GitHub o los archivos env locales ignorados.
 
-Los medios cargados en el panel tampoco agregan una nueva configuración de script de sincronización. Carga archivos fuente de confirmación en los directorios de activos existentes; `npm run media:optimize` / `npm run media:optimize:check` y el flujo de trabajo **Optimizar medios del panel** manejan la compresión de imágenes, variantes WebP responsivas en `320w`, `480w`, `640w`, `960w` y `1600w`, y derivados de WebM fuera del Worker.
+Los recordatorios de lanzamiento tienen una configuración pública y un límite secreto:
+
+- `_config.yml` `launch_reminders.enabled` controla si las próximas páginas de la campaña muestran el formulario de recordatorio.
+- `_config.yml` `launch_reminders.turnstile_site_key` es la clave pública del sitio Cloudflare Turnstile utilizada por ese formulario.
+- `_config.local.yml` puede anular `launch_reminders.turnstile_site_key` con una cadena vacía para ocultar el widget en el desarrollo local, coincidiendo con la anulación del torniquete de inicio de sesión del administrador local.
+- El secreto Turnstile correspondiente pertenece a los secretos de los trabajadores como `TURNSTILE_SECRET_KEY` o `LAUNCH_REMINDER_TURNSTILE_SECRET_KEY`.
+- Los correos electrónicos de recordatorio utilizan el módulo de correo electrónico de trabajador respaldado por reenvío existente y el remitente `platform.updates_email_from` configurado.
+
+Los medios cargados en el panel tampoco agregan una nueva configuración de script de sincronización. Carga archivos fuente de confirmación en los directorios de activos existentes; `npm run media:optimize` / `npm run media:optimize:check`, las variantes respaldadas por Podman para máquinas sin optimizadores nativos y el flujo de trabajo **Optimizar medios del panel** manejan la compresión de imágenes, variantes WebP responsivas en `320w`, `480w`, `640w`, `960w` y `1600w`, y derivados de WebM fuera del Worker.
 
 La minificación de CSS/JS generada también está fuera de la ruta de guardado del trabajador y del panel. Las implementaciones de producción ejecutan `npm run assets:minify` solo después de que Jekyll escribe `_site`, por lo que las bifurcaciones deben mantener los recursos fuente legibles en `assets/` y permitir que el paso de implementación del artefacto maneje la salida minimizada. La compresión de borde de Cloudflare debería permanecer habilitada, pero Cloudflare Auto Minify debería permanecer deshabilitada para evitar una segunda capa de reescritura.
 

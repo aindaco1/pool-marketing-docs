@@ -57,6 +57,7 @@ The recent accessibility hardening pass added:
   - screen-reader countdown status text that mirrors the visual timer state
   - clearer hero-video grouping and loading semantics
   - icon-only campaign share links with localized accessible names, hidden decorative icon images, below-blurb placement on mobile/tablet, and sidebar placement on desktop
+  - upcoming-campaign launch reminder forms with real email labels, keyboard-friendly submit behavior, Turnstile rendered only when configured, and polite status announcements
   - safer small-screen wrapping for countdown tiles, creator metadata, and community teaser actions
 - admin-dashboard semantics and keyboard polish for:
   - shared field labels whose help buttons are not nested inside labels
@@ -78,7 +79,8 @@ The most important accessibility-sensitive UI in the app right now is:
 4. Campaign phase tabs and diary tabs
 5. Platform tip sliders
 6. Public campaign-page media and long-form content blocks
-7. Admin dashboard settings, campaign editors, content editors, reports, analytics, supporters, and marketing tools
+7. Upcoming-campaign launch reminder forms
+8. Admin dashboard settings, campaign editors, content editors, reports, analytics, supporters, and marketing tools
 
 These surfaces matter most because they combine custom UI, dynamic state changes, and high-value user actions.
 
@@ -125,6 +127,7 @@ Current automated accessibility-related coverage includes:
   - `tests/unit/accessibility-critical-surfaces.test.ts`
 - campaign-page semantics checks in:
   - `tests/unit/campaign-page.test.ts`
+  - this includes launch reminder submission/status behavior and campaign-page share/control semantics
 - broader public-page axe coverage in:
   - `tests/e2e/accessibility-public-pages.spec.ts`
   - this currently covers:
@@ -223,6 +226,7 @@ Automated checks help, but these manual accessibility checks are still important
 - tabbed campaign interfaces respond correctly to keyboard navigation
 - secondary campaign-page controls like diary tabs and carousel galleries remain usable with keyboard only
 - public campaign widgets like custom amounts, support items, and supporter-community teasers remain usable with keyboard only
+- launch reminder email fields, submit buttons, Turnstile widgets, and status messages remain usable without pointer-only assumptions
 - campaign share links have useful accessible names even though the visible UI is icon-only
 - carousel galleries remain keyboard-focusable and scroll correctly with arrow keys and Home / End
 - tip sliders remain usable with repeated arrow-key adjustments

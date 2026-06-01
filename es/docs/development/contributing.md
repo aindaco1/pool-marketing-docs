@@ -84,7 +84,7 @@ Para cambios en la interfaz de usuario del tablero, lea también `docs/ACCESSIBI
 
 ---
 
-## Estado actual (mayo de 2026)
+## Estado actual (junio de 2026)
 
 ✅ **Completado:**
 - Jekyll + estructura del sitio de carrito propio
@@ -100,7 +100,7 @@ Para cambios en la interfaz de usuario del tablero, lea también `docs/ACCESSIBI
 - Soporte de niveles no apilable (ocultar controles de cantidad en el carrito)
 - Manejo móvil de superposición de carritos/hamburguesas
 - Trabajador de Cloudflare (almacenamiento de promesas, estadísticas, inventario, correos electrónicos)
-- Activador cron del trabajador para liquidación automática (medianoche MT)
+- Tarea programada por el trabajador para liquidación automática a medianoche en la zona horaria de la plataforma configurada
 - Cobro agregado (un cargo por partidario por campaña)
 - Flujo de datos de artículos de soporte y montos personalizados (carrito → Trabajador → KV → estadísticas)
 - Pre-renderizado del temporizador de cuenta regresiva (sin flash "00 00 00 00")
@@ -111,11 +111,14 @@ Para cambios en la interfaz de usuario del tablero, lea también `docs/ACCESSIBI
 - Ruta de desarrollo/pruebas local respaldada por Podman
 - Protección más explícita contra la sobreventa de inventario a través de la coordinación de objetos duraderos
 - Panel de administración privado para edición de campañas, configuraciones, complementos, análisis, informes, seguidores, enlaces de marketing y administración de usuarios según los roles.
+- Rediseño completo de tipografía, elementos y diseños en páginas públicas, superficies de campaña, pago y gestión de compromiso.
+- Zona horaria de plataforma configurable para plazos de campaña, cuentas regresivas, informes, automatización del ciclo de vida y verificaciones de liquidación.
+- Recordatorios del lanzamiento de próximas campañas con Turnstile, deduplicación, cancelación de suscripción y entrega de reenvío compartido
+- Mejora del rendimiento de las páginas públicas, minificación de activos generados, captación previa conservadora del mismo origen y derivados de medios responsivos
 
-🚧 **En progreso:**
-- Rediseño de tipografía, elementos y diseños.
-  - tokens compartidos, jerarquía de tipos y primitivas de superficie/botón/campo reutilizables están en su lugar
-  - Las páginas públicas, las superficies de campaña, el pago y la gestión de promesas se están alineando con el mismo sistema visual más tranquilo.
+🚧 **Enfoque activo:**
+- Auditorías de disciplina de puerta de fusión y preparación para el lanzamiento en accesibilidad, personalización, panel de control, i18n, rendimiento, seguridad y SEO
+- Profundidad de la calculadora de impuestos, análisis de ingresos netos, herramientas de marketing de campañas más completas, variantes de precios adicionales y páginas de vista previa de campañas protegidas.
 
 ---
 

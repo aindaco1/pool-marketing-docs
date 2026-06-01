@@ -29,7 +29,7 @@ upcoming → live → post
 
 |Estado|experiencia de usuario|Acciones|
 |-------|-----|---------|
-|`upcoming`|Botones deshabilitados, "Próximamente"|Cuenta regresiva para el lanzamiento|
+|`upcoming`|Botones deshabilitados, "Próximamente"|Cuenta regresiva para el lanzamiento, registro de recordatorio de lanzamiento único opcional|
 |`live`|Botones de compromiso activos|Tarjetas guardadas a través del paso de pago Stripe en el sitio de The Pool|
 |`post`|Campaña cerrada|Cargos procesados (si están financiados)|
 
@@ -41,7 +41,7 @@ upcoming → live → post
 |-----------|------|
 |**Carrito propio**|Interfaz de usuario del carrito propiedad del navegador y estado de revisión del pago|
 |**Raya**|Sesiones de pago en modo de configuración (paso de pago personalizado en el sitio) + PaymentIntents (cobrar más tarde)|
-|**Trabajador de Cloudflare**|Backend: pago, webhooks, almacenamiento de promesas (KV), lecturas en vivo combinadas, estadísticas, cron de liquidación automática|
+|**Trabajador de Cloudflare**|Backend: pago, webhooks, almacenamiento de promesas (KV), lecturas en vivo combinadas, estadísticas, programador de liquidación automática|
 |**Jekyll**|Páginas estáticas + rebajas de campaña|
 |**Panel de administración**|Espacio de trabajo privado del navegador para configuraciones, campañas, complementos, informes, análisis, seguidores, enlaces de marketing y usuarios.|
 
@@ -56,7 +56,7 @@ upcoming → live → post
 4. SAVE CARD  → The existing checkout sidecar keeps the visitor on-site, mounts secure Stripe payment UI, and saves the payment method (no charge)
 5. CONFIRM    → Stripe confirms the setup, then Worker persists one pledge per campaign in KV, sends campaign-specific supporter email(s), and refreshes live campaign reads before success UX completes
 6. MANAGE     → Backer uses magic link to cancel/modify/update card
-7. DEADLINE   → Worker cron (midnight MT) checks campaigns
+7. DEADLINE   → Worker scheduler checks campaigns after midnight in the platform timezone
 8. CHARGE     → If funded + deadline passed: aggregate by email within each campaign, charge once per supporter per campaign, and store actual Stripe fee/net data when Stripe returns balance transaction details
 9. COMPLETE   → Update pledge_status to 'charged' or 'payment_failed'
 ```
@@ -67,7 +67,7 @@ upcoming → live → post
 
 Las promesas se almacenan en Cloudflare KV. Patrones clave:
 
-|clave|Contenidos|
+|Llave|Contenido|
 |-----|----------|
 |`pledge:{orderId}`|Datos completos del compromiso (correo electrónico, monto, nivel, ID de Stripe, estado, historial)|
 |`email:{email}`|Conjunto de ID de pedido para ese correo electrónico|
@@ -77,6 +77,10 @@ Las promesas se almacenan en Cloudflare KV. Patrones clave:
 |`pending-extras:{orderId}`|Almacenamiento temporal de artículos de soporte/cantidad personalizada durante el pago|
 |`pending-tiers:{orderId}`|Almacenamiento temporal para niveles adicionales cuando los metadatos de Stripe sean demasiado grandes|
 |`checkout-intent:{orderId}`|Carga útil de pago canonicalizada utilizada para promover el pago combinado en promesas de campaña|
+|`launch-reminder:{campaignSlug}:{emailHash}`|Registro de recordatorio de próxima campaña y metadatos de suscripción|
+|`launch-reminder-suppressed:{campaignSlug}:{emailHash}`|Marcador de cancelación de suscripción de recordatorio relacionado con la campaña|
+|`launch-reminder-sent:{campaignSlug}:{emailHash}`|Recordatorio de lanzamiento enviar marcador de idempotencia|
+|`launch-reminder-dispatch:{campaignSlug}`|Cursor de trabajo de envío limitado para una campaña que acaba de publicarse|
 |`admin-users:v1`|Usuarios del panel de ejecución guardados desde **Configuración -> Usuarios**|
 |`admin-marketing-referrals:{campaignSlug}`|Metadatos del código de referencia guardado para la pestaña Marketing del panel|
 
@@ -256,7 +260,7 @@ Si el token es válido pero su registro de compromiso ya no existe, esta ruta de
 **Lógica de la bandera:**
 - `canModify` / `canCancel`: `true` solo si `pledgeStatus === 'active'` Y `!charged` Y la fecha límite no pasó
 - `canUpdatePaymentMethod`: `true` si `!charged` (permitido incluso después de la fecha límite para la recuperación de pagos fallidos)
-- `deadlinePassed`: `true` si la fecha límite de la campaña ha pasado (Hora de la Montaña)
+- `deadlinePassed`: `true` si la fecha límite de la campaña ha pasado en la zona horaria de la plataforma
 
 ### `POST /pledge/cancel`
 Cancelar un compromiso activo.
@@ -352,7 +356,7 @@ Envíe un correo electrónico de anuncio personalizado con un enlace CTA opciona
   "campaignSlug": "worst-movie-ever",
   "subject": "Submissions close March 6th!",
   "heading": "Last call for submissions!",
-  "body": "The deadline is this Thursday at midnight MT.",
+  "body": "The deadline is this Thursday at midnight in the platform timezone.",
   "ctaLabel": "Submit Your Reward",
   "ctaUrl": "https://example.com/submit",
   "dryRun": true
@@ -379,7 +383,7 @@ Flujos primarios:
 - Los códigos de referencia guardados en **Marketing** se guardan en KV con alcance de campaña.
 - **Informes** muestra una vista previa de las filas de promesas/cumplimiento y descarga archivos CSV; no envía correos electrónicos y no marca informes como enviados.
 - **Analytics** utiliza datos netos y de tarifas de Stripe reales almacenados cuando están disponibles y expone un reabastecimiento de superadministrador para promesas cobradas más antiguas.
-- Los medios del editor de contenido cargan archivos provisionales localmente, los cargan al publicar y confirman activos conservados en el origen a través de la ruta respaldada por GitHub; La compresión de imágenes, las variantes WebP responsivas (`320w`, `480w`, `640w`, `960w`, `1600w`) y los derivados de vídeo se ejecutan más adelante en el proceso de medios del repositorio.
+- Los medios del editor de contenido cargan archivos provisionales localmente, los cargan al publicar y confirman activos conservados en el origen a través de la ruta respaldada por GitHub; La compresión de imágenes, las variantes WebP responsivas (`320w`, `480w`, `640w`, `960w`, `1600w`) y los derivados de video se ejecutan más adelante en el proceso de medios del repositorio.
 - **Secretos y credenciales** informes configurados/estado faltante únicamente; no expone ni almacena valores secretos.
 
 Informe de puntos finales de vista previa/descarga utilizados por el panel:
@@ -483,21 +487,23 @@ Página de la comunidad exclusiva para seguidores:
 
 ## Flujo de carga (cron del trabajador)
 
-El trabajador ha programado activadores a las **6:00 a. m. UTC** y **7:00 a. m. UTC**, por lo que los controles diarios se alinean con la medianoche, hora de la montaña, tanto en MDT como en MST:
+El trabajador tiene un activador programado a nivel de minutos. El trabajo del ciclo de vida diario se limita a una pequeña ventana de medianoche en la zona horaria de la plataforma configurada y se reclama una vez por fecha local:
 
 ```toml
 # wrangler.toml
 [triggers]
-crons = ["0 6 * * *", "0 7 * * *"]
+crons = ["* * * * *"]
 ```
 
 **Qué hace:**
 
-1. Registra un latido (`cron:lastRun` en KV)
+1. Registra un latido por hora (`cron:lastRun` en KV) para que el programador de nivel de minutos no queme el presupuesto de escritura de KV libre.
 2. Enumera todas las campañas con `goal_deadline` y `goal_amount`
-3. Para cada campaña en la que ya pasó la fecha límite (en MT), se cumplió el objetivo y no se estableció `campaign-charged:{slug}`:
+3. Drena los trabajos de envío de recordatorios de lanzamiento en cola en lotes locales
+4. Pone en cola un trabajo de envío de recordatorio de lanzamiento cuando una próxima campaña se activa
+5. Para cada campaña en la que ya pasó la fecha límite en la zona horaria de la plataforma, se cumple el objetivo y no se establece `campaign-charged:{slug}`:
    - Envía liquidación por lotes a través de `POST /admin/settle-dispatch/:slug`
-4. Activa la reconstrucción de páginas de GitHub si se detecta alguna transición de estado de campaña
+6. Activa la reconstrucción de páginas de GitHub si se detecta alguna transición de estado de campaña
 
 **Envío de liquidación (lotes autoencadenados):**
 
@@ -633,6 +639,12 @@ Todos los correos electrónicos muestran cantidades exactas con 2 decimales (sin
 - Incluye: enlaces de acceso de seguidores (comunidad + administración), CTA de Instagram (si la campaña tiene URL de Instagram)
 - Punto final: `POST /admin/broadcast/announcement`
 
+**Recordatorio de lanzamiento** (se envía una vez cuando se activa una próxima campaña)
+- Asunto: "Ya disponible | {Título de la campaña}"
+- Contiene: título de la campaña, texto de lanzamiento localizado, CTA de la campaña y enlace para cancelar la suscripción.
+- Usos: Registro `preferredLang`, configuración de remitente de reenvío existente, marcadores de supresión y marcadores de enviado
+- Nota: El registro de recordatorio es independiente de la promesa y se puede cancelar desde el correo electrónico de recordatorio.
+
 ---
 
 ## Consideraciones de seguridad
@@ -645,7 +657,9 @@ Todos los correos electrónicos muestran cantidades exactas con 2 decimales (sin
 - Las respuestas confidenciales de arranque del método de pago y de pago son `private, no-store`
 - Los POST de pago y pago propios imponen orígenes confiables de `SITE_BASE`
 - Los borradores de pago almacenados en el navegador y los identificadores en vuelo tienen un alcance de sesión o un tiempo limitado
-- Todos los plazos evaluados en Mountain Time
+- Todos los plazos evaluados en la zona horaria de la plataforma.
+- Los registros de recordatorio de lanzamiento requieren suscripción explícita de campaña/correo electrónico, limitación de velocidad y verificación de torniquete cuando se configuran
+- Los enlaces para cancelar la suscripción del recordatorio de lanzamiento utilizan tokens firmados con alcance y suprimen solo ese recordatorio de campaña/correo electrónico
 - El acceso a la comunidad/voto se revoca inmediatamente cuando se cancela el compromiso
 - La API `/votes` verifica el estado del compromiso en cada solicitud (no solo la validez del token)
 
@@ -654,7 +668,7 @@ Todos los correos electrónicos muestran cantidades exactas con 2 decimales (sin
 ## Manejo de condiciones de carrera
 
 - `/pledge/cancel` y `/pledge/modify` rechazan el compromiso `charged: true`
-- `/pledge/cancel` y `/pledge/modify` rechazan si ha pasado el plazo de campaña (Mountain Time)
+- `/pledge/cancel` y `/pledge/modify` rechazan si la fecha límite de la campaña ha pasado en la zona horaria de la plataforma
 - Cron comprueba `pledgeStatus === 'active'` y `!charged` antes de cargar
 - Los indicadores `pledgeStatus` y `charged` evitan la doble carga
 - La agregación por correo electrónico garantiza un cargo por partidario por campaña, incluso con varias filas de promesas.
