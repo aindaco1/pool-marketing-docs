@@ -202,7 +202,7 @@ El panel privado en `/admin/` ahora es el editor y la superficie de operaciones 
 - Los secretos permanecen en Secretos del trabajador o se ignoran `.dev.vars`; el panel solo muestra el estado configurado/faltante.
 - Los informes, los análisis, la exploración de los asistentes, las vistas previas de contenido, el filtrado de tablas y las descargas de CSV son flujos del panel de solo lectura y no deben agregar escrituras KV.
 - Las cargas de imágenes/vídeo/audio utilizan los directorios de activos existentes, normalizan los nombres de archivos y luego publican a través de la misma ruta respaldada por GitHub que el campo que actualizan.
-- La optimización de los medios está deliberadamente fuera del Trabajador. Utilice `npm run media:optimize` localmente, `npm run media:optimize:check` antes de fusionar cuando los medios cargados cambien, o deje que el flujo de trabajo de GitHub Actions `Optimize dashboard media` se ejecute después de que las cargas del panel lleguen a `main`.
+- La optimización de los medios está deliberadamente fuera del Trabajador. Utilice `npm run media:optimize` localmente, `npm run media:optimize:check` antes de fusionar cuando los medios cargados cambien, o deje que el flujo de trabajo de GitHub Actions `Optimize dashboard media` se ejecute después de que las cargas del panel lleguen a `main`. El flujo de trabajo puede ejecutarse manualmente con `scope=all` para reprocesar medios existentes.
 
 Consulte [DASHBOARD.md](/es/docs/operations/admin-dashboard/) para obtener la referencia completa del panel.
 
@@ -297,7 +297,7 @@ Entrecomilla cadenas con caracteres especiales para evitar problemas de análisi
 - complementos de plataforma: `assets/images/add-ons/`
 - complementos de campaña: `assets/images/campaign-add-ons/`
 
-Mantenga el manejo de carga sin pérdidas siempre que sea posible. La optimización de imágenes reduce bytes solo cuando el resultado optimizado es menor. La conversión de vídeo genera derivados WebM de alta calidad junto al archivo fuente cargado y reescribe las referencias literales de campaña/configuración a la ruta WebM después de que exista el derivado; Los vídeos de origen permanecen en el repositorio para revertirlos o volverlos a codificar en el futuro.
+Mantenga el manejo de carga sin pérdidas siempre que sea posible. La optimización de imágenes reduce bytes solo cuando el resultado optimizado es menor y genera variantes WebP responsivas para plantillas públicas sin reescribir las referencias de imagen fuente. El conjunto actual de derivados públicos de imagen es `320w`, `480w`, `640w`, `960w` y `1600w`; los derivados responsivos generados se omiten durante la optimización de origen para que el pipeline no recodifique recursivamente sus propios activos de navegador. La conversión de vídeo genera derivados WebM de alta calidad junto al archivo fuente cargado y reescribe las referencias literales de campaña/configuración a la ruta WebM después de que exista el derivado; Los vídeos de origen permanecen en el repositorio para revertirlos o volverlos a codificar en el futuro.
 
 ### Nivel destacado
 

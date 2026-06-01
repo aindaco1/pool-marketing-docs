@@ -62,7 +62,7 @@ La configuración del sitio está organizada en torno a estas secciones orientad
 
 ### Nivel superior `title` / `description`
 
-Utilice los metadatos de Jekyll de nivel superior para la búsqueda/identidad social predeterminada del sitio.
+Utilice los metadatos de Jekyll de nivel superior para la identidad social/búsqueda predeterminada del sitio.
 
 Teclas admitidas:
 
@@ -112,7 +112,7 @@ Estos valores alimentan:
 Notas:
 
 - `platform.*` es la superficie de marca principal.
-- `platform.version` debe ser la versión canónica del producto legible por máquina para el sitio, mientras que `platform.release_label` puede seguir siendo más amigable para copias públicas como `v1.0.2`.
+- `platform.version` debe ser la versión canónica del producto legible por máquina para el sitio, mientras que `platform.release_label` puede seguir siendo más amigable para copias públicas como `v1.0.3`.
 - `title` / `author` de nivel superior todavía existen en Jekyll, pero trátelos como metadatos/respaldo generales del sitio en lugar de la interfaz principal de personalización de la bifurcación.
 - `platform.default_social_image_path` es el valor predeterminado admitido para tarjetas OG/Twitter cuando una página o campaña no proporciona una imagen más específica.
 - `platform.logo_path` es también la marca reflejada que se utiliza en los correos electrónicos de los seguidores.
@@ -123,8 +123,8 @@ Ejemplo:
 ```yml
 platform:
   name: My Fork
-  version: 1.0.2
-  release_label: v1.0.2
+  version: 1.0.3
+  release_label: v1.0.3
   company_name: Example Studio
   support_email: support@example.com
   pledges_email_from: "My Fork <pledges@pool.example.com>"
@@ -361,7 +361,7 @@ Claves admitidas hoy:
 
 Opcionalmente, las campañas también pueden establecer `shipping_fallback_flat_rate` al frente. Cuando está presente, esa reserva específica de la campaña anula el `shipping.fallback_flat_rate` global si la cotización de USPS no está disponible.
 
-Opcionalmente, las campañas también pueden configurar `shipping_options` al frente para optar por el conjunto de políticas de envío limitado para patrocinadores:
+Opcionalmente, las campañas también pueden establecer `shipping_options` al frente para optar por el conjunto de políticas de envío limitado para patrocinadores:
 
 - `signature_required`
 - `adult_signature_required`
@@ -373,7 +373,7 @@ Cuando una promesa califica para múltiples opciones de entrega, el carrito comp
 Límite secreto importante:
 
 - mantener `shipping.usps.client_id` en `_config.yml`
-- mantenga el compañero `USPS_CLIENT_SECRET` en Secretos de trabajador o `worker/.dev.vars`
+- mantenga el compañero `USPS_CLIENT_SECRET` en Secretos del trabajador o `worker/.dev.vars`
 - no guardes el secreto en la configuración de Jekyll
 
 La lista de destinos de pago ahora está intencionalmente separada de esas perillas. Mantenga los países de envío permitidos actualmente en [`_data/shipping_countries.yml`](https://github.com/your-org/your-project/blob/main/_data/shipping_countries.yml) en lugar de editar el código de ejecución del navegador.
@@ -416,7 +416,7 @@ Qué permite esto:
 - un origen de envío USPS a nivel de implementación
 - un valor predeterminado de envío gratuito a nivel de implementación que las campañas aún pueden anular
 - una tasa de reserva configurada si la cotización del operador en vivo no está disponible
-- una superficie de política de cotizaciones de USPS orientada a la bifurcación para tiempos de espera, reutilización de cotizaciones de corta duración y tiempos de reutilización temporales después de fallas repetidas o limitación de tarifas
+- una superficie de política de cotización de USPS orientada a la bifurcación para tiempos de espera, reutilización de cotizaciones de corta duración y tiempos de reutilización temporales después de fallas repetidas o limitación de tarifas
 - una superficie de selección de opciones de entrega compartida en el carrito y Administrar compromiso sin abrir opciones arbitrarias de velocidad del transportista
 - nombres `shipping_preset` reutilizables en niveles de campaña para que las bifurcaciones no necesiten repetir dimensiones comunes de merchandising
 - sugerencias de perfil de USPS de nivel preestablecido opcionales para tipos de artículos que necesitan una forma de cotización nacional diferente
@@ -587,7 +587,7 @@ Qué permite esto:
 
 - Correos electrónicos diarios del libro mayor de compromisos relacionados con la campaña durante las campañas en vivo.
 - Exportaciones de cumplimiento únicas después de que pasa la fecha límite de la campaña.
-- Separe los correos electrónicos de cumplimiento de la plataforma y del corredor de la campaña cuando sea necesario entregar tanto los elementos de la campaña como los de la plataforma.
+- Separe los correos electrónicos de cumplimiento de la plataforma y del ejecutor de la campaña cuando sea necesario entregar tanto los elementos de la campaña como los de la plataforma.
 - resúmenes del cuerpo opcionales y archivos adjuntos CSV opcionales sin cambiar los archivos de contenido de la campaña
 - un prefijo de asunto consistente, que por defecto es `"[The Pool]"` en este repositorio y vuelve a `[platform.name]` si se omite en tiempo de ejecución
 
@@ -607,7 +607,7 @@ Estos valores se emiten en la hoja de estilo generada [assets/theme-vars.css](ht
 
 Las mismas variables CSS generadas ahora también son el tema del sidecar Stripe Elements en el sitio, por lo que las anulaciones de tipografía/color/radio admitidas se llevan a cabo en la interfaz de usuario de pago personalizada sin agregar una capa de configuración separada solo para el pago.
 
-Un subconjunto deliberadamente más pequeño de la misma superficie de marca se refleja en el Worker para que los correos electrónicos de los seguidores puedan reutilizar el logotipo configurado, las pilas de fuentes, el color primario, los colores de borde/superficie y el radio del botón.
+Un subconjunto deliberadamente más pequeño de la misma superficie de marca se refleja en el Worker para que los correos electrónicos de los seguidores puedan reutilizar el logotipo configurado, las pilas de fuentes, el color principal, los colores de borde/superficie y el radio del botón.
 
 Claves admitidas actualmente:
 
@@ -824,7 +824,7 @@ Ese comando sincroniza los valores reflejados por el trabajador en [`worker/wran
 
 No escribe secretos de trabajador, archivos multimedia ni resultados de optimización generados. Los secretos de USPS OAuth, las claves secretas de Stripe, las claves de reenvío, las claves ZIP.TAX, los secretos de Turnstile, los tokens de GitHub y las credenciales de implementación de Cloudflare aún pertenecen a los secretos de Worker, los secretos del repositorio de GitHub o los archivos env locales ignorados.
 
-Los medios cargados en el panel tampoco agregan una nueva configuración de script de sincronización. Carga archivos fuente de confirmación en los directorios de activos existentes; `npm run media:optimize` / `npm run media:optimize:check` y el flujo de trabajo **Optimizar medios del panel** manejan la compresión de imágenes y los derivados de WebM fuera del Worker.
+Los medios cargados en el panel tampoco agregan una nueva configuración de script de sincronización. Carga archivos fuente de confirmación en los directorios de activos existentes; `npm run media:optimize` / `npm run media:optimize:check` y el flujo de trabajo **Optimizar medios del panel** manejan la compresión de imágenes, variantes WebP responsivas en `320w`, `480w`, `640w`, `960w` y `1600w`, y derivados de WebM fuera del Worker.
 
 La minificación de CSS/JS generada también está fuera de la ruta de guardado del trabajador y del panel. Las implementaciones de producción ejecutan `npm run assets:minify` solo después de que Jekyll escribe `_site`, por lo que las bifurcaciones deben mantener los recursos fuente legibles en `assets/` y permitir que el paso de implementación del artefacto maneje la salida minimizada. La compresión de borde de Cloudflare debería permanecer habilitada, pero Cloudflare Auto Minify debería permanecer deshabilitada para evitar una segunda capa de reescritura.
 

@@ -69,6 +69,8 @@ The Worker now also writes lightweight observability summaries into `PLEDGES` KV
 
 Campaign-runner reports now use dedicated scheduled runs at 7:00 AM Mountain Time. The Worker keeps that window MT-aware in code, while `wrangler.toml` includes the paired UTC cron entries needed to cover both MST and MDT safely.
 
+Public campaign-page media optimization remains a static-site concern rather than a Worker runtime concern. The Worker preserves dashboard uploads as source files; Jekyll templates, the repository media optimizer, and the deploy artifact step handle responsive WebP variants, local YouTube hero poster facades, and generated CSS/JS minification before the public Pages artifact is served.
+
 The sampling rate defaults to `0.1` and can be overridden with `OBSERVABILITY_SAMPLE_RATE=0.05` (or any `0-1` value) if a fork wants fewer or more sampled timing writes.
 
 Worker-side stats and inventory repair now also treat `campaign-pledges:{slug}` as projection state instead of permanent truth. If a campaign index drifts from the underlying active pledge records, the recalc paths repair it automatically while rebuilding campaign totals and limited-tier inventory.

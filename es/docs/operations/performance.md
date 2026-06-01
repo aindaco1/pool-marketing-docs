@@ -57,6 +57,7 @@ Barandillas actuales:
 
 - Las barras de progreso y las posiciones de los marcadores representan clases de utilidad estáticas de ancho/izquierda en la salida de Jekyll para que no comiencen colapsadas mientras se carga JavaScript.
 - Las imágenes principales de la campaña se emiten con precarga y alta prioridad de recuperación donde el diseño conoce el activo LCP probable.
+- Los videos hero de YouTube de las campañas se muestran primero como una fachada local con póster/botón de reproducción y cargan el iframe de YouTube solo después de la intención de reproducción.
 - Los scripts comunes usan `defer` o carga dinámica diferida en lugar de etiquetas de script que bloquean el analizador.
 - Las superficies privadas/administradoras permanecen `noindex` y no deben heredar el comportamiento de captación previa pública.
 
@@ -118,6 +119,14 @@ Mantenga estas responsabilidades separadas:
 - control de fuente: archivos fuente legibles, copias minimizadas generadas no confirmadas
 
 Cloudflare Auto Minify debería permanecer deshabilitado. Reescribe las respuestas en el borde, lo que hace que el comportamiento de producción sea más difícil de reproducir localmente y de probar en CI. Prefiera el paso de activos generados controlados por repositorios.
+
+Mantenga Rocket Loader y Email Address Obfuscation deshabilitados para este sitio. Rocket Loader reescribe etiquetas de script en el borde, mientras que Email Address Obfuscation inyecta `/cdn-cgi/scripts/*/cloudflare-static/email-decode.min.js`; ambos dificultan reproducir localmente las páginas con CSP estricta y pueden aparecer como diagnósticos de bloqueo de renderizado o ruido de consola en PageSpeed Insights.
+
+Si Cloudflare Web Analytics está habilitado, las páginas de campaña deben permitir el script de analíticas de Cloudflare y el endpoint de beacon en la CSP de campaña. Las superficies privadas/de administración deben seguir siendo más estrictas salvo que exista una decisión explícita de analítica/privacidad para incluirlas.
+
+Las hojas de estilo de fuentes se enlazan desde el `<head>` del documento en lugar de importarse desde `assets/main.css`. Esto permite que el navegador descubra CSS de fuentes y conexiones de fuentes sin esperar a la hoja de estilo principal, preservando el comportamiento intencional de carga de fuentes.
+
+Las variables CSS generadas de tokens de diseño se incluyen en `assets/main.css`; `assets/theme-vars.css` permanece disponible como artefacto de compatibilidad, pero los diseños públicos no deberían solicitarlo como una hoja de estilo separada que bloquee el renderizado.
 
 ## Captura previa basada en intención
 
@@ -246,9 +255,24 @@ npm run media:optimize
 npm run media:optimize:check
 ```
 
+Si la máquina host no tiene instalados los optimizadores nativos, use los contenedores Podman:
+
+```bash
+npm run media:optimize:podman
+npm run media:optimize:check:podman
+```
+
+La imagen Podman del sitio incluye `ffmpeg`, `optipng`, `libjpeg-turbo-progs`, `gifsicle` y `webp`, de modo que la compresión local de imágenes y la generación de derivados responsivos usan la misma cadena nativa que el flujo de trabajo de medios en GitHub. Reconstruya la imagen con `PODMAN_REBUILD=1` después de cambiar requisitos de paquetes del contenedor.
+
+Para regresiones con muchos medios implementados, ejecute el flujo de trabajo **Optimizar medios del panel** de GitHub Actions con `scope=all` para que los activos de campaña existentes se optimicen mediante el mismo proceso en lugar de editarlos una sola vez.
+
+Si PageSpeed marca imágenes de campaña sobredimensionadas que ya pasan por `responsive-image.html`, primero confirme si existen los derivados correspondientes `-320.webp`, `-480.webp`, `-640.webp`, `-960.webp` y `-1600.webp`. Los derivados faltantes deben producirse con `npm run media:optimize` localmente o con el flujo de trabajo usando `scope=all`, no mediante ediciones manuales puntuales de imágenes.
+
 El canal de medios:
 
 - comprime imágenes cuando el resultado optimizado es más pequeño
+- genera variantes WebP responsivas en `320w`, `480w`, `640w`, `960w` y `1600w` para plantillas de imágenes públicas cuando la imagen de origen es más grande que esa variante
+- omite la reoptimización con `cwebp` para derivados WebP animados porque `cwebp` no puede decodificar archivos WebP animados
 - genera derivados WebM para videos subidos
 - reescribe referencias literales `_campaigns` / `_config.yml` de videos fuente subidos a derivados WebM generados
 - mantiene los vídeos originales disponibles para revertirlos o recodificarlos en el futuro
@@ -257,6 +281,7 @@ Para páginas de campaña, prefiera:
 
 - dimensiones de imagen explícitas o relaciones de aspecto CSS estables
 - Imágenes destacadas optimizadas que coinciden con el recorte renderizado.
+- imágenes de origen cercanas a las dimensiones de destino documentadas; Las variantes responsivas reducen el tamaño de la transferencia, pero no sustituyen la elección del cultivo adecuado.
 - WebM para vídeo de fondo/héroe cuando sea práctico
 - carga diferida para medios plegados por debajo
 - texto alternativo significativo para imágenes informativas
@@ -292,7 +317,7 @@ npm run assets:minify:check
 npm run test:unit
 ```
 
-Validación de navegador enfocada para cambios en la interfaz de usuario pública:
+Validación enfocada del navegador para cambios en la interfaz de usuario pública:
 
 ```bash
 python3 -m http.server 4100 --bind 127.0.0.1 --directory _site

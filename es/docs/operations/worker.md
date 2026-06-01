@@ -70,6 +70,8 @@ El trabajador ahora también escribe resúmenes de observabilidad ligeros en `PL
 
 Los informes de ejecución de campaña ahora utilizan ejecuciones programadas dedicadas a las 7:00 a. m., hora de la montaña. El trabajador mantiene esa ventana compatible con MT en el código, mientras que `wrangler.toml` incluye las entradas cron UTC emparejadas necesarias para cubrir tanto MST como MDT de forma segura.
 
+La optimización de medios de páginas públicas de campaña sigue siendo una responsabilidad del sitio estático, no del runtime del Worker. El Worker conserva las cargas del panel como archivos fuente; las plantillas de Jekyll, el optimizador de medios del repositorio y el paso de artefactos de despliegue manejan variantes WebP responsivas, fachadas locales de póster para videos hero de YouTube y minificación CSS/JS generada antes de servir el artefacto público de Pages.
+
 La frecuencia de muestreo predeterminada es `0.1` y se puede anular con `OBSERVABILITY_SAMPLE_RATE=0.05` (o cualquier valor de `0-1`) si una bifurcación desea menos o más escrituras de tiempo muestreadas.
 
 Las estadísticas del lado de los trabajadores y la reparación de inventario ahora también tratan a `campaign-pledges:{slug}` como un estado de proyección en lugar de una verdad permanente. Si el índice de una campaña se desvía de los registros de compromiso activos subyacentes, las rutas de recálculo lo reparan automáticamente mientras reconstruyen los totales de la campaña y el inventario de nivel limitado.

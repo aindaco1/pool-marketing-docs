@@ -57,7 +57,7 @@ upcoming → live → post
 5. CONFIRM    → Stripe confirms the setup, then Worker persists one pledge per campaign in KV, sends campaign-specific supporter email(s), and refreshes live campaign reads before success UX completes
 6. MANAGE     → Backer uses magic link to cancel/modify/update card
 7. DEADLINE   → Worker cron (midnight MT) checks campaigns
-8. CHARGE     → If funded + deadline passed: aggregate by email within each campaign, charge once per supporter per campaign
+8. CHARGE     → If funded + deadline passed: aggregate by email within each campaign, charge once per supporter per campaign, and store actual Stripe fee/net data when Stripe returns balance transaction details
 9. COMPLETE   → Update pledge_status to 'charged' or 'payment_failed'
 ```
 
@@ -131,6 +131,18 @@ Cada entrada del historial rastrea un evento de compromiso con contexto completo
 - `at` — Marca de tiempo ISO
 
 **Valores de estado:** `active`, `cancelled`, `charged`, `payment_failed`
+
+Las promesas cobradas también pueden contener metadatos financieros de Stripe:
+
+- `stripePaymentIntentId`
+- `stripeChargeId`
+- `stripeBalanceTransactionId`
+- `stripeFinancials.source`
+- `stripeFinancials.grossAmount`
+- `stripeFinancials.feeAmount`
+- `stripeFinancials.netAmount`
+
+Dashboard Analytics prefiere esos valores reales/netos para las promesas cobradas y recurre a estimaciones solo para las promesas activas o filas cobradas más antiguas que no se han completado.
 
 ---
 
@@ -366,6 +378,8 @@ Flujos primarios:
 - **Configuración -> Usuarios** guarda directamente en Worker KV en `admin-users:v1`.
 - Los códigos de referencia guardados en **Marketing** se guardan en KV con alcance de campaña.
 - **Informes** muestra una vista previa de las filas de promesas/cumplimiento y descarga archivos CSV; no envía correos electrónicos y no marca informes como enviados.
+- **Analytics** utiliza datos netos y de tarifas de Stripe reales almacenados cuando están disponibles y expone un reabastecimiento de superadministrador para promesas cobradas más antiguas.
+- Los medios del editor de contenido cargan archivos provisionales localmente, los cargan al publicar y confirman activos conservados en el origen a través de la ruta respaldada por GitHub; La compresión de imágenes, las variantes WebP responsivas (`320w`, `480w`, `640w`, `960w`, `1600w`) y los derivados de vídeo se ejecutan más adelante en el proceso de medios del repositorio.
 - **Secretos y credenciales** informes configurados/estado faltante únicamente; no expone ni almacena valores secretos.
 
 Informe de puntos finales de vista previa/descarga utilizados por el panel:
@@ -379,6 +393,18 @@ curl "http://localhost:8787/admin/reports/campaign-runner.csv?campaignSlug=hand-
 ```
 
 Para el uso del navegador autenticado, estos puntos finales requieren la cookie de sesión del panel y protecciones de origen/CSRF cuando corresponda. Los puntos finales de administración basados ​​en scripts que todavía usan `Authorization: Bearer ADMIN_SECRET` permanecen separados del contrato del panel del navegador.
+
+Reabastecimiento financiero de Stripe para superadministradores:
+
+```bash
+curl -X POST "http://localhost:8787/admin/analytics/stripe-financials/backfill" \
+  -H 'Content-Type: application/json' \
+  -H 'x-pool-admin-csrf: <dashboard-csrf-token>' \
+  --cookie "pool_admin_session=<session-cookie>" \
+  -d '{"campaignSlug":"hand-relations","dryRun":true}'
+```
+
+El reabastecimiento utiliza índices `campaign-pledges:{slug}` y búsquedas de PaymentIntent agrupadas, no escaneos de espacios de nombres KV.
 
 ### `POST /admin/recover-checkout`
 Recupere un webhook de Stripe perdido creando manualmente una contribución a partir de una sesión de pago completada.

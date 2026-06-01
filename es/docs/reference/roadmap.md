@@ -12,9 +12,9 @@ Esta hoja de ruta está organizada como un historial de lanzamiento de los estad
 
 ## Hito actual
 
-**v1.0.2**
+**v1.0.3**
 
-El conjunto de funciones v1.0 y el pase de liberación reforzada están completos. v1.0.2 agrega trabajo de rendimiento de páginas públicas, minificación de activos generados, captación previa segura de intenciones, enlaces para compartir campañas con CTA con reconocimiento de estado y controles de rendimiento administrativo.
+El conjunto de funciones v1.0 y el pase de liberación reforzada están completos. v1.0.3 agrega correcciones de rendimiento público guiadas por PageSpeed, variantes WebP responsivas con un tramo móvil `640w`, videos hero de YouTube diferidos, reprocesamiento manual completo de medios y actualizaciones de optimización de medios del panel que conservan los archivos fuente.
 
 ## Historial de lanzamientos
 
@@ -196,9 +196,23 @@ Nuevo en esta versión:
 - El inicio de sesión por correo electrónico del administrador mantiene el desafío Turnstile existente después de un intento de inicio de sesión y utiliza el estilo de mensaje de estado del panel compartido para obtener comentarios de autenticación más destacados.
 - La lista de verificación pública para creadores de campañas y la lista de verificación en español describen los cambios que enfrentan los creadores desde la versión 0.9.5 hasta la v1.0.2, incluida la planificación de enlaces compartidos y la carga de medios en el panel.
 
+### v1.0.3: Parche de medios responsivos y PageSpeed
+
+Esta versión puntual siguió la revisión de PageSpeed reduciendo trabajo evitable en páginas públicas y haciendo que los medios cargados desde el panel sean más livianos de servir sin cambiar el Markdown de las campañas.
+
+Nuevo en esta versión:
+
+- Las páginas de campañas con video remoto ya no precargan imágenes hero alternativas ocultas, las imágenes de niveles usan carga diferida y decodificación asíncrona, los logotipos de marca predeterminados reservan sus dimensiones intrínsecas y las páginas públicas evitan preconexiones tempranas a Stripe antes de la intención del carrito.
+- La optimización de medios del panel genera variantes WebP responsivas para imágenes fuente PNG, JPEG y GIF en `320w`, `480w`, `640w`, `960w` y `1600w`, conservando las cargas originales como respaldo de verdad.
+- Las plantillas de campaña, nivel, tarjeta, galería e imagen de contenido sirven variantes responsivas generadas cuando existen, sin cambiar la estructura visible de la página ni las rutas de medios usadas por autores.
+- El flujo de trabajo **Optimizar medios del panel** admite ejecuciones manuales con `scope=all` para reprocesar medios de campañas existentes mediante el mismo pipeline usado para cargas nuevas del panel.
+- Los videos hero de YouTube de las campañas se muestran como fachadas locales con póster/botón de reproducción y difieren el iframe remoto hasta la intención de reproducción del colaborador.
+- Los derivados WebP responsivos generados se omiten durante la optimización de origen para que el pipeline no recodifique recursivamente sus propios activos de navegador.
+- La documentación de lanzamiento, creadores y operadores cubre el flujo de rendimiento/medios de v1.0.3.
+
 ## Funciones futuras
 
-El trabajo aún planeado después de `1.0.2` incluye:
+El trabajo aún planeado después de `1.0.3` incluye:
 
 - Trabajo adicional en la calculadora de impuestos para una cobertura más amplia en EE. UU. e internacional, una mayor profundidad de las jurisdicciones locales y flujos de trabajo de actualización de datos tributarios más claros.
 - Análisis de ingresos netos después de las tarifas de procesador asignadas, utilizando datos reales de tarifas de Stripe cuando estén disponibles.

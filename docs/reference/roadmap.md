@@ -11,9 +11,9 @@ This roadmap is organized as a release history of the real project states we act
 
 ## Current Milestone
 
-**v1.0.2**
+**v1.0.3**
 
-The v1.0 feature set and release-hardening pass are complete. v1.0.2 adds public-page performance work, generated asset minification, safe intent prefetching, campaign share links with state-aware CTAs, and admin performance controls.
+The v1.0 feature set and release-hardening pass are complete. v1.0.3 adds PageSpeed-driven public performance fixes, responsive WebP media variants with a `640w` mobile rung, deferred YouTube hero embeds, manual full media reprocessing, and source-preserving dashboard media optimization updates.
 
 ## Release History
 
@@ -195,9 +195,23 @@ New in this version:
 - admin email sign-in keeps the existing Turnstile challenge after a login attempt and uses the shared dashboard status-message styling for more prominent auth feedback
 - the public Campaign Creator Checklist and Spanish checklist describe creator-facing changes from v0.9.5 through v1.0.2, including share-link planning and dashboard media uploads
 
+### v1.0.3 — Responsive Media And PageSpeed Patch
+
+This point release followed the PageSpeed review by reducing avoidable public-page work and making dashboard-uploaded media cheaper to serve without changing campaign Markdown.
+
+New in this version:
+
+- remote-video campaign pages no longer preload hidden fallback hero images, tier images opt into lazy loading and async decoding, default brand logos reserve intrinsic dimensions, and public pages avoid eager Stripe preconnects before cart intent
+- dashboard media optimization generates responsive WebP image variants for PNG, JPEG, and GIF source images at `320w`, `480w`, `640w`, `960w`, and `1600w` while preserving original uploads as source-of-truth fallbacks
+- campaign, tier, card, gallery, and content-image templates serve generated responsive variants when they exist without changing visible page structure or author-facing media paths
+- the **Optimize dashboard media** workflow supports manual `scope=all` runs so existing campaign media can be reprocessed through the same pipeline used for new dashboard uploads
+- YouTube campaign hero videos render local poster/play facades and defer the remote iframe until supporter play intent
+- generated responsive WebP derivatives are skipped during source optimization so the pipeline does not recursively re-encode browser assets
+- release, creator, and operator docs cover the v1.0.3 performance/media workflow
+
 ## Future Features
 
-Work still planned after `1.0.2` includes:
+Work still planned after `1.0.3` includes:
 
 - further tax-calculator work for broader US and international coverage, better local-jurisdiction depth, and clearer tax-data refresh workflows
 - net revenue analytics after allocated processor fees, using actual Stripe fee data where available

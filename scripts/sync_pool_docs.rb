@@ -3,6 +3,7 @@
 
 require "fileutils"
 require "pathname"
+require "set"
 
 ROOT = Pathname(__dir__).join("..").expand_path
 POOL_ROOT = Pathname(ENV.fetch("POOL_SOURCE", "/tmp/pool")).expand_path
@@ -38,6 +39,12 @@ DOCS = [
   { src: "docs/ROADMAP.md", dest: "docs/reference/roadmap.md", title: "Roadmap", parent: "Reference", nav_order: 2 },
   { src: "docs/PULL_REQUEST_TEMPLATE.md", dest: "docs/reference/pull-request-template.md", title: "Pull Request Template", parent: "Reference", nav_order: 3 }
 ].freeze
+
+SELECTED_DOC_SOURCES = ENV.fetch("POOL_DOCS", "")
+  .split(",")
+  .map(&:strip)
+  .reject(&:empty?)
+  .to_set
 
 ALIASES = {
   "docs/" => "/docs/",
@@ -211,9 +218,9 @@ ROADMAP_REWRITE = <<~MARKDOWN.freeze
 
   ## Current Milestone
 
-  **v1.0.2**
+  **v1.0.3**
 
-  The v1.0 feature set and release-hardening pass are complete. v1.0.2 adds public-page performance work, generated asset minification, safe intent prefetching, campaign share links with state-aware CTAs, and admin performance controls.
+  The v1.0 feature set and release-hardening pass are complete. v1.0.3 adds PageSpeed-driven public performance fixes, responsive WebP media variants with a `640w` mobile rung, deferred YouTube hero embeds, manual full media reprocessing, and source-preserving dashboard media optimization updates.
 
   ## Release History
 
@@ -395,9 +402,23 @@ ROADMAP_REWRITE = <<~MARKDOWN.freeze
   - admin email sign-in keeps the existing Turnstile challenge after a login attempt and uses the shared dashboard status-message styling for more prominent auth feedback
   - the public Campaign Creator Checklist and Spanish checklist describe creator-facing changes from v0.9.5 through v1.0.2, including share-link planning and dashboard media uploads
 
+  ### v1.0.3 — Responsive Media And PageSpeed Patch
+
+  This point release followed the PageSpeed review by reducing avoidable public-page work and making dashboard-uploaded media cheaper to serve without changing campaign Markdown.
+
+  New in this version:
+
+  - remote-video campaign pages no longer preload hidden fallback hero images, tier images opt into lazy loading and async decoding, default brand logos reserve intrinsic dimensions, and public pages avoid eager Stripe preconnects before cart intent
+  - dashboard media optimization generates responsive WebP image variants for PNG, JPEG, and GIF source images at `320w`, `480w`, `640w`, `960w`, and `1600w` while preserving original uploads as source-of-truth fallbacks
+  - campaign, tier, card, gallery, and content-image templates serve generated responsive variants when they exist without changing visible page structure or author-facing media paths
+  - the **Optimize dashboard media** workflow supports manual `scope=all` runs so existing campaign media can be reprocessed through the same pipeline used for new dashboard uploads
+  - YouTube campaign hero videos render local poster/play facades and defer the remote iframe until supporter play intent
+  - generated responsive WebP derivatives are skipped during source optimization so the pipeline does not recursively re-encode browser assets
+  - release, creator, and operator docs cover the v1.0.3 performance/media workflow
+
   ## Future Features
 
-  Work still planned after `1.0.2` includes:
+  Work still planned after `1.0.3` includes:
 
   - further tax-calculator work for broader US and international coverage, better local-jurisdiction depth, and clearer tax-data refresh workflows
   - net revenue analytics after allocated processor fees, using actual Stripe fee data where available
@@ -410,6 +431,19 @@ ROADMAP_REWRITE = <<~MARKDOWN.freeze
   ## Known Issues
 
   **Credit Card Autofill**: credit-card number, expiry, and CVC fields live inside Stripe-controlled secure UI, so browser autofill support there is constrained by Stripe rather than the surrounding app.
+MARKDOWN
+
+CHANGELOG_103_ENTRY = <<~MARKDOWN.freeze
+  ## v1.0.3 - 2026-06-01
+
+  - Added public-page performance fixes from the PageSpeed review: remote-video campaign pages no longer preload hidden fallback hero images, tier images opt into lazy/async decoding, default brand logos reserve their intrinsic dimensions, and public pages avoid eager Stripe preconnects before cart intent.
+  - Extended the dashboard media optimization pipeline to generate responsive WebP image variants for PNG, JPEG, and GIF source images, so public campaign templates can serve smaller browser assets while keeping original uploads as source-of-truth fallbacks.
+  - Added a manual `scope=all` option to the **Optimize dashboard media** workflow so existing campaigns can be reprocessed through the same media pipeline used for new dashboard uploads.
+  - Updated campaign, tier, card, gallery, and content-image templates to use generated responsive variants when they exist without changing visible page structure or campaign Markdown references.
+  - Added a mobile PageSpeed pass for campaign pages: YouTube hero videos now render as local poster/play facades and load the remote iframe only after play intent.
+  - Added responsive hero-image preloads and a `640w` WebP derivative rung so mobile campaign pages can choose smaller browser assets between the existing `480w` and `960w` variants.
+  - Updated the media optimizer guidance to skip generated responsive WebP derivatives during source optimization, keeping generated browser assets up to date without recursively re-encoding them.
+  - Updated release and creator/operator docs for the 1.0.3 performance/media workflow.
 MARKDOWN
 
 CHANGELOG_102_ENTRY = <<~MARKDOWN.freeze
@@ -454,6 +488,11 @@ def rewrite_copy(content, current_src)
       /\*\*Dust Wave's open-source crowdfunding platform\*\* — \[site\.example\.com\]\(https:\/\/site\.example\.com\)\n\n/,
       "**Open-source crowdfunding platform starter**\n\n"
     )
+    rewritten.sub!(
+      /^Current release milestone: \*\*v1\.0\.\d+\*\*\. .+$/,
+      "Current release milestone: **v1.0.3**. The v1.0 feature set and launch hardening pass are complete; v1.0.3 adds PageSpeed-driven public performance fixes, responsive WebP media variants with a `640w` mobile rung, deferred YouTube hero embeds, manual full media reprocessing, and source-preserving dashboard media optimization updates."
+    )
+    rewritten.gsub!("the v0.9.5 through v1.0.2 creator-facing changes", "the v0.9.5 through v1.0.3 creator-facing changes")
     rewritten.gsub!(/\n\*🄯 Dust Wave\*\n/, "\n")
     rewritten.gsub!("*🄯 Dust Wave*", "")
     rewritten.gsub!(/^\*🄯 Dust Wave\*$/m, "")
@@ -475,9 +514,27 @@ def rewrite_copy(content, current_src)
     rewritten.gsub!("*The Pool is created and maintained by [Dust Wave](https://example.com).*", "")
     rewritten.gsub!(/^\*The Pool is created and maintained by .*?\*$/m, "")
   when "CHANGELOG.md"
-    unless rewritten.match?(/^## v1\.0\.2\b/)
-      rewritten.sub!("# Changelog\n\n", "# Changelog\n\n#{CHANGELOG_102_ENTRY}\n")
+    if rewritten.include?("manual `scope=all` option") || rewritten.include?("mobile PageSpeed performance pass")
+      rewritten.gsub!(/^## v1\.0\.3 - 2026-06-01\n[\s\S]*?(?=^## v1\.0\.[0-9]+|\z)/m, "")
+      rewritten.gsub!(/^## v1\.0\.2 - 2026-06-01\n[\s\S]*?(?=^## v1\.0\.[0-9]+|\z)/m, "")
     end
+
+    unless rewritten.match?(/^## v1\.0\.3\b/m)
+      rewritten.sub!("# Changelog\n\n", "# Changelog\n\n#{CHANGELOG_103_ENTRY}\n")
+    end
+
+    unless rewritten.match?(/^## v1\.0\.2 - 2026-05-31\b/m)
+      if rewritten.match?(/^## v1\.0\.1\b/m)
+        rewritten.sub!(/(?=^## v1\.0\.1\b)/m, "#{CHANGELOG_102_ENTRY}\n")
+      else
+        rewritten.sub!("# Changelog\n\n", "# Changelog\n\n#{CHANGELOG_102_ENTRY}\n")
+      end
+    end
+  when "docs/CUSTOMIZATION.md"
+    rewritten.gsub!("such as `v1.0.2`", "such as `v1.0.3`")
+    rewritten.gsub!("version: 1.0.2", "version: 1.0.3")
+    rewritten.gsub!("release_label: v1.0.2", "release_label: v1.0.3")
+    rewritten.gsub!('  default_social_image_alt: "Dust Wave on The Pool"', '  default_social_image_alt: "Social card for your deployment"')
   when "docs/PULL_REQUEST_TEMPLATE.md"
     rewritten.sub!(/\n## Rollback Plan\n<!-- How to revert safely if needed -->\n?\z/, "\n")
   when "docs/TESTING.md"
@@ -498,8 +555,6 @@ def rewrite_copy(content, current_src)
     rewritten.gsub!("## Initial Dust Wave Import", "## Initial Merch Import")
     rewritten.gsub!("The current first-wave catalog is based on the live your merch store at [shop.example.com](https://shop.example.com/):", "The current first-wave catalog is shown as an example merch import from [shop.example.com](https://shop.example.com/):")
   when "docs/SEO.md"
-    rewritten.gsub!('  default_social_image_alt: "Dust Wave on The Pool"', '  default_social_image_alt: "Social card for your deployment"')
-  when "docs/CUSTOMIZATION.md"
     rewritten.gsub!('  default_social_image_alt: "Dust Wave on The Pool"', '  default_social_image_alt: "Social card for your deployment"')
   when "docs/SECURITY.md"
     rewritten.sub!(
@@ -540,6 +595,8 @@ def rewrite_copy(content, current_src)
 end
 
 DOCS.each do |doc|
+  next if SELECTED_DOC_SOURCES.any? && !SELECTED_DOC_SOURCES.include?(doc[:src])
+
   source_path = POOL_ROOT.join(doc[:src])
   target_path = ROOT.join(doc[:dest])
 

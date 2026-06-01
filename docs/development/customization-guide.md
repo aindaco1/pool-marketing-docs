@@ -111,7 +111,7 @@ These values feed:
 Notes:
 
 - `platform.*` is the primary branding surface.
-- `platform.version` should be the canonical machine-readable product version for the site, while `platform.release_label` can stay friendlier for public-facing copy such as `v1.0.2`.
+- `platform.version` should be the canonical machine-readable product version for the site, while `platform.release_label` can stay friendlier for public-facing copy such as `v1.0.3`.
 - top-level `title` / `author` still exist in Jekyll, but treat them as general site metadata / fallback rather than the main fork-customization interface.
 - `platform.default_social_image_path` is the supported default for OG/Twitter cards when a page or campaign does not provide a more specific image.
 - `platform.logo_path` is also the mirrored brand mark used in supporter emails.
@@ -122,8 +122,8 @@ Example:
 ```yml
 platform:
   name: My Fork
-  version: 1.0.2
-  release_label: v1.0.2
+  version: 1.0.3
+  release_label: v1.0.3
   company_name: Example Studio
   support_email: support@example.com
   pledges_email_from: "My Fork <pledges@pool.example.com>"
@@ -823,7 +823,7 @@ That command syncs the Worker-mirrored values in [`worker/wrangler.toml`](https:
 
 It does not write Worker secrets, media files, or generated optimization outputs. USPS OAuth secrets, Stripe secret keys, Resend keys, ZIP.TAX keys, Turnstile secrets, GitHub tokens, and Cloudflare deploy credentials still belong in Worker secrets, GitHub repository secrets, or ignored local env files.
 
-Dashboard-uploaded media also does not add new sync-script config. Uploads commit source files into the existing asset directories; `npm run media:optimize` / `npm run media:optimize:check` and the **Optimize dashboard media** workflow handle image compression and WebM derivatives outside the Worker.
+Dashboard-uploaded media also does not add new sync-script config. Uploads commit source files into the existing asset directories; `npm run media:optimize` / `npm run media:optimize:check` and the **Optimize dashboard media** workflow handle image compression, responsive WebP variants at `320w`, `480w`, `640w`, `960w`, and `1600w`, and WebM derivatives outside the Worker.
 
 Generated CSS/JS minification is also outside the Worker and dashboard save path. Production deploys run `npm run assets:minify` only after Jekyll writes `_site`, so forks should keep source assets readable in `assets/` and let the deploy artifact step handle minified output. Cloudflare edge compression should stay enabled, but Cloudflare Auto Minify should stay disabled to avoid a second rewriting layer.
 

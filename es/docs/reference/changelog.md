@@ -8,6 +8,17 @@ lang: es
 
 # Registro de cambios
 
+## v1.0.3 - 2026-06-01
+
+- Se agregaron correcciones de rendimiento de páginas públicas de la revisión de PageSpeed: las páginas de campañas de video remoto ya no precargan imágenes destacadas ocultas, las imágenes de nivel optan por la decodificación diferida/asíncrona, los logotipos de marca predeterminados reservan sus dimensiones intrínsecas y las páginas públicas evitan las ansiosas preconexiones de Stripe antes de la intención del carrito.
+- Se amplió el proceso de optimización de medios del panel para generar variantes de imágenes WebP responsivas para imágenes de origen PNG, JPEG y GIF, de modo que las plantillas de campañas públicas puedan servir activos de navegador más pequeños y al mismo tiempo mantener las cargas originales como fuentes de respaldo de la verdad.
+- Se agregó una opción manual `scope=all` al flujo de trabajo **Optimizar medios del panel** para que las campañas existentes se puedan reprocesar a través del mismo canal de medios utilizado para las cargas de nuevos paneles.
+- Se actualizaron las plantillas de campaña, nivel, tarjeta, galería y contenido-imagen para usar variantes responsivas generadas cuando existan sin cambiar la estructura de la página visible o las referencias de Markdown de la campaña.
+- Se agregó un pase móvil de PageSpeed para páginas de campaña: los videos hero de YouTube ahora se muestran como fachadas locales con póster/botón de reproducción y cargan el iframe remoto solo después de la intención de reproducción.
+- Se agregaron precargas de imágenes hero responsivas y un tramo derivado WebP `640w`, para que las páginas de campaña móviles puedan elegir activos de navegador más pequeños entre las variantes existentes `480w` y `960w`.
+- Se actualizó la guía del optimizador de medios para omitir derivados WebP responsivos generados durante la optimización de origen, manteniendo los activos de navegador al día sin recodificarlos recursivamente.
+- Se actualizaron la versión y la documentación de creadores/operadores para el flujo de trabajo de rendimiento/medios 1.0.3.
+
 ## v1.0.2 - 2026-05-31
 
 - Se agregó trabajo de rendimiento de la página pública con representación estática del progreso de la campaña, carga diferida del tiempo de ejecución del carrito propio y captación previa conservadora de la intención del mismo origen.
@@ -37,7 +48,7 @@ lang: es
 - Se agregó manejo de carga en el panel para medios de campaña, activos de marca, imágenes complementarias y videos destacados utilizando directorios de activos basados en convenciones y nombres de archivos estilo slug.
 - Se agregó un panel de administración de usuarios respaldado por Worker KV en `admin-users:v1`, separado de los flujos de publicación respaldados por GitHub.
 - Se agregaron correos electrónicos de notificación para los usuarios del panel recién creados cuando se configura Reenviar; las ediciones del usuario no reenvían invitaciones.
-- Se agregaron herramientas de marketing en el panel para la creación de URL UTM/referencias, códigos de referencia guardados, interfaz de usuario de creación de inserciones reutilizable y fragmentos de lanzamiento copiables.
+- Se agregaron herramientas de marketing en el panel para la creación de URL de referencia/UTM, códigos de referencia guardados, interfaz de usuario de creación de inserción reutilizable y fragmentos de lanzamiento copiables.
 - Se corrigieron las vistas previas de inserción de marketing para campañas con medios destacados de YouTube o Vimeo para que las barras de progreso, los hitos y las etiquetas de objetivos ampliados permanezcan contenidos.
 - Se agregaron vistas de análisis, informes y partidarios del panel de control con alcance de rol con tablas ordenables/filtrables, visualización del centavo exacto de dólar y descargas CSV; Las vistas previas/descargas de informes no envían correos electrónicos ni escriben marcadores de envío.
 - Se preservó el objetivo de nivel gratuito KV de Cloudflare Workers manteniendo las lecturas normales del panel, las vistas previas, los filtros, los análisis y los borradores locales en cero escrituras KV.
