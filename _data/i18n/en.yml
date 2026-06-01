@@ -69,25 +69,25 @@ home:
     crowd_body: "Use <strong>tiers, custom amounts, campaign add-ons, diary updates,</strong> and <strong>community decisions</strong> to keep your audience engaged."
     crowd_link: Explore creator workflows
   platform_heading: What ships in the starter
-  platform_intro: "The starter now reflects the <strong>v1.0.3</strong> source: first-party checkout, role-scoped admin, configurable tax and shipping, launch reminders, localized embeds, and performance-minded media handling."
+  platform_intro: ""
   platform_cards:
-    checkout_title: First-party Stripe checkout
-    checkout_body: "<strong>A browser-owned cart with lazy runtime loading, Worker-verified totals, on-site Stripe payment UI, saved payment methods, tax/shipping/tip-aware pricing,</strong> and <strong>multi-campaign bundle support</strong>."
+    checkout_title: Checkout with server-side totals
+    checkout_body: "Supporters build a cart in the browser. The Worker rebuilds prices from trusted campaign data, then Stripe saves the payment method on-site so you can charge only if the campaign succeeds. <strong>Multi-campaign carts are supported.</strong>"
     checkout_link: Review the pledge worker
-    funding_title: All-or-nothing campaign lifecycle
-    funding_body: "<strong>Upcoming, live, and post-campaign states, configurable timezone deadlines, opt-in launch reminders, stretch goals,</strong> and the <strong>save-now/charge-later settlement flow</strong>."
+    funding_title: Campaign states and charge timing
+    funding_body: "The starter handles <strong>upcoming, live, and post-campaign states</strong>, deadline timing in your configured timezone, launch reminder signups, stretch goals, and batched settlement after a campaign closes."
     funding_link: Read the platform overview
-    merch_title: Add-ons, tax, shipping, and tips
-    merch_body: "<strong>Platform merch and campaign add-ons with inventory, configurable tax providers, USPS-backed shipping with fallbacks,</strong> and <strong>tip-aware totals</strong> across checkout, emails, reports, and fulfillment exports."
+    merch_title: Rewards, add-ons, tax, and shipping
+    merch_body: "You get reward tiers, campaign add-ons, platform merch, inventory checks, configurable tax providers, USPS quotes, fallback shipping rates, and <strong>tip totals that stay aligned</strong> in checkout, email, and reports."
     merch_link: See merch and add-ons
-    community_title: Updates, sharing, and supporter management
-    community_body: "<strong>Production diary entries, announcements, community decisions, order-scoped magic-link pledge management, campaign share links,</strong> and <strong>campaign-runner reports</strong>."
+    community_title: Supporter tools after checkout
+    community_body: "Backers manage pledges from <strong>email magic links</strong>. Campaigns can publish diary updates, announcements, community decisions, share links, and runner-ready pledge and fulfillment reports."
     community_link: Explore campaign workflows
-    customization_title: Fork-first admin and customization
-    customization_body: "<strong>Role-scoped admin dashboard, structured config, design tokens, i18n routing, hosted embeds, themed Stripe Elements, branded supporter emails,</strong> and <strong>source-preserving media uploads</strong>."
+    customization_title: Admin tools for a forked site
+    customization_body: "A <strong>role-scoped admin dashboard</strong> lets teams edit settings, campaigns, add-ons, content, users, reports, and media while structured config and design tokens handle normal rebranding work."
     customization_link: Open customization docs
-    operations_title: Performance, security, accessibility, and testing
-    operations_body: "<strong>Lazy cart bootstrapping, responsive WebP media variants, deferred video embeds, asset minification, security hardening, accessibility baselines, Playwright coverage, SEO metadata,</strong> and <strong>operational docs</strong>."
+    operations_title: Launch and maintenance basics
+    operations_body: "The starter includes lazy cart loading, responsive media, deferred video embeds, asset minification, SEO metadata, accessibility baselines, security hardening, <strong>Playwright coverage</strong>, and ops docs."
     operations_link: Review operations docs
 support:
   eyebrow: Support The Pool

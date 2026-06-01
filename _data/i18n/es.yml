@@ -69,25 +69,25 @@ home:
     crowd_body: "Usa <strong>tiers, montos personalizados, add-ons de campaña, diary updates</strong> y <strong>community decisions</strong> para mantener a tu audiencia involucrada."
     crowd_link: Explorar workflows de creadores
   platform_heading: Lo que ya trae el starter
-  platform_intro: "El starter ya refleja el código <strong>v1.0.3</strong>: checkout propio, admin con roles, impuestos y envíos configurables, recordatorios de lanzamiento, embeds localizados y manejo de media pensado para performance."
+  platform_intro: ""
   platform_cards:
-    checkout_title: Checkout propio con Stripe
-    checkout_body: "<strong>Un carrito propio del navegador con carga lazy del runtime, totales verificados por el Worker, UI de pago Stripe dentro del sitio, métodos guardados y precios con impuestos, envíos y propinas,</strong> además de <strong>soporte para bundles multicampaña</strong>."
+    checkout_title: Checkout con totales del servidor
+    checkout_body: "Los supporters arman un carrito en el navegador. El Worker recalcula precios desde datos confiables de campaña y Stripe guarda el método de pago dentro del sitio para cobrar solo si la campaña llega a la meta. <strong>Los carritos multicampaña están soportados.</strong>"
     checkout_link: Revisar el worker de pledges
-    funding_title: Ciclo de campaña todo o nada
-    funding_body: "<strong>Estados upcoming, live y post-campaign, deadlines con timezone configurable, recordatorios opt-in de lanzamiento, stretch goals</strong> y el <strong>flujo de settlement para guardar ahora y cobrar después</strong>."
+    funding_title: Estados de campaña y momento de cobro
+    funding_body: "El starter maneja <strong>estados upcoming, live y post-campaign</strong>, deadlines en el timezone configurado, registros para recordatorios de lanzamiento, stretch goals y settlement por lotes cuando la campaña cierra."
     funding_link: Leer el resumen de la plataforma
-    merch_title: Add-ons, impuestos, envíos y propinas
-    merch_body: "<strong>Merch de plataforma y add-ons de campaña con inventario, proveedores de impuestos configurables y envíos USPS con fallbacks,</strong> además de <strong>totales con propina</strong> consistentes entre checkout, emails, reportes y exports de fulfillment."
+    merch_title: Rewards, add-ons, impuestos y envíos
+    merch_body: "Incluye reward tiers, add-ons de campaña, merch de plataforma, controles de inventario, proveedores de impuestos configurables, cotizaciones USPS, tarifas fallback de envío y <strong>totales con propina alineados</strong> entre checkout, email y reportes."
     merch_link: Ver merch y add-ons
-    community_title: Updates, compartir y gestión de supporters
-    community_body: "<strong>Entradas de production diary, announcements, community decisions, gestión de pledges con magic links por orden, links para compartir campañas</strong> y <strong>reportes para campaign runners</strong>."
+    community_title: Herramientas para supporters después del checkout
+    community_body: "Los backers gestionan pledges desde <strong>magic links por email</strong>. Las campañas pueden publicar diary updates, announcements, community decisions, links para compartir y reportes de pledges y fulfillment listos para runners."
     community_link: Explorar workflows de campaña
-    customization_title: Admin y personalización pensados para forks
-    customization_body: "<strong>Admin con roles, config estructurada, design tokens, rutas i18n, embeds hospedados, Stripe Elements tematizado, emails para supporters alineados con tu marca</strong> y <strong>uploads de media que preservan el source</strong>."
+    customization_title: Admin para un sitio forkeado
+    customization_body: "Un <strong>admin con roles</strong> permite editar settings, campañas, add-ons, contenido, usuarios, reportes y media, mientras la config estructurada y los design tokens cubren el rebranding normal."
     customization_link: Abrir documentación de personalización
-    operations_title: Performance, seguridad, accesibilidad y pruebas
-    operations_body: "<strong>Bootstrap lazy del carrito, variantes WebP responsivas, embeds de video diferidos, minificación de assets, hardening de seguridad, baselines de accesibilidad, cobertura con Playwright, metadata SEO</strong> y <strong>documentación operativa</strong>."
+    operations_title: Bases de lanzamiento y mantenimiento
+    operations_body: "El starter incluye carga lazy del carrito, media responsiva, embeds de video diferidos, minificación de assets, metadata SEO, baselines de accesibilidad, hardening de seguridad, <strong>cobertura con Playwright</strong> y docs operativas."
     operations_link: Revisar documentación de operaciones
 support:
   title: Apoya a The Pool

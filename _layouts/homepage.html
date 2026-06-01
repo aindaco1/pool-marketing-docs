@@ -90,42 +90,37 @@
     <section class="feature-band" aria-labelledby="platform-heading">
       <div class="feature-band__intro">
         <h2 id="platform-heading" data-i18n="home.platform_heading">What ships in the starter</h2>
-        {% assign platform_intro_lang = site.lang | default: 'en' %}
-        {% assign platform_intro = site.data.i18n[platform_intro_lang].home.platform_intro %}
-        {% if platform_intro != blank %}
-        <p data-i18n-html="home.platform_intro">The starter now reflects the <strong>v1.0.3</strong> source: first-party checkout, role-scoped admin, configurable tax and shipping, launch reminders, localized embeds, and performance-minded media handling.</p>
-        {% endif %}
       </div>
 
       <div class="stack-grid">
         <article class="feature-card">
-          <h3 data-i18n="home.platform_cards.checkout_title">First-party Stripe checkout</h3>
-          <p data-i18n-html="home.platform_cards.checkout_body">A browser-owned cart with lazy runtime loading, Worker-verified totals, on-site Stripe payment UI, saved payment methods, tax/shipping/tip-aware pricing, and multi-campaign bundle support.</p>
+          <h3 data-i18n="home.platform_cards.checkout_title">Checkout with server-side totals</h3>
+          <p data-i18n-html="home.platform_cards.checkout_body">Supporters build a cart in the browser. The Worker rebuilds prices from trusted campaign data, then Stripe saves the payment method on-site so you can charge only if the campaign succeeds. Multi-campaign carts are supported.</p>
           <a href="{{ '/docs/operations/worker/' | relative_url }}" data-i18n="home.platform_cards.checkout_link">Review the pledge worker</a>
         </article>
         <article class="feature-card">
-          <h3 data-i18n="home.platform_cards.funding_title">All-or-nothing campaign lifecycle</h3>
-          <p data-i18n-html="home.platform_cards.funding_body">Upcoming, live, and post-campaign states, configurable timezone deadlines, opt-in launch reminders, stretch goals, and the save-now/charge-later settlement flow.</p>
+          <h3 data-i18n="home.platform_cards.funding_title">Campaign states and charge timing</h3>
+          <p data-i18n-html="home.platform_cards.funding_body">The starter handles upcoming, live, and post-campaign states, deadline timing in your configured timezone, launch reminder signups, stretch goals, and batched settlement after a campaign closes.</p>
           <a href="{{ '/docs/overview/platform/' | relative_url }}" data-i18n="home.platform_cards.funding_link">Read the platform overview</a>
         </article>
         <article class="feature-card">
-          <h3 data-i18n="home.platform_cards.merch_title">Add-ons, tax, shipping, and tips</h3>
-          <p data-i18n-html="home.platform_cards.merch_body">Platform merch and campaign add-ons with inventory, configurable tax providers, USPS-backed shipping with fallbacks, and tip-aware totals across checkout, emails, reports, and fulfillment exports.</p>
+          <h3 data-i18n="home.platform_cards.merch_title">Rewards, add-ons, tax, and shipping</h3>
+          <p data-i18n-html="home.platform_cards.merch_body">You get reward tiers, campaign add-ons, platform merch, inventory checks, configurable tax providers, USPS quotes, fallback shipping rates, and tip totals that stay aligned in checkout, email, and reports.</p>
           <a href="{{ '/docs/development/add-on-products/' | relative_url }}" data-i18n="home.platform_cards.merch_link">See merch and add-ons</a>
         </article>
         <article class="feature-card">
-          <h3 data-i18n="home.platform_cards.community_title">Updates, sharing, and supporter management</h3>
-          <p data-i18n-html="home.platform_cards.community_body">Production diary entries, announcements, community decisions, order-scoped magic-link pledge management, campaign share links, and campaign-runner reports.</p>
+          <h3 data-i18n="home.platform_cards.community_title">Supporter tools after checkout</h3>
+          <p data-i18n-html="home.platform_cards.community_body">Backers manage pledges from email magic links. Campaigns can publish diary updates, announcements, community decisions, share links, and runner-ready pledge and fulfillment reports.</p>
           <a href="{{ '/docs/development/workflows/' | relative_url }}" data-i18n="home.platform_cards.community_link">Explore campaign workflows</a>
         </article>
         <article class="feature-card">
-          <h3 data-i18n="home.platform_cards.customization_title">Fork-first admin and customization</h3>
-          <p data-i18n-html="home.platform_cards.customization_body">Role-scoped admin dashboard, structured config, design tokens, i18n routing, hosted embeds, themed Stripe Elements, branded supporter emails, and source-preserving media uploads.</p>
+          <h3 data-i18n="home.platform_cards.customization_title">Admin tools for a forked site</h3>
+          <p data-i18n-html="home.platform_cards.customization_body">A role-scoped admin dashboard lets teams edit settings, campaigns, add-ons, content, users, reports, and media while structured config and design tokens handle normal rebranding work.</p>
           <a href="{{ '/docs/development/customization-guide/' | relative_url }}" data-i18n="home.platform_cards.customization_link">Open customization docs</a>
         </article>
         <article class="feature-card">
-          <h3 data-i18n="home.platform_cards.operations_title">Performance, security, accessibility, and testing</h3>
-          <p data-i18n-html="home.platform_cards.operations_body">Lazy cart bootstrapping, responsive WebP media variants, deferred video embeds, asset minification, security hardening, accessibility baselines, Playwright coverage, SEO metadata, and operational docs.</p>
+          <h3 data-i18n="home.platform_cards.operations_title">Launch and maintenance basics</h3>
+          <p data-i18n-html="home.platform_cards.operations_body">The starter includes lazy cart loading, responsive media, deferred video embeds, asset minification, SEO metadata, accessibility baselines, security hardening, Playwright coverage, and ops docs.</p>
           <a href="{{ '/docs/operations/security/' | relative_url }}" data-i18n="home.platform_cards.operations_link">Review operations docs</a>
         </article>
       </div>
