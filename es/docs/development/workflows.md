@@ -67,7 +67,7 @@ upcoming → live → post
 
 Las promesas se almacenan en Cloudflare KV. Patrones clave:
 
-|Llave|Contenido|
+|clave|Contenidos|
 |-----|----------|
 |`pledge:{orderId}`|Datos completos del compromiso (correo electrónico, monto, nivel, ID de Stripe, estado, historial)|
 |`email:{email}`|Conjunto de ID de pedido para ese correo electrónico|
@@ -81,6 +81,10 @@ Las promesas se almacenan en Cloudflare KV. Patrones clave:
 |`launch-reminder-suppressed:{campaignSlug}:{emailHash}`|Marcador de cancelación de suscripción de recordatorio relacionado con la campaña|
 |`launch-reminder-sent:{campaignSlug}:{emailHash}`|Recordatorio de lanzamiento enviar marcador de idempotencia|
 |`launch-reminder-dispatch:{campaignSlug}`|Cursor de trabajo de envío limitado para una campaña que acaba de publicarse|
+|`launch-reminder-dispatch-queue:v1`|Marcador de estado de cola que permite que los ticks programados del recordatorio de inicio inactivo omitan los análisis de la lista de envío|
+|`supporter-email-retry:{orderId}`|Carga útil de reintento de correo electrónico de confirmación de colaborador en cola|
+|`supporter-email-retry-queue:v1`|Marcador de estado de cola con el siguiente tiempo de reintento de correo electrónico del colaborador|
+|`add-on-inventory-sold:v1`|Proyección de recuento de ventas para el inventario complementario de la plataforma|
 |`admin-users:v1`|Usuarios del panel de ejecución guardados desde **Configuración -> Usuarios**|
 |`admin-marketing-referrals:{campaignSlug}`|Metadatos del código de referencia guardado para la pestaña Marketing del panel|
 
@@ -499,11 +503,13 @@ crons = ["* * * * *"]
 
 1. Registra un latido por hora (`cron:lastRun` en KV) para que el programador de nivel de minutos no queme el presupuesto de escritura de KV libre.
 2. Enumera todas las campañas con `goal_deadline` y `goal_amount`
-3. Drena los trabajos de envío de recordatorios de lanzamiento en cola en lotes locales
+3. Drena los trabajos de envío de recordatorios de lanzamiento en cola en lotes limitados solo cuando el estado de la cola indica que el trabajo está pendiente
 4. Pone en cola un trabajo de envío de recordatorio de lanzamiento cuando una próxima campaña se activa
 5. Para cada campaña en la que ya pasó la fecha límite en la zona horaria de la plataforma, se cumple el objetivo y no se establece `campaign-charged:{slug}`:
    - Envía liquidación por lotes a través de `POST /admin/settle-dispatch/:slug`
 6. Activa la reconstrucción de páginas de GitHub si se detecta alguna transición de estado de campaña
+
+El programador tiene en cuenta intencionadamente los niveles gratuitos. Las colas de reintento de envío de recordatorios de lanzamiento y de correo electrónico de confirmación del colaborador mantienen cada una una pequeña clave de estado de cola. Cuando se sabe que una cola está inactiva, las ejecuciones programadas omiten la operación de lista de espacios de nombres KV correspondiente y dependen de una nueva verificación de inactividad cada hora para comprobar la compatibilidad con los trabajos insertados manualmente. Cuando el trabajo real está en cola, la ruta de escritura marca esa cola como pendiente inmediatamente para que la siguiente ejecución programada pueda procesarla sin esperar a que se vuelva a verificar la compatibilidad.
 
 **Envío de liquidación (lotes autoencadenados):**
 

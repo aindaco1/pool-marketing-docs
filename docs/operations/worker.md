@@ -58,7 +58,7 @@ Tax calculation is now routed through a provider seam in `worker/src/tax.js`:
 - `TAX_PROVIDER=nm_grt` uses the vendored New Mexico starter dataset and can refine New Mexico street-address lookups against the free EDAC GRT API
 - `TAX_PROVIDER=zip_tax` adds local / jurisdiction-level US lookups through ZIP.TAX and falls back to `offline_rules` for destinations outside US/CA
 
-Non-secret provider settings are mirrored from the repo-root `_config.yml` into [`wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) as `TAX_PROVIDER`, `TAX_ORIGIN_COUNTRY`, `TAX_USE_REGIONAL_ORIGIN`, `NM_GRT_API_BASE`, and `ZIP_TAX_API_BASE`. If you enable `zip_tax`, also set `ZIP_TAX_API_KEY` as a Worker secret or in `worker/.dev.vars`. Refresh the vendored New Mexico starter file with `node ../scripts/update-nm-grt-starter.mjs`.
+Non-secret provider settings are mirrored from the repo-root `_config.yml` into [`wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) as `TAX_PROVIDER`, `TAX_ORIGIN_COUNTRY`, `TAX_USE_REGIONAL_ORIGIN`, `NM_GRT_API_BASE`, and `ZIP_TAX_API_BASE`. If you enable `zip_tax`, also set `ZIP_TAX_API_KEY` as a Worker secret or in [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars). Refresh the vendored New Mexico starter file with `node ../scripts/update-nm-grt-starter.mjs`.
 
 In the current browser flow, tax previews are intentionally allowed to stay provisional. If the cart or custom checkout does not yet have enough location data, the site shows `--` and waits for `/tax/quote` or `/checkout-intent/start` to finalize the tax result. New Mexico lookups are the most exact built-in path right now and typically need full street-level address data, not just ZIP/state, before the Worker can return a reliable local GRT result.
 
@@ -69,7 +69,9 @@ The Worker now also writes lightweight observability summaries into `PLEDGES` KV
 
 Campaign-runner reports use the configured platform timezone. `PLATFORM_TIMEZONE` defaults to `America/Denver`, and the minute-level Worker scheduler checks the configured local send time before sending so forks can use any supported IANA timezone.
 
-Upcoming-campaign launch reminders also run through the minute-level scheduler. Public campaign pages collect explicit opt-in email reminders only while a campaign is upcoming; the Worker stores campaign-scoped hashed signup keys, queues one dispatch job when that campaign becomes live, and sends through the existing Resend email module with the updates sender. The reminder path does not add a second Resend API integration.
+Upcoming-campaign launch reminders also run through the minute-level scheduler. Public campaign pages collect explicit opt-in email reminders only while a campaign is upcoming; the Worker stores campaign-scoped hashed signup keys, queues one dispatch job when that campaign becomes live, and sends through the existing Resend email module with the updates sender. The dispatch queue keeps `launch-reminder-dispatch-queue:v1` state so idle scheduled ticks skip dispatch namespace scans; queued jobs mark the state pending immediately, and idle state expires hourly for compatibility with manually inserted jobs. The reminder path does not add a second Resend API integration.
+
+Supporter confirmation email retries use the same free-tier-aware pattern. Failed sends write `supporter-email-retry:{orderId}` plus `supporter-email-retry-queue:v1`, and the scheduled retry pass skips KV list scans while the queue is idle or before the next retry is due.
 
 Public campaign-page media optimization remains a static-site concern rather than a Worker runtime concern. The Worker preserves dashboard uploads as source files; Jekyll templates, the repository media optimizer, and the deploy artifact step handle responsive WebP variants, local YouTube hero poster facades, and generated CSS/JS minification before the public Pages artifact is served.
 
@@ -85,7 +87,7 @@ Before mutating anything, operators can now run read-only drift checks through:
 
 Those checks compare stored `campaign-pledges:{slug}`, `stats:{slug}`, and `tier-inventory:{slug}` projections against active pledge truth and return a structured diff instead of silently repairing state.
 
-The same “saved truth over draft state” rule now applies to platform add-ons: `_config.yml` defines the starting inventory baseline for each product or variant, while the Worker derives effective remaining inventory from saved pledge state and invalidates cached add-on inventory after pledge create, modify, or cancel events.
+The same “saved truth over draft state” rule now applies to platform add-ons: `_config.yml` defines the starting inventory baseline for each product or variant, while the Worker stores sold counts in `add-on-inventory-sold:v1`, updates that projection after pledge create, modify, or cancel events, and avoids repeated pledge namespace scans for normal inventory reads after the initial projection bootstrap.
 
 ## Setup
 
@@ -104,7 +106,7 @@ Update `wrangler.toml` with the returned IDs.
 
 ### 2. Configure Secrets
 
-Local development secrets live in ignored `worker/.dev.vars`. The safest setup path is:
+Local development secrets live in ignored [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars). The safest setup path is:
 
 ```bash
 npm run secrets:dev
@@ -169,8 +171,8 @@ Custom checkout requires the matching Stripe publishable key for the current `AP
 
 USPS setup for this repo is split intentionally:
 
-- keep `shipping.usps.client_id` in the repo-root [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) or `_config.local.yml`
-- keep `USPS_CLIENT_SECRET` in Worker secrets or `worker/.dev.vars`
+- keep `shipping.usps.client_id` in the repo-root [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) or [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml)
+- keep `USPS_CLIENT_SECRET` in Worker secrets or [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars)
 - if you want to point the Worker at USPS TEM for testing, also set `shipping.usps.api_base` or `USPS_API_BASE`
 
 The Pool currently only needs USPS OAuth plus the default pricing/shipping-options product set for live quote calculation. It does **not** require USPS Labels / Ship / EPA setup unless the project later grows into label generation.
@@ -417,7 +419,7 @@ Admin auth starts/exchanges and browser-admin mutations are rate limited through
 
 When `TURNSTILE_SECRET_KEY` is configured, `POST /admin/auth/start` verifies the Cloudflare Turnstile challenge before sending magic-link email. Keep that protection on the submit path only so it does not add dashboard pageview or typing-time KV writes.
 
-Platform add-on inventory uses `_config.yml` as the configured baseline, optional `add-on-inventory-overrides` KV state for operator restocks, and saved pledge truth for sold counts. Admin inventory page views do not load the inventory table automatically; the super-admin inventory read is explicit and may scan pledge truth, while set/restock/reset actions write only the override state plus an audit event.
+Platform add-on inventory uses `_config.yml` as the configured baseline, optional `add-on-inventory-overrides` KV state for operator restocks, and `add-on-inventory-sold:v1` for sold counts derived from saved pledge truth. Admin inventory page views do not load the inventory table automatically; the super-admin inventory read is explicit and uses the sold-count projection after bootstrap, while set/restock/reset actions write only the override state plus an audit event.
 
 The marketing-tool slice keeps campaign URL building, UTM/referral parameters, embed-builder shortcuts, local field preferences, and copy snippets in browser state. Saved referral codes are separate: listing them is a read-only campaign-scoped Worker call, and saving one is an explicit mutation.
 
@@ -616,7 +618,7 @@ Resend pacing is centralized as `RESEND_RATE_LIMIT_DELAY_MS` in `worker/src/emai
 
 Fork note: treat those identity, email-branding, pricing, and shipping vars as mirrors of the structured site config in [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml), especially the `platform`, `design`, `pricing`, and `shipping` sections. The first-party cart/runtime and the custom on-site checkout UI are built-in platform behavior now, not Worker env toggles you should normally customize directly.
 
-Keep `USPS_CLIENT_SECRET` out of site config. It belongs in Worker secrets or `worker/.dev.vars`.
+Keep `USPS_CLIENT_SECRET` out of site config. It belongs in Worker secrets or [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars).
 
 Localization note: the Worker now localizes supporter-facing email subjects/body copy and localized `/manage/` / `/community/:slug/` links from the shared site locale catalog. In normal operation it fetches that catalog from `SITE_BASE/assets/i18n.json`; tests and advanced deployments can inject `I18N_CATALOG_JSON` instead. That means localized supporter emails and localized routes such as `/es/manage/` or `/es/community/:slug/` stay aligned with the site locale model when a deployment adds those routes.
 

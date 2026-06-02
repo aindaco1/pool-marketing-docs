@@ -115,7 +115,7 @@ Las configuraciones de envío amigables con el fork se encuentran en:
 - `shipping.origin_*`, `shipping.fallback_flat_rate`, `shipping.free_shipping_default` y `shipping.usps.*` en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml)
 - Variables de trabajo sincronizadas automáticamente como `SHIPPING_ORIGIN_ZIP`, `SHIPPING_FALLBACK_FLAT_RATE`, `USPS_ENABLED`, `USPS_CLIENT_ID` y las perillas de tiempo de espera/caché/enfriamiento de USPS en [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml)
 
-Mantenga `USPS_CLIENT_SECRET` fuera de la configuración del sitio. Configúrelo como secreto de trabajador o en `worker/.dev.vars` para desarrollo local.
+Mantenga `USPS_CLIENT_SECRET` fuera de la configuración del sitio. Configúrelo como secreto de trabajador o en [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars) para desarrollo local.
 
 Si cambia esos valores localmente, reinicie `./scripts/dev.sh --podman` para que el trabajador use las mismas matemáticas que el sitio.
 
@@ -124,7 +124,7 @@ Las configuraciones globales de productos/complementos compatibles con Fork ahor
 - Imágenes de productos, variantes según el tamaño, inventario por producto o por variante y referencias `shipping_preset` para artículos físicos del catálogo.
 - Los complementos a nivel de paquete ahora se pueden seleccionar en el sidecar del carrito, anclarlos a una campaña en carritos de múltiples campañas y editarlos más tarde desde Administrar compromiso.
 - Los mensajes de stock bajo y el filtrado de variantes agotadas ahora provienen de la capa de estado del producto adicional compartida con reconocimiento de inventario utilizada tanto por el carrito como por Manage Pledge.
-- el inventario complementario configurado es la base inicial; El stock restante se deriva del estado del compromiso guardado, no del carrito no guardado o de Administrar borradores.
+- el inventario complementario configurado es la base inicial; El stock restante se deriva del estado de compromiso guardado a través de la proyección `add-on-inventory-sold:v1`, no del carrito no guardado ni de Administrar borradores.
 - Los informes de compromiso y cumplimiento ahora separan el valor del compromiso de campaña del valor adicional de la plataforma para facilitar las operaciones.
 
 Las configuraciones orientadas a la bifurcación ahora usan un modelo de configuración estructurado en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml):
@@ -149,7 +149,7 @@ Las configuraciones orientadas a la bifurcación ahora usan un modelo de configu
 - `checkout` para configuraciones de pago verdaderamente variables como la clave publicable de Stripe
 - `cache` para TTL de navegador en vivo
 
-`_config.local.yml` ahora es intencionalmente delgado: solo debe contener anulaciones locales verdaderas como URL de host local, `show_test_campaigns` y claves en blanco públicas de Turnstile solo locales, no una segunda copia de la configuración base.
+[`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml) ahora es intencionalmente delgado: solo debe contener anulaciones locales verdaderas como URL de host local, `show_test_campaigns` y claves en blanco públicas de Turnstile solo locales, no una segunda copia de la configuración base.
 
 Consulte [docs/CUSTOMIZATION.md](/es/docs/development/customization-guide/) para conocer la superficie de personalización sin código admitida y qué configuraciones se reflejan automáticamente en el trabajador.
 Consulte [docs/SEO.md](/es/docs/operations/seo/) para conocer la implementación actual de los fundamentos de SEO y la superficie de SEO compatible.
@@ -225,7 +225,7 @@ npm run podman:doctor
 npm run podman:self-check
 ```
 
-Si desea realizar el pago de Stripe en el sitio localmente, agregue `STRIPE_PUBLISHABLE_KEY_TEST=pk_test_...` a `worker/.dev.vars` antes de iniciar la pila.
+Si desea realizar el pago de Stripe en el sitio localmente, agregue `STRIPE_PUBLISHABLE_KEY_TEST=pk_test_...` a [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars) antes de iniciar la pila.
 
 Para producción, use los secretos de Cloudflare Worker para las credenciales de tiempo de ejecución y los secretos del repositorio de GitHub para las credenciales de implementación. No coloque claves secretas de Stripe, claves de webhook, claves de reenvío, claves de Turnstile, claves de cliente de USPS, claves ZIP.TAX ni tokens de API de Cloudflare en `_config.yml`.
 
@@ -243,6 +243,8 @@ The Pool tiene una forma intencionada para que la mayor parte del tráfico siga 
 - Las lecturas normales del panel, las vistas previas de contenido, las vistas previas/descargas de informes, los filtros de soporte, las vistas de análisis, la creación de URL de marketing y los borradores del editor local están diseñados para agregar cero escrituras de KV.
 - Las nuevas comprobaciones de deriva de solo lectura facilitan la confirmación cuando las proyecciones están obsoletas antes de ejecutar una ruta de reparación.
 - Las rutas de escritura de nivel limitado ahora solicitan al coordinador disponibilidad según la reserva en lugar de reconstruir la verdad a partir de claves de reserva KV.
+- Las lecturas de inventario adicionales de la plataforma utilizan una proyección de recuento de ventas después del arranque inicial, por lo que las actualizaciones normales del inventario no enumeran todas las claves de compromiso.
+- el envío de recordatorios de lanzamiento y el reintento de sondeo de confirmación del partidario utilizan marcadores de estado de cola; Los ticks cron inactivos omiten los escaneos de la lista KV y las colas inactivas obtienen una nueva verificación de compatibilidad cada hora en lugar de un sondeo de espacio de nombres a nivel de minutos o de 15 minutos.
 - Las rutas de lectura públicas siguen siendo intencionalmente permisivas para que una campaña legítimamente popular no alcance límites artificiales anti-DoS, mientras que las costosas escrituras de pago/administración/administración conllevan límites de velocidad y límites de tamaño de solicitud más estrictos.
 - Una vez que un cliente ya ha superado una ventana de límite de velocidad, las solicitudes bloqueadas repetidas ya no reescriben el mismo contador KV en cada visita.
 - `POST /checkout-intent/abandon` utiliza un depósito de reintentos con alcance de orden para que la limpieza de descarga/reintento siga siendo compatible con las IP compartidas sin dejar abierta la ruta de lanzamiento.
@@ -270,6 +272,8 @@ A partir del 18 de abril de 2026, Cloudflare documenta el plan Workers Free en `
 - [Límites KV de los trabajadores de Cloudflare](https://developers.cloudflare.com/kv/platform/limits/)
 
 La conclusión práctica de las bifurcaciones es simple: The Pool aún puede adaptarse al plan Workers Free para su forma prevista de "pequeña cantidad de campañas simultáneas, volumen modesto de patrocinadores, ejecución de un mes", especialmente porque el tráfico de lectura pública es barato y la mayoría de los días tienen poco tráfico de mutación. La razón para pasar a Pagado no es que Gratis dejó de funcionar repentinamente, sino que Pagado brinda un margen más saludable para picos de flash, escrituras KV de ruta de abuso, actividad de modificación/cancelación más intensa y más herramientas de operador.
+
+Con el endurecimiento del presupuesto de lista v1.0.3, se espera que un día normal sin colas utilice aproximadamente `48-75` solicitudes de lista KV de trabajadores durante 24 horas: aproximadamente una nueva verificación inactiva cada hora para el envío de recordatorios de lanzamiento y las colas de reintento de correo electrónico de soporte, además de arranques de proyección ocasionales o rutas de reparación del operador. Los trabajos de recordatorio de lanzamiento activos y los reintentos de correo electrónico de los colaboradores aún muestran sus colas limitadas cuando hay trabajo real pendiente.
 
 Un matiz de implementación: el bloque `limits` configurable de Cloudflare solo se aplica en el modelo de uso estándar y solo en los trabajadores implementados, no en el desarrollo local. Eso significa que la nueva protección `cpu_ms` es un respaldo de denegación de billetera para implementaciones pagas, mientras que Workers Free todavía depende de los límites máximos de plan gratuito integrados de Cloudflare.
 

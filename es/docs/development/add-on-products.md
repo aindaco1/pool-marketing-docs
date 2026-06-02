@@ -182,6 +182,7 @@ El flujo de complementos actual tiene en cuenta intencionalmente el inventario:
 - Aparece un mensaje de stock bajo cuando la cantidad restante es igual o inferior a `low_stock_threshold`
 - Las variantes agotadas se eliminan de la superficie compartida del estado del producto a menos que ya estén seleccionadas en un compromiso existente.
 - El inventario adicional se cuenta a partir de los registros de promesas persistentes, no de los borradores del carrito en progreso.
+- Los recuentos vendidos se almacenan en `add-on-inventory-sold:v1` después del primer arranque de proyección, y las rutas de creación, modificación y cancelación de promesas mantienen esa proyección actualizada, de modo que las lecturas normales de inventario no enumeren todas las claves de promesas.
 - los superadministradores pueden configurar anulaciones de inventario de complementos de plataforma en el panel sin editar `_config.yml`; esas anulaciones se almacenan por separado de la línea base configurada
 
 ## Modelo de interfaz de usuario

@@ -19,7 +19,7 @@ El modelo de configuración estructurado en [`_config.yml`](https://github.com/y
 Para la mayoría de las bifurcaciones, los principales archivos de personalización son:
 
 - [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml)
-- `_config.local.yml`
+- [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml)
 - [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml)
 
 Utilice `./scripts/dev.sh --podman` para la verificación local después de los cambios de configuración.
@@ -32,7 +32,7 @@ Para ediciones normales del operador, utilice el panel de administración privad
 - **Configuración -> Usuarios** es solo en tiempo de ejecución y se guarda directamente en Worker KV en `admin-users:v1`; no se publica en GitHub.
 - **Secretos y credenciales** tiene un estado de solo lectura. Los valores secretos aún pertenecen a los secretos de los trabajadores, los secretos del repositorio de GitHub o los archivos env locales ignorados.
 
-Trate `_config.local.yml` como un archivo de sólo anulación. Mantenga la configuración de bifurcación canónica en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) y use el archivo local solo para cosas que deberían diferir en su máquina, como las URL del host local o la visibilidad de la campaña solo local.
+Trate [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml) como un archivo de solo anulación. Mantenga la configuración de bifurcación canónica en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) y use el archivo local solo para cosas que deberían diferir en su máquina, como las URL del host local o la visibilidad de la campaña solo local.
 
 La ruta local normal ahora está basada en localhost:
 
@@ -527,6 +527,7 @@ Comportamiento actual del inventario de complementos:
 - `inventory` puede vivir del producto en sí o de cada variante.
 - `low_stock_threshold` controla cuándo la interfaz de usuario de administración/carro compartido muestra mensajes de escasez
 - Las variantes agotadas se eliminan de la superficie compartida del estado del producto, a menos que el colaborador ya posea esa variante exacta en un compromiso existente.
+- Los complementos vendidos guardados cuentan en vivo en `add-on-inventory-sold:v1` después del inicio de la primera proyección, y las rutas de creación, modificación y cancelación del compromiso mantienen la proyección actualizada.
 - Tanto el carrito como Manage Pledge utilizan el mismo modelo de tarjeta de producto adicional compartido, por lo que las bifurcaciones no necesitan diseñar ni configurar dos sistemas de merchandising diferentes.
 - el encabezado de la sección complementaria y la nota de soporte se localizan a través de los archivos i18n de tiempo de ejecución normal, y la nota de soporte interpola automáticamente el nombre del autor del sitio configurado.
 

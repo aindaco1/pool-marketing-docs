@@ -150,7 +150,7 @@ Los valores predeterminados del trabajador local en [worker/wrangler.toml](https
 
 Para trabajo local, prefiera `./scripts/dev.sh --podman`. Inicia a Jekyll y al Trabajador en contenedores Podman desarraigados, preservando al mismo tiempo los mismos puertos y el estado local de Wrangler.
 
-`_config.local.yml` ahora es una capa de solo anulación, no una segunda configuración base. Cuando cambie o agregue configuraciones de orientación hacia la bifurcación, prefiera [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) a menos que el valor realmente difiera solo en su máquina local.
+[`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml) ahora es una capa de solo anulación, no una segunda configuración base. Cuando cambie o agregue configuraciones de orientación hacia la bifurcación, prefiera [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) a menos que el valor realmente difiera solo en su máquina local.
 
 Los scripts de ayuda del navegador admiten el mismo modo:
 

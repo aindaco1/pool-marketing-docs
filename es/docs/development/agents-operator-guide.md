@@ -43,7 +43,7 @@ Si un cambio afecta los precios, los totales de la campaña, la disponibilidad, 
 Cuando necesite comprender o cambiar un comportamiento, comience aquí:
 
 - [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml): configuración canónica orientada hacia la horquilla
-- `_config.local.yml`: solo anulaciones locales
+- [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml): solo anulaciones locales
 - [`_campaigns/`](https://github.com/your-org/your-project/tree/main/_campaigns): contenido de la campaña, niveles, objetivos, datos del diario, enlaces comunitarios, productos relacionados con la campaña
 - [`_data/i18n/`](https://github.com/your-org/your-project/tree/main/_data/i18n): UI compartida/tiempo de ejecución/copia de correo electrónico por idioma
 - [`_layouts/`](https://github.com/your-org/your-project/tree/main/_layouts) y [`_includes/`](https://github.com/your-org/your-project/tree/main/_includes): páginas públicas, páginas de campaña, incrustaciones, SEO, ayudas de enrutamiento localizado
@@ -87,7 +87,7 @@ Comprobaciones útiles y enfocadas:
 
 Comience con:
 
-- la pestaña **Campañas** del panel para ediciones normales del navegador
+- la pestaña **Campañas** del panel de control para realizar ediciones normales del navegador
 - [`_campaigns/<slug>.md`](https://github.com/your-org/your-project/tree/main/_campaigns)
 - activos de campaña en [`assets/images/campaigns/<slug>/`](https://github.com/your-org/your-project/tree/main/assets/images/campaigns)
 - documentos de soporte en [docs/DASHBOARD.md](/es/docs/operations/admin-dashboard/)
@@ -100,7 +100,7 @@ Controlar:
 - enrutamiento localizado/público si la página de la campaña debe funcionar limpiamente en `/es/`
 - Comportamiento de vista previa de inserción/compartición si se cambia la imagen principal, la propaganda, el título o el estado en vivo
 
-### Cambiar la configuración de la marca o del producto
+### Cambiar la configuración de marca o producto
 
 Comience con:
 
@@ -210,11 +210,11 @@ Si agrega una nueva página pública, ruta de inserción o flujo específico de 
 
 ### 6. Los flujos tokenizados/privados no deberían volverse indexables
 
-`/manage/`, las páginas de resultados de promesas y las rutas privadas/con token deben permanecer fuera de la indexación de búsqueda y deben preservar el comportamiento de token/consulta al cambiar de idioma.
+`/manage/`, las páginas de resultados de compromiso y las rutas privadas/con token deben permanecer fuera de la indexación de búsqueda y deben preservar el comportamiento de token/consulta al cambiar de idioma.
 
 ### 7. Las campañas finalizadas no deben comportarse como las activas.
 
-Las cuentas regresivas, los controles de compromiso y el estado de inserción/compartición previa deben respetar el estado efectivo de la campaña, especialmente después de las fechas límite.
+Las cuentas regresivas, los controles de promesas y el estado de inserción/compartición previa deben respetar el estado efectivo de la campaña, especialmente después de las fechas límite.
 
 ## Los mejores documentos para trabajos específicos
 

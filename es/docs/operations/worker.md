@@ -59,7 +59,7 @@ El cálculo de impuestos ahora se dirige a través de una costura de proveedor e
 - `TAX_PROVIDER=nm_grt` utiliza el conjunto de datos inicial de Nuevo México suministrado y puede refinar las búsquedas de direcciones de calles de Nuevo México con la API gratuita EDAC GRT.
 - `TAX_PROVIDER=zip_tax` agrega búsquedas de EE. UU. a nivel local/jurisdiccional a través de ZIP.TAX y recurre a `offline_rules` para destinos fuera de EE. UU./CA
 
-La configuración del proveedor no secreto se refleja desde la raíz del repositorio `_config.yml` en [`wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) como `TAX_PROVIDER`, `TAX_ORIGIN_COUNTRY`, `TAX_USE_REGIONAL_ORIGIN`, `NM_GRT_API_BASE` y `ZIP_TAX_API_BASE`. Si habilita `zip_tax`, configure también `ZIP_TAX_API_KEY` como secreto de trabajador o en `worker/.dev.vars`. Actualice el archivo inicial de Nuevo México suministrado con `node ../scripts/update-nm-grt-starter.mjs`.
+La configuración del proveedor no secreto se refleja desde la raíz del repositorio `_config.yml` en [`wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) como `TAX_PROVIDER`, `TAX_ORIGIN_COUNTRY`, `TAX_USE_REGIONAL_ORIGIN`, `NM_GRT_API_BASE` y `ZIP_TAX_API_BASE`. Si habilita `zip_tax`, configure también `ZIP_TAX_API_KEY` como secreto de trabajador o en [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars). Actualice el archivo inicial de Nuevo México suministrado con `node ../scripts/update-nm-grt-starter.mjs`.
 
 En el flujo actual del navegador, se permite intencionalmente que las vistas previas de impuestos permanezcan provisionales. Si el carrito o el pago personalizado aún no tiene suficientes datos de ubicación, el sitio muestra `--` y espera a que `/tax/quote` o `/checkout-intent/start` finalicen el resultado del impuesto. Las búsquedas de Nuevo México son la ruta integrada más exacta en este momento y normalmente necesitan datos completos de direcciones a nivel de calle, no solo código postal/estado, antes de que el trabajador pueda devolver un resultado de GRT local confiable.
 
@@ -70,7 +70,9 @@ El trabajador ahora también escribe resúmenes de observabilidad ligeros en `PL
 
 Los informes de los ejecutores de campaña utilizan la zona horaria de la plataforma configurada. `PLATFORM_TIMEZONE` tiene como valor predeterminado `America/Denver`, y el programador de trabajo de nivel de minutos verifica la hora de envío local configurada antes de enviar para que las bifurcaciones puedan usar cualquier zona horaria compatible con IANA.
 
-Los recordatorios del próximo lanzamiento de campaña también se ejecutan en el programador de minutos. Las páginas de campañas públicas recopilan recordatorios explícitos por correo electrónico solo mientras se aproxima una campaña; El trabajador almacena claves de registro hash con alcance de campaña, pone en cola un trabajo de envío cuando esa campaña se activa y envía a través del módulo de correo electrónico de reenvío existente con el remitente de las actualizaciones. La ruta del recordatorio no agrega una segunda integración de API de reenvío.
+Los recordatorios del próximo lanzamiento de campaña también se ejecutan en el programador de minutos. Las páginas de campañas públicas recopilan recordatorios explícitos por correo electrónico solo mientras se aproxima una campaña; El trabajador almacena claves de registro hash con alcance de campaña, pone en cola un trabajo de envío cuando esa campaña se activa y envía a través del módulo de correo electrónico de reenvío existente con el remitente de las actualizaciones. La cola de envío mantiene el estado `launch-reminder-dispatch-queue:v1`, por lo que los ticks programados inactivos omiten los análisis del espacio de nombres de envío; los trabajos en cola marcan el estado pendiente inmediatamente y el estado inactivo vence cada hora para compatibilidad con los trabajos insertados manualmente. La ruta del recordatorio no agrega una segunda integración de API de reenvío.
+
+Los reintentos de correo electrónico de confirmación del colaborador utilizan el mismo patrón de nivel gratuito. Los envíos fallidos escriben `supporter-email-retry:{orderId}` más `supporter-email-retry-queue:v1` y el pase de reintento programado omite los escaneos de la lista KV mientras la cola está inactiva o antes de que venza el siguiente reintento.
 
 La optimización de los medios de las páginas de campañas públicas sigue siendo una preocupación del sitio estático más que una preocupación del tiempo de ejecución de los trabajadores. El trabajador conserva las cargas del panel como archivos fuente; Las plantillas Jekyll, el optimizador de medios del repositorio y el paso de implementación del artefacto manejan variantes WebP responsivas, fachadas de carteles de héroes locales de YouTube y minificación CSS/JS generada antes de que se publique el artefacto de páginas públicas.
 
@@ -86,7 +88,7 @@ Antes de mutar algo, los operadores ahora pueden ejecutar comprobaciones de deri
 
 Esas comprobaciones comparan las proyecciones almacenadas `campaign-pledges:{slug}`, `stats:{slug}` y `tier-inventory:{slug}` con la verdad del compromiso activo y devuelven una diferencia estructurada en lugar de un estado de reparación silenciosa.
 
-La misma regla de "verdad guardada sobre el estado borrador" ahora se aplica a los complementos de la plataforma: `_config.yml` define la línea base de inventario inicial para cada producto o variante, mientras que el Trabajador deriva el inventario restante efectivo del estado de compromiso guardado e invalida el inventario de complementos en caché después de los eventos de creación, modificación o cancelación del compromiso.
+La misma regla de "verdad guardada sobre el estado del borrador" ahora se aplica a los complementos de la plataforma: `_config.yml` define la línea base de inventario inicial para cada producto o variante, mientras que las tiendas Worker venden recuentos en `add-on-inventory-sold:v1`, actualiza esa proyección después de los eventos de creación, modificación o cancelación de promesas, y evita escaneos repetidos del espacio de nombres de promesas para lecturas normales de inventario después del arranque de la proyección inicial.
 
 ## Configuración
 
@@ -105,7 +107,7 @@ Actualice `wrangler.toml` con los ID devueltos.
 
 ### 2. Configurar secretos
 
-Los secretos del desarrollo local viven en `worker/.dev.vars` ignorados. La ruta de configuración más segura es:
+Los secretos del desarrollo local viven en ignorados [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars). La ruta de configuración más segura es:
 
 ```bash
 npm run secrets:dev
@@ -170,8 +172,8 @@ El pago personalizado requiere la clave publicable de Stripe correspondiente par
 
 La configuración de USPS para este repositorio se divide intencionalmente:
 
-- mantenga `shipping.usps.client_id` en la raíz del repositorio [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) o `_config.local.yml`
-- mantener `USPS_CLIENT_SECRET` en Secretos de trabajador o `worker/.dev.vars`
+- mantenga `shipping.usps.client_id` en la raíz del repositorio [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) o [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml)
+- mantener `USPS_CLIENT_SECRET` en Secretos del trabajador o [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars)
 - Si desea señalar al trabajador en USPS TEM para realizar pruebas, configure también `shipping.usps.api_base` o `USPS_API_BASE`.
 
 Actualmente, The Pool solo necesita USPS OAuth más el conjunto de productos predeterminado de opciones de precio/envío para el cálculo de cotizaciones en vivo. **No** requiere la configuración de etiquetas/envío/EPA de USPS a menos que el proyecto crezca posteriormente hasta convertirse en la generación de etiquetas.
@@ -418,7 +420,7 @@ Los inicios/intercambios de autenticación de administrador y las mutaciones de 
 
 Cuando se configura `TURNSTILE_SECRET_KEY`, `POST /admin/auth/start` verifica el desafío Cloudflare Turnstile antes de enviar un correo electrónico con enlace mágico. Mantenga esa protección solo en la ruta de envío para que no agregue vistas de página del panel o escrituras KV al escribir.
 
-El inventario complementario de la plataforma utiliza `_config.yml` como línea base configurada, el estado KV `add-on-inventory-overrides` opcional para reabastecimientos del operador y la verdad del compromiso guardado para los recuentos vendidos. Las vistas de la página de inventario del administrador no cargan la tabla de inventario automáticamente; la lectura del inventario del superadministrador es explícita y puede escanear la verdad del compromiso, mientras que las acciones de configuración/reabastecimiento/restablecimiento escriben solo el estado de anulación más un evento de auditoría.
+El inventario complementario de la plataforma utiliza `_config.yml` como línea base configurada, el estado KV `add-on-inventory-overrides` opcional para reabastecimientos del operador y `add-on-inventory-sold:v1` para recuentos vendidos derivados de la verdad del compromiso guardado. Las vistas de la página de inventario del administrador no cargan la tabla de inventario automáticamente; la lectura del inventario del superadministrador es explícita y utiliza la proyección del recuento de ventas después del arranque, mientras que las acciones de configuración/reabastecimiento/restablecimiento escriben solo el estado de anulación más un evento de auditoría.
 
 La sección de la herramienta de marketing mantiene la creación de URL de la campaña, los parámetros UTM/referencia, los accesos directos del creador de incrustaciones, las preferencias de campos locales y los fragmentos de copia en el estado del navegador. Los códigos de referencia guardados son independientes: enumerarlos es una llamada de trabajador con alcance de campaña de solo lectura y guardar uno es una mutación explícita.
 
@@ -617,7 +619,7 @@ El ritmo de reenvío se centraliza como `RESEND_RATE_LIMIT_DELAY_MS` en `worker/
 
 Nota de bifurcación: trate esas variables de identidad, marca de correo electrónico, precios y envío como espejos de la configuración estructurada del sitio en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml), especialmente las secciones `platform`, `design`, `pricing` y `shipping`. El carrito/tiempo de ejecución propios y la interfaz de usuario de pago en el sitio personalizada son comportamientos integrados de la plataforma ahora, no opciones de entorno de trabajo que normalmente debería personalizar directamente.
 
-Mantenga `USPS_CLIENT_SECRET` fuera de la configuración del sitio. Pertenece a Secretos de trabajador o `worker/.dev.vars`.
+Mantenga `USPS_CLIENT_SECRET` fuera de la configuración del sitio. Pertenece a los secretos del trabajador o [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars).
 
 Nota de localización: el trabajador ahora localiza los asuntos/el cuerpo del correo electrónico dirigidos a los seguidores y los enlaces `/manage/` / `/community/:slug/` localizados desde el catálogo de configuración regional del sitio compartido. En funcionamiento normal, recupera ese catálogo de `SITE_BASE/assets/i18n.json`; las pruebas y las implementaciones avanzadas pueden inyectar `I18N_CATALOG_JSON` en su lugar. Eso significa que los correos electrónicos de soporte localizados y las rutas localizadas como `/es/manage/` o `/es/community/:slug/` permanecen alineadas con el modelo local del sitio cuando una implementación agrega esas rutas.
 

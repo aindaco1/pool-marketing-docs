@@ -49,6 +49,10 @@ Este documento cubre la arquitectura de seguridad, los riesgos conocidos, las me
 |`launch-reminder-suppressed:{slug}:{emailHash}`|PROMESAS|Marcador de supresión de recordatorio|**Medio**: hash de correo electrónico con ámbito de campaña|
 |`launch-reminder-sent:{slug}:{emailHash}`|PROMESAS|Recordatorio de envío de marcador de idempotencia|**Bajo** - estado de envío|
 |`launch-reminder-dispatch:{slug}`|PROMESAS|Cursor/progreso del trabajo de envío de recordatorio acotado|**Bajo** - estado operativo|
+|`launch-reminder-dispatch-queue:v1`|PROMESAS|Cola de envío de recordatorio inactiva/marcador pendiente|**Bajo** - estado operativo|
+|`supporter-email-retry:{orderId}`|PROMESAS|Carga útil de reintento de correo electrónico de confirmación de colaborador en cola|**Medio**: carga útil de correo electrónico de apoyo|
+|`supporter-email-retry-queue:v1`|PROMESAS|Reintento de correo electrónico del colaborador inactivo/pendiente y marcador de siguiente intento|**Bajo** - estado operativo|
+|`add-on-inventory-sold:v1`|PROMESAS|Proyección de recuento de ventas de complementos de plataforma|**Bajo**: estado del inventario agregado|
 |`vote:{slug}:{decision}:{email}`|VOTOS|elección de voto|**Medio** - vincula a un partidario para que vote|
 |`results:{slug}:{decision}`|VOTOS|recuentos de votos|**Bajo** - semipúblico|
 |`rl:{endpoint}:{ip}`|LÍMITE DE TARIFAS|Recuento de solicitudes + tiempo de reinicio|**Bajo** - efímero|

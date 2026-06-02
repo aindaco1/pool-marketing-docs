@@ -61,7 +61,7 @@ La característica de envío debe ajustarse al modelo i18n actual:
 
 ## Por qué encaja este alcance
 
-### riesgo de USPS
+### Riesgo de USPS
 
 Las API de precios de USPS parecen utilizables sin una facturación obvia por llamada para el acceso a precios básicos, pero tienen una cuota limitada y pueden requerir solicitudes manuales de aumento de cuota.
 
@@ -378,10 +378,10 @@ En este repositorio, eso se asigna a:
 
 Para una configuración local de estilo de producción normal, los valores mínimos que necesita este repositorio son:
 
-- [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) o `_config.local.yml`
+- [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) o [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml)
   - `shipping.usps.enabled: true`
   - `shipping.usps.client_id: "<your Consumer Key>"`
-- `worker/.dev.vars`
+- [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars)
   - `USPS_CLIENT_SECRET=<your Consumer Secret>`
 
 Si desea realizar pruebas con USPS TEM con las mismas credenciales de producción que describe USPS, configure también:
@@ -393,7 +393,7 @@ o
 Para pruebas locales:
 
 - configure `shipping.usps.client_id` en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) o su ruta de anulación local
-- establecer `USPS_CLIENT_SECRET=...` en `worker/.dev.vars`
+- establezca `USPS_CLIENT_SECRET=...` en [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars)
 - ejecutar:
 
 ```bash
@@ -665,7 +665,7 @@ La implementación del envío está en buen estado cuando:
 
 - Las promesas físicas nacionales e internacionales pueden usar la calificación en vivo de USPS a través del Trabajador
 - La tarifa plana de campaña anula el cortocircuito de USPS para esos envíos de campaña.
-- Los artículos calificados con tarifa manual como `sticker` y `signed_script` omiten USPS y utilizan la tabla plana documentada.
+- Los artículos calificados con tarifa manual como `sticker` y `signed_script` omiten USPS y usan la tabla plana documentada.
 - Los complementos de campaña heredan las reglas de envío y las anulaciones de la campaña propietaria.
 - Los complementos globales físicos se combinan en un envío de plataforma separado en lugar de tomar prestado el envío de la campaña.
 - Los editores de productos del panel de administración ocultan el envío de artículos digitales y muestran campos preestablecidos/paquetes solo para artículos físicos.

@@ -42,7 +42,7 @@ If a change affects pricing, campaign totals, availability, pledge state, email 
 When you need to understand or change behavior, start here:
 
 - [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml): canonical fork-facing configuration
-- `_config.local.yml`: local overrides only
+- [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml): local overrides only
 - [`_campaigns/`](https://github.com/your-org/your-project/tree/main/_campaigns): campaign content, tiers, goals, diary data, community hooks, campaign-scoped merch
 - [`_data/i18n/`](https://github.com/your-org/your-project/tree/main/_data/i18n): shared UI/runtime/email copy by language
 - [`_layouts/`](https://github.com/your-org/your-project/tree/main/_layouts) and [`_includes/`](https://github.com/your-org/your-project/tree/main/_includes): public pages, campaign pages, embeds, SEO, localized routing helpers

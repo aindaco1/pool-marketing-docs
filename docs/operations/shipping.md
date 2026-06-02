@@ -377,10 +377,10 @@ Do **not** commit the USPS client secret into Jekyll config.
 
 For a normal production-style local setup, the minimum values this repo needs are:
 
-- [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) or `_config.local.yml`
+- [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) or [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml)
   - `shipping.usps.enabled: true`
   - `shipping.usps.client_id: "<your Consumer Key>"`
-- `worker/.dev.vars`
+- [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars)
   - `USPS_CLIENT_SECRET=<your Consumer Secret>`
 
 If you want to test against USPS TEM with the same production credentials USPS describes, also set:
@@ -392,7 +392,7 @@ If you want to test against USPS TEM with the same production credentials USPS d
 For local testing:
 
 - set `shipping.usps.client_id` in [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) or your local override path
-- set `USPS_CLIENT_SECRET=...` in `worker/.dev.vars`
+- set `USPS_CLIENT_SECRET=...` in [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars)
 - run:
 
 ```bash

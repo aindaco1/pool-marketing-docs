@@ -57,7 +57,7 @@ Barandillas actuales:
 
 - Las barras de progreso y las posiciones de los marcadores representan clases de utilidad estáticas de ancho/izquierda en la salida de Jekyll para que no comiencen colapsadas mientras se carga JavaScript.
 - Las imágenes principales de la campaña se emiten con precarga y alta prioridad de recuperación donde el diseño conoce el activo LCP probable.
-- Los videos hero de YouTube de las campañas se muestran primero como una fachada local con póster/botón de reproducción y cargan el iframe de YouTube solo después de la intención de reproducción.
+- Los videos de los héroes de la campaña de YouTube muestran primero un póster local o una fachada de reproducción y cargan el iframe de YouTube solo después de la intención de reproducción.
 - Los scripts comunes usan `defer` o carga dinámica diferida en lugar de etiquetas de script que bloquean el analizador.
 - Las superficies privadas/administradoras permanecen `noindex` y no deben heredar el comportamiento de captación previa pública.
 
@@ -120,13 +120,13 @@ Mantenga estas responsabilidades separadas:
 
 Cloudflare Auto Minify debería permanecer deshabilitado. Reescribe las respuestas en el borde, lo que hace que el comportamiento de producción sea más difícil de reproducir localmente y de probar en CI. Prefiera el paso de activos generados controlados por repositorios.
 
-Mantenga Rocket Loader y Email Address Obfuscation deshabilitados para este sitio. Rocket Loader reescribe etiquetas de script en el borde, mientras que Email Address Obfuscation inyecta `/cdn-cgi/scripts/*/cloudflare-static/email-decode.min.js`; ambos dificultan reproducir localmente las páginas con CSP estricta y pueden aparecer como diagnósticos de bloqueo de renderizado o ruido de consola en PageSpeed Insights.
+Mantenga Rocket Loader y la ofuscación de direcciones de correo electrónico desactivadas para este sitio. Rocket Loader reescribe etiquetas de script en el borde, mientras que la ofuscación de direcciones de correo electrónico inyecta `/cdn-cgi/scripts/*/cloudflare-static/email-decode.min.js`; Ambos hacen que las páginas con CSP estricto sean más difíciles de reproducir localmente y pueden aparecer como bloqueo de procesamiento o diagnóstico de ruido de consola en PageSpeed ​​Insights.
 
-Si Cloudflare Web Analytics está habilitado, las páginas de campaña deben permitir el script de analíticas de Cloudflare y el endpoint de beacon en la CSP de campaña. Las superficies privadas/de administración deben seguir siendo más estrictas salvo que exista una decisión explícita de analítica/privacidad para incluirlas.
+Si Cloudflare Web Analytics está habilitado, las páginas de la campaña deben permitir el script de análisis de Cloudflare y el punto final de baliza en el CSP de la campaña. Las superficies privadas/administrativas deben ser más estrictas a menos que exista una decisión explícita de análisis/privacidad para incluirlas.
 
-Las hojas de estilo de fuentes se enlazan desde el `<head>` del documento en lugar de importarse desde `assets/main.css`. Esto permite que el navegador descubra CSS de fuentes y conexiones de fuentes sin esperar a la hoja de estilo principal, preservando el comportamiento intencional de carga de fuentes.
+Las hojas de estilo de fuentes se vinculan desde el encabezado del documento en lugar de importarse desde `assets/main.css`. Esto permite al navegador descubrir CSS de fuentes y conexiones de fuentes sin esperar en la hoja de estilo principal y al mismo tiempo preservar el comportamiento intencional de carga de fuentes.
 
-Las variables CSS generadas de tokens de diseño se incluyen en `assets/main.css`; `assets/theme-vars.css` permanece disponible como artefacto de compatibilidad, pero los diseños públicos no deberían solicitarlo como una hoja de estilo separada que bloquee el renderizado.
+Las variables CSS del token de diseño generadas se incluyen en `assets/main.css`; `assets/theme-vars.css` sigue estando disponible como artefacto de compatibilidad, pero los diseños públicos no deberían solicitarlo como una hoja de estilo de bloqueo de renderizado independiente.
 
 ## Captura previa basada en intención
 
@@ -244,6 +244,20 @@ Al cambiar lecturas en vivo:
 - mantenga el comportamiento de recuperación obsoleto privado para el navegador y evite el almacenamiento confidencial de larga duración
 - use `GET /admin/observability/performance` para inspeccionar tiempos de trabajo de muestra en entornos locales o implementados
 
+## Presupuesto de lista KV
+
+Las solicitudes de lista KV de trabajadores son un presupuesto de nivel gratuito independiente de las lecturas y escrituras. Las rutas normales públicas y de panel deben evitar escaneos de espacios de nombres y preferir proyecciones, índices o marcadores explícitos de estado de cola.
+
+Barandillas actuales:
+
+- los informes de campaña, la navegación de los seguidores, los acuerdos y las rutas de reparación prefieren los índices `campaign-pledges:{slug}` a los escaneos de espacios de nombres de promesas.
+- Las lecturas de inventario adicionales de la plataforma utilizan `add-on-inventory-sold:v1` después del primer arranque de proyección de recuento de ventas.
+- El envío de recordatorio de lanzamiento utiliza `launch-reminder-dispatch-queue:v1`, por lo que los ticks programados inactivos no aparecen en la lista `launch-reminder-dispatch:*`.
+- El reintento por correo electrónico de confirmación del colaborador utiliza `supporter-email-retry-queue:v1`, por lo que el reintento de sondeo omite los análisis `supporter-email-retry:*` mientras está inactivo o antes de que venza el siguiente intento.
+- Los marcadores de estado de cola inactivo caducan cada hora, lo que mantiene la compatibilidad con los trabajos insertados manualmente sin volver al sondeo del espacio de nombres a nivel de minutos.
+
+En condiciones normales de tráfico sin colas, se esperan aproximadamente `48-75` solicitudes de lista KV durante 24 horas. Los lotes de recordatorios de lanzamiento activos y los reintentos de correo electrónico de los colaboradores aún muestran sus prefijos de cola limitada cuando el trabajo real está pendiente.
+
 ## Optimización de medios
 
 Las cargas del panel preservan el origen. El trabajador valida las cargas y las confirma, pero no ejecuta optimizadores de imágenes nativos ni FFmpeg.
@@ -255,24 +269,24 @@ npm run media:optimize
 npm run media:optimize:check
 ```
 
-Si la máquina host no tiene instalados los optimizadores nativos, use los contenedores Podman:
+Si la máquina host no tiene instalados los optimizadores nativos, utilice en su lugar los contenedores respaldados por Podman:
 
 ```bash
 npm run media:optimize:podman
 npm run media:optimize:check:podman
 ```
 
-La imagen Podman del sitio incluye `ffmpeg`, `optipng`, `libjpeg-turbo-progs`, `gifsicle` y `webp`, de modo que la compresión local de imágenes y la generación de derivados responsivos usan la misma cadena nativa que el flujo de trabajo de medios en GitHub. Reconstruya la imagen con `PODMAN_REBUILD=1` después de cambiar requisitos de paquetes del contenedor.
+La imagen del sitio Podman incluye `ffmpeg`, `optipng`, `libjpeg-turbo-progs`, `gifsicle` y `webp`, por lo que la compresión de imágenes local y la generación de derivados responsivos utilizan la misma cadena de herramientas nativa que el flujo de trabajo multimedia de GitHub. Reconstruya la imagen con `PODMAN_REBUILD=1` después de cambiar los requisitos del paquete contenedor.
 
 Para regresiones con muchos medios implementados, ejecute el flujo de trabajo **Optimizar medios del panel** de GitHub Actions con `scope=all` para que los activos de campaña existentes se optimicen mediante el mismo proceso en lugar de editarlos una sola vez.
 
-Si PageSpeed marca imágenes de campaña sobredimensionadas que ya pasan por `responsive-image.html`, primero confirme si existen los derivados correspondientes `-320.webp`, `-480.webp`, `-640.webp`, `-960.webp` y `-1600.webp`. Los derivados faltantes deben producirse con `npm run media:optimize` localmente o con el flujo de trabajo usando `scope=all`, no mediante ediciones manuales puntuales de imágenes.
+Si PageSpeed ​​marca imágenes de campaña de gran tamaño que ya fluyen a través de `responsive-image.html`, primero confirme si existen los derivados correspondientes de `-320.webp`, `-480.webp`, `-640.webp`, `-960.webp` y `-1600.webp`. Los derivados que faltan deben ser producidos por `npm run media:optimize` localmente o mediante el flujo de trabajo con `scope=all`, no mediante ediciones de imágenes manuales únicas.
 
 El canal de medios:
 
 - comprime imágenes cuando el resultado optimizado es más pequeño
 - genera variantes WebP responsivas en `320w`, `480w`, `640w`, `960w` y `1600w` para plantillas de imágenes públicas cuando la imagen de origen es más grande que esa variante
-- omite la reoptimización con `cwebp` para derivados WebP animados porque `cwebp` no puede decodificar archivos WebP animados
+- omite la reoptimización de `cwebp` para derivados animados de WebP porque `cwebp` no puede decodificar archivos WebP animados
 - genera derivados WebM para videos subidos
 - reescribe referencias literales `_campaigns` / `_config.yml` de videos fuente subidos a derivados WebM generados
 - mantiene los vídeos originales disponibles para revertirlos o recodificarlos en el futuro

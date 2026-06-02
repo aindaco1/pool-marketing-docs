@@ -149,7 +149,7 @@ The local Worker defaults in [worker/wrangler.toml](https://github.com/your-org/
 
 For local work, prefer `./scripts/dev.sh --podman`. It starts Jekyll and the Worker in rootless Podman containers while preserving the same ports and local Wrangler state.
 
-`_config.local.yml` is now an override-only layer, not a second base config. When you change or add fork-facing settings, prefer [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) unless the value should truly differ only on your local machine.
+[`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml) is now an override-only layer, not a second base config. When you change or add fork-facing settings, prefer [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) unless the value should truly differ only on your local machine.
 
 The browser helper scripts support the same mode:
 

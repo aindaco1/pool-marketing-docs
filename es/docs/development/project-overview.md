@@ -43,9 +43,11 @@ La arquitectura actual está optimizada deliberadamente para que las implementac
 - Los informes del panel, los partidarios, los análisis, los asistentes de liquidación, las búsquedas de audiencia de transmisión de administradores y las estadísticas/conciliación de inventario prefieren el índice `campaign-pledges:{slug}` y evitan costosas exploraciones de espacios de nombres en rutas de lectura normales.
 - Las cargas/vistas previas de contenido del panel, vistas previas/descargas de informes, filtros de soporte, vistas de análisis y listas de referencias de marketing están diseñadas para agregar cero escrituras de KV.
 - Las rutas de escritura de nivel limitado ahora solicitan al coordinador de cada campaña la disponibilidad según la reserva, mientras que el inventario público permanece en KV como proyección.
+- El inventario de complementos de la plataforma utiliza una proyección de recuento de ventas después del arranque en lugar de reconstruirse a partir de escaneos del espacio de nombres de compromiso en lecturas normales.
+- iniciar el envío de recordatorios y la confirmación del partidario reintentar el sondeo utiliza marcadores de estado de cola, por lo que los ticks programados inactivos omiten los escaneos de la lista KV y recurren a las verificaciones de compatibilidad cada hora
 - La limitación de velocidad aún falla al cerrarse, pero las solicitudes bloqueadas repetidas dentro de la misma ventana ya no reescriben el mismo contador KV en cada visita.
 
-Eso significa que el límite real para la mayoría de las bifurcaciones suele ser **escrituras KV a partir de una actividad de compromiso exitosa**, no el tráfico de lectura pública. `RATELIMIT` es ahora un requisito estricto para las implementaciones admitidas, pero eso por sí solo no hace que el plan gratuito no sea viable para la forma de financiación colectiva a pequeña escala prevista para el proyecto.
+Eso significa que el límite real para la mayoría de las bifurcaciones suele ser **KV escribe a partir de una actividad de compromiso exitosa**, no el tráfico de lectura pública ni el sondeo de listas inactivas. `RATELIMIT` es ahora un requisito estricto para las implementaciones admitidas, pero eso por sí solo no hace que el plan gratuito no sea viable para la forma de financiación colectiva a pequeña escala prevista para el proyecto.
 
 ## Forma de desarrollo local
 

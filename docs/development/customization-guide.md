@@ -18,7 +18,7 @@ The structured config model in [`_config.yml`](https://github.com/your-org/your-
 For most forks, the main customization files are:
 
 - [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml)
-- `_config.local.yml`
+- [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml)
 - [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml)
 
 Use `./scripts/dev.sh --podman` for local verification after config changes.
@@ -31,7 +31,7 @@ For normal operator edits, use the private admin dashboard at `/admin/` or `/es/
 - **Settings -> Users** is runtime-only and saves directly to Worker KV at `admin-users:v1`; it does not publish to GitHub.
 - **Secrets & credentials** is read-only status. Secret values still belong in Worker secrets, GitHub repository secrets, or ignored local env files.
 
-Treat `_config.local.yml` as an override-only file. Keep canonical fork settings in [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml), and use the local file only for things that should differ on your machine, like localhost URLs or local-only campaign visibility.
+Treat [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml) as an override-only file. Keep canonical fork settings in [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml), and use the local file only for things that should differ on your machine, like localhost URLs or local-only campaign visibility.
 
 The normal local path is now localhost-based:
 
@@ -526,6 +526,7 @@ Current add-on inventory behavior:
 - `inventory` can live on the product itself or on each variant
 - `low_stock_threshold` controls when the shared cart/manage UI shows scarcity messaging
 - sold-out variants are removed from the shared product-state surface unless the supporter already owns that exact variant on an existing pledge
+- saved add-on sold counts live in `add-on-inventory-sold:v1` after the first projection bootstrap, and pledge create, modify, and cancel paths keep the projection current
 - the cart and Manage Pledge both use the same shared add-on product-card model, so forks do not need to style or configure two different merch systems
 - the add-on section heading and support note are localized through the normal runtime i18n files, and the support note interpolates the configured site author name automatically
 

@@ -114,7 +114,7 @@ Fork-friendly shipping settings live in:
 - `shipping.origin_*`, `shipping.fallback_flat_rate`, `shipping.free_shipping_default`, and `shipping.usps.*` in [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml)
 - auto-synced Worker vars like `SHIPPING_ORIGIN_ZIP`, `SHIPPING_FALLBACK_FLAT_RATE`, `USPS_ENABLED`, `USPS_CLIENT_ID`, and the USPS timeout/cache/cooldown knobs in [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml)
 
-Keep `USPS_CLIENT_SECRET` out of site config. Set it as a Worker secret or in `worker/.dev.vars` for local development.
+Keep `USPS_CLIENT_SECRET` out of site config. Set it as a Worker secret or in [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars) for local development.
 
 If you change those values locally, restart `./scripts/dev.sh --podman` so the Worker uses the same math as the site.
 
@@ -123,7 +123,7 @@ Fork-friendly global merch/add-on settings now also live in:
 - product images, size-aware variants, per-product or per-variant inventory, and `shipping_preset` references for physical catalog items
 - bundle-level add-ons can now be selected in the cart sidecar, anchored to a campaign in multi-campaign carts, and edited later from Manage Pledge
 - low-stock messaging and sold-out variant filtering now come from the shared inventory-aware add-on product-state layer used by both cart and Manage Pledge
-- configured add-on inventory is the starting baseline; remaining stock is derived from saved pledge state, not unsaved cart or Manage drafts
+- configured add-on inventory is the starting baseline; remaining stock is derived from saved pledge state through the `add-on-inventory-sold:v1` projection, not unsaved cart or Manage drafts
 - pledge and fulfillment reports now separate campaign pledge value from platform add-on value for easier operations
 
 Fork-facing settings now use a structured config model in [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml):
@@ -148,7 +148,7 @@ Fork-facing settings now use a structured config model in [`_config.yml`](https:
 - `checkout` for truly variable checkout settings like the Stripe publishable key
 - `cache` for live browser TTLs
 
-`_config.local.yml` is now intentionally thin: it should only carry true local overrides like localhost URLs, `show_test_campaigns`, and local-only public Turnstile key blanks, not a second copy of the base config.
+[`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml) is now intentionally thin: it should only carry true local overrides like localhost URLs, `show_test_campaigns`, and local-only public Turnstile key blanks, not a second copy of the base config.
 
 See [docs/CUSTOMIZATION.md](/docs/development/customization-guide/) for the supported no-code customization surface and which settings are automatically mirrored to the Worker.
 See [docs/SEO.md](/docs/operations/seo/) for the current SEO fundamentals implementation and supported SEO surface.
@@ -224,7 +224,7 @@ npm run podman:doctor
 npm run podman:self-check
 ```
 
-If you want to exercise the on-site Stripe checkout locally, add `STRIPE_PUBLISHABLE_KEY_TEST=pk_test_...` to `worker/.dev.vars` before starting the stack.
+If you want to exercise the on-site Stripe checkout locally, add `STRIPE_PUBLISHABLE_KEY_TEST=pk_test_...` to [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars) before starting the stack.
 
 For production, use Cloudflare Worker secrets for runtime credentials and GitHub repository secrets for deploy credentials. Do not put Stripe secret keys, webhook secrets, Resend keys, Turnstile secrets, USPS client secrets, ZIP.TAX keys, or Cloudflare API tokens in `_config.yml`.
 
@@ -242,6 +242,8 @@ The Pool is intentionally shaped so most traffic stays cheap:
 - normal dashboard reads, content previews, report previews/downloads, supporter filters, analytics views, marketing URL building, and local editor drafts are designed to add zero KV writes
 - the new read-only drift checks make it easier to confirm when projections are stale before running a repair path
 - limited-tier write paths now ask the coordinator for reservation-aware availability instead of rebuilding truth from KV reservation keys
+- platform add-on inventory reads use a sold-count projection after the initial bootstrap, so normal inventory refreshes do not list all pledge keys
+- launch reminder dispatch and supporter confirmation retry polling use queue-state markers; idle cron ticks skip KV list scans, and idle queues get an hourly compatibility recheck instead of minute-level or 15-minute namespace polling
 - public read paths stay intentionally permissive so a legitimately popular campaign does not hit artificial anti-DoS ceilings, while the expensive checkout / Manage / admin writes carry the tighter rate limits and request-size caps
 - once a client is already over a rate limit window, repeated blocked requests no longer rewrite the same KV counter on every hit
 - `POST /checkout-intent/abandon` uses an order-scoped retry bucket so unload/retry cleanup stays friendly to shared IPs without leaving the release path wide open
@@ -269,6 +271,8 @@ As of April 18, 2026, Cloudflare documents the Workers Free plan at `100,000` re
 - [Cloudflare Workers KV limits](https://developers.cloudflare.com/kv/platform/limits/)
 
 The practical takeaway for forks is simple: The Pool can still fit the Workers Free plan for its intended “small number of concurrent campaigns, modest backer volume, one-month run” shape, especially because public read traffic is cheap and most days have little mutation traffic. The reason to move to Paid is not that Free suddenly stopped working, but that Paid gives healthier headroom for flash spikes, abuse-path KV writes, heavier modify/cancel activity, and more operator tooling.
+
+With the v1.0.3 list-budget hardening, a normal no-queue day is expected to use roughly `48-75` Workers KV list requests over 24 hours: about one hourly idle recheck each for launch reminder dispatch and supporter email retry queues, plus occasional projection bootstraps or operator repair paths. Active launch reminder jobs and due supporter email retries still list their bounded queues when real work is pending.
 
 One deployment nuance: Cloudflare's configurable `limits` block is only enforced on the Standard Usage Model and only on deployed Workers, not in local development. That means the new `cpu_ms` guard is a denial-of-wallet backstop for Paid deployments, while Workers Free still relies on Cloudflare's built-in free-plan ceilings.
 

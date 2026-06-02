@@ -49,7 +49,7 @@ La configuración ahora utiliza un modelo de configuración estructurado en [`_c
 - `launch_reminders`
 - `cache`
 
-Trate `_config.local.yml` como un archivo de anulación fino para las URL de host local y otras diferencias locales de la máquina, no como un segundo lugar para duplicar la configuración de bifurcación canónica.
+Trate [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml) como un archivo de anulación ligero para las URL de host local y otras diferencias locales de la máquina, no como un segundo lugar para duplicar la configuración de bifurcación canónica.
 
 El objetivo de sincronización es [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) y los puntos de entrada de desarrollo/pruebas admitidos por el repositorio lo mantienen alineado automáticamente.
 
@@ -386,7 +386,7 @@ tiers:
 
 En el panel de administración, los ID de nivel son de solo lectura para los editores: los ID heredados se conservan, mientras que los ID de nivel nuevos se derivan del nombre. `shipping_preset` se oculta para niveles digitales. Si un nivel físico no tiene un valor preestablecido, se muestran campos explícitos de peso/dimensión del paquete.
 
-**Productos complementarios de plataforma**: los productos globales o los artículos de venta adicional ahora tienen una ruta de configuración separada en `add_ons` en [/_config.yml](https://github.com/your-org/your-project/blob/main/_config.yml). Ese catálogo está destinado a productos de precio fijo en toda la plataforma con variantes simples, como tallas de camisa, y no debe modelarse como la campaña `support_items`. The Worker refleja el catálogo a través de [/api/add-ons.json](https://github.com/your-org/your-project/blob/main/api/add-ons.json), expone una instantánea del inventario actual a través de `/add-ons/inventory`, incluye selecciones de complementos a nivel de paquete más una campaña ancla durante el proceso de pago, conserva esos complementos vinculados al ancla en el compromiso sin contarlos para los totales de objetivos de campaña y ahora los expone por separado en las exportaciones de compromiso y cumplimiento. Tanto Cart como Manage Pledge consumen la misma lógica de estado del producto que tiene en cuenta el inventario, incluidos mensajes de stock bajo y filtrado de variantes agotadas.
+**Productos complementarios de plataforma**: los productos globales o los artículos de venta adicional ahora tienen una ruta de configuración separada en `add_ons` en [/_config.yml](https://github.com/your-org/your-project/blob/main/_config.yml). Ese catálogo está destinado a productos de precio fijo en toda la plataforma con variantes simples, como tallas de camisa, y no debe modelarse como la campaña `support_items`. The Worker refleja el catálogo a través de [/api/add-ons.json](https://github.com/your-org/your-project/blob/main/api/add-ons.json), expone una instantánea del inventario actual a través de `/add-ons/inventory`, incluye selecciones de complementos a nivel de paquete más una campaña ancla durante el proceso de pago, conserva esos complementos vinculados al ancla en el compromiso sin contarlos para los totales de objetivos de campaña y ahora los expone por separado en las exportaciones de compromiso y cumplimiento. Los recuentos vendidos se encuentran en la proyección `add-on-inventory-sold:v1` después del arranque, y el carrito y Manage Pledge consumen la misma lógica de estado del producto que tiene en cuenta el inventario, incluidos mensajes de stock bajo y filtrado de variantes agotadas.
 
 - Los complementos `category: digital` nunca contribuyen al envío
 - Los complementos `category: physical` participan en la misma calculadora de envío que se utiliza para los niveles físicos y los artículos de soporte físico.
@@ -918,7 +918,7 @@ crons = ["* * * * *"]
 ```
 
 **Qué hace:**
-1. Drena los trabajos de envío de recordatorios de lanzamiento en cola en lotes locales
+1. Drena los trabajos de envío de recordatorios de lanzamiento en cola en lotes limitados cuando el estado de la cola de envío indica que el trabajo está pendiente
 2. Enumera todas las campañas con `goal_deadline` y `goal_amount`.
 3. Pone en cola el envío de un recordatorio de lanzamiento único cuando se activa una próxima campaña.
 4. Para cada campaña en la que haya pasado la fecha límite en la zona horaria de la plataforma y se haya cumplido el objetivo:
@@ -927,7 +927,7 @@ crons = ["* * * * *"]
 5. Agrega promesas por correo electrónico dentro de cada campaña para que cada partidario reciba UN cargo por campaña.
 6. Envía correos electrónicos de pago exitoso/pago fallido según corresponda
 
-**Nota sobre la zona horaria:** El programador se ejecuta cada minuto, pero el trabajo del ciclo de vida se limita a una pequeña ventana de medianoche en la zona horaria de la plataforma y se reclama una vez por fecha local. Los trabajos de envío de recordatorios de lanzamiento pueden agotarse en cualquier tic programado después de que se reclame la transición en vivo, y los reintentos de correo electrónico de apoyo aún se ejecutan cada 15 minutos dentro del mismo controlador programado.
+**Nota sobre la zona horaria:** El programador se ejecuta cada minuto, pero el trabajo del ciclo de vida se limita a una pequeña ventana de medianoche en la zona horaria de la plataforma y se reclama una vez por fecha local. Los trabajos de envío de recordatorios de lanzamiento pueden agotarse en cualquier tic programado después de que se reclame la transición en vivo, y los reintentos de correo electrónico de apoyo aún se ejecutan cada 15 minutos dentro del mismo controlador programado. Ambas colas mantienen marcadores de estado de cola livianos, por lo que los ticks inactivos omiten los escaneos de la lista KV y solo realizan una nueva verificación de compatibilidad cada hora a menos que el trabajo real se haya marcado como pendiente.
 
 ### Módulo de fichas
 
@@ -1017,6 +1017,9 @@ Cloudflare KV. Patrones clave:
 - `email:{email}`: conjunto de ID de pedido para ese correo electrónico
 - `stats:{campaignSlug}` — Totales agregados (pledgedAmount, promesaCount, tierCounts)
 - `tier-inventory:{campaignSlug}` — Recuento de reclamos de niveles para niveles limitados
+- `campaign-pledges:{campaignSlug}`: índice de promesas de campaña para informes, liquidaciones, lecturas administrativas y reparación de proyecciones.
+- `add-on-inventory-sold:v1` — Proyección de recuento de ventas del complemento de plataforma
+- `launch-reminder-dispatch-queue:v1` y `supporter-email-retry-queue:v1`: marcadores de estado de cola que permiten que los cronómetros inactivos omitan los escaneos de la lista KV
 
 **¿Qué papel juega el carrito del navegador?**
 El carrito propio proporciona revisión de promesas y estado de transferencia de pago en el navegador. Los datos del compromiso final se almacenan en KV después de la confirmación del webhook de Stripe.
@@ -1371,7 +1374,7 @@ El flujo de liquidación utiliza **invocaciones por lotes autoencadenadas** para
 
 **Claves KV utilizadas por liquidación:**
 
-|Llave|Propósito|
+|clave|Propósito|
 |-----|---------|
 |`campaign-pledges:{slug}`|Matriz de ID de pedido por campaña (se mantiene al crear/cancelar)|
 
