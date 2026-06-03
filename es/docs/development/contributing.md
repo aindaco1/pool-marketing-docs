@@ -115,6 +115,7 @@ Para cambios en la interfaz de usuario del tablero, lea también `docs/ACCESSIBI
 - Zona horaria de plataforma configurable para plazos de campaña, cuentas regresivas, informes, automatización del ciclo de vida y verificaciones de liquidación.
 - Recordatorios del lanzamiento de próximas campañas con Turnstile, deduplicación, cancelación de suscripción y entrega de reenvío compartido
 - Mejora del rendimiento de las páginas públicas, minificación de activos generados, captación previa conservadora del mismo origen y derivados de medios responsivos
+- Fortalecimiento del flujo de trabajo de medios del panel para el envío de optimización de imágenes/videos, limpieza de medios en el momento de la publicación y correcciones de anclaje/renderizado del diario
 
 🚧 **Enfoque activo:**
 - Auditorías de disciplina de puerta de fusión y preparación para el lanzamiento en accesibilidad, personalización, panel de control, i18n, rendimiento, seguridad y SEO

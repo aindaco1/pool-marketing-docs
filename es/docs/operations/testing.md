@@ -37,7 +37,7 @@ npm test                   # Run all tests
 
 `./scripts/test-e2e.sh --podman` es ahora la ruta del navegador totalmente automatizada. Utilice `./scripts/test-checkout.sh --podman` cuando desee específicamente realizar el pago manualmente en un navegador real.
 
-La ruta de prueba del trabajador local ahora prefiere el Nodo 24, que coincide con las Acciones de GitHub. Los scripts del host recurren al Nodo 22 si una bifurcación lo tiene instalado, pero ya no fuerzan el Nodo 20 porque Wrangler 4 requiere el Nodo 22 o posterior.
+La ruta de prueba del trabajador local ahora prefiere el nodo 24, que coincide con las acciones de GitHub. Los scripts del host recurren al Nodo 22 si una bifurcación lo tiene instalado, pero ya no fuerzan el Nodo 20 porque Wrangler 4 requiere el Nodo 22 o posterior.
 
 Para la sección del navegador centrada en la accesibilidad, utilice:
 
@@ -77,7 +77,7 @@ Pruebas rápidas y aisladas para funciones JS en `tests/unit/`.
 |`votes`|Almacenamiento/descopia de votos basado en correo electrónico, recuperación del estado de los votos, resultados de campaña, agregación de resultados|
 |`admin-dashboard`|Seguimiento del estado sucio del panel, serialización de configuraciones, normalización de contenido/editor, cargas de medios por etapas, análisis/relleno de tarifas reales de Stripe, ayudas de URL de referencia, utilidades de soporte responsivo/i18n|
 |`campaign-page`|Construcción de URL de enlaces compartidos, preservación segura de consultas, texto compartido con reconocimiento de estado, envío de formularios de recordatorio de lanzamiento, controles de campañas públicas y comportamiento de la página de campaña sensible a SEO|
-|`page-prefetch`|Listas permitidas de rutas públicas del mismo origen, exclusiones de consultas confidenciales, protecciones de red, manejo de demoras/límites y creación de sugerencias de captación previa de documentos|
+|`page-prefetch`|Listas permitidas de rutas públicas del mismo origen, exclusiones de consultas confidenciales, protecciones de red, manejo de retrasos/límites y creación de sugerencias de captación previa de documentos|
 |`cart-runtime-loader`|Arranque diferido en tiempo de ejecución del carrito, detección de carrito persistente/de recuperación, carga idempotente y activadores de intención del usuario|
 |`site-asset-minification`|Comportamiento de minificación CSS/JS generado `_site` y casos de falla del modo de verificación|
 |`media-optimization-script`|Selección de archivos modificados, decisiones de optimización de imágenes sin pérdidas, denominación de derivados de vídeo y reescritura de referencias de fuente a WebM|
@@ -111,7 +111,7 @@ Esto se ejecuta:
   - `tests/unit/worker-ops-integrity.test.ts`
   - `tests/unit/stats-pagination.test.ts`
 Estas Worker suites cubren la validación del registro de recordatorio de lanzamiento, la supresión de cancelación de suscripción, la idempotencia de envío en cola y la ruta de envío de reenvío compartida.
-- Regresiones del filtro de seguridad de contenido en `tests/unit/content-safety-filter.test.ts`, incluidos esquemas de enlaces Markdown inseguros y validación estricta de URL incrustadas estructuradas
+- Regresiones del filtro de seguridad de contenido en `tests/unit/content-safety-filter.test.ts`, incluidos esquemas de enlaces Markdown inseguros, espaciado de énfasis creado por el panel y validación estricta de URL incrustadas estructuradas
 - Cobertura de auditoría de contenido de campaña en `tests/unit/campaign-content-security.test.ts`, incluido el subconjunto HTML en línea permitido y el rechazo de etiquetas sin procesar no permitidas.
 - Cobertura de serialización de inventario de niveles de objetos duraderos en `tests/unit/tier-inventory-do.test.ts`
 - Guiones de humo locales contra la campaña mutable de solo prueba:
@@ -139,7 +139,7 @@ El reciente refuerzo de seguridad que ahora cubre la puerta incluye:
 - reservas serializadas de inventario de nivel limitado al inicio del pago y confirmación en el momento de persistencia exitosa
 - recordatorio de lanzamiento Verificación de torniquete, almacenamiento de registro deduplicado, supresión de cancelación de suscripción con alcance y envío idempotente
 
-La optimización de medios está intencionalmente separada de la puerta previa a la fusión porque depende de herramientas nativas como FFmpeg y optimizadores de imágenes. Cuando una rama incluye medios cargados en el panel o agregados manualmente, ejecute:
+La optimización de medios está intencionalmente separada de la puerta previa a la fusión porque depende de herramientas nativas como FFmpeg y optimizadores de imágenes. Las cargas de imágenes/videos del panel solicitan el optimizador después de la confirmación, pero cuando una rama incluye medios agregados manualmente o necesita verificar las variantes generadas antes de fusionar, ejecute:
 
 ```bash
 npm run media:optimize:check

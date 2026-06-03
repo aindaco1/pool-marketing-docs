@@ -33,6 +33,7 @@ Los creadores definen campañas en Markdown; los patrocinadores se comprometen a
 |**Estilo**|Sass + vars de tema generados|Sistema de diseño compartido para páginas públicas, pago, gestión de promesas y superficies de pago/correo electrónico de marca.|
 
 Todo el código está versionado y auditable. La edición de la campaña ahora fluye a través del panel de administración privado o ediciones directas del repositorio, y los cambios publicables aún se confirman en el repositorio a través de la ruta de GitHub controlada por el trabajador.
+Las cargas de medios del panel conservan el origen en el límite del trabajador: las cargas de imágenes/videos solicitan el flujo de trabajo de optimización del repositorio después de la confirmación, y las publicaciones de contenido/diario eliminan los medios propiedad del panel de la misma campaña a los que ya no se hace referencia.
 
 ## Planificar notas de eficiencia para bifurcaciones
 
@@ -190,5 +191,6 @@ Para conocer los límites actuales de Cloudflare, consulte:
 9. **Los enlaces mágicos deben requerir filas de compromiso reales**: la validez del token por sí sola no es suficiente; Los registros de promesas faltantes no deberían cerrarse.
 10. **Chrome localizado debe permanecer compartido**: los controles de la página de la campaña y la copia de estado que pertenecen a la plataforma, no al creador, deben fluir a través del catálogo de configuración regional compartido para que las plantillas públicas, la interfaz de usuario en tiempo de ejecución y los correos electrónicos de los seguidores no se separen.
 11. **El trabajo de rendimiento debe permanecer estático primero**: prefiera la salida estable de Jekyll, la minificación de activos generados, la carga en tiempo de ejecución diferida y la captación previa conservadora solo pública antes de agregar complejidad al cliente.
+12. **El trabajo del ciclo de vida de los medios debe permanecer respaldado por el repositorio**: las cargas del panel confirman primero los archivos fuente, la automatización del repositorio posee la optimización nativa de imágenes/videos y la limpieza en el momento de la publicación solo elimina los medios de la misma campaña que desaparecieron del contenido de autor y no se mencionan en ningún otro lugar.
 
 ---

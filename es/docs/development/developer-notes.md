@@ -204,7 +204,8 @@ El panel privado en `/admin/` ahora es el editor y la superficie de operaciones 
 - Los secretos permanecen en Secretos del trabajador o se ignoran `.dev.vars`; el panel solo muestra el estado configurado/faltante.
 - Los informes, los análisis, la exploración de los asistentes, las vistas previas de contenido, el filtrado de tablas y las descargas de CSV son flujos del panel de solo lectura y no deben agregar escrituras KV.
 - Las cargas de imágenes/vídeo/audio utilizan los directorios de activos existentes, normalizan los nombres de archivos y luego publican a través de la misma ruta respaldada por GitHub que el campo que actualizan.
-- La optimización de los medios está deliberadamente fuera del Trabajador. Use `npm run media:optimize` localmente, `npm run media:optimize:podman` cuando falten optimizadores nativos del host, `npm run media:optimize:check` o `npm run media:optimize:check:podman` antes de fusionar cuando los medios cargados cambiaron, o deje que el flujo de trabajo de GitHub Actions `Optimize dashboard media` se ejecute después de que las cargas del panel lleguen a `main`. El flujo de trabajo se puede enviar manualmente con `scope=all` para reprocesar los medios existentes.
+- La limpieza de contenidos y medios del diario se ejecuta en el momento de la publicación. El trabajador compara el contenido/los datos del diario de la campaña previamente cargados con el borrador normalizado que se está confirmando, elimina las rutas de medios propiedad del panel de la misma campaña que desaparecieron y conserva las URL externas, los activos compartidos/predeterminados y los archivos a los que todavía se hace referencia en otras partes de la campaña.
+- La optimización de los medios está deliberadamente fuera del Trabajador. Después de que las cargas de imágenes y videos se confirmen correctamente, el trabajador solicita el flujo de trabajo de acciones de GitHub `Optimize dashboard media` con `scope=changed`; Las cargas de audio se conservan en origen porque el optimizador no procesa `assets/audio`. Utilice `npm run media:optimize` localmente, `npm run media:optimize:podman` cuando falten optimizadores nativos del host, `npm run media:optimize:check` o `npm run media:optimize:check:podman` antes de fusionar cuando se modifiquen los medios cargados, o envíe manualmente el flujo de trabajo con `scope=all` para reprocesar los medios existentes.
 
 Consulte [DASHBOARD.md](/es/docs/operations/admin-dashboard/) para obtener la referencia completa del panel.
 
@@ -344,7 +345,7 @@ Reglas de comportamiento/seguridad de contenido largo:
 **Diseños de galería:**
 - `grid` (predeterminado): cuadrícula de 2 columnas, relación de aspecto 4:3 (1 columna en dispositivos móviles)
 - `logos`: cuadrícula de 2 columnas, relación de aspecto automática con `object-fit: contain` (altura máxima de 200 píxeles): ideal para logotipos de patrocinadores/socios
-- `carousel`: Desplazamiento horizontal con ajuste, relación de aspecto 16:9
+- `carousel`: desplazamiento horizontal con ajuste, relación de aspecto 16:9
 
 ### Metas extendidas
 
@@ -676,7 +677,7 @@ Si Stripe muestra fallas de webhook ("otros errores") para el punto final de pro
 
 ### Tarjetas de prueba de rayas
 
-|Tarjeta|Escenario|
+|tarjeta|Escenario|
 |------|----------|
 |`4242 4242 4242 4242`|Éxito|
 |`4000 0000 0000 3220`|Se requiere 3D Secure|
@@ -1374,7 +1375,7 @@ El flujo de liquidación utiliza **invocaciones por lotes autoencadenadas** para
 
 **Claves KV utilizadas por liquidación:**
 
-|clave|Propósito|
+|Llave|Propósito|
 |-----|---------|
 |`campaign-pledges:{slug}`|Matriz de ID de pedido por campaña (se mantiene al crear/cancelar)|
 

@@ -516,7 +516,7 @@ En el panel de administración, los complementos de la plataforma se encuentran 
 Comportamiento de envío de complementos:
 
 - `category: digital` significa que el complemento nunca contribuye al envío.
-- `category: physical` significa que el complemento participa en la misma calculadora de envío utilizada para niveles físicos y artículos de soporte físico.
+- `category: physical` significa que el complemento participa en la misma calculadora de envío utilizada para los niveles físicos y los artículos de soporte físico.
 - Los complementos físicos pueden:
   - hacer referencia a un `shipping_preset` compartido
   - o proporcione `shipping.weight_oz`, `shipping.packaging_weight_oz`, `shipping.length_in`, `shipping.width_in`, `shipping.height_in` y `shipping.stack_height_in` explícitos
@@ -593,7 +593,7 @@ Qué permite esto:
 
 - Correos electrónicos diarios del libro mayor de compromisos relacionados con la campaña durante las campañas en vivo.
 - Exportaciones de cumplimiento únicas después de que pasa la fecha límite de la campaña.
-- Separe los correos electrónicos de cumplimiento de la plataforma y del ejecutor de la campaña cuando sea necesario entregar tanto los elementos de la campaña como los de la plataforma.
+- Separe los correos electrónicos de cumplimiento de la plataforma y del corredor de la campaña cuando sea necesario entregar tanto los elementos de la campaña como los de la plataforma.
 - resúmenes del cuerpo opcionales y archivos adjuntos CSV opcionales sin cambiar los archivos de contenido de la campaña
 - un prefijo de asunto consistente, que por defecto es `"[The Pool]"` en este repositorio y vuelve a `[platform.name]` si se omite en tiempo de ejecución
 
@@ -864,7 +864,7 @@ Los recordatorios de lanzamiento tienen una configuración pública y un límite
 - El secreto Turnstile correspondiente pertenece a los secretos de los trabajadores como `TURNSTILE_SECRET_KEY` o `LAUNCH_REMINDER_TURNSTILE_SECRET_KEY`.
 - Los correos electrónicos de recordatorio utilizan el módulo de correo electrónico de trabajador respaldado por reenvío existente y el remitente `platform.updates_email_from` configurado.
 
-Los medios cargados en el panel tampoco agregan una nueva configuración de script de sincronización. Carga archivos fuente de confirmación en los directorios de activos existentes; `npm run media:optimize` / `npm run media:optimize:check`, las variantes respaldadas por Podman para máquinas sin optimizadores nativos y el flujo de trabajo **Optimizar medios del panel** manejan la compresión de imágenes, variantes WebP responsivas en `320w`, `480w`, `640w`, `960w` y `1600w`, y derivados de WebM fuera del Worker.
+Los medios cargados en el panel tampoco agregan una nueva configuración de script de sincronización. Carga archivos fuente de confirmación en los directorios de activos existentes; Las cargas de imágenes/vídeos solicitan el flujo de trabajo **Optimizar medios del panel** después de que la confirmación se realice correctamente. `npm run media:optimize` / `npm run media:optimize:check`, las variantes respaldadas por Podman para máquinas sin optimizadores nativos y el mismo flujo de trabajo manejan la compresión de imágenes, variantes WebP responsivas en `320w`, `480w`, `640w`, `960w` y `1600w`, y derivados de WebM fuera del Worker.
 
 La minificación de CSS/JS generada también está fuera de la ruta de guardado del trabajador y del panel. Las implementaciones de producción ejecutan `npm run assets:minify` solo después de que Jekyll escribe `_site`, por lo que las bifurcaciones deben mantener los recursos fuente legibles en `assets/` y permitir que el paso de implementación del artefacto maneje la salida minimizada. La compresión de borde de Cloudflare debería permanecer habilitada, pero Cloudflare Auto Minify debería permanecer deshabilitada para evitar una segunda capa de reescritura.
 
@@ -896,7 +896,7 @@ Tenga en cuenta también:
 - no todas las fichas de Sass están expuestas a propósito
 - no todas las variables de entorno de trabajador pertenecen a `_config.yml`
 - la superficie de soporte está curada para evitar regresiones de seguridad y mantenimiento
-- el panel carga archivos de confirmación en los directorios de activos existentes y actualiza los campos de configuración/campaña; La optimización de imágenes y la generación de derivados WebM se ejecutan en la canalización de medios externos, mientras que agregar una nueva categoría de carga o backend de almacenamiento sigue siendo un trabajo a nivel de código.
+- el panel carga archivos de confirmación en los directorios de activos existentes y actualiza los campos de configuración/campaña; Las cargas de imágenes/videos solicitan la canalización de medios externos después de la confirmación, la publicación elimina los medios propiedad del panel de la misma campaña a los que ya no se hace referencia, y agregar una nueva categoría de carga o backend de almacenamiento sigue siendo un trabajo a nivel de código.
 
 ## Flujo de trabajo seguro para horquillas
 

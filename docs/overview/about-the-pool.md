@@ -74,7 +74,7 @@ The Pool is designed for filmmakers and creative teams that need a campaign they
 - **Campaign add-ons** — Sell campaign-specific merch or extras in the same pledge flow while keeping revenue, inventory, and shipping tied to that campaign.
 - **Private admin dashboard** — Give trusted team members a focused workspace for campaign settings, page content, rewards, updates, decisions, reports, supporters, analytics, and marketing links.
 - **Configurable platform timezone** — Super admins can choose the IANA timezone used for campaign deadlines, countdowns, scheduled reports, and lifecycle automation.
-- **Dashboard media uploads** — Stage campaign and diary images, video, and audio with previews, then publish them into campaign asset paths through the normal reviewable workflow.
+- **Dashboard media uploads** — Stage campaign and diary images, video, and audio with previews, publish them into campaign asset paths through the normal reviewable workflow, trigger image/video optimization, and clean up dashboard-owned media that is no longer referenced.
 - **Reports when you need them** — Preview and download pledge or fulfillment CSVs from the dashboard, with optional campaign-runner emails during active campaigns.
 - **Upcoming-campaign reminders** — Let potential supporters opt into one launch email before a campaign opens, without creating accounts or mailing-list dependencies.
 - **Embeds for promotion** — Generate live campaign widgets for partner sites, press pages, creator portfolios, or sponsor pages.

@@ -74,7 +74,7 @@ Los recordatorios del próximo lanzamiento de campaña también se ejecutan en e
 
 Los reintentos de correo electrónico de confirmación del colaborador utilizan el mismo patrón de nivel gratuito. Los envíos fallidos escriben `supporter-email-retry:{orderId}` más `supporter-email-retry-queue:v1` y el pase de reintento programado omite los escaneos de la lista KV mientras la cola está inactiva o antes de que venza el siguiente reintento.
 
-La optimización de los medios de las páginas de campañas públicas sigue siendo una preocupación del sitio estático más que una preocupación del tiempo de ejecución de los trabajadores. El trabajador conserva las cargas del panel como archivos fuente; Las plantillas Jekyll, el optimizador de medios del repositorio y el paso de implementación del artefacto manejan variantes WebP responsivas, fachadas de carteles de héroes locales de YouTube y minificación CSS/JS generada antes de que se publique el artefacto de páginas públicas.
+La optimización de los medios de las páginas de campañas públicas sigue siendo una preocupación del sitio estático más que una preocupación del tiempo de ejecución de los trabajadores. El trabajador conserva las cargas del panel como archivos fuente y envía el optimizador del repositorio para las cargas de imágenes/videos confirmadas; Las plantillas Jekyll, el optimizador de medios del repositorio y el paso de implementación del artefacto manejan variantes WebP responsivas, fachadas de carteles de héroes locales de YouTube y minificación CSS/JS generada antes de que se publique el artefacto de páginas públicas.
 
 La frecuencia de muestreo predeterminada es `0.1` y se puede anular con `OBSERVABILITY_SAMPLE_RATE=0.05` (o cualquier valor de `0-1`) si una bifurcación desea menos o más escrituras de tiempo muestreadas.
 
@@ -397,7 +397,7 @@ Los shells privados `/admin/` y `/es/admin/` utilizan rutas de trabajo respaldad
 - `GET /admin/dashboard/summary` lee resúmenes de campañas con alcance de roles
 - `GET /admin/settings` lee una instantánea de configuración/configuración de ámbito de función para el panel
 - `POST /admin/settings/preview` valida los cambios de configuración sin publicar
-- Cargas de paneles de escenario `POST /admin/settings/logo-upload`, `POST /admin/settings/image-upload`, `POST /admin/settings/audio-upload` y `POST /admin/settings/video-upload` a través de la misma ruta de publicación respaldada por GitHub que sus propios campos de configuración/contenido; La optimización de imágenes nativas y la transcodificación de video se ejecutan más adelante en la canalización de medios del repositorio, no dentro del Worker.
+- Cargas de paneles de escenario `POST /admin/settings/logo-upload`, `POST /admin/settings/image-upload`, `POST /admin/settings/audio-upload` y `POST /admin/settings/video-upload` a través de la misma ruta de publicación respaldada por GitHub que sus propios campos de configuración/contenido; Las cargas de imágenes/videos solicitan el flujo de trabajo **Optimizar medios del panel** con `scope=changed` después de la confirmación, mientras que la optimización de imágenes nativas y la transcodificación de video aún se ejecutan en la canalización de medios del repositorio en lugar de dentro del Worker.
 - `POST /admin/settings/publish` valida y publica configuraciones de plataforma, complementos de plataforma, variables de campaña y datos estructurados de campaña a través de confirmaciones respaldadas por GitHub.
 - `POST /admin/users` guarda los usuarios administradores administrados por el panel directamente en `admin-users:v1` en Worker KV y envía por correo electrónico las instrucciones de inicio de sesión de los usuarios recién creados cuando se configura Resend
 - `GET /admin/analytics` lee métricas de ingresos, estado, idioma, referencias y división de campaña/plataforma derivadas de compromisos con alcance de rol sin escribir el estado analítico; La presentación de la moneda en el tablero mantiene los centavos exactos.
@@ -557,7 +557,7 @@ curl -X POST https://worker.example.com/test/email \
 
 ## Variables de entorno
 
-|Variable|Descripción|
+|variable|Descripción|
 |----------|-------------|
 |`SITE_BASE`|URL base del sitio Jekyll|
 |`WORKER_BASE`|URL base pública del Trabajador|

@@ -67,7 +67,7 @@ upcoming → live → post
 
 Las promesas se almacenan en Cloudflare KV. Patrones clave:
 
-|clave|Contenidos|
+|Llave|Contenido|
 |-----|----------|
 |`pledge:{orderId}`|Datos completos del compromiso (correo electrónico, monto, nivel, ID de Stripe, estado, historial)|
 |`email:{email}`|Conjunto de ID de pedido para ese correo electrónico|
@@ -387,7 +387,7 @@ Flujos primarios:
 - Los códigos de referencia guardados en **Marketing** se guardan en KV con alcance de campaña.
 - **Informes** muestra una vista previa de las filas de promesas/cumplimiento y descarga archivos CSV; no envía correos electrónicos y no marca informes como enviados.
 - **Analytics** utiliza datos netos y de tarifas de Stripe reales almacenados cuando están disponibles y expone un reabastecimiento de superadministrador para promesas cobradas más antiguas.
-- Los medios del editor de contenido cargan archivos provisionales localmente, los cargan al publicar y confirman activos conservados en el origen a través de la ruta respaldada por GitHub; La compresión de imágenes, las variantes WebP responsivas (`320w`, `480w`, `640w`, `960w`, `1600w`) y los derivados de video se ejecutan más adelante en el proceso de medios del repositorio.
+- Los medios del editor de contenido cargan archivos provisionales localmente, los cargan al publicar y confirman activos conservados en el origen a través de la ruta respaldada por GitHub; Las cargas de imágenes/videos luego solicitan el flujo de trabajo `Optimize dashboard media` con `scope=changed` para compresión de imágenes, variantes WebP responsivas (`320w`, `480w`, `640w`, `960w`, `1600w`) y derivados de video. Publicar también elimina los medios propiedad del panel de la misma campaña que desaparecieron de los bloques de contenido o eliminaron las entradas del diario y no se hace referencia a ellos en ninguna otra parte de la campaña.
 - **Secretos y credenciales** informes configurados/estado faltante únicamente; no expone ni almacena valores secretos.
 
 Informe de puntos finales de vista previa/descarga utilizados por el panel:

@@ -110,7 +110,7 @@ This runs:
   - `tests/unit/worker-ops-integrity.test.ts`
   - `tests/unit/stats-pagination.test.ts`
   These Worker suites cover launch reminder signup validation, unsubscribe suppression, queued dispatch idempotency, and the shared Resend send path.
-- Content safety filter regressions in `tests/unit/content-safety-filter.test.ts`, including unsafe Markdown link schemes and strict structured-embed URL validation
+- Content safety filter regressions in `tests/unit/content-safety-filter.test.ts`, including unsafe Markdown link schemes, dashboard-authored emphasis spacing, and strict structured-embed URL validation
 - Campaign-content audit coverage in `tests/unit/campaign-content-security.test.ts`, including the allowed inline HTML subset and rejection of disallowed raw tags
 - Durable Object tier-inventory serialization coverage in `tests/unit/tier-inventory-do.test.ts`
 - Local smoke scripts against the test-only mutable campaign:
@@ -138,7 +138,7 @@ Recent security hardening that the gate now covers includes:
 - serialized limited-tier inventory reservations at checkout start and confirmation at successful persistence time
 - launch reminder Turnstile verification, deduped signup storage, scoped unsubscribe suppression, and idempotent dispatch
 
-Media optimization is intentionally separate from the pre-merge gate because it depends on native tools such as FFmpeg and image optimizers. When a branch includes dashboard-uploaded or manually-added media, run:
+Media optimization is intentionally separate from the pre-merge gate because it depends on native tools such as FFmpeg and image optimizers. Dashboard image/video uploads request the optimizer after commit, but when a branch includes manually-added media or you need to verify generated variants before merge, run:
 
 ```bash
 npm run media:optimize:check

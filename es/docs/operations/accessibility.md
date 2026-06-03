@@ -40,6 +40,7 @@ El reciente pase de refuerzo de accesibilidad agregó:
 - Comportamiento de la pestaña del teclado estilo APG para:
   - pestañas del diario de producción
   - pestañas de la fase de producción
+- Los paneles del diario vinculados mediante hash activan su pestaña correspondiente antes de desplazarse, por lo que los enlaces a las fases ocultas del diario permanecen accesibles para los usuarios de teclados y tecnología de asistencia.
 - Comportamiento de la galería en carrusel compatible con teclado en páginas de campañas públicas:
   - regiones de desplazamiento enfocables
   - FlechaIzquierda / FlechaDerecha navegación

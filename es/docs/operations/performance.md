@@ -260,7 +260,7 @@ En condiciones normales de tráfico sin colas, se esperan aproximadamente `48-75
 
 ## Optimización de medios
 
-Las cargas del panel preservan el origen. El trabajador valida las cargas y las confirma, pero no ejecuta optimizadores de imágenes nativos ni FFmpeg.
+Las cargas del panel preservan el origen. El trabajador valida las cargas y las confirma, luego solicita el flujo de trabajo **Optimizar medios del panel** para cargas de imágenes/videos. Todavía no ejecuta optimizadores de imágenes nativos ni el propio FFmpeg.
 
 Utilice la canalización de medios del repositorio para los medios de origen:
 
@@ -278,7 +278,7 @@ npm run media:optimize:check:podman
 
 La imagen del sitio Podman incluye `ffmpeg`, `optipng`, `libjpeg-turbo-progs`, `gifsicle` y `webp`, por lo que la compresión de imágenes local y la generación de derivados responsivos utilizan la misma cadena de herramientas nativa que el flujo de trabajo multimedia de GitHub. Reconstruya la imagen con `PODMAN_REBUILD=1` después de cambiar los requisitos del paquete contenedor.
 
-Para regresiones con muchos medios implementados, ejecute el flujo de trabajo **Optimizar medios del panel** de GitHub Actions con `scope=all` para que los activos de campaña existentes se optimicen mediante el mismo proceso en lugar de editarlos una sola vez.
+Para regresiones implementadas con muchos medios, ejecute manualmente el flujo de trabajo **Optimizar medios del panel** de GitHub Actions con `scope=all` para que los activos de campaña existentes se optimicen mediante el mismo canal en lugar de editarlos una sola vez.
 
 Si PageSpeed ​​marca imágenes de campaña de gran tamaño que ya fluyen a través de `responsive-image.html`, primero confirme si existen los derivados correspondientes de `-320.webp`, `-480.webp`, `-640.webp`, `-960.webp` y `-1600.webp`. Los derivados que faltan deben ser producidos por `npm run media:optimize` localmente o mediante el flujo de trabajo con `scope=all`, no mediante ediciones de imágenes manuales únicas.
 

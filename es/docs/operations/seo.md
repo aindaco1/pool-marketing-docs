@@ -33,6 +33,7 @@ La línea de base actual incluye:
 - metadatos alternativos de imágenes sociales
 - Títulos y descripciones sociales de campañas conscientes del estado.
 - Texto de intención de enlace compartido de campaña consciente del estado para plataformas que aceptan copia de mensajes, mientras que Facebook y otros destinos que priorizan la tarjeta siguen confiando en la URL de la página y los metadatos de Open Graph.
+- Los enlaces hash del diario de campaña pública activan la pestaña de fase del diario coincidente antes de desplazarse, por lo que los anclajes en paneles ocultos como `#diary-production` siguen siendo objetivos válidos para compartir/correo electrónico.
 - PNG de tarjetas compartidas de campaña generadas por los trabajadores para metadatos sociales públicos, con SVG retenido para herramientas internas de vista previa/depuración
 - generado [`robots.txt`](/robots.txt)
 - generado [`sitemap.xml`](/sitemap.xml)
