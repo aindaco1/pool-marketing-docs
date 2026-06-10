@@ -11,7 +11,7 @@ render_with_liquid: false
 
 June 10, 2026
 
-## Unreleased - 2026-06-10
+## v1.0.3 - 2026-06-01
 
 - Added optional scoped admin automation secrets: `ADMIN_SETTLEMENT_SECRET` for settlement routes and `ADMIN_BROADCAST_SECRET` for announcement, diary, and milestone routes. When a scoped secret is configured, those routes reject the broader `ADMIN_SECRET`.
 - Added campaign-scoped settlement serialization with the `SETTLEMENT_COORDINATOR` Durable Object, same-campaign batch validation, and deterministic Stripe idempotency keys for campaign/supporter charge groups.
@@ -21,9 +21,6 @@ June 10, 2026
 - Updated dashboard media documentation for image/video optimizer dispatch with `scope=changed`, source-preserving uploads, audio source preservation, and publish-time cleanup of unreferenced same-campaign dashboard-owned media.
 - Documented the list-budget hardening for launch reminder dispatch, supporter confirmation email retry queues, and platform add-on sold-count projections so idle or normal read paths avoid unnecessary KV namespace scans.
 - Updated logging documentation to reflect that console logging remains enabled by default while lower-severity verbose debug/info/log output defaults off.
-
-## v1.0.3 - 2026-06-01
-
 - Added configurable platform timezone handling across Jekyll campaign state, browser countdowns, Worker lifecycle automation, campaign-runner reports, dashboard settings, and Worker config mirroring. The default remains `America/Denver` for compatibility, and super admins can choose from supported IANA timezones.
 - Added upcoming-campaign launch reminders with a slim public signup form, Cloudflare Turnstile verification, campaign/email dedupe, signed unsubscribe links, bounded KV dispatch jobs, and Resend delivery through the existing shared email module.
 - Reduced baseline Workers KV write usage by changing the minute-level scheduler heartbeat to persist hourly instead of every minute, preserving cron health visibility while keeping the free-tier write budget available for real mutations.

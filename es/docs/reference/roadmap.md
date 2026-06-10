@@ -16,9 +16,9 @@ Esta hoja de ruta está organizada como un historial de lanzamiento de los estad
 
 ## Hito actual
 
-**Endurecimiento posterior a v1.0.3**
+**v1.0.3**
 
-El conjunto de funciones v1.0.3 está completo. El trabajo actual es una sincronización de endurecimiento y operaciones: secretos de automatización administrativa con alcance, bloqueo de liquidación por campaña, credenciales de despliegue de Cloudflare más claras, guía más segura para secretos locales, limpieza del ciclo de vida de medios del panel y menor uso estable de listados KV.
+El conjunto de funciones v1.0 y el pase de endurecimiento de lanzamiento están completos. v1.0.3 agrega manejo configurable de zona horaria de plataforma, recordatorios de lanzamiento opcionales para próximas campañas, mejoras de rendimiento en páginas móviles de campaña, secretos de automatización administrativa con alcance, bloqueo de liquidación por campaña, manejo más seguro del ciclo de vida de medios del panel y menor uso estable de escrituras/listados KV.
 
 ## Historial de lanzamientos
 
@@ -215,13 +215,6 @@ Nuevo en esta versión:
 - La generación de imágenes responsivas ahora incluye un renglón WebP `640w` entre las variantes `480w` y `960w` existentes para páginas de campañas móviles.
 - Los videos de los héroes de la campaña de YouTube muestran fachadas de carteles/juegos locales y posponen el iframe remoto hasta que el partidario tenga la intención de jugar.
 - Las listas de verificación públicas para creadores ahora describen los cambios de la versión 1.0.3 para los creadores, incluidos recordatorios de lanzamiento, expectativas de zona horaria de la plataforma, incrustaciones diferidas de héroes de YouTube y variantes WebP receptivas.
-
-### Sin publicar: endurecimiento de automatización administrativa, liquidación y ciclo de vida de medios
-
-Esta sincronización refuerza el contrato operativo después de v1.0.3 sin declarar un nuevo número de lanzamiento público.
-
-Nuevo en esta sincronización:
-
 - `ADMIN_SETTLEMENT_SECRET` y `ADMIN_BROADCAST_SECRET` opcionales pueden limitar el acceso a la automatización de liquidación y broadcast; las rutas con alcance rechazan el `ADMIN_SECRET` más amplio cuando el secreto más estrecho está configurado
 - las rutas de liquidación programada, directa, de despacho y por lotes ahora comparten un bloqueo de objeto durable `SETTLEMENT_COORDINATOR` por campaña y claves de idempotencia determinísticas de Stripe, para que los cobros de la misma campaña no se superpongan
 - los checkouts de varias campañas siguen admitidos porque el bundle de checkout se divide en registros de compromiso separados por campaña; los bloqueos y lotes de liquidación permanecen limitados a la campaña que se cobra

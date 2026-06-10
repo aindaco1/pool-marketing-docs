@@ -12,7 +12,7 @@ lang: es
 
 10 de junio de 2026
 
-## Sin publicar - 2026-06-10
+## v1.0.3 - 2026-06-01
 
 - Se agregaron secretos opcionales de automatización administrativa con alcance: `ADMIN_SETTLEMENT_SECRET` para rutas de liquidación y `ADMIN_BROADCAST_SECRET` para rutas de anuncio, diario e hitos. Cuando se configura un secreto con alcance, esas rutas rechazan el `ADMIN_SECRET` más amplio.
 - Se agregó serialización de liquidación con alcance de campaña mediante el objeto durable `SETTLEMENT_COORDINATOR`, validación de lotes de la misma campaña y claves de idempotencia determinísticas de Stripe para grupos de cobro por campaña/seguidor.
@@ -22,9 +22,6 @@ lang: es
 - Se actualizó la documentación de medios del panel para el despacho del optimizador de imagen/video con `scope=changed`, cargas que preservan la fuente, preservación de audio fuente y limpieza al publicar de medios del panel de la misma campaña que ya no estén referenciados.
 - Se documentó el endurecimiento del presupuesto de listados para despacho de recordatorios de lanzamiento, colas de reintento de correo de confirmación de seguidores y proyecciones de conteo vendido de add-ons de plataforma, de modo que las rutas inactivas o de lectura normal eviten listados innecesarios de namespaces KV.
 - Se actualizó la documentación de logging para reflejar que el logging de consola sigue habilitado de forma predeterminada, mientras que la salida verbose de menor severidad para debug/info/log queda desactivada por defecto.
-
-## v1.0.3 - 2026-06-01
-
 - Se agregó manejo de zona horaria de plataforma configurable en todo el estado de la campaña de Jekyll, cuentas regresivas del navegador, automatización del ciclo de vida de los trabajadores, informes de los ejecutores de campañas, configuración del panel y duplicación de la configuración de los trabajadores. El valor predeterminado sigue siendo `America/Denver` por motivos de compatibilidad y los superadministradores pueden elegir entre las zonas horarias admitidas por la IANA.
 - Se agregaron recordatorios del próximo lanzamiento de campaña con un formulario de registro público delgado, verificación de Cloudflare Turnstile, deduplicación de campaña/correo electrónico, enlaces de cancelación de suscripción firmados, trabajos de envío de KV limitados y reenvío de entrega a través del módulo de correo electrónico compartido existente.
 - Se redujo el uso de escritura de KV de los trabajadores de referencia al cambiar el latido del programador a nivel de minutos para que persista cada hora en lugar de cada minuto, preservando la visibilidad del estado del cron y manteniendo el presupuesto de escritura de nivel gratuito disponible para mutaciones reales.
