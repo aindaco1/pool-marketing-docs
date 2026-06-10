@@ -298,7 +298,7 @@ ABOUT_REWRITE = <<~MARKDOWN.freeze
 
   The Pool is open source. The entire platform — frontend, Worker, automation, and fork-facing customization surface — is available on GitHub.
 
-  **Source code:** [github.com/your-org/your-project](https://github.com/your-org/your-project)
+  **Source code:** [github.com/aindaco1/pool](https://github.com/aindaco1/pool)
 
   ---
 MARKDOWN

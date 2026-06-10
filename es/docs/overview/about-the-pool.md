@@ -112,6 +112,6 @@ La misma arquitectura admite accesibilidad y SEO sin debilitar la seguridad. Las
 
 The Pool es de código abierto. Toda la plataforma — frontend, Worker, automatización y superficie de personalización para bifurcaciones — está disponible en GitHub.
 
-**Código fuente:** [github.com/your-org/your-project](https://github.com/your-org/your-project)
+**Código fuente:** [github.com/aindaco1/pool](https://github.com/aindaco1/pool)
 
 ---
