@@ -7,11 +7,11 @@ render_with_liquid: false
 
 # Admin Dashboard
 
-This document is the operator reference for The Pool's private admin dashboard and should be treated as the source of truth for dashboard-based campaign editing, reporting, analytics, marketing links, add-ons, and user management.
-
 ## Last Updated
 
-June 10, 2026
+June 3, 2026
+
+This document is the operator reference for The Pool's private admin dashboard and should be treated as the source of truth for dashboard-based campaign editing, reporting, analytics, marketing links, add-ons, and user management.
 
 ## Audience
 

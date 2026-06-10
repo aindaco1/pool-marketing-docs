@@ -8,11 +8,11 @@ lang: es
 
 # Internacionalización (i18n)
 
-Este documento registra la estructura de localización actual de The Pool y el flujo de trabajo admitido para agregar idiomas en una bifurcación.
-
 ## Última actualización
 
-10 de junio de 2026
+1 de junio de 2026
+
+Este documento registra la estructura de localización actual de The Pool y el flujo de trabajo admitido para agregar idiomas en una bifurcación.
 
 La ubicación secundaria enviada inmediatamente es español, pero el objetivo real es hacer que la localización futura sea sencilla sin código personalizado para las superficies compartidas propiedad del sitio.
 

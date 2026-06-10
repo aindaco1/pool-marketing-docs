@@ -6,11 +6,11 @@ description: Frequently asked questions and a recommended reading path for The P
 
 # FAQ
 
-This page is the **fastest way to get oriented** before you dive into the full docs.
-
 ## Last Updated
 
-June 10, 2026
+May 29, 2026
+
+This page is the **fastest way to get oriented** before you dive into the full docs.
 
 ## Common Questions
 

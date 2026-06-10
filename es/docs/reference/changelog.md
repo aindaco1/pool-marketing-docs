@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-10 de junio de 2026
+9 de junio de 2026
 
 ## v1.0.3 - 2026-06-01
 

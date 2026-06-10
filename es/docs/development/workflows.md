@@ -8,11 +8,11 @@ lang: es
 
 # Flujos de trabajo
 
-The Pool utiliza un **sistema de gestión de promesas basado en correo electrónico y sin cuenta**. Los patrocinadores guardan un método de pago a través de Stripe en el paso de pago en el sitio de The Pool, administran las promesas a través de enlaces mágicos con alcance de pedido y solo se les cobra si la campaña está financiada.
-
 ## Última actualización
 
-10 de junio de 2026
+9 de junio de 2026
+
+The Pool utiliza un **sistema de gestión de promesas basado en correo electrónico y sin cuenta**. Los patrocinadores guardan un método de pago a través de Stripe en el paso de pago en el sitio de The Pool, administran las promesas a través de enlaces mágicos con alcance de pedido y solo se les cobra si la campaña está financiada.
 
 ## Diferenciadores clave
 

@@ -7,11 +7,11 @@ render_with_liquid: false
 
 # The Pool
 
-**Open-source crowdfunding platform starter**
-
 ## Last Updated
 
-June 10, 2026
+June 9, 2026
+
+**Open-source crowdfunding platform starter**
 
 Current release milestone: **v1.0.3**. The v1.0 feature set and launch hardening pass are complete; v1.0.3 adds configurable platform timezone handling, opt-in launch reminders for upcoming campaigns, mobile campaign-page performance refinements, and an hourly scheduler heartbeat that avoids baseline Workers KV write churn.
 

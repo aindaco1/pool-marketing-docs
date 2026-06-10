@@ -7,11 +7,11 @@ render_with_liquid: false
 
 # Add-On Products
 
-This document describes the current add-on product system as it actually ships now.
-
 ## Last Updated
 
-June 10, 2026
+June 2, 2026
+
+This document describes the current add-on product system as it actually ships now.
 
 The platform supports two add-on scopes that intentionally share the same card UX while behaving differently in accounting, shipping, and fulfillment:
 

@@ -7,11 +7,11 @@ render_with_liquid: false
 
 # Terms & Creative Guidelines
 
-These terms reflect The Pool platform release milestone **v1.0.3**.
-
 ## Last Updated
 
-June 10, 2026
+June 9, 2026
+
+These terms reflect The Pool platform release milestone **v1.0.3**.
 
 ## Pledge Terms
 

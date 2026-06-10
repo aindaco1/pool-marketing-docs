@@ -8,11 +8,11 @@ lang: es
 
 # Productos complementarios
 
-Este documento describe el sistema de producto complementario actual tal como se envía actualmente.
-
 ## Última actualización
 
-10 de junio de 2026
+2 de junio de 2026
+
+Este documento describe el sistema de producto complementario actual tal como se envía actualmente.
 
 La plataforma admite dos ámbitos complementarios que comparten intencionalmente la misma experiencia de usuario de la tarjeta y al mismo tiempo se comportan de manera diferente en contabilidad, envío y cumplimiento:
 

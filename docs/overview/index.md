@@ -6,11 +6,11 @@ has_children: true
 
 # Overview
 
-Use this section to understand what The Pool is, what it promises publicly, and how the platform is framed before you dive into implementation details.
-
 ## Last Updated
 
-June 10, 2026
+April 17, 2026
+
+Use this section to understand what The Pool is, what it promises publicly, and how the platform is framed before you dive into implementation details.
 
 ## Read These First
 

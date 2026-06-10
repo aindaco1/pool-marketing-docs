@@ -6,11 +6,11 @@ has_children: true
 
 # Development
 
-Contribution flow, architecture notes, implementation gotchas, and fork-facing extension points live here.
-
 ## Last Updated
 
-June 10, 2026
+April 21, 2026
+
+Contribution flow, architecture notes, implementation gotchas, and fork-facing extension points live here.
 
 ## Recommended Path
 

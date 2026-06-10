@@ -7,11 +7,11 @@ render_with_liquid: false
 
 # Customization Guide
 
-This guide covers the supported no-code customization surface for forks of The Pool as it exists now.
-
 ## Last Updated
 
-June 10, 2026
+June 3, 2026
+
+This guide covers the supported no-code customization surface for forks of The Pool as it exists now.
 
 The goal is to let forks rebrand, restyle, and reconfigure the platform through config, while keeping checkout, reports, emails, and the Worker aligned.
 

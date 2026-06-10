@@ -7,10 +7,9 @@ render_with_liquid: false
 
 # Contributing to The Pool
 
-
 ## Last Updated
 
-June 10, 2026
+June 3, 2026
 
 ## Getting Started
 

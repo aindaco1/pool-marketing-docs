@@ -8,10 +8,9 @@ lang: es
 
 # Notas para desarrolladores
 
-
 ## Última actualización
 
-10 de junio de 2026
+9 de junio de 2026
 
 ## Pila
 

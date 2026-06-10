@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-June 10, 2026
+June 9, 2026
 
 ## v1.0.3 - 2026-06-01
 

@@ -2,15 +2,20 @@
 # frozen_string_literal: true
 
 require "fileutils"
+require "date"
 require "pathname"
 require "set"
+require "shellwords"
 
 ROOT = Pathname(__dir__).join("..").expand_path
 POOL_ROOT = Pathname(ENV.fetch("POOL_SOURCE", "/tmp/pool")).expand_path
 POOL_REPO = ENV.fetch("POOL_REPO", "aindaco1/pool")
 POOL_BLOB_BASE = "https://github.com/#{POOL_REPO}/blob/main/"
 POOL_TREE_BASE = "https://github.com/#{POOL_REPO}/tree/main/"
-DOCS_LAST_UPDATED = "June 10, 2026"
+METADATA_ONLY_COMMIT_SUBJECTS = [
+  "Update docs changelog and date stamps",
+  "Fix docs last updated stamps"
+].freeze
 
 DOCS = [
   { src: "README.md", dest: "docs/overview/platform.md", title: "Platform Overview", parent: "Overview", nav_order: 1 },
@@ -119,28 +124,55 @@ def strip_sections(content, titles)
   content.gsub(pattern, "")
 end
 
-def stamp_last_updated(content)
-  lines = content.gsub(/\n## Last Updated\n\n[^\n]+(?:\n{2,}|\z)/, "\n\n").lines
+def format_english_date(date)
+  date.strftime("%B %-d, %Y")
+end
+
+def remove_last_updated(content)
+  content.gsub(/\n## Last Updated\n\n[^\n]+(?:\n{2,}|\z)/, "\n")
+end
+
+def last_changed_date_for(target_path)
+  relative_path = target_path.relative_path_from(ROOT).to_s
+  log = Dir.chdir(ROOT) do
+    `git log --format=%H%x09%cs%x09%s -- #{relative_path.shellescape} 2>/dev/null`
+  end
+
+  log.each_line do |line|
+    _sha, date_string, subject = line.chomp.split("\t", 3)
+    next if METADATA_ONLY_COMMIT_SUBJECTS.include?(subject)
+
+    return Date.iso8601(date_string)
+  end
+
+  Date.today
+end
+
+def content_changed?(target_path, generated_content)
+  return true unless target_path.file?
+
+  existing_content = strip_front_matter(target_path.read).strip
+  remove_last_updated(existing_content).strip != remove_last_updated(generated_content).strip
+end
+
+def last_updated_for(target_path, generated_content)
+  return Date.today if content_changed?(target_path, generated_content)
+
+  last_changed_date_for(target_path)
+end
+
+def stamp_last_updated(content, last_updated)
+  lines = remove_last_updated(content).lines
   h1_index = lines.find_index { |line| line.start_with?("# ") }
   return lines.join unless h1_index
 
   insert_index = h1_index + 1
-  insert_index += 1 while lines[insert_index]&.strip == ""
+  lines.delete_at(insert_index) while lines[insert_index]&.strip == ""
 
-  if insert_index < lines.length && !lines[insert_index].start_with?("#")
-    insert_index += 1 while insert_index < lines.length &&
-                            !lines[insert_index].strip.empty? &&
-                            !lines[insert_index].start_with?("#")
-  end
+  stamp = ["\n", "## Last Updated\n", "\n", "#{format_english_date(last_updated)}\n", "\n"]
+  lines.insert(insert_index, *stamp)
 
-  stamp = ["## Last Updated\n", "\n", "#{DOCS_LAST_UPDATED}\n", "\n"]
-  if lines[insert_index]&.strip == ""
-    lines.insert(insert_index + 1, *stamp)
-  else
-    lines.insert(insert_index, "\n", *stamp)
-  end
-
-  lines.join.gsub(/(#{Regexp.escape(DOCS_LAST_UPDATED)}\n)\n{2,}(?=## )/, "\\1\n")
+  lines.join.gsub(/(\d{4}\n)\n{2,}(?=## )/, "\\1\n")
 end
 
 GENERIC_REPLACEMENTS = [
@@ -647,7 +679,8 @@ DOCS.each do |doc|
 
   content = strip_front_matter(source_path.read)
   content = rewrite_links(content, doc[:src]).strip
-  content = stamp_last_updated(rewrite_copy(content, doc[:src]).strip)
+  content = rewrite_copy(content, doc[:src]).strip
+  content = stamp_last_updated(content, last_updated_for(target_path, content))
 
   front_matter = <<~YAML
     ---

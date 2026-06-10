@@ -8,11 +8,11 @@ lang: es
 
 # The Pool - Trabajador comprometido
 
-Cloudflare Worker se encarga de la canonicalización de pagos propios, la integración de Stripe, la gestión de promesas, la autenticación de seguidores con alcance de pedidos, los recordatorios de lanzamiento de próximas campañas y las API del panel de administración del navegador privado.
-
 ## Última actualización
 
-10 de junio de 2026
+9 de junio de 2026
+
+Cloudflare Worker se encarga de la canonicalización de pagos propios, la integración de Stripe, la gestión de promesas, la autenticación de seguidores con alcance de pedidos, los recordatorios de lanzamiento de próximas campañas y las API del panel de administración del navegador privado.
 
 Para el desarrollo local diario, prefiera la ruta Podman de raíz de repositorio:
 

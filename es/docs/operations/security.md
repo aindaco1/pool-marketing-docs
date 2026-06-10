@@ -8,11 +8,11 @@ lang: es
 
 # Guía de seguridad
 
-Este documento cubre la arquitectura de seguridad, los riesgos conocidos, las medidas de refuerzo aplicadas, las compensaciones aceptadas y los procedimientos de prueba de penetración para la plataforma de financiación colectiva The Pool.
-
 ## Última actualización
 
-10 de junio de 2026
+9 de junio de 2026
+
+Este documento cubre la arquitectura de seguridad, los riesgos conocidos, las medidas de refuerzo aplicadas, las compensaciones aceptadas y los procedimientos de prueba de penetración para la plataforma de financiación colectiva The Pool.
 
 ## Arquitectura de seguridad
 
@@ -138,7 +138,6 @@ Algunas compensaciones siguen siendo intencionales en el modelo actual:
 Si una implementación necesita una postura más estricta que la predeterminada, los siguientes pasos más probables serían una vida útil más corta de los tokens, flujos de reemisión de tokens más fáciles y un intercambio de tokens único que elimine los tokens sin procesar de las URL visibles después de su entrada.
 
 ---
-
 
 ## Lista de verificación de secretos
 

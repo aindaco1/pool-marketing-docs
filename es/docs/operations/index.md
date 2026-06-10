@@ -7,11 +7,11 @@ lang: es
 
 # Operaciones
 
-Esta sección cubre el panel de administración, el trabajador de compromiso, las opciones de tiempo de ejecución local, los controles de calidad y las reglas operativas que protegen el comportamiento de pago y cumplimiento.
-
 ## Última actualización
 
-10 de junio de 2026
+31 de mayo de 2026
+
+Esta sección cubre el panel de administración, el trabajador de compromiso, las opciones de tiempo de ejecución local, los controles de calidad y las reglas operativas que protegen el comportamiento de pago y cumplimiento.
 
 ## Tiempo de ejecución local y servicios
 

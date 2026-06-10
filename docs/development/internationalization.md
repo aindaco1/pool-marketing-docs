@@ -7,11 +7,11 @@ render_with_liquid: false
 
 # Internationalization (i18n)
 
-This document records the current localization structure for The Pool and the supported workflow for adding languages in a fork.
-
 ## Last Updated
 
-June 10, 2026
+June 1, 2026
+
+This document records the current localization structure for The Pool and the supported workflow for adding languages in a fork.
 
 The immediate shipped secondary locale is Spanish, but the real goal is to make future localization straightforward without custom code for the shared site-owned surfaces.
 

@@ -8,11 +8,11 @@ lang: es
 
 # Embeds de campaña
 
-Este documento describe la función de inserción de campaña alojada de The Pool y cómo se relaciona con el trabajo de vista previa enriquecida/tarjeta compartida de la campaña más reciente.
-
 ## Última actualización
 
-10 de junio de 2026
+29 de mayo de 2026
+
+Este documento describe la función de inserción de campaña alojada de The Pool y cómo se relaciona con el trabajo de vista previa enriquecida/tarjeta compartida de la campaña más reciente.
 
 ## ¿Cuál es la característica?
 

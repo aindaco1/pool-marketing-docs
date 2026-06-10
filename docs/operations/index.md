@@ -6,11 +6,11 @@ has_children: true
 
 # Operations
 
-This section covers the admin dashboard, pledge Worker, local runtime options, quality gates, and the operational rules that protect checkout and fulfillment behavior.
-
 ## Last Updated
 
-June 10, 2026
+May 31, 2026
+
+This section covers the admin dashboard, pledge Worker, local runtime options, quality gates, and the operational rules that protect checkout and fulfillment behavior.
 
 ## Local Runtime And Services
 

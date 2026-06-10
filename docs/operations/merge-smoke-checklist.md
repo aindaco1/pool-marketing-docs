@@ -7,11 +7,11 @@ render_with_liquid: false
 
 # Merge Smoke Checklist
 
-Use this checklist before merging branches that change checkout, webhook persistence, pledge management, inventory, settlement, or supporter broadcasts.
-
 ## Last Updated
 
-June 10, 2026
+May 29, 2026
+
+Use this checklist before merging branches that change checkout, webhook persistence, pledge management, inventory, settlement, or supporter broadcasts.
 
 This version is tuned for the current checkout and Worker business-logic behavior on `main`.
 

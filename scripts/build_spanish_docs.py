@@ -65,7 +65,21 @@ BODY_OVERRIDES = {
     "# Reference": "# Referencia",
     "# AGENTS": "# Guía para agentes y operadores",
     "## Last Updated": "## Última actualización",
-    "June 10, 2026": "10 de junio de 2026",
+}
+
+MONTH_OVERRIDES = {
+    "January": "enero",
+    "February": "febrero",
+    "March": "marzo",
+    "April": "abril",
+    "May": "mayo",
+    "June": "junio",
+    "July": "julio",
+    "August": "agosto",
+    "September": "septiembre",
+    "October": "octubre",
+    "November": "noviembre",
+    "December": "diciembre",
 }
 
 cache: dict[str, str] = {}
@@ -107,6 +121,19 @@ def restore_text(text: str, placeholders: list[str]) -> str:
     return restored
 
 
+def translate_date_line(text: str) -> str | None:
+    match = re.fullmatch(r"([A-Za-z]+) ([0-9]{1,2}), ([0-9]{4})", text.strip())
+    if not match:
+        return None
+
+    month, day, year = match.groups()
+    translated_month = MONTH_OVERRIDES.get(month)
+    if translated_month is None:
+        return None
+
+    return f"{int(day)} de {translated_month} de {year}"
+
+
 def translate_texts(texts: list[str]) -> list[str]:
     translated = ["" for _ in texts]
     pending_values = []
@@ -116,6 +143,11 @@ def translate_texts(texts: list[str]) -> list[str]:
         stripped = text.strip()
         if not stripped:
             translated[index] = text
+            continue
+
+        translated_date = translate_date_line(stripped)
+        if translated_date is not None:
+            translated[index] = translated_date
             continue
 
         if stripped in TITLE_OVERRIDES:

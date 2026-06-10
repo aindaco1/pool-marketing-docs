@@ -7,11 +7,11 @@ render_with_liquid: false
 
 # Campaign Embeds
 
-This document describes The Pool's hosted campaign embed feature and how it relates to the newer campaign rich-preview/share-card work.
-
 ## Last Updated
 
-June 10, 2026
+May 29, 2026
+
+This document describes The Pool's hosted campaign embed feature and how it relates to the newer campaign rich-preview/share-card work.
 
 ## What The Feature Is
 

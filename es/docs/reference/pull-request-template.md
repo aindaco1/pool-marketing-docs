@@ -8,10 +8,9 @@ lang: es
 
 # Solicitud de extracción
 
-
 ## Última actualización
 
-10 de junio de 2026
+29 de mayo de 2026
 
 ## Propósito
 <!-- ¿Qué problema resuelve este PR? -->

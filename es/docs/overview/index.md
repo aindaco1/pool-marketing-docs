@@ -7,11 +7,11 @@ lang: es
 
 # Resumen
 
-Utilice esta sección para comprender qué es The Pool, qué promete públicamente y cómo está estructurada la plataforma antes de profundizar en los detalles de implementación.
-
 ## Última actualización
 
-10 de junio de 2026
+17 de abril de 2026
+
+Utilice esta sección para comprender qué es The Pool, qué promete públicamente y cómo está estructurada la plataforma antes de profundizar en los detalles de implementación.
 
 ## Lea estos primero
 

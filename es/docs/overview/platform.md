@@ -8,11 +8,11 @@ lang: es
 
 # The Pool
 
-**Iniciador de plataforma de crowdfunding de código abierto**
-
 ## Última actualización
 
-10 de junio de 2026
+9 de junio de 2026
+
+**Iniciador de plataforma de crowdfunding de código abierto**
 
 Hito de lanzamiento actual: **v1.0.3**. El conjunto de funciones v1.0 y el pase de refuerzo de lanzamiento están completos; v1.0.3 agrega manejo de zona horaria de plataforma configurable, recordatorios de lanzamiento opcionales para próximas campañas, mejoras en el rendimiento de la página de campaña móvil y un latido del programador cada hora que evita la rotación de escritura de Workers KV de referencia.
 

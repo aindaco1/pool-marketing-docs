@@ -8,11 +8,11 @@ lang: es
 
 # Envíos
 
-Este documento describe el modelo de envío actual en The Pool, incluido su flujo de precios centrado en el trabajador, la superficie de configuración orientada a la bifurcación, el límite de integración de USPS y el árbol de reglas que ahora siguen el carrito, el pago, la gestión de promesas, los informes y los correos electrónicos.
-
 ## Última actualización
 
-10 de junio de 2026
+2 de junio de 2026
+
+Este documento describe el modelo de envío actual en The Pool, incluido su flujo de precios centrado en el trabajador, la superficie de configuración orientada a la bifurcación, el límite de integración de USPS y el árbol de reglas que ahora siguen el carrito, el pago, la gestión de promesas, los informes y los correos electrónicos.
 
 La verificación en vivo de credenciales de USPS ahora está conectada al flujo de trabajo local. El repositorio incluye un asistente de humo de USPS dedicado además de regresiones automatizadas para los flujos de envío del carrito, el pago y la gestión de compromisos.
 

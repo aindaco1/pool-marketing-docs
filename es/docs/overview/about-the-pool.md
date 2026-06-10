@@ -8,11 +8,11 @@ lang: es
 
 # ¿Qué es The Pool?
 
-**The Pool** es una plataforma de financiación colectiva de código abierto para proyectos creativos y cinematográficos independientes.
-
 ## Última actualización
 
-10 de junio de 2026
+9 de junio de 2026
+
+**The Pool** es una plataforma de financiación colectiva de código abierto para proyectos creativos y cinematográficos independientes.
 
 ## Compromiso de todo o nada
 

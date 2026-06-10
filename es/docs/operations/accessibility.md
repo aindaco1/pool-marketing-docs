@@ -8,11 +8,11 @@ lang: es
 
 # Accesibilidad
 
-Este documento rastrea la línea base de accesibilidad actual de The Pool, las superficies de interacción de mayor riesgo que verificamos activamente y el trabajo de seguimiento restante necesario para pasar de una "postura de accesibilidad fuerte" hacia un cumplimiento de accesibilidad más completo.
-
 ## Última actualización
 
-10 de junio de 2026
+3 de junio de 2026
+
+Este documento rastrea la línea base de accesibilidad actual de The Pool, las superficies de interacción de mayor riesgo que verificamos activamente y el trabajo de seguimiento restante necesario para pasar de una "postura de accesibilidad fuerte" hacia un cumplimiento de accesibilidad más completo.
 
 ## Prioridades actuales
 

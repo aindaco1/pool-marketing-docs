@@ -7,11 +7,11 @@ render_with_liquid: false
 
 # Podman Local Dev
 
-This repo now includes a rootless Podman-backed local development path for the two services that usually create the most host setup churn:
-
 ## Last Updated
 
-June 10, 2026
+June 9, 2026
+
+This repo now includes a rootless Podman-backed local development path for the two services that usually create the most host setup churn:
 
 - Jekyll site
 - Cloudflare Worker local dev server

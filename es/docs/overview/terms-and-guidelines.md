@@ -8,11 +8,11 @@ lang: es
 
 # Términos y pautas creativas
 
-Estos términos reflejan el hito del lanzamiento de la plataforma The Pool **v1.0.3**.
-
 ## Última actualización
 
-10 de junio de 2026
+9 de junio de 2026
+
+Estos términos reflejan el hito del lanzamiento de la plataforma The Pool **v1.0.3**.
 
 ## Términos de compromiso
 

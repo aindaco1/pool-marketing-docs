@@ -7,11 +7,11 @@ render_with_liquid: false
 
 # Workflows
 
-The Pool uses a **no-account, email-based pledge management system**. Backers save a payment method through Stripe in The Pool's on-site payment step, manage pledges via order-scoped magic links, and are only charged if the campaign is funded.
-
 ## Last Updated
 
-June 10, 2026
+June 9, 2026
+
+The Pool uses a **no-account, email-based pledge management system**. Backers save a payment method through Stripe in The Pool's on-site payment step, manage pledges via order-scoped magic links, and are only charged if the campaign is funded.
 
 ## Key Differentiators
 

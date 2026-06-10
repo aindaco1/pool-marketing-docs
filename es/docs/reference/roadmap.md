@@ -8,11 +8,11 @@ lang: es
 
 # Hoja de ruta
 
-Esta hoja de ruta está organizada como un historial de lanzamiento de los estados reales del proyecto que realmente utilizamos, en lugar de una lista plana de funciones completadas.
-
 ## Última actualización
 
-10 de junio de 2026
+9 de junio de 2026
+
+Esta hoja de ruta está organizada como un historial de lanzamiento de los estados reales del proyecto que realmente utilizamos, en lugar de una lista plana de funciones completadas.
 
 ## Hito actual
 

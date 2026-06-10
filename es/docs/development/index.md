@@ -7,11 +7,11 @@ lang: es
 
 # Desarrollo
 
-El flujo de contribución, las notas de arquitectura, los problemas de implementación y los puntos de extensión orientados hacia la bifurcación se encuentran aquí.
-
 ## Última actualización
 
-10 de junio de 2026
+29 de mayo de 2026
+
+El flujo de contribución, las notas de arquitectura, los problemas de implementación y los puntos de extensión orientados hacia la bifurcación se encuentran aquí.
 
 ## Ruta recomendada
 

@@ -8,11 +8,11 @@ lang: es
 
 # Desarrollo local con Podman
 
-Este repositorio ahora incluye una ruta de desarrollo local sin raíz respaldada por Podman para los dos servicios que generalmente crean la mayor rotación de configuración de host:
-
 ## Última actualización
 
-10 de junio de 2026
+9 de junio de 2026
+
+Este repositorio ahora incluye una ruta de desarrollo local sin raíz respaldada por Podman para los dos servicios que generalmente crean la mayor rotación de configuración de host:
 
 - sitio jekyll
 - Servidor de desarrollo local Cloudflare Worker

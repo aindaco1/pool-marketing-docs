@@ -7,11 +7,11 @@ render_with_liquid: false
 
 # Roadmap
 
-This roadmap is organized as a release history of the real project states we actually used, rather than a flat completed-features list.
-
 ## Last Updated
 
-June 10, 2026
+June 9, 2026
+
+This roadmap is organized as a release history of the real project states we actually used, rather than a flat completed-features list.
 
 ## Current Milestone
 

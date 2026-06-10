@@ -8,11 +8,11 @@ lang: es
 
 # Calculadora de impuestos
 
-Este documento cubre el modelo actual de cálculo de impuestos en The Pool, incluyendo selección de proveedor, configuración para forks, comportamiento del navegador, endpoints del Worker y las verificaciones que conviene correr antes de publicar cambios relacionados con impuestos.
-
 ## Última actualización
 
-10 de junio de 2026
+21 de abril de 2026
+
+Este documento cubre el modelo actual de cálculo de impuestos en The Pool, incluyendo selección de proveedor, configuración para forks, comportamiento del navegador, endpoints del Worker y las verificaciones que conviene correr antes de publicar cambios relacionados con impuestos.
 
 La versión corta: los impuestos ahora son una responsabilidad de primera clase del Worker, no solo una tasa fija configurada en todas partes. Una implementación puede seguir usando una tasa plana, pero también puede cambiar a cálculo por proveedor o por reglas locales sin duplicar la matemática del checkout.
 

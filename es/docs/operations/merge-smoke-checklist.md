@@ -8,11 +8,11 @@ lang: es
 
 # Checklist de smoke tests antes del merge
 
-Utilice esta lista de verificación antes de fusionar sucursales que cambien el pago, la persistencia del webhook, la gestión de promesas, el inventario, la liquidación o las transmisiones de seguidores.
-
 ## Última actualización
 
-10 de junio de 2026
+29 de mayo de 2026
+
+Utilice esta lista de verificación antes de fusionar sucursales que cambien el pago, la persistencia del webhook, la gestión de promesas, el inventario, la liquidación o las transmisiones de seguidores.
 
 Esta versión está optimizada para el comportamiento actual de la lógica empresarial de pago y del trabajador en `main`.
 

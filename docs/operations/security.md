@@ -7,11 +7,11 @@ render_with_liquid: false
 
 # Security Guide
 
-This document covers the security architecture, known risks, applied hardening measures, accepted tradeoffs, and penetration testing procedures for The Pool crowdfunding platform.
-
 ## Last Updated
 
-June 10, 2026
+June 9, 2026
+
+This document covers the security architecture, known risks, applied hardening measures, accepted tradeoffs, and penetration testing procedures for The Pool crowdfunding platform.
 
 ## Security Architecture
 
@@ -137,7 +137,6 @@ Some tradeoffs remain intentional in the current model:
 If a deployment needs a stricter posture than that default, the most likely next steps would be shorter token lifetimes, easier token reissue flows, and a one-time token exchange that removes raw tokens from visible URLs after entry.
 
 ---
-
 
 ## Secrets Checklist
 

@@ -7,11 +7,11 @@ lang: es
 
 # Referencia
 
-Aquí se encuentra material de apoyo para el historial de lanzamientos, la planificación, la coordinación de los contribuyentes y las plantillas de procesos reutilizables.
-
 ## Última actualización
 
-10 de junio de 2026
+29 de mayo de 2026
+
+Aquí se encuentra material de apoyo para el historial de lanzamientos, la planificación, la coordinación de los contribuyentes y las plantillas de procesos reutilizables.
 
 ## Biblioteca de referencia
 

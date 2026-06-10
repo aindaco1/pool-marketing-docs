@@ -8,11 +8,11 @@ lang: es
 
 # Panel de administración
 
-Este documento es la referencia del operador para el panel de administración privado de The Pool y debe ser tratado como la fuente de verdad para la edición de campañas, informes, análisis, enlaces de marketing, complementos y administración de usuarios basados ​​en el panel.
-
 ## Última actualización
 
-10 de junio de 2026
+3 de junio de 2026
+
+Este documento es la referencia del operador para el panel de administración privado de The Pool y debe ser tratado como la fuente de verdad para la edición de campañas, informes, análisis, enlaces de marketing, complementos y administración de usuarios basados ​​en el panel.
 
 ## Audiencia
 

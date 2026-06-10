@@ -8,11 +8,11 @@ lang: es
 
 # Pruebas de penetración de seguridad
 
-Este directorio contiene pruebas centradas en la seguridad para la API de trabajador. Ejecútelos antes de implementarlos en producción.
-
 ## Última actualización
 
-10 de junio de 2026
+9 de junio de 2026
+
+Este directorio contiene pruebas centradas en la seguridad para la API de trabajador. Ejecútelos antes de implementarlos en producción.
 
 ## Inicio rápido
 

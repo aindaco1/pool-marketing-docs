@@ -8,13 +8,13 @@ lang: es
 
 # Descripción general del proyecto
 
+## Última actualización
+
+3 de junio de 2026
+
 **Objetivo:**
 Habilite el crowdfunding creativo con una verdadera lógica de *todo o nada* utilizando alojamiento estático.
 Los creadores definen campañas en Markdown; los patrocinadores se comprometen a través del carrito propio de The Pool y un paso de pago en el modo de configuración de Stripe en el sitio; Las tarjetas se cargan automáticamente sólo si la campaña está financiada. Opcionalmente, los patrocinadores pueden agregar una propina de plataforma del 0% al 15% (5% predeterminado) que se incluye en el cargo final pero se excluye del progreso de la campaña.
-
-## Última actualización
-
-10 de junio de 2026
 
 **Marca:**
 - Nombre de la plataforma: **The Pool**

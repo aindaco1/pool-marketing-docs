@@ -7,11 +7,11 @@ render_with_liquid: false
 
 # Shipping
 
-This document describes the current shipping model in The Pool, including its Worker-first pricing flow, fork-facing config surface, USPS integration boundary, and the rule tree the cart, checkout, Manage Pledge, reporting, and emails now follow.
-
 ## Last Updated
 
-June 10, 2026
+June 2, 2026
+
+This document describes the current shipping model in The Pool, including its Worker-first pricing flow, fork-facing config surface, USPS integration boundary, and the rule tree the cart, checkout, Manage Pledge, reporting, and emails now follow.
 
 Live USPS credentialed verification is now wired into the local workflow. The repo includes a dedicated USPS smoke helper plus automated regressions for the cart, checkout, and Manage Pledge shipping flows.
 

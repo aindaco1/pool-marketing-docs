@@ -7,11 +7,11 @@ render_with_liquid: false
 
 # Testing Guide
 
-This guide covers the automated test suites, local test infrastructure, and manual verification paths.
-
 ## Last Updated
 
-June 10, 2026
+June 9, 2026
+
+This guide covers the automated test suites, local test infrastructure, and manual verification paths.
 
 ## Quick Reference
 

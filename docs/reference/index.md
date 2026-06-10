@@ -6,11 +6,11 @@ has_children: true
 
 # Reference
 
-Supporting material for release history, planning, contributor coordination, and reusable process templates lives here.
-
 ## Last Updated
 
-June 10, 2026
+May 29, 2026
+
+Supporting material for release history, planning, contributor coordination, and reusable process templates lives here.
 
 ## Reference Library
 

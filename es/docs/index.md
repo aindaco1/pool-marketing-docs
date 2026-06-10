@@ -7,11 +7,11 @@ lang: es
 
 # Preguntas frecuentes
 
-Esta página es la **forma más rápida de orientarse** antes de sumergirse en los documentos completos.
-
 ## Última actualización
 
-10 de junio de 2026
+29 de mayo de 2026
+
+Esta página es la **forma más rápida de orientarse** antes de sumergirse en los documentos completos.
 
 ## Preguntas comunes
 
