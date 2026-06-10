@@ -76,7 +76,7 @@ home:
     checkout_link: Revisar el worker de pledges
     funding_title: Estados de campaña y momento de cobro
     funding_body: "El starter maneja <strong>estados upcoming, live y post-campaign</strong>, deadlines en el timezone configurado, registros para recordatorios de lanzamiento, stretch goals y settlement por lotes cuando la campaña cierra."
-    funding_link: Leer el resumen de la plataforma
+    funding_link: Leer sobre The Pool
     merch_title: Rewards, add-ons, impuestos y envíos
     merch_body: "Incluye reward tiers, add-ons de campaña, merch de plataforma, controles de inventario, proveedores de impuestos configurables, cotizaciones USPS, tarifas fallback de envío y <strong>totales con propina alineados</strong> entre checkout, email y reportes."
     merch_link: Ver merch y add-ons

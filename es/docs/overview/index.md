@@ -9,14 +9,13 @@ lang: es
 
 ## Última actualización
 
-17 de abril de 2026
+9 de junio de 2026
 
 Utilice esta sección para comprender qué es The Pool, qué promete públicamente y cómo está estructurada la plataforma antes de profundizar en los detalles de implementación.
 
 ## Lea estos primero
 
-- [Descripción general de la plataforma](/es/docs/overview/platform/) para conocer características, arquitectura, inicio rápido, puntos de entrada de prueba y contexto de implementación.
-- [Acerca de The Pool](/es/docs/overview/about-the-pool/) para la explicación pública de la promesa de todo o nada, la intención del creador y la experiencia de los seguidores.
+- [Acerca de The Pool](/es/docs/overview/about-the-pool/) para la explicación pública, la experiencia de los seguidores, las herramientas para creadores, la arquitectura, el modelo de alojamiento y el contexto de despliegue.
 - [Términos y pautas creativas](/es/docs/overview/terms-and-guidelines/) para conocer las expectativas de políticas, manejo de pagos, cumplimiento, reembolsos y lenguaje de privacidad.
 
 ## Cuándo abandonar esta sección

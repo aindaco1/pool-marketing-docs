@@ -9,13 +9,13 @@ render_with_liquid: false
 
 ## Last Updated
 
-June 2, 2026
+June 9, 2026
 
 This document is for people and LLMs working on forks of **The Pool**. It is a practical operator guide for making safe changes in this repo without drifting the site, the Worker, checkout math, or localized/public behavior out of sync.
 
 Use this alongside:
 
-- [README.md](/docs/overview/platform/) for the current product and architecture overview
+- [About The Pool](/docs/overview/about-the-pool/) for the current product and architecture overview
 - [docs/CUSTOMIZATION.md](/docs/development/customization-guide/) for the supported fork-facing config surface
 - [docs/TESTING.md](/docs/operations/testing/) for local verification and merge-gate expectations
 - [docs/I18N.md](/docs/development/internationalization/) for locale routing and translation rules

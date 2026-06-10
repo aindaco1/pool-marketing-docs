@@ -8,7 +8,7 @@ description: Frequently asked questions and a recommended reading path for The P
 
 ## Last Updated
 
-May 29, 2026
+June 9, 2026
 
 This page is the **fastest way to get oriented** before you dive into the full docs.
 
@@ -48,7 +48,7 @@ The public context is in [About The Pool](/docs/overview/about-the-pool/), and t
 
 The Pool combines [Jekyll](https://jekyllrb.com/), [Cloudflare Workers](https://workers.cloudflare.com/), [Stripe](https://stripe.com/), [Podman](https://podman.io/), and [GitHub Pages](https://pages.github.com/) into a stack that stays **relatively simple to reason about** while still supporting real pledge flows.
 
-Start with [Platform Overview](/docs/overview/platform/) and [Project Overview](/docs/development/project-overview/) for the system map.
+Start with [About The Pool](/docs/overview/about-the-pool/) and [Project Overview](/docs/development/project-overview/) for the system map.
 
 ### Is it open source?
 
@@ -56,7 +56,7 @@ Yes. The Pool is **open source** and documented for contributors, maintainers, a
 
 ## Recommended Reading Path
 
-1. [Platform Overview](/docs/overview/platform/) for product scope, stack, and deployment shape.
+1. [About The Pool](/docs/overview/about-the-pool/) for product scope, supporter model, stack, and deployment shape.
 2. [Project Overview](/docs/development/project-overview/) for the system map and architecture boundaries.
 3. [Workflows](/docs/development/workflows/) for pledge lifecycle, state, and Worker routes.
 4. [Pledge Worker](/docs/operations/worker/) for secrets, KV setup, and API endpoints.

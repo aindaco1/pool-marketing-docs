@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-2 de junio de 2026
+9 de junio de 2026
 
 Este documento describe el modelo de envío actual en The Pool, incluido su flujo de precios centrado en el trabajador, la superficie de configuración orientada a la bifurcación, el límite de integración de USPS y el árbol de reglas que ahora siguen el carrito, el pago, la gestión de promesas, los informes y los correos electrónicos.
 
@@ -526,7 +526,7 @@ La cobertura automatizada actual incluye:
 
 Documentos actuales que deberían mantenerse alineados con el comportamiento de envío:
 
-- [README.md](/es/docs/overview/platform/)
+- [Acerca de The Pool](/es/docs/overview/about-the-pool/)
 - [docs/PERSONALIZACIÓN.md](/es/docs/development/customization-guide/)
 - [docs/DEV_NOTES.md](/es/docs/development/developer-notes/)
 - [docs/TESTING.md](/es/docs/operations/testing/)

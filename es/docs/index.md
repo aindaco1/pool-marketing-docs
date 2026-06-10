@@ -9,7 +9,7 @@ lang: es
 
 ## Última actualización
 
-29 de mayo de 2026
+9 de junio de 2026
 
 Esta página es la **forma más rápida de orientarse** antes de sumergirse en los documentos completos.
 
@@ -49,7 +49,7 @@ El contexto público está en [Acerca de The Pool](/es/docs/overview/about-the-p
 
 The Pool combina [Jekyll](https://jekyllrb.com/), [Cloudflare Workers](https://workers.cloudflare.com/), [Stripe](https://stripe.com/), [Podman](https://podman.io/) y [GitHub Pages](https://pages.github.com/) en una pila que sigue siendo **relativamente simple de razonar** y al mismo tiempo admite flujos de promesas reales.
 
-Comience con [Descripción general de la plataforma](/es/docs/overview/platform/) y [Descripción general del proyecto](/es/docs/development/project-overview/) para el mapa del sistema.
+Comience con [Acerca de The Pool](/es/docs/overview/about-the-pool/) y [Descripción general del proyecto](/es/docs/development/project-overview/) para el mapa del sistema.
 
 ### ¿Es de código abierto?
 
@@ -57,7 +57,7 @@ Sí. El grupo es de **código abierto** y está documentado para contribuyentes,
 
 ## Ruta de lectura recomendada
 
-1. [Descripción general de la plataforma](/es/docs/overview/platform/) para conocer el alcance del producto, la pila y la forma de implementación.
+1. [Acerca de The Pool](/es/docs/overview/about-the-pool/) para conocer el alcance del producto, el modelo de seguidores, la pila y la forma de implementación.
 2. [Descripción general del proyecto](/es/docs/development/project-overview/) para el mapa del sistema y los límites de la arquitectura.
 3. [Flujos de trabajo](/es/docs/development/workflows/) para el ciclo de vida del compromiso, el estado y las rutas de los trabajadores.
 4. [Worker de promesas](/es/docs/operations/worker/) para secretos, configuración de KV y puntos finales de API.

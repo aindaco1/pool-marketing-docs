@@ -45,7 +45,6 @@ TITLE_OVERRIDES = {
     "Changelog": "Registro de cambios",
     "Pull Request Template": "Plantilla de pull request",
     "Roadmap": "Hoja de ruta",
-    "Platform Overview": "Resumen de la plataforma",
     "Internationalization (i18n)": "Internacionalización (i18n)",
     "Internationalization": "Internacionalización",
     "Developer Notes": "Notas para desarrolladores",

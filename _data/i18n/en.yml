@@ -76,7 +76,7 @@ home:
     checkout_link: Review the pledge worker
     funding_title: Campaign states and charge timing
     funding_body: "The starter handles <strong>upcoming, live, and post-campaign states</strong>, deadline timing in your configured timezone, launch reminder signups, stretch goals, and batched settlement after a campaign closes."
-    funding_link: Read the platform overview
+    funding_link: Read about The Pool
     merch_title: Rewards, add-ons, tax, and shipping
     merch_body: "You get reward tiers, campaign add-ons, platform merch, inventory checks, configurable tax providers, USPS quotes, fallback shipping rates, and <strong>tip totals that stay aligned</strong> in checkout, email, and reports."
     merch_link: See merch and add-ons
