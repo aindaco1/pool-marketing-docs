@@ -10,6 +10,10 @@ lang: es
 
 Este documento describe la función de inserción de campaña alojada de The Pool y cómo se relaciona con el trabajo de vista previa enriquecida/tarjeta compartida de la campaña más reciente.
 
+## Última actualización
+
+10 de junio de 2026
+
 ## ¿Cuál es la característica?
 
 The Pool incluye un widget de campaña integrado y alojado que los creadores pueden pegar en otro sitio como `iframe`.

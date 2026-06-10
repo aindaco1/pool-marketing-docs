@@ -9,6 +9,10 @@ render_with_liquid: false
 
 This document describes the current add-on product system as it actually ships now.
 
+## Last Updated
+
+June 10, 2026
+
 The platform supports two add-on scopes that intentionally share the same card UX while behaving differently in accounting, shipping, and fulfillment:
 
 - **Platform add-ons** live in the global catalog under `add_ons` in [/_config.yml](https://github.com/your-org/your-project/blob/main/_config.yml)

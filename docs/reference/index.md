@@ -8,6 +8,10 @@ has_children: true
 
 Supporting material for release history, planning, contributor coordination, and reusable process templates lives here.
 
+## Last Updated
+
+June 10, 2026
+
 ## Reference Library
 
 - [Changelog](/docs/reference/changelog/) for versioned release notes and recent platform changes.

@@ -8,6 +8,11 @@ lang: es
 
 # Notas para desarrolladores
 
+
+## Última actualización
+
+10 de junio de 2026
+
 ## Pila
 
 - **Páginas de GitHub** — Jekyll 4.4.1 + sitio estático Sass

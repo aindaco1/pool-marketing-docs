@@ -10,6 +10,10 @@ lang: es
 
 The Pool es una plataforma de financiación colectiva estática con un trabajador de Cloudflare para mutaciones, lecturas en vivo y operaciones administrativas. El trabajo de rendimiento debe preservar esa forma: las páginas públicas deben ser rápidas desde HTML estático, el código de aplicación pesado debe cargarse sólo cuando un usuario lo necesita y el trabajo especulativo debe ser lo suficientemente conservador como para nunca hacer que los flujos de pago, administración o soporte sean menos confiables.
 
+## Última actualización
+
+10 de junio de 2026
+
 Esta guía cubre el modelo de rendimiento de la plataforma actual, los mandos que las horquillas pueden ajustar y la validación esperada antes de que cambie el rendimiento del envío.
 
 ## Principios

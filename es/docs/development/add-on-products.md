@@ -10,6 +10,10 @@ lang: es
 
 Este documento describe el sistema de producto complementario actual tal como se envía actualmente.
 
+## Última actualización
+
+10 de junio de 2026
+
 La plataforma admite dos ámbitos complementarios que comparten intencionalmente la misma experiencia de usuario de la tarjeta y al mismo tiempo se comportan de manera diferente en contabilidad, envío y cumplimiento:
 
 - **Complementos de plataforma** se encuentran en el catálogo global en `add_ons` en [/_config.yml](https://github.com/your-org/your-project/blob/main/_config.yml)

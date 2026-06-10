@@ -8,6 +8,11 @@ lang: es
 
 # Contribuyendo a The Pool
 
+
+## Última actualización
+
+10 de junio de 2026
+
 ## Empezando
 
 ### Requisitos previos

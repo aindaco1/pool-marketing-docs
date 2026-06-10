@@ -65,6 +65,7 @@ BODY_OVERRIDES = {
     "# Reference": "# Referencia",
     "# AGENTS": "# Guía para agentes y operadores",
     "## Last Updated": "## Última actualización",
+    "June 10, 2026": "10 de junio de 2026",
 }
 
 cache: dict[str, str] = {}

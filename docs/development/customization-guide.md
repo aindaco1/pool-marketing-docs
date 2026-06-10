@@ -9,6 +9,10 @@ render_with_liquid: false
 
 This guide covers the supported no-code customization surface for forks of The Pool as it exists now.
 
+## Last Updated
+
+June 10, 2026
+
 The goal is to let forks rebrand, restyle, and reconfigure the platform through config, while keeping checkout, reports, emails, and the Worker aligned.
 
 The structured config model in [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) is now the canonical fork-facing surface.

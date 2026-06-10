@@ -9,6 +9,9 @@ render_with_liquid: false
 
 **The Pool** is an open-source crowdfunding platform for independent film and creative projects.
 
+## Last Updated
+
+June 10, 2026
 
 ## All-or-Nothing Pledging
 

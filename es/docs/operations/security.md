@@ -10,6 +10,10 @@ lang: es
 
 Este documento cubre la arquitectura de seguridad, los riesgos conocidos, las medidas de refuerzo aplicadas, las compensaciones aceptadas y los procedimientos de prueba de penetración para la plataforma de financiación colectiva The Pool.
 
+## Última actualización
+
+10 de junio de 2026
+
 ## Arquitectura de seguridad
 
 ### Mecanismos de autenticación

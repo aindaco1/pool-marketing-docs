@@ -7,6 +7,11 @@ render_with_liquid: false
 
 # Developer Notes
 
+
+## Last Updated
+
+June 10, 2026
+
 ## Stack
 
 - **GitHub Pages** — Jekyll 4.4.1 + Sass static site

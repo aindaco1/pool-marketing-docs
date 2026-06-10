@@ -9,6 +9,10 @@ render_with_liquid: false
 
 **Open-source crowdfunding platform starter**
 
+## Last Updated
+
+June 10, 2026
+
 Current release milestone: **v1.0.3**. The v1.0 feature set and launch hardening pass are complete; v1.0.3 adds configurable platform timezone handling, opt-in launch reminders for upcoming campaigns, mobile campaign-page performance refinements, and an hourly scheduler heartbeat that avoids baseline Workers KV write churn.
 
 A static Jekyll + first-party cart site for all-or-nothing creative crowdfunding. Backers build a pledge in The Pool’s browser-owned cart, the Cloudflare Worker canonicalizes the contribution via `/checkout-intent/start`, and Stripe collects and saves card details through a secure on-site payment step so cards are only charged after a successful campaign reaches its deadline. A single checkout can include items from multiple campaigns; after webhook confirmation, the Worker fans that bundle out into separate campaign-scoped pledge records. If funded, the Worker scheduler dispatches batched settlement and charges pledges off-session. Supporters can optionally add a platform tip, manage pledges through order-scoped magic links, and revisit a desktop-friendly Manage Pledge dashboard with Active / Closed sections.

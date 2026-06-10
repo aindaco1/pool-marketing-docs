@@ -9,6 +9,10 @@ render_with_liquid: false
 
 This document describes The Pool's hosted campaign embed feature and how it relates to the newer campaign rich-preview/share-card work.
 
+## Last Updated
+
+June 10, 2026
+
 ## What The Feature Is
 
 The Pool ships a hosted embeddable campaign widget that creators can paste into another site as an `iframe`.

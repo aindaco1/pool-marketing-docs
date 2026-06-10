@@ -8,6 +8,10 @@ has_children: true
 
 This section covers the admin dashboard, pledge Worker, local runtime options, quality gates, and the operational rules that protect checkout and fulfillment behavior.
 
+## Last Updated
+
+June 10, 2026
+
 ## Local Runtime And Services
 
 - [Admin Dashboard](/docs/operations/admin-dashboard/) for browser-based campaign editing, reports, analytics, marketing tools, media uploads, and user management.

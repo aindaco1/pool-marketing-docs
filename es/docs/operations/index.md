@@ -9,6 +9,10 @@ lang: es
 
 Esta sección cubre el panel de administración, el trabajador de compromiso, las opciones de tiempo de ejecución local, los controles de calidad y las reglas operativas que protegen el comportamiento de pago y cumplimiento.
 
+## Última actualización
+
+10 de junio de 2026
+
 ## Tiempo de ejecución local y servicios
 
 - [Panel de administración](/es/docs/operations/admin-dashboard/) para edición de campañas, informes, análisis, herramientas de marketing, carga de medios y gestión de usuarios basados ​​en navegador.

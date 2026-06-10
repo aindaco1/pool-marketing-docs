@@ -9,6 +9,10 @@ lang: es
 
 Aquí se encuentra material de apoyo para el historial de lanzamientos, la planificación, la coordinación de los contribuyentes y las plantillas de procesos reutilizables.
 
+## Última actualización
+
+10 de junio de 2026
+
 ## Biblioteca de referencia
 
 - [Changelog](/es/docs/reference/changelog/) para notas de la versión versionadas y cambios recientes en la plataforma.

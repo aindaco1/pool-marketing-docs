@@ -10,6 +10,7 @@ POOL_ROOT = Pathname(ENV.fetch("POOL_SOURCE", "/tmp/pool")).expand_path
 POOL_REPO = ENV.fetch("POOL_REPO", "aindaco1/pool")
 POOL_BLOB_BASE = "https://github.com/#{POOL_REPO}/blob/main/"
 POOL_TREE_BASE = "https://github.com/#{POOL_REPO}/tree/main/"
+DOCS_LAST_UPDATED = "June 10, 2026"
 
 DOCS = [
   { src: "README.md", dest: "docs/overview/platform.md", title: "Platform Overview", parent: "Overview", nav_order: 1 },
@@ -118,6 +119,30 @@ def strip_sections(content, titles)
   content.gsub(pattern, "")
 end
 
+def stamp_last_updated(content)
+  lines = content.gsub(/\n## Last Updated\n\n[^\n]+(?:\n{2,}|\z)/, "\n\n").lines
+  h1_index = lines.find_index { |line| line.start_with?("# ") }
+  return lines.join unless h1_index
+
+  insert_index = h1_index + 1
+  insert_index += 1 while lines[insert_index]&.strip == ""
+
+  if insert_index < lines.length && !lines[insert_index].start_with?("#")
+    insert_index += 1 while insert_index < lines.length &&
+                            !lines[insert_index].strip.empty? &&
+                            !lines[insert_index].start_with?("#")
+  end
+
+  stamp = ["## Last Updated\n", "\n", "#{DOCS_LAST_UPDATED}\n", "\n"]
+  if lines[insert_index]&.strip == ""
+    lines.insert(insert_index + 1, *stamp)
+  else
+    lines.insert(insert_index, "\n", *stamp)
+  end
+
+  lines.join.gsub(/(#{Regexp.escape(DOCS_LAST_UPDATED)}\n)\n{2,}(?=## )/, "\\1\n")
+end
+
 GENERIC_REPLACEMENTS = [
   ["https://pool.dustwave.xyz", "https://site.example.com"],
   ["https://pledge.dustwave.xyz", "https://worker.example.com"],
@@ -218,9 +243,9 @@ ROADMAP_REWRITE = <<~MARKDOWN.freeze
 
   ## Current Milestone
 
-  **v1.0.3**
+  **Post-v1.0.3 hardening**
 
-  The v1.0 feature set and release-hardening pass are complete. v1.0.3 adds configurable platform timezone handling, opt-in launch reminders for upcoming campaigns, mobile campaign-page performance refinements, and an hourly scheduler heartbeat that avoids baseline Workers KV write churn.
+  The v1.0.3 feature set is complete. The current work is a hardening and operations sync: scoped admin automation secrets, campaign-scoped settlement locking, clearer Cloudflare deployment credentials, safer local secret guidance, dashboard media lifecycle cleanup, and lower steady-state KV list usage.
 
   ## Release History
 
@@ -418,6 +443,21 @@ ROADMAP_REWRITE = <<~MARKDOWN.freeze
   - YouTube campaign hero videos render local poster/play facades and defer the remote iframe until supporter play intent
   - the public creator checklists now describe the creator-facing v1.0.3 changes, including launch reminders, platform timezone expectations, deferred YouTube hero embeds, and responsive WebP variants
 
+  ### Unreleased — Admin Automation, Settlement, And Media Lifecycle Hardening
+
+  This sync tightens the operational contract after v1.0.3 without declaring a new public release number.
+
+  New in this sync:
+
+  - optional `ADMIN_SETTLEMENT_SECRET` and `ADMIN_BROADCAST_SECRET` can narrow settlement and broadcast automation access; scoped routes reject the broader `ADMIN_SECRET` when the narrower secret is configured
+  - scheduled, direct, dispatch, and batch settlement paths now share a campaign-scoped `SETTLEMENT_COORDINATOR` Durable Object lock and deterministic Stripe idempotency keys so same-campaign charging cannot overlap
+  - multi-campaign checkouts remain supported by fanning checkout bundles into separate campaign-scoped pledge records; settlement locks and batches stay scoped to the campaign being charged
+  - GitHub Actions and operator docs now distinguish Worker runtime secrets from repository secrets, including when matching scoped admin secrets must exist in both places
+  - Cloudflare deploy and report-export docs now require `CLOUDFLARE_ACCOUNT_ID`, recommend user-scoped deploy tokens, and document narrower cache-purge and read-only KV token options
+  - `worker/.dev.vars` guidance now explicitly calls for local-only values rather than production-secret backups
+  - dashboard image/video uploads request the repository media optimizer with `scope=changed`, while publish-time cleanup removes same-campaign dashboard-owned media that disappeared from authored content and is not referenced elsewhere
+  - launch reminder dispatch, supporter email retry, and platform add-on inventory paths now use queue-state or sold-count projections to avoid unnecessary KV list scans during idle or normal read paths
+
   ## Future Features
 
   Work still planned after `1.0.3` includes:
@@ -444,6 +484,19 @@ CHANGELOG_103_ENTRY = <<~MARKDOWN.freeze
   - Added a mobile PageSpeed performance pass for campaign pages: YouTube hero videos now render as local poster/play facades and load the remote iframe only after play intent, avoiding the initial YouTube JavaScript/CSS cost.
   - Added responsive hero-image preloads and a `640w` WebP derivative rung so mobile campaign pages can choose smaller browser assets between the existing `480w` and `960w` variants.
   - Updated the media optimizer to skip generated responsive WebP derivatives during source optimization, keeping generated browser assets up to date without recursively re-encoding them.
+MARKDOWN
+
+CHANGELOG_UNRELEASED_ENTRY = <<~MARKDOWN.freeze
+  ## Unreleased - 2026-06-10
+
+  - Added optional scoped admin automation secrets: `ADMIN_SETTLEMENT_SECRET` for settlement routes and `ADMIN_BROADCAST_SECRET` for announcement, diary, and milestone routes. When a scoped secret is configured, those routes reject the broader `ADMIN_SECRET`.
+  - Added campaign-scoped settlement serialization with the `SETTLEMENT_COORDINATOR` Durable Object, same-campaign batch validation, and deterministic Stripe idempotency keys for campaign/supporter charge groups.
+  - Clarified that multi-campaign checkouts still fan out into separate campaign-scoped pledge records, while settlement locks, batches, job state, and completion markers stay keyed to the campaign being charged.
+  - Updated deployment and operator docs for `CLOUDFLARE_ACCOUNT_ID`, user-scoped Cloudflare deploy tokens, narrower cache-purge tokens, read-only KV report-export tokens, and the difference between Worker runtime secrets and GitHub repository secrets.
+  - Tightened local secret guidance so `worker/.dev.vars` uses separate local-only values and is not treated as a production secret backup.
+  - Updated dashboard media documentation for image/video optimizer dispatch with `scope=changed`, source-preserving uploads, audio source preservation, and publish-time cleanup of unreferenced same-campaign dashboard-owned media.
+  - Documented the list-budget hardening for launch reminder dispatch, supporter confirmation email retry queues, and platform add-on sold-count projections so idle or normal read paths avoid unnecessary KV namespace scans.
+  - Updated logging documentation to reflect that console logging remains enabled by default while lower-severity verbose debug/info/log output defaults off.
 MARKDOWN
 
 CHANGELOG_102_ENTRY = <<~MARKDOWN.freeze
@@ -529,6 +582,10 @@ def rewrite_copy(content, current_src)
         rewritten.sub!("# Changelog\n\n", "# Changelog\n\n#{CHANGELOG_102_ENTRY}\n")
       end
     end
+
+    unless rewritten.match?(/^## Unreleased - 2026-06-10\b/m)
+      rewritten.sub!("# Changelog\n\n", "# Changelog\n\n#{CHANGELOG_UNRELEASED_ENTRY}\n")
+    end
   when "docs/CUSTOMIZATION.md"
     rewritten.gsub!("such as `v1.0.2`", "such as `v1.0.3`")
     rewritten.gsub!("version: 1.0.2", "version: 1.0.3")
@@ -545,7 +602,7 @@ def rewrite_copy(content, current_src)
     rewritten.gsub!("- [ ] Verify `CNAME` is set to `site.example.com`", "- [ ] Verify `CNAME` is set to your public site domain")
     rewritten.gsub!("| **Dust Wave** | Company name (two words, not \"DustWave\") |", "| **Platform operator** | Company or studio name for your deployment |")
   when "docs/PROJECT_OVERVIEW.md"
-    rewritten.gsub!("# Project Overview — The Pool (Dust Wave Crowdfund)", "# Project Overview — The Pool")
+    rewritten.gsub!(/^# Project Overview.*$/, "# Project Overview")
     rewritten.gsub!("- Company name: **Dust Wave** (two words, not \"DustWave\")", "- Company name: set this to your organization or studio name")
     rewritten.gsub!("- Design system: Matches dust-wave-shop (minimalist black/white, 8px grid, Inter + Gambado Sans)", "- Design system: adapt the supported design tokens and typography to your own brand")
     rewritten.gsub!("optional platform tip from a shared pricing model", "optional platform tip from a shared pricing model")
@@ -606,7 +663,7 @@ DOCS.each do |doc|
 
   content = strip_front_matter(source_path.read)
   content = rewrite_links(content, doc[:src]).strip
-  content = rewrite_copy(content, doc[:src]).strip
+  content = stamp_last_updated(rewrite_copy(content, doc[:src]).strip)
 
   front_matter = <<~YAML
     ---

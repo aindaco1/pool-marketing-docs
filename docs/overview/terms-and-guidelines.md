@@ -9,6 +9,10 @@ render_with_liquid: false
 
 These terms reflect The Pool platform release milestone **v1.0.3**.
 
+## Last Updated
+
+June 10, 2026
+
 ## Pledge Terms
 
 - All pledges are **all-or-nothing**. Your card is saved securely but charged **only if** the campaign reaches its goal by the deadline.

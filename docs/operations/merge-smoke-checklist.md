@@ -9,6 +9,10 @@ render_with_liquid: false
 
 Use this checklist before merging branches that change checkout, webhook persistence, pledge management, inventory, settlement, or supporter broadcasts.
 
+## Last Updated
+
+June 10, 2026
+
 This version is tuned for the current checkout and Worker business-logic behavior on `main`.
 
 ## Scope For This Branch

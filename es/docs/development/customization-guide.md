@@ -10,6 +10,10 @@ lang: es
 
 Esta guía cubre la superficie de personalización sin código compatible para las bifurcaciones de The Pool tal como existe ahora.
 
+## Última actualización
+
+10 de junio de 2026
+
 El objetivo es permitir que las bifurcaciones cambien el nombre, el estilo y la reconfiguración de la plataforma a través de la configuración, manteniendo alineados el pago, los informes, los correos electrónicos y el trabajador.
 
 El modelo de configuración estructurado en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) es ahora la superficie canónica orientada a la horquilla.

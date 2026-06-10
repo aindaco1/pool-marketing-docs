@@ -10,11 +10,15 @@ lang: es
 
 Esta hoja de ruta está organizada como un historial de lanzamiento de los estados reales del proyecto que realmente utilizamos, en lugar de una lista plana de funciones completadas.
 
+## Última actualización
+
+10 de junio de 2026
+
 ## Hito actual
 
-**v1.0.3**
+**Endurecimiento posterior a v1.0.3**
 
-El conjunto de funciones v1.0 y el pase de liberación reforzada están completos. v1.0.3 agrega manejo de zona horaria de plataforma configurable, recordatorios de lanzamiento opcionales para próximas campañas, mejoras en el rendimiento de la página de campaña móvil y un latido del programador cada hora que evita la rotación de escritura de Workers KV de referencia.
+El conjunto de funciones v1.0.3 está completo. El trabajo actual es una sincronización de endurecimiento y operaciones: secretos de automatización administrativa con alcance, bloqueo de liquidación por campaña, credenciales de despliegue de Cloudflare más claras, guía más segura para secretos locales, limpieza del ciclo de vida de medios del panel y menor uso estable de listados KV.
 
 ## Historial de lanzamientos
 
@@ -211,6 +215,21 @@ Nuevo en esta versión:
 - La generación de imágenes responsivas ahora incluye un renglón WebP `640w` entre las variantes `480w` y `960w` existentes para páginas de campañas móviles.
 - Los videos de los héroes de la campaña de YouTube muestran fachadas de carteles/juegos locales y posponen el iframe remoto hasta que el partidario tenga la intención de jugar.
 - Las listas de verificación públicas para creadores ahora describen los cambios de la versión 1.0.3 para los creadores, incluidos recordatorios de lanzamiento, expectativas de zona horaria de la plataforma, incrustaciones diferidas de héroes de YouTube y variantes WebP receptivas.
+
+### Sin publicar: endurecimiento de automatización administrativa, liquidación y ciclo de vida de medios
+
+Esta sincronización refuerza el contrato operativo después de v1.0.3 sin declarar un nuevo número de lanzamiento público.
+
+Nuevo en esta sincronización:
+
+- `ADMIN_SETTLEMENT_SECRET` y `ADMIN_BROADCAST_SECRET` opcionales pueden limitar el acceso a la automatización de liquidación y broadcast; las rutas con alcance rechazan el `ADMIN_SECRET` más amplio cuando el secreto más estrecho está configurado
+- las rutas de liquidación programada, directa, de despacho y por lotes ahora comparten un bloqueo de objeto durable `SETTLEMENT_COORDINATOR` por campaña y claves de idempotencia determinísticas de Stripe, para que los cobros de la misma campaña no se superpongan
+- los checkouts de varias campañas siguen admitidos porque el bundle de checkout se divide en registros de compromiso separados por campaña; los bloqueos y lotes de liquidación permanecen limitados a la campaña que se cobra
+- los documentos de GitHub Actions y operación ahora distinguen entre secretos de runtime del Worker y secretos del repositorio, incluida la necesidad de definir secretos administrativos con alcance en ambos lugares cuando corresponda
+- los documentos de despliegue y exportación de reportes de Cloudflare ahora requieren `CLOUDFLARE_ACCOUNT_ID`, recomiendan tokens de despliegue con alcance de usuario y documentan opciones más estrechas para purga de caché y tokens KV de solo lectura
+- la guía de `worker/.dev.vars` ahora pide explícitamente valores solo locales en lugar de respaldos de secretos de producción
+- las cargas de imagen/video del panel solicitan el optimizador de medios del repositorio con `scope=changed`, mientras que la limpieza al publicar elimina medios del panel de la misma campaña que desaparecieron del contenido escrito y no están referenciados en otro lugar
+- el despacho de recordatorios de lanzamiento, los reintentos de correo de seguidores y el inventario de add-ons de plataforma ahora usan estado de cola o proyecciones de unidades vendidas para evitar listados KV innecesarios en rutas inactivas o de lectura normal
 
 ## Funciones futuras
 

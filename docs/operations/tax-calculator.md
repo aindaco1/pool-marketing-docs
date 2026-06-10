@@ -9,6 +9,10 @@ render_with_liquid: false
 
 This document covers The Pool's current tax-calculation model, including provider selection, fork-facing configuration, browser behavior, Worker endpoints, and the checks operators should run before shipping tax-related changes.
 
+## Last Updated
+
+June 10, 2026
+
 The short version: tax is now a first-class Worker concern rather than one fixed configured rate everywhere. A deployment can still stay on a flat tax rate, but it can also switch to provider-backed or vendored location-aware calculation without forking checkout math in multiple places.
 
 ## What The Tax Layer Owns

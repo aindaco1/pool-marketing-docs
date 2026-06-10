@@ -9,6 +9,10 @@ render_with_liquid: false
 
 This guide covers the automated test suites, local test infrastructure, and manual verification paths.
 
+## Last Updated
+
+June 10, 2026
+
 ## Quick Reference
 
 ```bash

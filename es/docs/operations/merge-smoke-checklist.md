@@ -10,6 +10,10 @@ lang: es
 
 Utilice esta lista de verificación antes de fusionar sucursales que cambien el pago, la persistencia del webhook, la gestión de promesas, el inventario, la liquidación o las transmisiones de seguidores.
 
+## Última actualización
+
+10 de junio de 2026
+
 Esta versión está optimizada para el comportamiento actual de la lógica empresarial de pago y del trabajador en `main`.
 
 ## Alcance de esta rama

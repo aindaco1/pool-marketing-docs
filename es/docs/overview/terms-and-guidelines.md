@@ -10,6 +10,10 @@ lang: es
 
 Estos términos reflejan el hito del lanzamiento de la plataforma The Pool **v1.0.3**.
 
+## Última actualización
+
+10 de junio de 2026
+
 ## Términos de compromiso
 
 - Todas las promesas son **todo o nada**. Su tarjeta se guarda de forma segura, pero se carga **solo si** la campaña alcanza su objetivo antes de la fecha límite.

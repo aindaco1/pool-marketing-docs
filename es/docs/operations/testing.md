@@ -10,6 +10,10 @@ lang: es
 
 Esta guía cubre los conjuntos de pruebas automatizadas, la infraestructura de pruebas local y las rutas de verificación manual.
 
+## Última actualización
+
+10 de junio de 2026
+
 ## Referencia rápida
 
 ```bash

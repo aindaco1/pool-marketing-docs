@@ -9,11 +9,15 @@ render_with_liquid: false
 
 This roadmap is organized as a release history of the real project states we actually used, rather than a flat completed-features list.
 
+## Last Updated
+
+June 10, 2026
+
 ## Current Milestone
 
-**v1.0.3**
+**Post-v1.0.3 hardening**
 
-The v1.0 feature set and release-hardening pass are complete. v1.0.3 adds configurable platform timezone handling, opt-in launch reminders for upcoming campaigns, mobile campaign-page performance refinements, and an hourly scheduler heartbeat that avoids baseline Workers KV write churn.
+The v1.0.3 feature set is complete. The current work is a hardening and operations sync: scoped admin automation secrets, campaign-scoped settlement locking, clearer Cloudflare deployment credentials, safer local secret guidance, dashboard media lifecycle cleanup, and lower steady-state KV list usage.
 
 ## Release History
 
@@ -210,6 +214,21 @@ New in this version:
 - responsive image generation now includes a `640w` WebP rung between the existing `480w` and `960w` variants for mobile campaign pages
 - YouTube campaign hero videos render local poster/play facades and defer the remote iframe until supporter play intent
 - the public creator checklists now describe the creator-facing v1.0.3 changes, including launch reminders, platform timezone expectations, deferred YouTube hero embeds, and responsive WebP variants
+
+### Unreleased — Admin Automation, Settlement, And Media Lifecycle Hardening
+
+This sync tightens the operational contract after v1.0.3 without declaring a new public release number.
+
+New in this sync:
+
+- optional `ADMIN_SETTLEMENT_SECRET` and `ADMIN_BROADCAST_SECRET` can narrow settlement and broadcast automation access; scoped routes reject the broader `ADMIN_SECRET` when the narrower secret is configured
+- scheduled, direct, dispatch, and batch settlement paths now share a campaign-scoped `SETTLEMENT_COORDINATOR` Durable Object lock and deterministic Stripe idempotency keys so same-campaign charging cannot overlap
+- multi-campaign checkouts remain supported by fanning checkout bundles into separate campaign-scoped pledge records; settlement locks and batches stay scoped to the campaign being charged
+- GitHub Actions and operator docs now distinguish Worker runtime secrets from repository secrets, including when matching scoped admin secrets must exist in both places
+- Cloudflare deploy and report-export docs now require `CLOUDFLARE_ACCOUNT_ID`, recommend user-scoped deploy tokens, and document narrower cache-purge and read-only KV token options
+- `worker/.dev.vars` guidance now explicitly calls for local-only values rather than production-secret backups
+- dashboard image/video uploads request the repository media optimizer with `scope=changed`, while publish-time cleanup removes same-campaign dashboard-owned media that disappeared from authored content and is not referenced elsewhere
+- launch reminder dispatch, supporter email retry, and platform add-on inventory paths now use queue-state or sold-count projections to avoid unnecessary KV list scans during idle or normal read paths
 
 ## Future Features
 

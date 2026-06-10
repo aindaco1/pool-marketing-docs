@@ -10,6 +10,10 @@ lang: es
 
 Este documento rastrea la línea base de accesibilidad actual de The Pool, las superficies de interacción de mayor riesgo que verificamos activamente y el trabajo de seguimiento restante necesario para pasar de una "postura de accesibilidad fuerte" hacia un cumplimiento de accesibilidad más completo.
 
+## Última actualización
+
+10 de junio de 2026
+
 ## Prioridades actuales
 
 Las prioridades actuales de accesibilidad son:

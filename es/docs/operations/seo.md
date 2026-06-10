@@ -10,6 +10,10 @@ lang: es
 
 Este documento describe el modelo SEO actual de The Pool en 2026. Es intencionalmente conservador: las páginas públicas se hacen más fáciles de rastrear y comprender, mientras que los flujos tokenizados y exclusivos para seguidores permanecen fuera de la intención del índice. La implementación está diseñada en torno a metadatos reales, páginas públicas reales y datos estructurados honestos en lugar de relleno de contenido o cebo de resultados enriquecidos.
 
+## Última actualización
+
+10 de junio de 2026
+
 ## Principios
 
 - Fortalecer la visibilidad de páginas públicas reales y páginas de campaña.

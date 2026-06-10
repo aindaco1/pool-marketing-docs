@@ -9,6 +9,10 @@ render_with_liquid: false
 
 This directory contains security-focused tests for the Worker API. Run these before deploying to production.
 
+## Last Updated
+
+June 10, 2026
+
 ## Quick Start
 
 ```bash

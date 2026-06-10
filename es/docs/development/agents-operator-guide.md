@@ -10,6 +10,10 @@ lang: es
 
 Este documento está dirigido a personas y LLM que trabajan en bifurcaciones de **The Pool**. Es una guía práctica para el operador para realizar cambios seguros en este repositorio sin dessincronizar el sitio, el trabajador, las matemáticas de pago o el comportamiento público/localizado.
 
+## Última actualización
+
+10 de junio de 2026
+
 Utilice esto junto con:
 
 - [README.md](/es/docs/overview/platform/) para ver la descripción general actual del producto y la arquitectura

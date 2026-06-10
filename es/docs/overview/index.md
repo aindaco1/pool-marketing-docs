@@ -9,6 +9,10 @@ lang: es
 
 Utilice esta sección para comprender qué es The Pool, qué promete públicamente y cómo está estructurada la plataforma antes de profundizar en los detalles de implementación.
 
+## Última actualización
+
+10 de junio de 2026
+
 ## Lea estos primero
 
 - [Descripción general de la plataforma](/es/docs/overview/platform/) para conocer características, arquitectura, inicio rápido, puntos de entrada de prueba y contexto de implementación.

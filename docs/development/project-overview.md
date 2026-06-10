@@ -5,11 +5,15 @@ nav_order: 2
 render_with_liquid: false
 ---
 
-# Project Overview — The Pool
+# Project Overview
 
 **Goal:**  
 Enable creative crowdfunding with true *all-or-nothing* logic using static hosting.  
 Creators define campaigns in Markdown; backers pledge through The Pool’s first-party cart and an on-site Stripe setup-mode payment step; cards are charged automatically only if the campaign is funded. Backers can optionally add a 0% to 15% platform tip (default 5%) that is included in the final charge but excluded from campaign progress.
+
+## Last Updated
+
+June 10, 2026
 
 **Branding:**  
 - Platform name: **The Pool**

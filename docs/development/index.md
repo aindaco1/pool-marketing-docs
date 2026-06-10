@@ -8,6 +8,10 @@ has_children: true
 
 Contribution flow, architecture notes, implementation gotchas, and fork-facing extension points live here.
 
+## Last Updated
+
+June 10, 2026
+
 ## Recommended Path
 
 1. [Contributing](/docs/development/contributing/) for prerequisites, local setup, GitHub workflow, and the current project status.

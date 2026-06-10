@@ -8,6 +8,10 @@ has_children: true
 
 Use this section to understand what The Pool is, what it promises publicly, and how the platform is framed before you dive into implementation details.
 
+## Last Updated
+
+June 10, 2026
+
 ## Read These First
 
 - [Platform Overview](/docs/overview/platform/) for features, architecture, quick start, testing entry points, and deployment context.

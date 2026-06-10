@@ -9,6 +9,10 @@ lang: es
 
 El flujo de contribución, las notas de arquitectura, los problemas de implementación y los puntos de extensión orientados hacia la bifurcación se encuentran aquí.
 
+## Última actualización
+
+10 de junio de 2026
+
 ## Ruta recomendada
 
 1. [Contribuyendo con ](/es/docs/development/contributing/) para conocer los requisitos previos, la configuración local, el flujo de trabajo de GitHub y el estado actual del proyecto.

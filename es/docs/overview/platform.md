@@ -10,6 +10,10 @@ lang: es
 
 **Iniciador de plataforma de crowdfunding de código abierto**
 
+## Última actualización
+
+10 de junio de 2026
+
 Hito de lanzamiento actual: **v1.0.3**. El conjunto de funciones v1.0 y el pase de refuerzo de lanzamiento están completos; v1.0.3 agrega manejo de zona horaria de plataforma configurable, recordatorios de lanzamiento opcionales para próximas campañas, mejoras en el rendimiento de la página de campaña móvil y un latido del programador cada hora que evita la rotación de escritura de Workers KV de referencia.
 
 Un sitio estático de carrito propio Jekyll + para crowdfunding creativo de todo o nada. Los patrocinadores crean una promesa en el carrito propiedad del navegador de The Pool, el trabajador de Cloudflare canonicaliza la contribución a través de `/checkout-intent/start` y Stripe recopila y guarda los detalles de la tarjeta a través de un paso de pago seguro en el sitio para que las tarjetas solo se carguen después de que una campaña exitosa alcance su fecha límite. Un pago único puede incluir artículos de múltiples campañas; Después de la confirmación del webhook, los fanáticos de los trabajadores se agrupan en registros de compromiso separados con alcance de campaña. Si está financiado, el planificador de trabajadores envía liquidaciones por lotes y cobra promesas fuera de sesión. Opcionalmente, los seguidores pueden agregar un consejo sobre la plataforma, administrar promesas a través de enlaces mágicos con alcance de pedido y volver a visitar un panel de administración de promesas compatible con escritorio con secciones Activas/Cerradas.

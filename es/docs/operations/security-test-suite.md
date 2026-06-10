@@ -10,6 +10,10 @@ lang: es
 
 Este directorio contiene pruebas centradas en la seguridad para la API de trabajador. Ejecútelos antes de implementarlos en producción.
 
+## Última actualización
+
+10 de junio de 2026
+
 ## Inicio rápido
 
 ```bash

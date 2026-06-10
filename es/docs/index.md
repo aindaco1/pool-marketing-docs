@@ -11,7 +11,7 @@ Esta página es la **forma más rápida de orientarse** antes de sumergirse en l
 
 ## Última actualización
 
-29 de mayo de 2026
+10 de junio de 2026
 
 ## Preguntas comunes
 
