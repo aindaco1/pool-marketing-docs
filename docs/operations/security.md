@@ -22,6 +22,7 @@ This document covers the security architecture, known risks, applied hardening m
 | **Admin Sign-In Challenge** | `POST /admin/auth/start` | Optional Cloudflare Turnstile verification before admin magic-link issuance |
 | **Launch Reminder Challenge** | `POST /launch-reminders` | Optional/expected Cloudflare Turnstile verification before reminder signup writes |
 | **Admin Recovery Secret** | Automation and recovery `/admin/*` endpoints | `Authorization: Bearer <secret>` or `x-admin-key` header for script-driven operations |
+| **Scoped Admin Secrets** | Settlement and broadcast automation endpoints | Optional `ADMIN_SETTLEMENT_SECRET` and `ADMIN_BROADCAST_SECRET`; when configured, the scoped route rejects the broader `ADMIN_SECRET` |
 | **Test Mode Guard** | `/test/*` | `APP_MODE === 'test'` environment check |
 
 ### Data Storage (Cloudflare KV)
@@ -57,6 +58,8 @@ This document covers the security architecture, known risks, applied hardening m
 | `rl:{endpoint}:{ip}` | RATELIMIT | Request count + reset time | **Low** - ephemeral |
 
 Scarce limited-tier reservation and committed-count truth is no longer stored in KV. That race-sensitive state now lives in the per-campaign Durable Object coordinator, while KV keeps only the public `tier-inventory:{slug}` projection.
+
+Settlement serialization is also Durable Object-backed. The `SETTLEMENT_COORDINATOR` binding owns a short-lived lock per campaign slug so scheduled settlement, direct settlement, dispatch, and batch endpoints cannot charge the same campaign concurrently. Multi-campaign carts still work because checkout persistence creates separate campaign-scoped pledge records, and settlement locks are keyed by the campaign being charged.
 
 ---
 
@@ -145,8 +148,12 @@ Before deploying to production, verify these secrets are set:
 | Launch Reminder Token Secret | `LAUNCH_REMINDER_TOKEN_SECRET` or `MAGIC_LINK_SECRET` fallback | 32+ chars |
 | Admin Session Secret | `ADMIN_SESSION_SECRET` | 32+ chars |
 | Admin Secret | `ADMIN_SECRET` | 32+ chars |
+| Settlement Admin Secret | `ADMIN_SETTLEMENT_SECRET` (optional, scoped) | 32+ chars |
+| Broadcast Admin Secret | `ADMIN_BROADCAST_SECRET` (optional, scoped) | 32+ chars |
 | Turnstile Secret | `TURNSTILE_SECRET_KEY`, `ADMIN_TURNSTILE_SECRET_KEY`, or `LAUNCH_REMINDER_TURNSTILE_SECRET_KEY` | N/A |
 | Resend API Key | `RESEND_API_KEY` | N/A |
+
+When GitHub Actions or an operator script calls protected admin endpoints, add only the needed matching secret to GitHub repository secrets. The default deploy workflow uses `ADMIN_BROADCAST_SECRET` for the post-deploy diary check when it is configured; future settlement automation should use `ADMIN_SETTLEMENT_SECRET` rather than the broader fallback secret.
 
 Generate secure secrets:
 ```bash

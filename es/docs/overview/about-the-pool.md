@@ -13,7 +13,7 @@ lang: es
 
 ## Compromiso de todo o nada
 
-Cuando respaldas un proyecto en The Pool, tu tarjeta se guarda de forma segura a través de Stripe, pero **no se te cobra hasta que la campaña alcance su objetivo**. Si el proyecto no alcanza su objetivo de financiación antes de la fecha límite, nunca se realizará ningún cargo en su tarjeta.
+Cuando respaldas un proyecto en The Pool, tu tarjeta se guarda de forma segura a través de Stripe, pero **no se te cobra hasta que la campaña alcanza su objetivo**. Si el proyecto no alcanza su objetivo de financiación antes de la fecha límite, nunca se realizará ningún cargo en su tarjeta.
 
 Esto protege tanto a los patrocinadores como a los creadores: solo paga por los proyectos que realmente pueden alcanzar su objetivo de financiación.
 
@@ -52,7 +52,7 @@ Para el acceso a la comunidad de seguidores, The Pool mantiene la sesión de apo
 
 Algunos pagos pueden incluir complementos de plataforma, complementos de campaña, actualizaciones de entrega, tarifas de envío, impuestos o una propina de plataforma opcional. El pago explica qué cuenta para el objetivo de la campaña y qué respalda la plataforma por separado.
 
-Varias promesas del mismo correo electrónico se combinan en un solo cargo cuando la misma campaña tiene éxito. Los consejos y complementos de plataforma opcionales apoyan al equipo que opera la plataforma y no cuentan para el objetivo de financiación de un proyecto.
+Varias promesas del mismo correo electrónico se combinan en un solo cargo cuando la misma campaña tiene éxito. Si más de una campaña del mismo pago tiene éxito, esos cargos permanecen separados por campaña. Los consejos y complementos de plataforma opcionales apoyan al equipo que opera la plataforma y no cuentan para el objetivo de financiación de un proyecto.
 
 ## Compartir y actuar
 
@@ -92,14 +92,14 @@ The Pool está diseñado para cineastas y equipos creativos que necesitan una ca
 
 ## La tecnología
 
-The Pool es una pila de financiación colectiva estática. Las páginas públicas se generan con anticipación, mientras que el trabajo del servidor confiable permanece detrás de los trabajadores de Cloudflare en cuanto a precios, promesas, acceso de administrador, datos de cumplimiento y liquidación.
+The Pool es una pila de financiación colectiva estática. Las páginas públicas se generan con anticipación, mientras que el trabajo del servidor confiable permanece detrás de los trabajadores de Cloudflare para los precios, las promesas, el acceso de administrador, los datos de cumplimiento y la liquidación serializada.
 
 |Área|¿Qué lo ejecuta?|Por qué es importante para las horquillas|
 |------|--------------|--------------------------|
 |Sitio público|[Páginas de GitHub](https://docs.github.com/en/pages) y Jekyll|Las páginas de campaña, los documentos, el contenido traducido y los metadatos públicos siguen siendo fáciles de alojar y revisar en Git.|
 |Experiencia de compromiso|El tiempo de ejecución del carrito de The Pool|El carrito, la selección de recompensas, los complementos, la revisión de promesas y la administración de enlaces mágicos siguen siendo propios.|
 |Pagos|[Raya](https://stripe.com)|Stripe posee los campos de pago confidenciales, los métodos de pago guardados y los cargos posteriores.|
-|backend|[Trabajadores de Cloudflare](https://workers.cloudflare.com) y KV|El trabajador valida los totales, almacena las promesas, proporciona estadísticas en vivo, potencia las API de administración y maneja el estado de cumplimiento/liquidación.|
+|backend|[Trabajadores de Cloudflare](https://workers.cloudflare.com) y KV|El trabajador valida los totales, almacena las promesas, ofrece estadísticas en vivo, potencia las API de administración y maneja el cumplimiento y el estado de liquidación del alcance de la campaña.|
 |Panel de administración|El panel privado de The Pool|Los usuarios autorizados pueden administrar campañas, contenido, informes, seguidores, análisis, enlaces de marketing, complementos y usuarios sin editar archivos directamente.|
 |Correo electrónico|[Reenviar](https://resend.com)|Los correos electrónicos de confirmación, enlaces de seguidores, recordatorios de lanzamiento, actualizaciones de campañas y notificaciones de cargos utilizan una ruta de correo electrónico transaccional.|
 

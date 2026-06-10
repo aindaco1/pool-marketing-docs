@@ -41,6 +41,7 @@ Un sitio estático de carrito propio Jekyll + para crowdfunding creativo de todo
 - **Bloques de contenido de campaña desinfectados**: el contenido de campaña y diario de formato largo acepta Markdown más un pequeño subconjunto en línea seguro (`<br>`, `<em>`, `<strong>`, `<i>`, `<b>`, `<u>`), admite videos locales con carteles opcionales, neutraliza esquemas de enlaces de Markdown inseguros, abre automáticamente enlaces externos en una nueva pestaña y escapa o rechaza otro HTML sin formato.
 - **Incrustaciones estructuradas estrictas**: las incrustaciones `spotify`, `youtube` y `vimeo` aprobadas se validan con orígenes confiables exactos y rutas de inserción en lugar de coincidencias de subcadenas.
 - **Inventario serializado de niveles limitados**: las recompensas escasas se reservan a través de un objeto duradero por campaña al inicio del pago y se confirman a través del mismo coordinador en el momento de la persistencia, por lo que los niveles limitados no se sobrevenden bajo demanda simultánea.
+- **Liquidación de campañas serializadas**: las rutas de liquidación programadas y manuales utilizan un bloqueo de coordinador por campaña más claves de idempotencia deterministas de Stripe, por lo que los cargos de la misma campaña no pueden superponerse mientras los carros de varias campañas permanecen dentro del alcance de la campaña.
 - **Manejo estricto de promesas faltantes** — Las lecturas de promesas de Magic-link fallan al cerrarse con `404` cuando falta el registro de promesa de respaldo
 - **Diario de producción**: actualizaciones de contenido enriquecido con correos electrónicos de transmisión automática a los seguidores
 - **Anuncios**: el administrador transmite correos electrónicos con enlaces de CTA personalizados a los seguidores.
@@ -106,7 +107,7 @@ Las configuraciones del motor de impuestos compatibles con Fork se encuentran en
 - Vars de trabajador reflejadas `TAX_PROVIDER`, `TAX_ORIGIN_COUNTRY`, `TAX_USE_REGIONAL_ORIGIN`, `NM_GRT_API_BASE` y `ZIP_TAX_API_BASE` en [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml)
 - `tax.provider: flat` mantiene la línea base de tasa configurada heredada de `pricing.sales_tax_rate`
 - `tax.provider: offline_rules` utiliza reglas internacionales de IVA/GST suministradas además de un comportamiento alternativo a nivel estatal
-- `tax.provider: nm_grt` utiliza primero el conjunto de datos inicial suministrado de Nuevo México y puede refinar las búsquedas de direcciones de calles de Nuevo México con la API gratuita EDAC GRT.
+- `tax.provider: nm_grt` utiliza primero el conjunto de datos inicial de Nuevo México suministrado y puede refinar las búsquedas de direcciones de calles de Nuevo México con la API gratuita EDAC GRT.
 - Secreto de trabajador opcional `ZIP_TAX_API_KEY` cuando `tax.provider: zip_tax` está habilitado para búsquedas de impuestos de EE. UU. a nivel local/jurisdiccional
 
 El comportamiento de pago actual es intencionalmente conservador: si el navegador aún no tiene suficientes datos de destino, el carrito muestra el impuesto provisional como `--` y la cotización de impuestos final se resuelve una vez que el Trabajador tiene suficientes detalles de ubicación de facturación o envío.
@@ -198,7 +199,7 @@ Para crear o actualizar secretos locales de forma segura, ejecute:
 npm run secrets:dev
 ```
 
-Ese ayudante crea `worker/.dev.vars` a partir de `worker/.dev.vars.example` cuando es necesario, lo bloquea con permisos de archivo solo locales, genera secretos de firma locales y solicita claves de proveedor opcionales sin imprimirlas nuevamente en el terminal. El panel de administración muestra una sección de estado de **Secretos y credenciales** de solo lectura, pero nunca almacena valores secretos en `_config.yml`, KV, confirmaciones de GitHub o borradores de configuración de administrador.
+Ese ayudante crea `worker/.dev.vars` a partir de `worker/.dev.vars.example` cuando es necesario, lo bloquea con permisos de archivo solo locales, genera secretos de firma locales y solicita claves de proveedor opcionales sin imprimirlas nuevamente en el terminal. Mantenga esos valores separados de los secretos de producción; `worker/.dev.vars` es para desarrollo local, no una copia de seguridad de las credenciales implementadas. El panel de administración muestra una sección de estado de **Secretos y credenciales** de solo lectura, pero nunca almacena valores secretos en `_config.yml`, KV, confirmaciones de GitHub o borradores de configuración de administrador.
 
 Para iniciar ambas campañas de prueba de administrador contra un trabajador local en ejecución:
 
@@ -227,7 +228,7 @@ npm run podman:self-check
 
 Si desea realizar el pago de Stripe en el sitio localmente, agregue `STRIPE_PUBLISHABLE_KEY_TEST=pk_test_...` a [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars) antes de iniciar la pila.
 
-Para producción, use los secretos de Cloudflare Worker para las credenciales de tiempo de ejecución y los secretos del repositorio de GitHub para las credenciales de implementación. No coloque claves secretas de Stripe, claves de webhook, claves de reenvío, claves de Turnstile, claves de cliente de USPS, claves ZIP.TAX ni tokens de API de Cloudflare en `_config.yml`.
+Para producción, use los secretos de Cloudflare Worker para las credenciales de tiempo de ejecución y los secretos del repositorio de GitHub para las credenciales de implementación o la automatización de GitHub Actions. Los secretos del repositorio de GitHub no se convierten automáticamente en secretos de tiempo de ejecución de Worker, por lo que las credenciales de administrador con alcance, como `ADMIN_SETTLEMENT_SECRET` y `ADMIN_BROADCAST_SECRET`, también deben configurarse en Cloudflare cuando las rutas implementadas deban aplicarlas. No coloque claves secretas de Stripe, secretos de webhooks, claves de reenvío, secretos de Turnstile, secretos de clientes de USPS, claves ZIP.TAX, secretos de administrador ni tokens de API de Cloudflare en `_config.yml`.
 
 Los dominios de remitente de reenvío deben coincidir con las direcciones de remitente configuradas. Para esta implementación, los correos electrónicos de compromiso y actualización utilizan remitentes `site.example.com` como `The Pool <pledges@site.example.com>`, por lo que la clave API de reenvío debe estar autorizada para `site.example.com`.
 
@@ -310,17 +311,19 @@ cd worker && npx wrangler login
 
 # Or, for non-interactive shells and Podman-backed report runs:
 export CLOUDFLARE_API_TOKEN="your-token"
+export CLOUDFLARE_ACCOUNT_ID="your-account-id"
 ./scripts/pledge-report.sh --env production --remote > ~/Desktop/pool-pledge-report.csv
 ./scripts/fulfillment-report.sh --env production --remote > ~/Desktop/pool-fulfillment-report.csv
 ```
-Para informes remotos respaldados por Podman, prefiera `CLOUDFLARE_API_TOKEN` en el shell del host o un archivo env local ignorado como `.env.local`, `.env.cloudflare` o `worker/.dev.vars`; los envoltorios de informes pasan esos valores de autenticación de Cloudflare a `podman exec`. Configuración de la horquilla:
+Para informes remotos respaldados por Podman, prefiera `CLOUDFLARE_API_TOKEN` y `CLOUDFLARE_ACCOUNT_ID` en el shell del host o un archivo env local ignorado como `.env.local`, `.env.cloudflare` o `worker/.dev.vars`; los envoltorios de informes pasan esos valores de autenticación de Cloudflare a `podman exec`. Configuración de la horquilla:
 
 1. En Cloudflare, cree un token API de usuario desde **Mi perfil -> Tokens API -> Crear token**.
 2. Otorgue **Cuenta/Almacenamiento KV de trabajadores/Lectura** para la cuenta propietaria del espacio de nombres `PLEDGES` KV.
-3. Agregue el token a `worker/.dev.vars`:
+3. Agregue el token y la identificación de la cuenta a `worker/.dev.vars`:
 
 ```bash
 CLOUDFLARE_API_TOKEN=your-token
+CLOUDFLARE_ACCOUNT_ID=your-account-id
 ```
 
 Luego ejecute las exportaciones de producción remota a través del contenedor de trabajadores de Podman:
@@ -462,14 +465,18 @@ Ese flujo de trabajo de GitHub Actions ahora implementa ambos:
 La compilación de Pages ejecuta Jekyll primero, luego `npm run assets:minify` contra `_site/assets/**/*.css` y `_site/assets/**/*.js` generados antes de cargar el artefacto. Los archivos fuente permanecen legibles en el repositorio; Cloudflare todavía maneja la compresión gzip/Brotli/Zstandard en el borde, por lo que Cloudflare Auto Minify debería permanecer deshabilitado.
 
 Secretos del repositorio de GitHub necesarios para la implementación automática de trabajadores:
-- `CLOUDFLARE_API_TOKEN`
+- `CLOUDFLARE_API_TOKEN` a partir de un **token de API de usuario** creado en **Mi perfil -> Tokens de API**, usando la plantilla **Editar trabajadores de Cloudflare** y con alcance en esta cuenta y la zona `example.com`. No utilice un token API propiedad de la cuenta; Wrangler todavía llama a puntos finales de ámbito de usuario, como membresías, durante la implementación.
 - `CLOUDFLARE_ACCOUNT_ID`
 - `ADMIN_SECRET` para la verificación del diario posterior a la implementación
+- `ADMIN_BROADCAST_SECRET` opcional para la verificación del diario posterior a la implementación cuando el trabajador usa credenciales de transmisión con alcance
+- `CLOUDFLARE_CACHE_PURGE_TOKEN` opcional con permisos de purga de caché de zona si desea que la purga de caché utilice un token más estrecho que el token de implementación. Esto es recomendable; de lo contrario, también se debe permitir que el token de implementación purgue la caché.
 - `DIARY_CHECK_BYPASS_SECRET` opcional si Cloudflare WAF desafía la verificación del diario posterior a la implementación
+
+Establezca el `ADMIN_BROADCAST_SECRET` o `ADMIN_SETTLEMENT_SECRET` coincidente en los secretos de Cloudflare Worker antes de confiar en la aplicación de rutas con alcance en producción. Agregue `ADMIN_SETTLEMENT_SECRET` a los secretos del repositorio de GitHub solo si una GitHub Actions o un flujo de trabajo del operador realmente llama a puntos finales de liquidación. Mantenga valores locales separados en `worker/.dev.vars`; no copie los valores de producción allí como copia de seguridad.
 
 El flujo de trabajo también necesita permisos de implementación de GitHub Pages. Mantenga `pages: write` y `id-token: write` explícitos en el trabajo de implementación de páginas si copia o refactoriza `.github/workflows/deploy.yml`.
 
-Los medios cargados en el panel conservan el origen cuando ingresan al repositorio. Las cargas de imágenes y videos envían el flujo de trabajo separado **Optimizar medios del panel** con `scope=changed` después de que la confirmación de GitHub se realice correctamente; las cargas de audio permanecen conservadas en origen porque ese flujo de trabajo no procesa `assets/audio`. El flujo de trabajo también se ejecuta en `main` para cambios `assets/images/**`, `assets/videos/**`, `_campaigns/**` y `_config.yml`; comprime imágenes cuando hay una salida más pequeña disponible, genera variantes WebP responsivas para plantillas de imágenes públicas en `320w`, `480w`, `640w`, `960w` y `1600w`, genera derivados WebM para videos cargados, reescribe referencias de video literales después de que existan derivados y confirma esos cambios de optimización con el bot GitHub Actions. Utilice la opción de flujo de trabajo manual `scope=all` cuando los medios de campaña existentes necesiten un reprocesamiento completo o cuando sea necesario barrer los medios que no están en el panel.
+Los medios cargados en el panel conservan el origen cuando ingresan al repositorio. Las cargas de imágenes y videos envían el flujo de trabajo separado **Optimizar medios del panel** con `scope=changed` después de que la confirmación de GitHub se realice correctamente; las cargas de audio permanecen conservadas en origen porque ese flujo de trabajo no procesa `assets/audio`. El flujo de trabajo también se ejecuta en `main` para cambios `assets/images/**`, `assets/videos/**`, `_campaigns/**` y `_config.yml`; comprime imágenes cuando hay una salida más pequeña disponible, genera variantes WebP responsivas para plantillas de imágenes públicas en `320w`, `480w`, `640w`, `960w` y `1600w`, genera derivados WebM para videos cargados, reescribe referencias de video literales después de que existan derivados y abre una solicitud de extracción con esos cambios de optimización en lugar de enviar directamente a `main`. Utilice la opción de flujo de trabajo manual `scope=all` cuando los medios de campaña existentes necesiten un reprocesamiento completo o cuando sea necesario barrer los medios que no están en el panel.
 
 Si la verificación del diario registra una página de desafío HTTP `403` Cloudflare, la solicitud se detiene antes de que llegue al trabajador. Agregue una regla personalizada WAF de Cloudflare que omita los desafíos administrados para:
 
@@ -484,13 +491,7 @@ Expresión sugerida:
 (http.host eq "worker.example.com" and http.request.method eq "POST" and http.request.uri.path eq "/admin/diary/check" and any(http.request.headers["x-pool-diary-check"][*] eq "your-bypass-secret"))
 ```
 
-El Trabajador todavía requiere `Authorization: Bearer ADMIN_SECRET`; el encabezado de omisión solo permite que la automatización de GitHub Actions llegue a ese punto final autenticado.
-
-Reserva temporal: el flujo de trabajo también admite la autenticación heredada de Cloudflare a través de
-- `CLOUDFLARE_EMAIL`
-- `CLOUDFLARE_KEY`
-
-La ruta token + ID de cuenta sigue siendo la configuración recomendada a largo plazo.
+El trabajador aún requiere `Authorization: Bearer ADMIN_BROADCAST_SECRET` cuando se configuran las credenciales de transmisión con alcance; de ​​lo contrario, `Authorization: Bearer ADMIN_SECRET`; el encabezado de omisión solo permite que la automatización de GitHub Actions llegue a ese punto final autenticado.
 
 Respaldo del trabajador manual desde la raíz del repositorio:
 ```bash

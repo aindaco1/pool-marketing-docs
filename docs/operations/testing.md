@@ -487,6 +487,8 @@ WORKER_URL=https://worker.example.com PROD_MODE=true npm run test:security
   - `WORKER_URL` — Base URL (default: `http://localhost:8787`)
   - `PROD_MODE` — Skip destructive tests (default: `false`)
   - `ADMIN_SECRET` — For admin auth tests
+  - `ADMIN_SETTLEMENT_SECRET` — Optional scoped secret for settlement auth tests or staging checks
+  - `ADMIN_BROADCAST_SECRET` — Optional scoped secret for broadcast/diary auth tests or staging checks
   - `TEST_TOKEN` — Valid magic link token
 
 See [tests/security/README.md](/docs/operations/security-test-suite/) for details.
@@ -525,6 +527,8 @@ wrangler secret put MAGIC_LINK_SECRET
 wrangler secret put CHECKOUT_INTENT_SECRET
 wrangler secret put RESEND_API_KEY
 wrangler secret put ADMIN_SECRET
+wrangler secret put ADMIN_SETTLEMENT_SECRET
+wrangler secret put ADMIN_BROADCAST_SECRET
 ```
 
 ### Run Worker Locally
@@ -900,6 +904,10 @@ Expected: Returns `{ success: true }` and triggers GitHub workflow.
 - `MAGIC_LINK_SECRET` — Random 32+ char string for HMAC token signing
 - `RESEND_API_KEY` — Resend API key for supporter emails (re_...)
 - `ADMIN_SECRET` — Random string for admin API endpoints
+- `ADMIN_SETTLEMENT_SECRET` — Optional scoped admin secret for settlement endpoints; use a separate local-only value in `worker/.dev.vars`
+- `ADMIN_BROADCAST_SECRET` — Optional scoped admin secret for diary, milestone, and announcement endpoints; also add it to GitHub repository secrets for the post-deploy diary check when enabled
+- `CLOUDFLARE_API_TOKEN` — For GitHub deploys, use a Cloudflare user API token created from **My Profile -> API Tokens** with the **Edit Cloudflare Workers** template. For local report exports, use a separate read-only Workers KV token when possible.
+- `CLOUDFLARE_ACCOUNT_ID` — Cloudflare account id for Wrangler deploys and non-interactive local report/export scripts
 - `TURNSTILE_SECRET_KEY` — Shared Cloudflare Turnstile secret when admin sign-in or launch reminder widgets are enabled
 - `LAUNCH_REMINDER_TURNSTILE_SECRET_KEY` — Optional reminder-specific Turnstile secret if not using the shared secret
 - `LAUNCH_REMINDER_TOKEN_SECRET` — Optional reminder unsubscribe-token secret; falls back to `MAGIC_LINK_SECRET`

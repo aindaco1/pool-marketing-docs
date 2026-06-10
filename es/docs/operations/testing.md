@@ -77,7 +77,7 @@ Pruebas rápidas y aisladas para funciones JS en `tests/unit/`.
 |`votes`|Almacenamiento/descopia de votos basado en correo electrónico, recuperación del estado de los votos, resultados de campaña, agregación de resultados|
 |`admin-dashboard`|Seguimiento del estado sucio del panel, serialización de configuraciones, normalización de contenido/editor, cargas de medios por etapas, análisis/relleno de tarifas reales de Stripe, ayudas de URL de referencia, utilidades de soporte responsivo/i18n|
 |`campaign-page`|Construcción de URL de enlaces compartidos, preservación segura de consultas, texto compartido con reconocimiento de estado, envío de formularios de recordatorio de lanzamiento, controles de campañas públicas y comportamiento de la página de campaña sensible a SEO|
-|`page-prefetch`|Listas permitidas de rutas públicas del mismo origen, exclusiones de consultas confidenciales, protecciones de red, manejo de retrasos/límites y creación de sugerencias de captación previa de documentos|
+|`page-prefetch`|Listas permitidas de rutas públicas del mismo origen, exclusiones de consultas confidenciales, protecciones de red, manejo de demoras/límites y creación de sugerencias de captación previa de documentos|
 |`cart-runtime-loader`|Arranque diferido en tiempo de ejecución del carrito, detección de carrito persistente/de recuperación, carga idempotente y activadores de intención del usuario|
 |`site-asset-minification`|Comportamiento de minificación CSS/JS generado `_site` y casos de falla del modo de verificación|
 |`media-optimization-script`|Selección de archivos modificados, decisiones de optimización de imágenes sin pérdidas, denominación de derivados de vídeo y reescritura de referencias de fuente a WebM|
@@ -457,7 +457,7 @@ Pruebas de penetración para la API Worker. Ubicado en `tests/security/`.
 
 ### Cobertura
 
-|Categoría|Pruebas|
+|categoría|Pruebas|
 |----------|-------|
 |Omisión de autenticación|Omisión de token de desarrollo, validación de token, caducidad, manipulación|
 |Seguridad del webhook|Verificación de firma de franja, manejo de eventos duplicados, inyección de dirección de envío, manejo de webhooks heredados eliminados|
@@ -488,6 +488,8 @@ WORKER_URL=https://worker.example.com PROD_MODE=true npm run test:security
   - `WORKER_URL`: URL base (predeterminada: `http://localhost:8787`)
   - `PROD_MODE`: omitir pruebas destructivas (predeterminado: `false`)
   - `ADMIN_SECRET`: para pruebas de autenticación de administrador
+  - `ADMIN_SETTLEMENT_SECRET`: secreto de alcance opcional para pruebas de autenticación de liquidación o comprobaciones de preparación
+  - `ADMIN_BROADCAST_SECRET`: secreto de alcance opcional para pruebas de autenticación de transmisión/diario o comprobaciones de preparación
   - `TEST_TOKEN` — Token de enlace mágico válido
 
 Consulte [tests/security/README.md](/es/docs/operations/security-test-suite/) para obtener más detalles.
@@ -526,6 +528,8 @@ wrangler secret put MAGIC_LINK_SECRET
 wrangler secret put CHECKOUT_INTENT_SECRET
 wrangler secret put RESEND_API_KEY
 wrangler secret put ADMIN_SECRET
+wrangler secret put ADMIN_SETTLEMENT_SECRET
+wrangler secret put ADMIN_BROADCAST_SECRET
 ```
 
 ### Ejecutar trabajador localmente
@@ -815,7 +819,7 @@ Después de completar un flujo de contribución:
    - `pledgeStatus: "active"`
    - `charged: false`
 
-### Puntos finales de gestión de compromisos de prueba
+### Puntos finales de gestión de promesas de prueba
 
 1. **Obtenga detalles de la promesa (requiere un token válido):**
    ```bash
@@ -901,6 +905,10 @@ Esperado: devuelve `{ success: true }` y activa el flujo de trabajo de GitHub.
 - `MAGIC_LINK_SECRET`: cadena aleatoria de más de 32 caracteres para la firma de tokens HMAC
 - `RESEND_API_KEY` — Reenviar clave API para correos electrónicos de soporte (re_...)
 - `ADMIN_SECRET`: cadena aleatoria para puntos finales de API de administración
+- `ADMIN_SETTLEMENT_SECRET`: secreto de administración de ámbito opcional para puntos finales de liquidación; use un valor solo local separado en `worker/.dev.vars`
+- `ADMIN_BROADCAST_SECRET`: secreto de administración de ámbito opcional para puntos finales de diario, hitos y anuncios; también agréguelo a los secretos del repositorio de GitHub para la verificación del diario posterior a la implementación cuando esté habilitado
+- `CLOUDFLARE_API_TOKEN`: para implementaciones de GitHub, use un token API de usuario de Cloudflare creado desde **Mi perfil -> Tokens API** con la plantilla **Editar trabajadores de Cloudflare**. Para exportaciones de informes locales, utilice un token KV de trabajadores de solo lectura cuando sea posible.
+- `CLOUDFLARE_ACCOUNT_ID`: ID de cuenta de Cloudflare para implementaciones de Wrangler y scripts de exportación/informes locales no interactivos
 - `TURNSTILE_SECRET_KEY`: Secreto compartido de Cloudflare Turnstile cuando el inicio de sesión de administrador o los widgets de recordatorio de inicio están habilitados
 - `LAUNCH_REMINDER_TURNSTILE_SECRET_KEY` — Secreto de torniquete específico de recordatorio opcional si no se utiliza el secreto compartido
 - `LAUNCH_REMINDER_TOKEN_SECRET`: secreto de token de cancelación de suscripción de recordatorio opcional; vuelve a `MAGIC_LINK_SECRET`

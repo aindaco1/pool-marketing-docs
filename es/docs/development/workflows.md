@@ -353,7 +353,7 @@ Activar una reconstrucción de páginas de GitHub (para transiciones de estado).
 ### `POST /admin/broadcast/announcement`
 Envíe un correo electrónico de anuncio personalizado con un enlace CTA opcional a todos los partidarios de la campaña.
 
-**Encabezados:** `Authorization: Bearer ADMIN_SECRET`
+**Encabezados:** `Authorization: Bearer ADMIN_BROADCAST_SECRET` cuando está configurado, de lo contrario `Authorization: Bearer ADMIN_SECRET`
 **Pedido:**
 ```json
 {
@@ -400,7 +400,7 @@ curl "http://localhost:8787/admin/reports/campaign-runner/preview?campaignSlug=h
 curl "http://localhost:8787/admin/reports/campaign-runner.csv?campaignSlug=hand-relations&reportType=fulfillment"
 ```
 
-Para el uso del navegador autenticado, estos puntos finales requieren la cookie de sesión del panel y protecciones de origen/CSRF cuando corresponda. Los puntos finales de administración basados ​​en scripts que todavía usan `Authorization: Bearer ADMIN_SECRET` permanecen separados del contrato del panel del navegador.
+Para el uso del navegador autenticado, estos puntos finales requieren la cookie de sesión del panel y protecciones de origen/CSRF cuando corresponda. Los puntos finales de administración basados ​​en scripts que utilizan secretos de portador permanecen separados del contrato del panel del navegador. Las rutas de liquidación pueden requerir `ADMIN_SETTLEMENT_SECRET`, y las rutas de transmisión/diario/hitos pueden requerir `ADMIN_BROADCAST_SECRET`; Si no se configura un secreto de ámbito, la ruta vuelve a `ADMIN_SECRET`. Establezca secretos de alcance en los secretos de Cloudflare Worker para la aplicación del tiempo de ejecución y agregue secretos coincidentes del repositorio de GitHub solo para acciones o flujos de trabajo de operadores que llamen a esos puntos finales.
 
 Reabastecimiento financiero de Stripe para superadministradores:
 
@@ -515,13 +515,15 @@ El programador tiene en cuenta intencionadamente los niveles gratuitos. Las cola
 
 El punto final `settle-dispatch` maneja el cobro real en lotes para permanecer dentro del límite de 50 subsolicitudes de CF Worker:
 
-1. Lee el índice de compromiso de campaña (`campaign-pledges:{slug}` en KV)
-2. Inicializa un trabajo de liquidación (`settlement-job:{slug}`) que sigue el progreso.
-3. Procesa 6 promesas por lote a través de `POST /admin/settle-batch`
-4. Autoinvocaciones para el siguiente lote hasta que se procesen todas las promesas
-5. Cada lote es una invocación de trabajador separada con su propio presupuesto de subsolicitud
-6. **Agrega promesas por correo electrónico**: cada colaborador recibe UN cargo
-7. Al finalizar, establece `campaign-charged:{slug}` solo cuando ningún compromiso activo todavía necesita atención.
+1. Reclama el bloqueo de objetos duraderos `SETTLEMENT_COORDINATOR` de la campaña.
+2. Lee el índice de compromiso de campaña (`campaign-pledges:{slug}` en KV)
+3. Inicializa un trabajo de liquidación (`settlement-job:{slug}`) que sigue el progreso.
+4. Procesa 6 promesas de la misma campaña por lote a través de `POST /admin/settle-batch`
+5. Se autoinvoca para el siguiente lote hasta que se procesen todos los compromisos, reenviando al mismo propietario del bloqueo
+6. Cada lote es una invocación de trabajador separada con su propio presupuesto de subsolicitud
+7. **Agrega promesas por correo electrónico**: cada partidario recibe UN cargo por campaña
+8. Utiliza una clave de idempotencia determinista de Stripe por grupo de carga de campaña/partidario
+9. Al finalizar, establece `campaign-charged:{slug}` solo cuando ningún compromiso activo todavía necesita atención.
 
 **Índice de compromiso de campaña:**
 
@@ -535,10 +537,11 @@ Se mantiene automáticamente una serie de ID de pedido por campaña (`campaign-p
 **Comportamientos clave:**
 - Los compromisos cancelados nunca se cobran
 - Varias promesas del mismo correo electrónico = un cargo agregado (subtotales + envío + impuestos + propina sumada)
+- Los carritos de campañas múltiples siguen siendo compatibles porque la persistencia del pago crea un registro de compromiso por campaña; los bloqueos y lotes de liquidación tienen un alcance de campaña y rechazan lotes de campaña mixta
 - Utiliza el método de pago actualizado más recientemente para cada partidario
 - Las promesas ya cobradas se omiten de forma segura (idempotentes)
-- Se puede activar manualmente a través de `POST /admin/settle-dispatch/:slug`
-- La liquidación monolítica heredada todavía está disponible: `POST /admin/settle/:slug` (use la liquidación-despacho para campañas grandes)
+- Se puede activar manualmente a través de `POST /admin/settle-dispatch/:slug` con `ADMIN_SETTLEMENT_SECRET` cuando está configurado; de lo contrario, `ADMIN_SECRET`
+- El asentamiento monolítico heredado aún está disponible: `POST /admin/settle/:slug`; Utiliza el mismo bloqueo de campaña y la misma ruta de clave de idempotencia de Stripe, pero se prefiere `settle-dispatch` para campañas grandes.
 - Latido del cron: verificar a través de `GET /admin/cron/status`
 
 ### Error de pago y reintento
@@ -605,7 +608,7 @@ async function sendSupporterEmail(env, { email, campaignSlug, campaignTitle, amo
 
 Todos los correos electrónicos muestran cantidades exactas con 2 decimales (sin redondeo).
 
-**Confirmación de compromiso** (enviada después de que la sesión de Stripe en el modo de configuración se complete exitosamente)
+**Confirmación de compromiso** (enviada después de que la sesión de Stripe en el modo de configuración se complete con éxito)
 - Asunto: "Compromiso confirmado | {Título de la campaña}"
 - Contiene: desglose completo (subtotal, propina opcional de The Pool, impuestos, envío si es físico, total), artículos prometidos, enlace de administración, enlace comunitario
 - Incluye: CTA de Instagram (si la campaña tiene URL de Instagram)

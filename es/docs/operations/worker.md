@@ -38,7 +38,7 @@ La configuración de Worker reflejada ahora también incluye los indicadores de 
 - `DEBUG_CONSOLE_LOGGING_ENABLED`
 - `DEBUG_VERBOSE_CONSOLE_LOGGING`
 
-Estos provienen de `debug.console_logging_enabled` y `debug.verbose_console_logging` en la raíz del repositorio [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml), y ambos están predeterminados en `true`, por lo que los trabajadores locales y desplegados permanecen detallados a menos que una bifurcación rechace explícitamente el inicio de sesión.
+Estos provienen de `debug.console_logging_enabled` y `debug.verbose_console_logging` en la raíz del repositorio [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml). El registro de la consola permanece habilitado de forma predeterminada, mientras que la depuración detallada/información/ruido de registro está desactivado de manera predeterminada, por lo que la salida de advertencia/error sigue siendo útil sin enviar detalles de diagnóstico amplios.
 
 El espejo Worker también incluye los botones de captación previa de intención pública utilizados por las páginas públicas generadas:
 
@@ -113,7 +113,7 @@ Los secretos del desarrollo local viven en ignorados [`worker/.dev.vars`](https:
 npm run secrets:dev
 ```
 
-El asistente crea `worker/.dev.vars` a partir de [`worker/.dev.vars.example`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars.example) cuando es necesario, aplica permisos solo locales, genera secretos de firma para el desarrollo local y solicita claves de proveedor opcionales sin devolver los valores al terminal. Los lanzadores de desarrollo también ejecutan este asistente en modo no interactivo, por lo que los secretos de firma locales existen antes de que se inicie Wrangler.
+El asistente crea `worker/.dev.vars` a partir de [`worker/.dev.vars.example`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars.example) cuando es necesario, aplica permisos solo locales, genera secretos de firma para el desarrollo local y solicita claves de proveedor opcionales sin devolver los valores al terminal. Los lanzadores de desarrollo también ejecutan este asistente en modo no interactivo, por lo que los secretos de firma locales existen antes de que se inicie Wrangler. No pegue valores secretos de producción en `worker/.dev.vars` como copia de seguridad; utilice valores locales separados allí.
 
 Los secretos de producción pertenecen a los secretos de los trabajadores de Cloudflare:
 
@@ -142,6 +142,10 @@ wrangler secret put RESEND_API_KEY
 
 # Admin endpoints
 wrangler secret put ADMIN_SECRET
+# Optional scoped admin endpoint secrets. When set, these routes reject
+# ADMIN_SECRET and require their narrower secret.
+wrangler secret put ADMIN_SETTLEMENT_SECRET
+wrangler secret put ADMIN_BROADCAST_SECRET
 
 # Browser admin sessions and bootstrap access
 wrangler secret put ADMIN_SESSION_SECRET
@@ -164,7 +168,7 @@ wrangler secret put USPS_CLIENT_SECRET
 wrangler secret put ZIP_TAX_API_KEY
 ```
 
-No almacene valores secretos en `_config.yml`, campaña YAML, KV, borradores de configuración de administrador ni documentación confirmada. Las claves publicables de Stripe son claves públicas del navegador y pueden almacenarse en la configuración del panel o en las variables de implementación. El panel de administración solo informa si las credenciales de tiempo de ejecución aparecen configuradas; no lee ni persiste valores secretos.
+Si un flujo de trabajo de GitHub Actions o un trabajo de operador llama a puntos finales de administración con alcance, establezca también el mismo valor con alcance como secreto del repositorio de GitHub para ese flujo de trabajo. Los secretos del repositorio autentican las acciones de GitHub; no crean ni actualizan secretos de tiempo de ejecución de Cloudflare Worker. No almacene valores secretos en `_config.yml`, campaña YAML, KV, borradores de configuración de administrador ni documentación confirmada. Las claves publicables de Stripe son claves públicas del navegador y pueden almacenarse en la configuración del panel o en las variables de implementación. El panel de administración solo informa si las credenciales de tiempo de ejecución aparecen configuradas; no lee ni persiste valores secretos.
 
 Se debe permitir que la clave API de reenvío se envíe desde el dominio configurado en `PLEDGES_EMAIL_FROM` y `UPDATES_EMAIL_FROM`. Para la implementación en vivo de Dust Wave, esas direcciones de remitente usan `site.example.com`; autorizar solo un dominio raíz no autoriza a los remitentes de subdominios, y autorizar solo un subdominio no autoriza a los remitentes de dominios raíz.
 
@@ -178,7 +182,7 @@ La configuración de USPS para este repositorio se divide intencionalmente:
 
 Actualmente, The Pool solo necesita USPS OAuth más el conjunto de productos predeterminado de opciones de precio/envío para el cálculo de cotizaciones en vivo. **No** requiere la configuración de etiquetas/envío/EPA de USPS a menos que el proyecto crezca posteriormente hasta convertirse en la generación de etiquetas.
 
-Ejemplo de archivo `worker/.dev.vars` local:
+Ejemplo de archivo local `worker/.dev.vars`:
 
 ```dotenv
 STRIPE_SECRET_KEY_TEST=sk_test_your_test_key
@@ -221,7 +225,7 @@ npm run deploy
 npm run deploy:worker
 ```
 
-En GitHub, los envíos a `main` también implementan el trabajador automáticamente a través de `.github/workflows/deploy.yml`. La configuración preferida utiliza los secretos del repositorio `CLOUDFLARE_API_TOKEN` y `CLOUDFLARE_ACCOUNT_ID`. Como alternativa temporal, el flujo de trabajo también acepta la autenticación heredada de Cloudflare a través de `CLOUDFLARE_EMAIL` y `CLOUDFLARE_KEY`. El trabajo de implementación de páginas requiere `pages: write` y `id-token: write`; mantenga esos permisos explícitos si el flujo de trabajo se copia en una bifurcación.
+En GitHub, los envíos a `main` también implementan el trabajador automáticamente a través de `.github/workflows/deploy.yml`. El flujo de trabajo utiliza secretos de repositorio `CLOUDFLARE_API_TOKEN` y `CLOUDFLARE_ACCOUNT_ID`; cree `CLOUDFLARE_API_TOKEN` como token API de usuario en **Mi perfil -> Tokens API** con la plantilla **Editar trabajadores de Cloudflare**, con alcance en esta cuenta y la zona `example.com`. No utilice un token API propiedad de la cuenta, porque Wrangler todavía llama a puntos finales de ámbito de usuario durante la implementación. La purga de caché puede utilizar un `CLOUDFLARE_CACHE_PURGE_TOKEN` más estrecho y, de lo contrario, recurrir a `CLOUDFLARE_API_TOKEN`; Se recomienda el token de purga de caché independiente para que el token de implementación no necesite acceso de purga de caché de zona. El trabajo de implementación de páginas requiere `pages: write` y `id-token: write`; mantenga esos permisos explícitos si el flujo de trabajo se copia en una bifurcación.
 
 ## Puntos finales API
 
@@ -437,9 +441,9 @@ Envíe una notificación de actualización del diario a todos los partidarios de
 ```
 
 ### POST /admin/diary/check
-Verifique todas las campañas en busca de nuevas entradas del diario y transmítalas automáticamente. Lo llaman GitHub Actions después de la implementación. Requiere el encabezado `Authorization: Bearer {ADMIN_SECRET}`.
+Verifique todas las campañas en busca de nuevas entradas del diario y transmítalas automáticamente. Lo llaman GitHub Actions después de la implementación. Requiere `Authorization: Bearer {ADMIN_BROADCAST_SECRET}` cuando se configura el secreto de difusión con ámbito; de lo contrario, `Authorization: Bearer {ADMIN_SECRET}`.
 
-Si la seguridad de la zona de Cloudflare desafía la solicitud de GitHub Actions antes de que llegue al trabajador, establezca un secreto de repositorio llamado `DIARY_CHECK_BYPASS_SECRET` y agregue una regla de omisión WAF de Cloudflare para `POST /admin/diary/check` cuando `X-Pool-Diary-Check` coincida con ese secreto. Mantenga `ADMIN_SECRET` habilitado; el encabezado de omisión es solo una señal de regla de borde, no una autenticación de trabajador.
+Si la seguridad de la zona de Cloudflare desafía la solicitud de GitHub Actions antes de que llegue al trabajador, establezca un secreto de repositorio llamado `DIARY_CHECK_BYPASS_SECRET` y agregue una regla de omisión WAF de Cloudflare para `POST /admin/diary/check` cuando `X-Pool-Diary-Check` coincida con ese secreto. Mantenga habilitado el administrador del trabajador o el secreto de transmisión; el encabezado de omisión es solo una señal de regla de borde, no una autenticación de trabajador.
 
 ```json
 {
@@ -644,9 +648,10 @@ The Worker también ofrece vistas previas localizadas de tarjetas compartidas de
    - El usuario puede modificar el nivel, cancelar o actualizar el método de pago.
 
 4. **La campaña alcanza el objetivo**
-   - El administrador activa el proceso de cobro (script separado)
-   - Crea PaymentIntents utilizando métodos de pago almacenados
-   - Actualiza el estado del compromiso a "cargado"
+   - El planificador o un operador autorizado envía la liquidación de la campaña.
+   - El coordinador de asentamientos de la campaña serializa lotes de asentamientos
+   - El trabajador crea PaymentIntents utilizando métodos de pago almacenados y claves de idempotencia deterministas
+   - Las promesas se actualizan a "cargadas" o "pago_fallido"
 
 ## Modo de prueba
 
@@ -697,4 +702,4 @@ Las entradas del diario se transmiten automáticamente a los seguidores cuando s
 
 Las entradas del diario deben tener valores `id` estables. El panel conserva los ID existentes y el trabajador obtiene ID basados ​​en títulos al publicar entradas que aún no tienen uno. Las transmisiones automáticas rastrean los marcadores `id:{entryId}` y aún reconocen los marcadores de fecha heredados, incluidas las cadenas de fecha que solo difieren en el formato de segundos `:00`. La actualización del título de una entrada del diario, visualización de fecha, fase o contenido existente no debería enviar otro correo electrónico automático.
 
-**Configuración:** Asegúrese de que `ADMIN_SECRET` esté configurado como secreto del repositorio de GitHub para que la acción de implementación se autentique. Si la verificación posterior a la implementación recibe una página de desafío de Cloudflare, configure también `DIARY_CHECK_BYPASS_SECRET` más la regla de omisión de WAF correspondiente descrita anteriormente.
+**Configuración:** Asegúrese de que `ADMIN_SECRET` esté configurado como secreto del repositorio de GitHub para que la acción de implementación se autentique, o configure `ADMIN_BROADCAST_SECRET` tanto en los secretos de Cloudflare Worker como en los secretos del repositorio de GitHub cuando use credenciales de transmisión con alcance. Si la verificación posterior a la implementación recibe una página de desafío de Cloudflare, configure también `DIARY_CHECK_BYPASS_SECRET` más la regla de omisión de WAF correspondiente descrita anteriormente.

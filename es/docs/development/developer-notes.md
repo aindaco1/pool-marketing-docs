@@ -14,7 +14,7 @@ lang: es
 - **Tiempo de ejecución del carrito propio**: carrito propiedad del navegador, revisión del pago y flujo de pago de Stripe en el sitio
 - **Cloudflare Worker**: API de backend, almacenamiento de promesas (KV), envío de correo electrónico
 - **Stripe** — Sesiones de pago en modo de configuración para el paso de pago en el sitio, además de PaymentIntents para cargos posteriores
-- **Reenviar**: correos electrónicos transaccionales (confirmación del colaborador, recordatorios de lanzamiento, hitos, fallas)
+- **Reenviar**: correos electrónicos transaccionales (confirmación de soporte, recordatorios de lanzamiento, hitos, fallas)
 - **Panel de administración privado**: edición, configuración, complementos, informes, análisis, seguidores y herramientas de marketing de campañas basadas en roles
 
 ### Perillas de plano libre aptas para horquillas
@@ -205,7 +205,7 @@ El panel privado en `/admin/` ahora es el editor y la superficie de operaciones 
 - Los informes, los análisis, la exploración de los asistentes, las vistas previas de contenido, el filtrado de tablas y las descargas de CSV son flujos del panel de solo lectura y no deben agregar escrituras KV.
 - Las cargas de imágenes/vídeo/audio utilizan los directorios de activos existentes, normalizan los nombres de archivos y luego publican a través de la misma ruta respaldada por GitHub que el campo que actualizan.
 - La limpieza de contenidos y medios del diario se ejecuta en el momento de la publicación. El trabajador compara el contenido/los datos del diario de la campaña previamente cargados con el borrador normalizado que se está confirmando, elimina las rutas de medios propiedad del panel de la misma campaña que desaparecieron y conserva las URL externas, los activos compartidos/predeterminados y los archivos a los que todavía se hace referencia en otras partes de la campaña.
-- La optimización de los medios está deliberadamente fuera del Trabajador. Después de que las cargas de imágenes y videos se confirmen correctamente, el trabajador solicita el flujo de trabajo de acciones de GitHub `Optimize dashboard media` con `scope=changed`; Las cargas de audio se conservan en origen porque el optimizador no procesa `assets/audio`. Utilice `npm run media:optimize` localmente, `npm run media:optimize:podman` cuando falten optimizadores nativos del host, `npm run media:optimize:check` o `npm run media:optimize:check:podman` antes de fusionar cuando se modifiquen los medios cargados, o envíe manualmente el flujo de trabajo con `scope=all` para reprocesar los medios existentes.
+- La optimización de los medios está deliberadamente fuera del Trabajador. Después de que las cargas de imágenes y videos se confirmen exitosamente, el trabajador solicita el flujo de trabajo de acciones de GitHub `Optimize dashboard media` con `scope=changed`; Las cargas de audio se conservan en origen porque el optimizador no procesa `assets/audio`. Utilice `npm run media:optimize` localmente, `npm run media:optimize:podman` cuando falten optimizadores nativos del host, `npm run media:optimize:check` o `npm run media:optimize:check:podman` antes de fusionar cuando se modifiquen los medios cargados, o envíe manualmente el flujo de trabajo con `scope=all` para reprocesar los medios existentes.
 
 Consulte [DASHBOARD.md](/es/docs/operations/admin-dashboard/) para obtener la referencia completa del panel.
 
@@ -463,7 +463,7 @@ diary:
 
 **Difusiones por correo electrónico:** Cuando se agregan e implementan entradas del diario, la acción de GitHub activa `/admin/diary/check`, que envía correos electrónicos de actualización a todos los partidarios de la campaña. La verificación automática envía sólo las entradas que no se han difundido antes. Las entradas del diario utilizan valores `id` estables para el seguimiento de transmisiones; el panel conserva las identificaciones existentes y el trabajador deriva las identificaciones basadas en títulos para las entradas recién agregadas. Los marcadores de fechas heredados aún se reconocen, por lo que las ediciones de entradas más antiguas no se reenvían. El extracto del correo electrónico se extrae automáticamente de los bloques de texto (primeros 200 caracteres, sin rebajas).
 
-**Configuración requerida:** Agregue `ADMIN_SECRET` como secreto del repositorio de GitHub (Configuración → Secretos → Acciones). Debe coincidir con el `ADMIN_SECRET` del trabajador. Sin él, las transmisiones diarias por correo electrónico fallarán silenciosamente.
+**Configuración requerida:** Agregue `ADMIN_SECRET` como secreto del repositorio de GitHub (Configuración → Secretos → Acciones), o agregue `ADMIN_BROADCAST_SECRET` tanto a los secretos de Cloudflare Worker como a los secretos del repositorio de GitHub cuando use credenciales de transmisión con alcance. Los secretos del repositorio autentican la acción de GitHub; Los secretos de los trabajadores son lo que lee la ruta desplegada. Sin el secreto coincidente en ambos lugares, las transmisiones de correo electrónico del diario fallarán en la autenticación.
 
 ### Financiamiento continuo (posterior a la campaña)
 
@@ -582,12 +582,16 @@ CHECKOUT_INTENT_SECRET=random-32-char-string-for-hmac
 MAGIC_LINK_SECRET=random-32-char-string-for-hmac
 RESEND_API_KEY=re_...
 ADMIN_SECRET=local-admin-secret
+ADMIN_SETTLEMENT_SECRET=local-settlement-admin-secret
+ADMIN_BROADCAST_SECRET=local-broadcast-admin-secret
 ```
 
 Generar secretos:
 ```bash
 openssl rand -base64 32
 ```
+
+Utilice valores locales separados únicamente en `worker/.dev.vars`; no utilice ese archivo como copia de seguridad secreta de producción. Los secretos del tiempo de ejecución de producción pertenecen a los secretos de Cloudflare Worker, mientras que los secretos del repositorio de GitHub son solo para acciones o automatización de operadores que necesitan llamar a rutas protegidas.
 
 ### 3. Configurar espacios de nombres KV
 
@@ -677,7 +681,7 @@ Si Stripe muestra fallas de webhook ("otros errores") para el punto final de pro
 
 ### Tarjetas de prueba de rayas
 
-|tarjeta|Escenario|
+|Tarjeta|Escenario|
 |------|----------|
 |`4242 4242 4242 4242`|Éxito|
 |`4000 0000 0000 3220`|Se requiere 3D Secure|
@@ -756,6 +760,7 @@ cd worker && npx wrangler login
 
 # Or, for non-interactive shells and Podman-backed report runs:
 export CLOUDFLARE_API_TOKEN="your-token"
+export CLOUDFLARE_ACCOUNT_ID="your-account-id"
 
 # All pledges, production KV
 ./scripts/pledge-report.sh
@@ -770,16 +775,17 @@ export CLOUDFLARE_API_TOKEN="your-token"
 ./scripts/pledge-report.sh worst-movie-ever > pledges.csv
 ```
 
-Para informes remotos respaldados por Podman, coloque `CLOUDFLARE_API_TOKEN` en el shell del host o en un archivo env local ignorado como `.env.local`, `.env.cloudflare` o `worker/.dev.vars`; los envoltorios de informes pasan los valores de autenticación de Cloudflare a `podman exec`.
+Para informes remotos respaldados por Podman, coloque `CLOUDFLARE_API_TOKEN` y `CLOUDFLARE_ACCOUNT_ID` en el shell del host o en un archivo env local ignorado como `.env.local`, `.env.cloudflare` o `worker/.dev.vars`; los envoltorios de informes pasan los valores de autenticación de Cloudflare a `podman exec`.
 
 Configuración de bifurcación para informes de producción:
 
 1. En Cloudflare, vaya a **Mi perfil -> Tokens API -> Crear token**.
 2. Cree un token de usuario con **Cuenta/Almacenamiento KV de trabajadores/Lectura** con alcance para la cuenta propietaria del espacio de nombres KV `PLEDGES` de esta bifurcación.
-3. Guárdelo en `worker/.dev.vars` u otro archivo env ignorado:
+3. Guárdelo con la identificación de la cuenta en `worker/.dev.vars` u otro archivo env ignorado:
 
 ```bash
 CLOUDFLARE_API_TOKEN=your-token
+CLOUDFLARE_ACCOUNT_ID=your-account-id
 ```
 
 4. Ejecute exportaciones de producción a través del mismo entorno de trabajo de Podman utilizado por las pruebas locales:
@@ -956,7 +962,9 @@ Los secretos viven en las variables de entorno de Cloudflare Worker. Nunca te co
 |`CHECKOUT_INTENT_SECRET`|Firmar instantáneas de pago propias|
 |`MAGIC_LINK_SECRET`|Firma HMAC para tokens de gestión de promesas|
 |`RESEND_API_KEY`|Enviar correos electrónicos de apoyo/hito/fallidos|
-|`ADMIN_SECRET`|Proteger los puntos finales de administración (liquidar, reconstruir, etc.)|
+|`ADMIN_SECRET`|Proteger los puntos finales de administración (recuperación, reconstrucción y autenticación de automatización alternativa)|
+|`ADMIN_SETTLEMENT_SECRET`|Secreto de alcance opcional para puntos finales de liquidación; cuando se establece, las rutas de liquidación rechazan `ADMIN_SECRET`|
+|`ADMIN_BROADCAST_SECRET`|Secreto de alcance opcional para puntos finales de anuncios, diarios e hitos; cuando se configuran, las rutas de transmisión rechazan `ADMIN_SECRET`|
 
 ## Mejores prácticas de correo electrónico
 
@@ -1366,24 +1374,27 @@ done
 
 ## Arquitectura del asentamiento
 
-El flujo de liquidación utiliza **invocaciones por lotes autoencadenadas** para mantenerse dentro del límite de 50 subsolicitudes de Cloudflare Worker:
+El flujo de liquidación utiliza un **bloqueo de objeto duradero con alcance de campaña** más invocaciones por lotes de autoencadenamiento para mantenerse dentro del límite de 50 subsolicitudes de Cloudflare Worker:
 
-1. **Programador** (`scheduled()`) solicita una ejecución diaria después de la medianoche en la zona horaria de la plataforma y luego envía el trabajo de liquidación
-2. **Envío** lee el índice de promesas de campaña y procesa 6 promesas por lote a través de `/admin/settle-batch`
-3. **Cada lote** es una invocación de trabajador separada con su propio presupuesto de solicitud secundaria
-4. **Se autoencadena** hasta que se procesen todas las promesas, luego establece el marcador `campaign-charged:{slug}`
+1. **Programador** (`scheduled()`) reclama una ejecución diaria después de la medianoche en la zona horaria de la plataforma y luego reclama el bloqueo de liquidación de la campaña antes de enviar el trabajo.
+2. **Dispatch** actualiza el mismo bloqueo `SETTLEMENT_COORDINATOR`, lee el índice de promesas de campaña y procesa 6 promesas por lote a través de `/admin/settle-batch`.
+3. **Cada lote** verifica que todas las promesas con cargo pertenecen a una campaña, actualiza o reclama el bloqueo de la campaña y utiliza claves de idempotencia deterministas de Stripe para cada cargo de colaborador.
+4. **Se autoencadena** hasta que se procesen todos los compromisos, luego establece `campaign-charged:{slug}` solo cuando ningún compromiso activo aún necesita atención
 
-**Claves KV utilizadas por liquidación:**
+Los carritos de campañas múltiples siguen siendo compatibles porque la persistencia del webhook divide un paquete de carritos en registros de compromiso separados con alcance de campaña. La liquidación tiene un alcance intencional de campaña: los bloqueos, la validación de lotes, el estado del trabajo y los marcadores de finalización dependen de la campaña que se cobra.
+
+**Estado utilizado por el acuerdo:**
 
 |Llave|Propósito|
 |-----|---------|
 |`campaign-pledges:{slug}`|Matriz de ID de pedido por campaña (se mantiene al crear/cancelar)|
-
-Ese índice sigue siendo la vía rápida preferida para informes, liquidaciones y lecturas administrativas, pero las estadísticas y el recálculo de inventario ahora lo tratan como un estado de proyección reparable en lugar de una verdad intocable. Si se desvía de los registros de compromiso activos subyacentes, la ruta de reconstrucción lo reescribe automáticamente.
 |`settlement-job:{slug}`|Seguimiento del progreso del lote (cursor, totales)|
 |`campaign-charged:{slug}`|Marcador de finalización de la liquidación (evita la reubicación)|
 |`cron:lastRun`|Latido del programador cada hora: última marca de tiempo de ejecución cron persistente|
 |`cron:lastError`|Detalles del último error cron (TTL de 7 días)|
+|`SETTLEMENT_COORDINATOR` Objeto duradero|Bloqueo de liquidación de campaña de corta duración y estado de actualización/liberación del propietario|
+
+`campaign-pledges:{slug}` sigue siendo la vía rápida preferida para informes, liquidaciones y lecturas administrativas, pero las estadísticas y el recálculo de inventario lo tratan como un estado de proyección reparable en lugar de una verdad intocable. Si se desvía de los registros de compromiso activos subyacentes, la ruta de reconstrucción lo reescribe automáticamente.
 
 **Comprobaciones de deriva de proyección:**
 

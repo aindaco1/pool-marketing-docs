@@ -40,6 +40,7 @@ A static Jekyll + first-party cart site for all-or-nothing creative crowdfunding
 - **Sanitized campaign content blocks** — Long-form campaign and diary content accepts Markdown plus a tiny safe inline subset (`<br>`, `<em>`, `<strong>`, `<i>`, `<b>`, `<u>`), supports local videos with optional posters, neutralizes unsafe Markdown link schemes, automatically opens external links in a new tab, and escapes or rejects other raw HTML
 - **Strict structured embeds** — Approved `spotify`, `youtube`, and `vimeo` embeds are validated against exact trusted origins and embed paths instead of substring matching
 - **Serialized limited-tier inventory** — Scarce rewards reserve through a per-campaign Durable Object at checkout start and confirm through that same coordinator at persistence time, so limited tiers do not oversell under concurrent demand
+- **Serialized campaign settlement** — Scheduled and manual settlement routes use a per-campaign coordinator lock plus deterministic Stripe idempotency keys, so same-campaign charging cannot overlap while multi-campaign carts stay campaign-scoped
 - **Strict missing-pledge handling** — Magic-link pledge reads fail closed with `404` when the backing pledge record is missing
 - **Production diary** — Rich content updates with auto-broadcast emails to supporters
 - **Announcements** — Admin broadcast emails with custom CTA links to supporters
@@ -197,7 +198,7 @@ To create or update local secrets safely, run:
 npm run secrets:dev
 ```
 
-That helper creates `worker/.dev.vars` from `worker/.dev.vars.example` when needed, locks it down with local-only file permissions, generates local signing secrets, and prompts for optional provider keys without printing them back to the terminal. The admin dashboard shows a read-only **Secrets & credentials** status section, but it never stores secret values in `_config.yml`, KV, GitHub commits, or admin setting drafts.
+That helper creates `worker/.dev.vars` from `worker/.dev.vars.example` when needed, locks it down with local-only file permissions, generates local signing secrets, and prompts for optional provider keys without printing them back to the terminal. Keep those values separate from production secrets; `worker/.dev.vars` is for local development, not a backup of deployed credentials. The admin dashboard shows a read-only **Secrets & credentials** status section, but it never stores secret values in `_config.yml`, KV, GitHub commits, or admin setting drafts.
 
 To seed both admin test campaigns against a running local Worker:
 
@@ -226,7 +227,7 @@ npm run podman:self-check
 
 If you want to exercise the on-site Stripe checkout locally, add `STRIPE_PUBLISHABLE_KEY_TEST=pk_test_...` to [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars) before starting the stack.
 
-For production, use Cloudflare Worker secrets for runtime credentials and GitHub repository secrets for deploy credentials. Do not put Stripe secret keys, webhook secrets, Resend keys, Turnstile secrets, USPS client secrets, ZIP.TAX keys, or Cloudflare API tokens in `_config.yml`.
+For production, use Cloudflare Worker secrets for runtime credentials and GitHub repository secrets for deploy credentials or GitHub Actions automation. GitHub repository secrets do not automatically become Worker runtime secrets, so scoped admin credentials such as `ADMIN_SETTLEMENT_SECRET` and `ADMIN_BROADCAST_SECRET` must be set in Cloudflare too when deployed routes should enforce them. Do not put Stripe secret keys, webhook secrets, Resend keys, Turnstile secrets, USPS client secrets, ZIP.TAX keys, admin secrets, or Cloudflare API tokens in `_config.yml`.
 
 Resend sender domains must match the configured sender addresses. For this deployment, pledge and update emails use `site.example.com` senders such as `The Pool <pledges@site.example.com>`, so the Resend API key must be authorized for `site.example.com`.
 
@@ -309,17 +310,19 @@ cd worker && npx wrangler login
 
 # Or, for non-interactive shells and Podman-backed report runs:
 export CLOUDFLARE_API_TOKEN="your-token"
+export CLOUDFLARE_ACCOUNT_ID="your-account-id"
 ./scripts/pledge-report.sh --env production --remote > ~/Desktop/pool-pledge-report.csv
 ./scripts/fulfillment-report.sh --env production --remote > ~/Desktop/pool-fulfillment-report.csv
 ```
-For Podman-backed remote reports, prefer `CLOUDFLARE_API_TOKEN` in the host shell or an ignored local env file such as `.env.local`, `.env.cloudflare`, or `worker/.dev.vars`; the report wrappers pass those Cloudflare auth values into `podman exec`. Fork setup:
+For Podman-backed remote reports, prefer `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` in the host shell or an ignored local env file such as `.env.local`, `.env.cloudflare`, or `worker/.dev.vars`; the report wrappers pass those Cloudflare auth values into `podman exec`. Fork setup:
 
 1. In Cloudflare, create a user API token from **My Profile -> API Tokens -> Create Token**.
 2. Grant **Account / Workers KV Storage / Read** for the account that owns the `PLEDGES` KV namespace.
-3. Add the token to `worker/.dev.vars`:
+3. Add the token and account id to `worker/.dev.vars`:
 
 ```bash
 CLOUDFLARE_API_TOKEN=your-token
+CLOUDFLARE_ACCOUNT_ID=your-account-id
 ```
 
 Then run the remote production exports through the Podman worker container:
@@ -461,14 +464,18 @@ That GitHub Actions workflow now deploys both:
 The Pages build runs Jekyll first, then `npm run assets:minify` against generated `_site/assets/**/*.css` and `_site/assets/**/*.js` before uploading the artifact. Source files stay readable in the repository; Cloudflare still handles gzip/Brotli/Zstandard compression at the edge, so Cloudflare Auto Minify should stay disabled.
 
 Required GitHub repository secrets for automatic Worker deployment:
-- `CLOUDFLARE_API_TOKEN`
+- `CLOUDFLARE_API_TOKEN` from a **user API token** created under **My Profile -> API Tokens**, using the **Edit Cloudflare Workers** template and scoped to this account and the `example.com` zone. Do not use an account-owned API token; Wrangler still calls user-scoped endpoints such as memberships during deploy.
 - `CLOUDFLARE_ACCOUNT_ID`
 - `ADMIN_SECRET` for the post-deploy diary check
+- optional `ADMIN_BROADCAST_SECRET` for the post-deploy diary check when the Worker uses scoped broadcast credentials
+- optional `CLOUDFLARE_CACHE_PURGE_TOKEN` with zone cache-purge permissions if you want cache purging to use a token narrower than the deploy token. This is recommended; otherwise the deploy token must also be allowed to purge cache.
 - optional `DIARY_CHECK_BYPASS_SECRET` if Cloudflare WAF challenges the post-deploy diary check
+
+Set the matching `ADMIN_BROADCAST_SECRET` or `ADMIN_SETTLEMENT_SECRET` in Cloudflare Worker secrets before relying on scoped route enforcement in production. Add `ADMIN_SETTLEMENT_SECRET` to GitHub repository secrets only if a GitHub Actions or operator workflow actually calls settlement endpoints. Keep separate local-only values in `worker/.dev.vars`; do not copy production values there as a backup.
 
 The workflow also needs GitHub Pages deployment permissions. Keep `pages: write` and `id-token: write` explicit on the Pages deploy job if you copy or refactor `.github/workflows/deploy.yml`.
 
-Dashboard-uploaded media is source-preserving when it enters the repository. Image and video uploads dispatch the separate **Optimize dashboard media** workflow with `scope=changed` after the GitHub commit succeeds; audio uploads remain source-preserved because that workflow does not process `assets/audio`. The workflow also runs on `main` for `assets/images/**`, `assets/videos/**`, `_campaigns/**`, and `_config.yml` changes; it compresses images when smaller output is available, generates responsive WebP variants for public image templates at `320w`, `480w`, `640w`, `960w`, and `1600w`, generates WebM derivatives for uploaded videos, rewrites literal video references after derivatives exist, and commits those optimization changes back with the GitHub Actions bot. Use the manual `scope=all` workflow option when existing campaign media needs a full reprocess or non-dashboard media needs to be swept.
+Dashboard-uploaded media is source-preserving when it enters the repository. Image and video uploads dispatch the separate **Optimize dashboard media** workflow with `scope=changed` after the GitHub commit succeeds; audio uploads remain source-preserved because that workflow does not process `assets/audio`. The workflow also runs on `main` for `assets/images/**`, `assets/videos/**`, `_campaigns/**`, and `_config.yml` changes; it compresses images when smaller output is available, generates responsive WebP variants for public image templates at `320w`, `480w`, `640w`, `960w`, and `1600w`, generates WebM derivatives for uploaded videos, rewrites literal video references after derivatives exist, and opens a pull request with those optimization changes instead of pushing directly to `main`. Use the manual `scope=all` workflow option when existing campaign media needs a full reprocess or non-dashboard media needs to be swept.
 
 If the diary check logs an HTTP `403` Cloudflare challenge page, the request is being stopped before it reaches the Worker. Add a Cloudflare WAF custom rule that skips managed challenges for:
 
@@ -483,13 +490,7 @@ Suggested expression:
 (http.host eq "worker.example.com" and http.request.method eq "POST" and http.request.uri.path eq "/admin/diary/check" and any(http.request.headers["x-pool-diary-check"][*] eq "your-bypass-secret"))
 ```
 
-The Worker still requires `Authorization: Bearer ADMIN_SECRET`; the bypass header only lets the GitHub Actions automation reach that authenticated endpoint.
-
-Temporary fallback: the workflow also supports legacy Cloudflare auth via
-- `CLOUDFLARE_EMAIL`
-- `CLOUDFLARE_KEY`
-
-The token + account ID path is still the recommended long-term setup.
+The Worker still requires `Authorization: Bearer ADMIN_BROADCAST_SECRET` when scoped broadcast credentials are configured, otherwise `Authorization: Bearer ADMIN_SECRET`; the bypass header only lets the GitHub Actions automation reach that authenticated endpoint.
 
 Manual Worker fallback from the repo root:
 ```bash

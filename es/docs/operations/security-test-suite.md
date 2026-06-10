@@ -112,6 +112,8 @@ Establezca estas variables de entorno:
 |`WORKER_URL`|`http://localhost:8787`|Punto final del trabajador para probar|
 |`PROD_MODE`|`false`|Saltar pruebas destructivas|
 |`ADMIN_SECRET`|(ninguno)|Secreto de administrador para pruebas de autenticación|
+|`ADMIN_SETTLEMENT_SECRET`|(ninguno)|Secreto de liquidación con alcance opcional para entornos que imponen la autenticación de liquidación|
+|`ADMIN_BROADCAST_SECRET`|(ninguno)|Secreto de transmisión con alcance opcional para entornos que imponen la autenticación de transmisión/diario|
 |`TEST_TOKEN`|(ninguno)|Token de enlace mágico válido para pruebas de autenticación|
 
 ## Integración de CI

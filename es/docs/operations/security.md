@@ -23,13 +23,14 @@ Este documento cubre la arquitectura de seguridad, los riesgos conocidos, las me
 |**Desafío de inicio de sesión de administrador**|`POST /admin/auth/start`|Verificación opcional de Cloudflare Turnstile antes de la emisión del enlace mágico del administrador|
 |**Reto de recordatorio de lanzamiento**|`POST /launch-reminders`|Verificación opcional/esperada de Cloudflare Turnstile antes de escribir el recordatorio de registro|
 |**Secreto de recuperación del administrador**|Automatización y recuperación de puntos finales `/admin/*`|Encabezado `Authorization: Bearer <secret>` o `x-admin-key` para operaciones basadas en scripts|
+|**Secretos de administración con alcance**|Puntos finales de automatización de liquidación y transmisión|Opcional `ADMIN_SETTLEMENT_SECRET` y `ADMIN_BROADCAST_SECRET`; cuando se configura, la ruta con alcance rechaza el `ADMIN_SECRET` más amplio|
 |**Protección del modo de prueba**|`/test/*`|`APP_MODE === 'test'` verificación del entorno|
 
 ### Almacenamiento de datos (Cloudflare KV)
 
 |Patrón clave|Espacio de nombres|Datos|Sensibilidad|
 |-------------|-----------|------|-------------|
-|`pledge:{orderId}`|PROMESAS|Correo electrónico, importe, ID de Stripe, estado|**Alta** - PII + datos de pago|
+|`pledge:{orderId}`|PROMESAS|Correo electrónico, monto, ID de Stripe, estado|**Alta** - PII + datos de pago|
 |`email:{email}`|PROMESAS|Matriz de ID de pedido|**Medio**: vincula el correo electrónico a las promesas|
 |`stats:{slug}`|PROMESAS|Totales agregados|**Bajo** - público|
 |`tier-inventory:{slug}`|PROMESAS|Recuentos de reclamos de nivel|**Bajo** - público|
@@ -58,6 +59,8 @@ Este documento cubre la arquitectura de seguridad, los riesgos conocidos, las me
 |`rl:{endpoint}:{ip}`|LÍMITE DE TARIFAS|Recuento de solicitudes + tiempo de reinicio|**Bajo** - efímero|
 
 La reserva escasa de nivel limitado y la verdad del recuento comprometido ya no se almacenan en KV. Ese estado sensible a la raza ahora reside en el coordinador de Objetos Durables por campaña, mientras que KV mantiene solo la proyección pública `tier-inventory:{slug}`.
+
+La serialización de liquidaciones también está respaldada por objetos duraderos. El enlace `SETTLEMENT_COORDINATOR` posee un bloqueo de corta duración por slug de campaña, por lo que los puntos finales de liquidación programada, liquidación directa, envío y lote no pueden cobrar la misma campaña al mismo tiempo. Los carritos de campañas múltiples aún funcionan porque la persistencia del proceso de pago crea registros de compromiso separados con alcance de campaña y los bloqueos de liquidación dependen de la campaña que se cobra.
 
 ---
 
@@ -146,8 +149,12 @@ Antes de implementar en producción, verifique que estos secretos estén configu
 |Secreto del token de recordatorio de lanzamiento|Reserva `LAUNCH_REMINDER_TOKEN_SECRET` o `MAGIC_LINK_SECRET`|32+ caracteres|
 |Secreto de sesión de administrador|`ADMIN_SESSION_SECRET`|32+ caracteres|
 |Secreto de administrador|`ADMIN_SECRET`|32+ caracteres|
+|Secreto de administración de liquidación|`ADMIN_SETTLEMENT_SECRET` (opcional, con alcance)|32+ caracteres|
+|Secreto de administrador de transmisión|`ADMIN_BROADCAST_SECRET` (opcional, con alcance)|32+ caracteres|
 |Secreto del torniquete|`TURNSTILE_SECRET_KEY`, `ADMIN_TURNSTILE_SECRET_KEY` o `LAUNCH_REMINDER_TURNSTILE_SECRET_KEY`|N/A|
 |Reenviar clave API|`RESEND_API_KEY`|N/A|
+
+Cuando GitHub Actions o un script de operador llaman a puntos finales de administración protegidos, agregue solo el secreto coincidente necesario a los secretos del repositorio de GitHub. El flujo de trabajo de implementación predeterminado utiliza `ADMIN_BROADCAST_SECRET` para la verificación del diario posterior a la implementación cuando está configurado; La futura automatización de liquidaciones debería utilizar `ADMIN_SETTLEMENT_SECRET` en lugar del secreto alternativo más amplio.
 
 Generar secretos seguros:
 ```bash

@@ -171,13 +171,14 @@ npm run test:security:podman
 npm run test:e2e:headless:podman
 ```
 
-Las exportaciones de informes de producción remota también pueden ejecutarse a través del contenedor de trabajadores. Cree un token API de usuario de Cloudflare con acceso **Cuenta/Almacenamiento KV de trabajadores/Lectura** a la cuenta propietaria del espacio de nombres KV `PLEDGES`, luego guárdelo en un archivo env local ignorado, como `worker/.dev.vars`:
+Las exportaciones de informes de producción remota también pueden ejecutarse a través del contenedor de trabajadores. Cree un token API de usuario de Cloudflare con acceso **Cuenta/Almacenamiento KV de trabajadores/Lectura** a la cuenta propietaria del espacio de nombres KV `PLEDGES`, luego guárdelo con la identificación de la cuenta en un archivo env local ignorado, como `worker/.dev.vars`:
 
 ```bash
 CLOUDFLARE_API_TOKEN=your-token
+CLOUDFLARE_ACCOUNT_ID=your-account-id
 ```
 
-Ejecutar:
+Correr:
 
 ```bash
 ./scripts/pledge-report.sh --podman --env production --remote > ~/Desktop/pool-pledge-report.csv

@@ -51,7 +51,7 @@ For supporter-community access, The Pool keeps the verified supporter session in
 
 Some checkouts may include platform add-ons, campaign add-ons, delivery upgrades, shipping fees, taxes, or an optional platform tip. The checkout explains what counts toward the campaign's goal and what supports the platform separately.
 
-Multiple pledges from the same email are combined into one charge when the same campaign succeeds. Optional platform tips and platform add-ons support the team operating the platform and do not count toward a project's funding goal.
+Multiple pledges from the same email are combined into one charge when the same campaign succeeds. If more than one campaign from the same checkout succeeds, those charges stay separate by campaign. Optional platform tips and platform add-ons support the team operating the platform and do not count toward a project's funding goal.
 
 ## Sharing and Performance
 
@@ -91,14 +91,14 @@ The Pool is designed for filmmakers and creative teams that need a campaign they
 
 ## The Technology
 
-The Pool is a static-first crowdfunding stack. Public pages are generated ahead of time, while trusted server work stays behind Cloudflare Workers for pricing, pledges, admin access, fulfillment data, and settlement.
+The Pool is a static-first crowdfunding stack. Public pages are generated ahead of time, while trusted server work stays behind Cloudflare Workers for pricing, pledges, admin access, fulfillment data, and serialized settlement.
 
 | Area | What runs it | Why it matters for forks |
 |------|--------------|--------------------------|
 | Public site | [GitHub Pages](https://docs.github.com/en/pages) and Jekyll | Campaign pages, docs, translated content, and public metadata stay easy to host and review in Git. |
 | Pledge experience | The Pool cart runtime | The cart, reward selection, add-ons, pledge review, and magic-link management stay first-party. |
 | Payments | [Stripe](https://stripe.com) | Stripe owns the sensitive payment fields, saved payment methods, and later charges. |
-| Backend | [Cloudflare Workers](https://workers.cloudflare.com) and KV | The Worker validates totals, stores pledges, serves live stats, powers admin APIs, and handles fulfillment/settlement state. |
+| Backend | [Cloudflare Workers](https://workers.cloudflare.com) and KV | The Worker validates totals, stores pledges, serves live stats, powers admin APIs, and handles fulfillment plus campaign-scoped settlement state. |
 | Admin dashboard | The Pool private dashboard | Authorized users can manage campaigns, content, reports, supporters, analytics, marketing links, add-ons, and users without editing files directly. |
 | Email | [Resend](https://resend.com) | Confirmation emails, supporter links, launch reminders, campaign updates, and charge notifications use one transactional email path. |
 
