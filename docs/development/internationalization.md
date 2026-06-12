@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-June 1, 2026
+June 11, 2026
 
 This document records the current localization structure for The Pool and the supported workflow for adding languages in a fork.
 

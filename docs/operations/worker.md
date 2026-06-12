@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-June 9, 2026
+June 11, 2026
 
 Cloudflare Worker handling first-party checkout canonicalization, Stripe integration, pledge management, order-scoped supporter authentication, upcoming-campaign launch reminders, and the private browser admin dashboard APIs.
 

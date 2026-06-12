@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-June 3, 2026
+June 11, 2026
 
 This document describes The Pool's current SEO model in 2026. It is intentionally conservative: public pages are made easier to crawl and understand, while supporter-only and tokenized flows stay out of index intent. The implementation is designed around real metadata, real public pages, and honest structured data rather than content padding or rich-result bait.
 

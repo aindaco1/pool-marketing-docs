@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-June 9, 2026
+June 11, 2026
 
 This repo now includes a rootless Podman-backed local development path for the two services that usually create the most host setup churn:
 

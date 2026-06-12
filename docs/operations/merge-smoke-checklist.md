@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-May 29, 2026
+June 11, 2026
 
 Use this checklist before merging branches that change checkout, webhook persistence, pledge management, inventory, settlement, or supporter broadcasts.
 

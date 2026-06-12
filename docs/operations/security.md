@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-June 9, 2026
+June 11, 2026
 
 This document covers the security architecture, known risks, applied hardening measures, accepted tradeoffs, and penetration testing procedures for The Pool crowdfunding platform.
 

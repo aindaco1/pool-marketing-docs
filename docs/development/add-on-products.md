@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-June 2, 2026
+June 11, 2026
 
 This document describes the current add-on product system as it actually ships now.
 

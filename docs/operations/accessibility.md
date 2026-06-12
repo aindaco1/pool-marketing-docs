@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-June 3, 2026
+June 11, 2026
 
 This document tracks The Pool's current accessibility baseline, the higher-risk interaction surfaces we actively verify, and the remaining follow-up work needed to move from "strong accessibility posture" toward fuller accessibility compliance.
 

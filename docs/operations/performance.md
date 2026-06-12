@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-June 3, 2026
+June 11, 2026
 
 The Pool is a static-first crowdfunding platform with a Cloudflare Worker for mutations, live reads, and admin operations. Performance work should preserve that shape: public pages should be fast from static HTML, heavy application code should load only when a user needs it, and speculative work should stay conservative enough that it never makes checkout, admin, or supporter flows less reliable.
 

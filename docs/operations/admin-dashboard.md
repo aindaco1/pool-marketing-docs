@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-June 3, 2026
+June 11, 2026
 
 This document is the operator reference for The Pool's private admin dashboard and should be treated as the source of truth for dashboard-based campaign editing, reporting, analytics, marketing links, add-ons, and user management.
 

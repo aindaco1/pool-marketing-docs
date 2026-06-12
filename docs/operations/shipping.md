@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-June 9, 2026
+June 11, 2026
 
 This document describes the current shipping model in The Pool, including its Worker-first pricing flow, fork-facing config surface, USPS integration boundary, and the rule tree the cart, checkout, Manage Pledge, reporting, and emails now follow.
 

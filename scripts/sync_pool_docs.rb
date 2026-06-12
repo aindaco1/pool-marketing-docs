@@ -155,8 +155,23 @@ def content_changed?(target_path, generated_content)
   remove_last_updated(existing_content).strip != remove_last_updated(generated_content).strip
 end
 
+def target_has_uncommitted_content_changes?(target_path)
+  relative_path = target_path.relative_path_from(ROOT).to_s
+  return true unless target_path.file?
+
+  committed_content = Dir.chdir(ROOT) do
+    `git show HEAD:#{relative_path.shellescape} 2>/dev/null`
+  end
+
+  return true if committed_content.empty?
+
+  remove_last_updated(strip_front_matter(committed_content)).strip !=
+    remove_last_updated(strip_front_matter(target_path.read)).strip
+end
+
 def last_updated_for(target_path, generated_content)
   return Date.today if content_changed?(target_path, generated_content)
+  return Date.today if target_has_uncommitted_content_changes?(target_path)
 
   last_changed_date_for(target_path)
 end
