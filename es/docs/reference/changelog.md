@@ -19,7 +19,6 @@ lang: es
 - Se agregó la asignación de tarifas de procesador a nivel de componente entre los ingresos de la campaña, los ingresos de la plataforma, los impuestos y el envío para que las exportaciones de tablas/CSV se concilien con las transacciones de saldo almacenadas de Stripe o las estimaciones de tarifas existentes.
 - Variables de entorno de seguimiento de uso documentadas y límite de token de lectura de facturación y análisis GraphQL de Cloudflare de solo lectura para el uso y la detección del plan de trabajadores.
 - Se reorganizó el andamiaje local del trabajador `.dev.vars` y la salida `npm run secrets:dev` en grupos basados en propósitos, incluidas las configuraciones y anulaciones del proveedor de uso del plan.
-- Metadatos de versión actualizados a `1.0.4`.
 
 ## v1.0.3 - 2026-06-01
 
@@ -75,7 +74,6 @@ lang: es
 - Configuración del remitente de correo electrónico de promesa alineada con el dominio del remitente de reenvío autorizado y configuración documentada del dominio del remitente para bifurcaciones.
 - Se hicieron explícitos los permisos de implementación de GitHub Pages para el flujo de trabajo de implementación de producción.
 - Se agregó accesibilidad al panel de administración, i18n, SEO/noindex, seguridad, capacidad de respuesta para dispositivos móviles/tabletas y pases DRY UI, además de cobertura de unidad enfocada, Playwright, Podman smoke y presupuesto de escritura KV.
-- Metadatos de versión actualizados a `1.0.0`.
 
 ## v0.9.5 - 2026-05-03
 

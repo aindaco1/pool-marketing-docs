@@ -18,7 +18,6 @@ June 11, 2026
 - Added component-level processor fee allocation across campaign revenue, platform revenue, tax, and shipping so table/CSV exports reconcile with stored Stripe balance transactions or existing fee estimates.
 - Documented usage-tracker environment variables and the read-only Cloudflare GraphQL Analytics plus Billing Read token boundary for usage and Workers plan detection.
 - Reorganized local Worker `.dev.vars` scaffolding and `npm run secrets:dev` output into purpose-based groups, including Plan Usage provider settings and overrides.
-- Updated release metadata to `1.0.4`.
 
 ## v1.0.3 - 2026-06-01
 
@@ -74,7 +73,6 @@ June 11, 2026
 - Aligned pledge email sender configuration with the authorized Resend sender domain and documented sender-domain setup for forks.
 - Made GitHub Pages deploy permissions explicit for the production deploy workflow.
 - Added admin dashboard accessibility, i18n, SEO/noindex, security, mobile/tablet responsiveness, and DRY UI passes, plus focused unit, Playwright, Podman smoke, and KV-write-budget coverage.
-- Updated release metadata to `1.0.0`.
 
 ## v0.9.5 - 2026-05-03
 

@@ -707,6 +707,8 @@ def rewrite_copy(content, current_src)
   when "about.md"
     rewritten = ABOUT_REWRITE.dup
   when "CHANGELOG.md"
+    rewritten.gsub!(/^- Updated release metadata to `[^`]+`\.\n/, "")
+
     if rewritten.include?("manual `scope=all` option") || rewritten.include?("mobile PageSpeed performance pass")
       rewritten.gsub!(/^## v1\.0\.3 - 2026-06-01\n[\s\S]*?(?=^## v1\.0\.[0-9]+|\z)/m, "")
       rewritten.gsub!(/^## v1\.0\.2 - 2026-06-01\n[\s\S]*?(?=^## v1\.0\.[0-9]+|\z)/m, "")
