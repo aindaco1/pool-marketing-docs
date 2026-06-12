@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-2 de junio de 2026
+11 de junio de 2026
 
 Este documento describe el sistema de producto complementario actual tal como se envía actualmente.
 
@@ -229,11 +229,11 @@ La división de envío actual es:
 
 ## Contrato de tiempo de ejecución
 
-El catálogo actual está expuesto a la configuración del tiempo de ejecución del navegador a través de [assets/js/pool-config.js](https://github.com/your-org/your-project/blob/main/assets/js/pool-config.js) y el inicio del tiempo de ejecución compartido incluye [/_includes/cart-runtime-foot.html](https://github.com/your-org/your-project/blob/main/_includes/cart-runtime-foot.html).
+El catálogo actual está expuesto a la configuración del tiempo de ejecución del navegador a través de [assets/js/pool-config.js](../assets/js/pool-config.js) y el inicio del tiempo de ejecución compartido incluye [/_includes/cart-runtime-foot.html](../_includes/cart-runtime-foot.html).
 
 Eso significa que la interfaz de usuario del lado del carrito y de Manage Pledge puede leer una fuente de verdad estable `POOL_CONFIG.addOns` en lugar de duplicar los datos del producto en múltiples plantillas o scripts.
 
-El trabajador ahora también tiene una fuente de catálogo estática coincidente en [/api/add-ons.json](https://github.com/your-org/your-project/blob/main/api/add-ons.json), y los manifiestos de pago pendientes pueden contener:
+El trabajador ahora también tiene una fuente de catálogo estática coincidente en [/api/add-ons.json](../api/add-ons.json), y los manifiestos de pago pendientes pueden contener:
 
 - `bundleAddOns`
 - `bundleAddOnAnchorCampaignSlug`

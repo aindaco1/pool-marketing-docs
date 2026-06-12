@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-9 de junio de 2026
+11 de junio de 2026
 
 Este documento cubre la arquitectura de seguridad, los riesgos conocidos, las medidas de refuerzo aplicadas, las compensaciones aceptadas y los procedimientos de prueba de penetración para la plataforma de financiación colectiva The Pool.
 
@@ -23,7 +23,7 @@ Este documento cubre la arquitectura de seguridad, los riesgos conocidos, las me
 |**Fichas de enlace mágico**|`/pledge*`, `/pledges`, `/votes`|Tokens firmados HMAC-SHA256 con vencimiento de 90 días|
 |**Tokens de cancelación de suscripción de recordatorio de lanzamiento**|`GET /launch-reminders/unsubscribe`|Token HMAC con alcance que suprime un registro de recordatorio de campaña/correo electrónico|
 |**Firma de webhook de rayas**|`/webhooks/stripe`|Verificación HMAC-SHA256 según las especificaciones de Stripe|
-|**Sesiones del panel de administración**|API del panel del navegador `/admin/*`|Inicio de sesión mediante enlace mágico por correo electrónico, cookie de sesión firmada, encabezado CSRF sobre mutaciones, alcance de función/campaña|
+|**Sesiones del panel de administración**|API del panel del navegador `/admin/*`|Inicio de sesión mediante enlace mágico por correo electrónico, cookie de sesión firmada, encabezado CSRF sobre mutaciones, alcance de rol/campaña|
 |**Desafío de inicio de sesión de administrador**|`POST /admin/auth/start`|Verificación opcional de Cloudflare Turnstile antes de la emisión del enlace mágico del administrador|
 |**Reto de recordatorio de lanzamiento**|`POST /launch-reminders`|Verificación opcional/esperada de Cloudflare Turnstile antes de escribir el recordatorio de registro|
 |**Secreto de recuperación del administrador**|Automatización y recuperación de puntos finales `/admin/*`|Encabezado `Authorization: Bearer <secret>` o `x-admin-key` para operaciones basadas en scripts|
@@ -86,7 +86,7 @@ La postura de seguridad actual está diseñada en torno a algunos principios bá
 - El inicio de sesión de administrador puede requerir un desafío de Cloudflare Turnstile antes de iniciar sesión, escribir nonce o entregar un enlace mágico.
 - Las rutas `/test/*` están cerradas en modo de prueba y no deben ser accesibles en implementaciones normales.
 - Las rutas de administración requieren un secreto explícito y están diseñadas para fallar cuando no se configuran correctamente.
-- La votación de los seguidores está vinculada a la identidad de correo electrónico del seguidor asociada con el compromiso autorizado, lo que evita una simple amplificación del voto de múltiples compromisos.
+- La votación de los seguidores está vinculada a la identidad de correo electrónico del seguidor asociada con el compromiso autorizado, lo que evita la simple amplificación del voto de compromisos múltiples.
 
 ### Protecciones de origen, administrador y webhook
 
@@ -100,11 +100,11 @@ La postura de seguridad actual está diseñada en torno a algunos principios bá
 - Las respuestas de finalización y arranque de pago específicas del pedido se entregan con `Cache-Control: private, no-store`
 - La persistencia de larga duración del navegador se limita a la estructura del carrito y a las entradas de precios, mientras que los borradores de contactos y direcciones permanecen en el ámbito de la sesión.
 - Los marcadores de recuperación de corta duración se utilizan para la continuidad del proceso de verificación en lugar de dejar el estado sensible en vuelo almacenado indefinidamente.
-- Los encabezados de respuesta de seguridad reducen el rastreo de MIME, el riesgo de encuadre y la filtración innecesaria de referencias.
+- Los encabezados de respuesta de seguridad reducen el rastreo de MIME, el riesgo de encuadre y la fuga innecesaria de referencias.
 
 ### Validación de entrada y contenido
 
-- Las cargas útiles de inicio de pago validan identificadores de campaña, direcciones de correo electrónico, artículos del carrito y entradas de contribución antes de la reconstrucción canónica.
+- Las cargas útiles de inicio de pago validan identificadores de campaña, direcciones de correo electrónico, artículos del carrito y entradas de contribuciones antes de la reconstrucción canónica.
 - Los puntos finales de votación validan los identificadores de decisiones y los valores de las opciones antes de que alcancen la lógica de cambio de estado.
 - La configuración del panel, los campos de la campaña, los bloques de contenido, los complementos, los niveles, los elementos de soporte, las entradas del diario, las decisiones y los registros de los usuarios se normalizan en el lado del servidor antes de la persistencia.
 - Las cargas de medios del panel tienen un alcance por función, acceso a la campaña, tipo de carga, tipo de contenido, tamaño de archivo, directorio de destino y nombre de archivo canónico.
@@ -139,11 +139,12 @@ Si una implementación necesita una postura más estricta que la predeterminada,
 
 ---
 
+
 ## Lista de verificación de secretos
 
 Antes de implementar en producción, verifique que estos secretos estén configurados:
 
-|Secreto|Variable de entorno|Longitud mínima|
+|secreto|Variable de entorno|Longitud mínima|
 |--------|---------------------|------------|
 |Clave API de banda|`STRIPE_SECRET_KEY_LIVE`|N/A|
 |Secreto del webhook de rayas|`STRIPE_WEBHOOK_SECRET_LIVE`|32+ caracteres|
@@ -156,6 +157,7 @@ Antes de implementar en producción, verifique que estos secretos estén configu
 |Secreto de administrador de transmisión|`ADMIN_BROADCAST_SECRET` (opcional, con alcance)|32+ caracteres|
 |Secreto del torniquete|`TURNSTILE_SECRET_KEY`, `ADMIN_TURNSTILE_SECRET_KEY` o `LAUNCH_REMINDER_TURNSTILE_SECRET_KEY`|N/A|
 |Reenviar clave API|`RESEND_API_KEY`|N/A|
+|Token de análisis de uso de Cloudflare|`CLOUDFLARE_USAGE_API_TOKEN` o `CLOUDFLARE_ANALYTICS_API_TOKEN`|Lectura de análisis GraphQL; Lectura de facturación opcional para detección de planes|
 
 Cuando GitHub Actions o un script de operador llaman a puntos finales de administración protegidos, agregue solo el secreto coincidente necesario a los secretos del repositorio de GitHub. El flujo de trabajo de implementación predeterminado utiliza `ADMIN_BROADCAST_SECRET` para la verificación del diario posterior a la implementación cuando está configurado; La futura automatización de liquidaciones debería utilizar `ADMIN_SETTLEMENT_SECRET` en lugar del secreto alternativo más amplio.
 
@@ -188,7 +190,7 @@ Para ejecuciones locales, mantenga configurado `CHECKOUT_INTENT_SECRET` si desea
 ### Compromiso de token
 
 Si un token de enlace mágico está comprometido:
-1. El token está vinculado a un ID de pedido/correo electrónico/campaña específico.
+1. El token está vinculado a un ID de pedido/correo electrónico/campaña específico
 2. Sólo puede acceder/modificar ese pedido autorizado.
 3. Para invalidar: elimine el compromiso de KV (`GET /pledge` luego devolverá `404` para ese token)
 4. Opcionalmente: regenerar MAGIC_LINK_SECRET (invalida TODOS los tokens)

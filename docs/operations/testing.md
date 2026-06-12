@@ -153,7 +153,7 @@ The local Worker defaults in [worker/wrangler.toml](https://github.com/your-org/
 
 For local work, prefer `./scripts/dev.sh --podman`. It starts Jekyll and the Worker in rootless Podman containers while preserving the same ports and local Wrangler state.
 
-[`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml) is now an override-only layer, not a second base config. When you change or add fork-facing settings, prefer [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) unless the value should truly differ only on your local machine.
+`_config.local.yml` is now an override-only layer, not a second base config. When you change or add fork-facing settings, prefer [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) unless the value should truly differ only on your local machine.
 
 The browser helper scripts support the same mode:
 
@@ -168,7 +168,7 @@ The browser helper scripts support the same mode:
 
 Those helpers still run Playwright and shell smoke logic on the host for now, but they boot the site and Worker through the shared Podman-backed local stack first. The report scripts can now run directly through the Worker container as well. That keeps local testing and exports closer to production-like service boundaries without forcing host Ruby or host Wrangler setup.
 
-For host-side commands that need the Podman-backed stack but should not depend on detached stack persistence across separate shells, use [`scripts/podman-stack-run.sh`](https://github.com/your-org/your-project/blob/main/scripts/podman-stack-run.sh). `npm run test:security:podman` uses that wrapper.
+For host-side commands that need the Podman-backed stack but should not depend on detached stack persistence across separate shells, use [`scripts/podman-stack-run.sh`](../scripts/podman-stack-run.sh). `npm run test:security:podman` uses that wrapper.
 
 For a mostly host-independent browser path, `npm run test:e2e:headless:podman` now runs the automated Playwright suite inside a dedicated Podman container on the same local pod network as the site and Worker.
 
@@ -423,6 +423,8 @@ Browser-based tests for full user flows in `tests/e2e/`.
 **Admin Dashboard Coverage Highlights:**
 - Magic-link sign-in, role-scoped tabs, and campaign-user access restrictions
 - Settings, Add-ons, Campaigns, Analytics, Reports, Supporters, and Marketing tab behavior
+- Settings -> Plan usage automatic loading, provider help text, localized provider links, and zero-write read budget
+- Gross campaign/platform revenue, net campaign/platform revenue after allocated processor fees, and exact-cent analytics presentation
 - Content editor WYSIWYG block editing, link/media settings, diary editor reuse, draft state, publish state, and mobile preview
 - Saved marketing referral codes, campaign URL builder, CSV exports, sorting, and zero-write read flows
 - Desktop/tablet/mobile responsiveness, including compact Spanish tablet menus
@@ -911,7 +913,8 @@ Expected: Returns `{ success: true }` and triggers GitHub workflow.
 - `ADMIN_SETTLEMENT_SECRET` — Optional scoped admin secret for settlement endpoints; use a separate local-only value in `worker/.dev.vars`
 - `ADMIN_BROADCAST_SECRET` — Optional scoped admin secret for diary, milestone, and announcement endpoints; also add it to GitHub repository secrets for the post-deploy diary check when enabled
 - `CLOUDFLARE_API_TOKEN` — For GitHub deploys, use a Cloudflare user API token created from **My Profile -> API Tokens** with the **Edit Cloudflare Workers** template. For local report exports, use a separate read-only Workers KV token when possible.
-- `CLOUDFLARE_ACCOUNT_ID` — Cloudflare account id for Wrangler deploys and non-interactive local report/export scripts
+- `CLOUDFLARE_ACCOUNT_ID` — Cloudflare account id for Wrangler deploys, non-interactive local report/export scripts, and the Worker runtime Settings -> Plan usage endpoint
+- `CLOUDFLARE_USAGE_API_TOKEN` — Optional read-only GraphQL Analytics token for the admin Settings -> Plan usage tracker; add Billing Read for Workers plan auto-detection and keep it separate from deploy tokens.
 - `TURNSTILE_SECRET_KEY` — Shared Cloudflare Turnstile secret when admin sign-in or launch reminder widgets are enabled
 - `LAUNCH_REMINDER_TURNSTILE_SECRET_KEY` — Optional reminder-specific Turnstile secret if not using the shared secret
 - `LAUNCH_REMINDER_TOKEN_SECRET` — Optional reminder unsubscribe-token secret; falls back to `MAGIC_LINK_SECRET`

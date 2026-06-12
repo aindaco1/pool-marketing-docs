@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-3 de junio de 2026
+11 de junio de 2026
 
 Este documento rastrea la línea base de accesibilidad actual de The Pool, las superficies de interacción de mayor riesgo que verificamos activamente y el trabajo de seguimiento restante necesario para pasar de una "postura de accesibilidad fuerte" hacia un cumplimiento de accesibilidad más completo.
 
@@ -73,6 +73,7 @@ El reciente pase de refuerzo de accesibilidad agregó:
   - Editor de contenido WYSIWYG cromado al que solo se puede acceder mediante el teclado cuando el bloque relevante está activo
   - Controles de carga de medios del editor de contenido con entradas de archivos nativos etiquetados, enfoque visible en el botón de carga con estilo, regiones de estado de carga y vistas previas locales del navegador antes de la publicación.
   - Configuración de subtítulos de imagen de la galería que reutilizan la etiqueta compartida/patrón de ayuda y exponen el editor de subtítulos flotantes como un cuadro de texto de texto enriquecido etiquetado.
+  - Configuración -> Planificar encabezados de proveedores de uso que reutilizan la etiqueta de administración compartida/patrón de ayuda, el estado de carga gradual, el texto de la barra de progreso accesible y las tarjetas de métricas responsivas
   - tablas de datos ordenables que exponen el estado `aria-sort` y los botones de clasificación
 
 ## Superficies críticas
@@ -150,7 +151,7 @@ La cobertura automatizada actual relacionada con la accesibilidad incluye:
     - la página de índice de la comunidad
     - la página denegada de la comunidad de seguidores
     - la página de contenido de la comunidad de seguidores
-  - el barrido de accesibilidad de páginas públicas respaldado por Podman es la verificación final preferida cuando las sucursales cambian contenido público, páginas públicas respaldadas por documentos o Chrome de páginas de campaña sin necesidad de host Bundler/Jekyll
+  - El barrido de accesibilidad de páginas públicas respaldado por Podman es la verificación final preferida cuando las sucursales cambian contenido público, páginas públicas respaldadas por documentos o Chrome de páginas de campaña sin necesidad de host Bundler/Jekyll.
 - Cobertura instantánea de ARIA en Playwright para:
   - regiones principales de la página pública clave
   - el cuadro de diálogo de carrito/pago durante los flujos de solo teclado
@@ -240,6 +241,7 @@ Las comprobaciones automáticas ayudan, pero estas comprobaciones de accesibilid
 - Los mensajes de error son comprensibles y aparecen cerca de los campos correctos.
 - Las pestañas del panel de administración, las barras laterales de Configuración, las barras laterales de Campaña y las subpestañas de Campaña se pueden recorrer solo con el teclado.
 - Los botones de ayuda del panel de administración anuncian descripciones de campos útiles sin interferir con la etiqueta visible del campo.
+- Configuración -> El uso del plan anuncia el estado de carga, expone la ayuda del proveedor y mantiene las barras de progreso de uso comprensibles cuando un proveedor solo devuelve límites o cuotas ilimitadas.
 - Los controles de bloque del editor WYSIWYG no son accesibles mientras están ocultos y se vuelven accesibles después de que el bloque está enfocado o activado
 - La clasificación de tablas del panel de administración y los flujos de exportación CSV se pueden operar solo con el teclado
 

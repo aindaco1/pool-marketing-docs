@@ -22,7 +22,7 @@ The structured config model in [`_config.yml`](https://github.com/your-org/your-
 For most forks, the main customization files are:
 
 - [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml)
-- [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml)
+- `_config.local.yml`
 - [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml)
 
 Use `./scripts/dev.sh --podman` for local verification after config changes.
@@ -35,7 +35,7 @@ For normal operator edits, use the private admin dashboard at `/admin/` or `/es/
 - **Settings -> Users** is runtime-only and saves directly to Worker KV at `admin-users:v1`; it does not publish to GitHub.
 - **Secrets & credentials** is read-only status. Secret values still belong in Worker secrets, GitHub repository secrets, or ignored local env files.
 
-Treat [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml) as an override-only file. Keep canonical fork settings in [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml), and use the local file only for things that should differ on your machine, like localhost URLs or local-only campaign visibility.
+Treat `_config.local.yml` as an override-only file. Keep canonical fork settings in [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml), and use the local file only for things that should differ on your machine, like localhost URLs or local-only campaign visibility.
 
 The normal local path is now localhost-based:
 
@@ -118,7 +118,7 @@ These values feed:
 Notes:
 
 - `platform.*` is the primary branding surface.
-- `platform.version` should be the canonical machine-readable product version for the site, while `platform.release_label` can stay friendlier for public-facing copy such as `v1.0.3`.
+- `platform.version` should be the canonical machine-readable product version for the site, while `platform.release_label` can stay friendlier for public-facing copy such as `v1.0.4`.
 - `platform.timezone` must be a supported IANA timezone. It defaults to `America/Denver` so existing forks keep the old lifecycle behavior until they change it.
 - top-level `title` / `author` still exist in Jekyll, but treat them as general site metadata / fallback rather than the main fork-customization interface.
 - `platform.default_social_image_path` is the supported default for OG/Twitter cards when a page or campaign does not provide a more specific image.
@@ -130,8 +130,8 @@ Example:
 ```yml
 platform:
   name: My Fork
-  version: 1.0.3
-  release_label: v1.0.3
+  version: 1.0.4
+  release_label: v1.0.4
   company_name: Example Studio
   support_email: support@example.com
   pledges_email_from: "My Fork <pledges@pool.example.com>"
@@ -384,7 +384,7 @@ Important secret boundary:
 - keep the companion `USPS_CLIENT_SECRET` in Worker secrets or `worker/.dev.vars`
 - do not commit the secret into Jekyll config
 
-The checkout destination list is intentionally separate from those knobs now. Maintain the currently allowed shipping countries in [`_data/shipping_countries.yml`](https://github.com/your-org/your-project/blob/main/_data/shipping_countries.yml) instead of editing browser runtime code.
+The checkout destination list is intentionally separate from those knobs now. Maintain the currently allowed shipping countries in [`_data/shipping_countries.yml`](../_data/shipping_countries.yml) instead of editing browser runtime code.
 
 Example:
 
@@ -612,7 +612,7 @@ runner_report_emails:
 
 Use `design` for curated design-system overrides that do not require Sass edits.
 
-These values are emitted into the generated stylesheet [assets/main.css](https://github.com/your-org/your-project/blob/main/assets/main.scss), which keeps the design-variable bridge compatible with the site’s strict CSP. [assets/theme-vars.css](https://github.com/your-org/your-project/blob/main/assets/theme-vars.css) remains as a compatibility artifact, but public layouts do not request it separately. Forks do not need to edit Sass just to change supported tokens.
+These values are emitted into the generated stylesheet [assets/main.css](../assets/main.scss), which keeps the design-variable bridge compatible with the site’s strict CSP. [assets/theme-vars.css](../assets/theme-vars.css) remains as a compatibility artifact, but public layouts do not request it separately. Forks do not need to edit Sass just to change supported tokens.
 
 The same generated CSS variables also now theme the on-site Stripe Elements sidecar, so supported typography/color/radius overrides carry through the custom checkout payment UI without adding a separate checkout-only config layer.
 

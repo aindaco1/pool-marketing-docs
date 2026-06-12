@@ -381,10 +381,10 @@ Do **not** commit the USPS client secret into Jekyll config.
 
 For a normal production-style local setup, the minimum values this repo needs are:
 
-- [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) or [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml)
+- [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) or `_config.local.yml`
   - `shipping.usps.enabled: true`
   - `shipping.usps.client_id: "<your Consumer Key>"`
-- [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars)
+- `worker/.dev.vars`
   - `USPS_CLIENT_SECRET=<your Consumer Secret>`
 
 If you want to test against USPS TEM with the same production credentials USPS describes, also set:
@@ -396,7 +396,7 @@ If you want to test against USPS TEM with the same production credentials USPS d
 For local testing:
 
 - set `shipping.usps.client_id` in [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) or your local override path
-- set `USPS_CLIENT_SECRET=...` in [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars)
+- set `USPS_CLIENT_SECRET=...` in `worker/.dev.vars`
 - run:
 
 ```bash
@@ -476,7 +476,7 @@ The important rule is:
 
 - do not turn shipping quotes into a high-write KV subsystem
 
-The checkout country selector is now fed from [`_data/shipping_countries.yml`](https://github.com/your-org/your-project/blob/main/_data/shipping_countries.yml), which keeps USPS destination maintenance in a dedicated source instead of burying it in browser runtime code.
+The checkout country selector is now fed from [`_data/shipping_countries.yml`](../_data/shipping_countries.yml), which keeps USPS destination maintenance in a dedicated source instead of burying it in browser runtime code.
 
 ## Worker and Frontend Touchpoints
 
@@ -525,7 +525,7 @@ Current automated coverage includes:
 
 Current docs that should stay aligned with shipping behavior:
 
-- [About The Pool](/docs/overview/about-the-pool/)
+- [README.md](/docs/overview/about-the-pool/)
 - [docs/CUSTOMIZATION.md](/docs/development/customization-guide/)
 - [docs/DEV_NOTES.md](/docs/development/developer-notes/)
 - [docs/TESTING.md](/docs/operations/testing/)

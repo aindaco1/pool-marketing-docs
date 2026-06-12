@@ -202,7 +202,7 @@ ABOUT_REWRITE = <<~MARKDOWN.freeze
 
   It is designed around a simple promise: supporters can pledge toward a creative project without creating an account, and their cards are only charged if the campaign reaches its goal. Behind that lightweight supporter experience, The Pool gives creators and operators real infrastructure for pledge checkout, fulfillment, updates, reporting, admin editing, localization, and deployment.
 
-  Current release milestone: **v1.0.3**. The v1.0 feature set and launch-hardening pass are complete, including configurable platform timezones, launch reminders, mobile campaign-page performance improvements, scoped admin automation secrets, campaign-scoped settlement locking, safer media lifecycle handling, and lower steady-state KV write/list usage.
+  Current release milestone: **v1.0.4**. The v1.0 feature set and launch-hardening pass are complete. v1.0.4 adds super-admin plan-usage tracking for Cloudflare Workers/KV and Resend, dashboard net revenue analytics after allocated Stripe processor fees, component-level fee allocation for reports/exports, usage-tracker provider credential docs, and grouped local Worker secret scaffolding.
 
   ## All-or-Nothing Pledging
 
@@ -383,9 +383,9 @@ ROADMAP_REWRITE = <<~MARKDOWN.freeze
 
   ## Current Milestone
 
-  **v1.0.3**
+  **v1.0.4**
 
-  The v1.0 feature set and release-hardening pass are complete. v1.0.3 adds configurable platform timezone handling, opt-in launch reminders for upcoming campaigns, mobile campaign-page performance refinements, scoped admin automation secrets, campaign-scoped settlement locking, safer dashboard media lifecycle handling, and lower steady-state KV write/list usage.
+  The v1.0 feature set and release-hardening pass are complete. v1.0.4 adds super-admin plan-usage tracking for Cloudflare Workers/KV and Resend, dashboard net revenue analytics after allocated Stripe processor fees, component-level fee allocation for reports/exports, usage-tracker provider credential docs, and grouped local Worker secret scaffolding.
 
   ## Release History
 
@@ -591,12 +591,24 @@ ROADMAP_REWRITE = <<~MARKDOWN.freeze
   - dashboard image/video uploads request the repository media optimizer with `scope=changed`, while publish-time cleanup removes same-campaign dashboard-owned media that disappeared from authored content and is not referenced elsewhere
   - launch reminder dispatch, supporter email retry, and platform add-on inventory paths now use queue-state or sold-count projections to avoid unnecessary KV list scans during idle or normal read paths
 
+  ### v1.0.4 — Admin Plan Usage And Net Revenue Analytics
+
+  This point release tightened the admin operator surface around provider usage limits, revenue reporting, and local secret setup.
+
+  New in this version:
+
+  - super admins can view read-only Cloudflare Workers/KV and Resend plan usage from Settings without exposing provider tokens to the browser
+  - usage cards support provider-detected plan names where available, warning thresholds, progress bars, and provider links for account follow-up
+  - dashboard Analytics now shows net campaign and platform revenue after allocated actual or estimated Stripe processor fees while keeping gross revenue cards visible for reconciliation
+  - fee allocation is component-aware across campaign revenue, platform revenue, tax, and shipping so table and CSV exports reconcile with stored Stripe balance transactions or estimates
+  - Worker and operator docs now describe the Cloudflare GraphQL Analytics / Billing Read token boundary, Resend usage behavior, and plan override variables
+  - local Worker `.dev.vars` scaffolding and `npm run secrets:dev` output are grouped by purpose, including Plan Usage provider settings and overrides
+
   ## Future Features
 
-  Work still planned after `1.0.3` includes:
+  Work still planned after `1.0.4` includes:
 
   - further tax-calculator work for broader US and international coverage, better local-jurisdiction depth, and clearer tax-data refresh workflows
-  - net revenue analytics after allocated processor fees, using actual Stripe fee data where available
   - richer campaign marketing tools such as announcement composition and consent-aware abandoned-cart follow-up
   - different prices per add-on variation
   - email-protected campaign preview pages for super admins, campaign users, and invited reviewers
@@ -670,9 +682,10 @@ def rewrite_copy(content, current_src)
     )
     rewritten.sub!(
       /^Current release milestone: \*\*v1\.0\.\d+\*\*\. .+$/,
-      "Current release milestone: **v1.0.3**. The v1.0 feature set and launch hardening pass are complete; v1.0.3 adds configurable platform timezone handling, opt-in launch reminders for upcoming campaigns, mobile campaign-page performance refinements, and an hourly scheduler heartbeat that avoids baseline Workers KV write churn."
+      "Current release milestone: **v1.0.4**. The v1.0 feature set and launch hardening pass are complete; v1.0.4 adds super-admin plan-usage tracking, net revenue analytics after allocated Stripe processor fees, component-level fee allocation, usage-tracker provider credential docs, and grouped local Worker secret scaffolding."
     )
-    rewritten.gsub!("the v0.9.5 through v1.0.2 creator-facing changes", "the v0.9.5 through v1.0.3 creator-facing changes")
+    rewritten.gsub!("the v0.9.5 through v1.0.2 creator-facing changes", "the v0.9.5 through v1.0.4 creator-facing changes")
+    rewritten.gsub!("the v0.9.5 through v1.0.3 creator-facing changes", "the v0.9.5 through v1.0.4 creator-facing changes")
     rewritten.gsub!(/\n\*🄯 Dust Wave\*\n/, "\n")
     rewritten.gsub!("*🄯 Dust Wave*", "")
     rewritten.gsub!(/^\*🄯 Dust Wave\*$/m, "")
@@ -685,7 +698,13 @@ def rewrite_copy(content, current_src)
     end
 
     unless rewritten.match?(/^## v1\.0\.3\b/m)
-      rewritten.sub!("# Changelog\n\n", "# Changelog\n\n#{CHANGELOG_103_ENTRY}\n")
+      if rewritten.match?(/^## v1\.0\.2\b/m)
+        rewritten.sub!(/(?=^## v1\.0\.2\b)/m, "#{CHANGELOG_103_ENTRY}\n")
+      elsif rewritten.match?(/^## v1\.0\.1\b/m)
+        rewritten.sub!(/(?=^## v1\.0\.1\b)/m, "#{CHANGELOG_103_ENTRY}\n")
+      else
+        rewritten.sub!("# Changelog\n\n", "# Changelog\n\n#{CHANGELOG_103_ENTRY}\n")
+      end
     end
 
     unless rewritten.match?(/^## v1\.0\.2 - 2026-06-01\b/m)

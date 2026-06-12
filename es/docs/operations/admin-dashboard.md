@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-3 de junio de 2026
+11 de junio de 2026
 
 Este documento es la referencia del operador para el panel de administración privado de The Pool y debe ser tratado como la fuente de verdad para la edición de campañas, informes, análisis, enlaces de marketing, complementos y administración de usuarios basados ​​en el panel.
 
@@ -70,6 +70,7 @@ El panel separa intencionalmente la navegación de solo lectura, los borradores 
 |Cargas de imágenes/vídeo/audio|El trabajador valida los medios, confirma la ruta del activo a través de GitHub y actualiza el campo relevante localmente hasta su publicación.|
 |Guardar/editar/eliminar referencias de marketing|Mutación KV en el ámbito de la campaña para códigos de referencia guardados|
 |Configuración -> Guardar usuarios|Escritura de KV único a `admin-users:v1`|
+|Configuración -> Uso del plan|Llamadas API de proveedor Cloudflare/Resend de solo lectura; escrituras de cero KV u operaciones de lista|
 |Secretos y credenciales|Estado de solo lectura solamente; Los valores secretos nunca se muestran, editan, serializan ni publican.|
 
 Las lecturas normales del tablero deben permanecer dentro del presupuesto de escritura KV descrito en `worker/README.md` y cubierto por pruebas.
@@ -80,7 +81,7 @@ Las acciones de publicación respaldadas por GitHub requieren que el trabajador 
 
 El orden del panel de nivel superior es:
 
-1. **Configuración**: configuración de plataforma, marca/SEO, precios, impuestos, envío, informes de ejecución, diseño, usuarios, rendimiento, depuración, estado de credenciales y diagnóstico de tiempo de ejecución.
+1. **Configuración**: configuración de plataforma, marca/SEO, precios, impuestos, envío, informes de ejecución, diseño, usuarios, rendimiento, uso del plan, depuración, estado de credenciales y diagnóstico de tiempo de ejecución.
 2. **Complementos**: disponibilidad de complementos de la plataforma y detalles del producto, visibles solo para superadministradores.
 3. **Campañas**: configuración de campaña con alcance de función, contenido de la página, recompensas, complementos de campaña, objetivos ambiciosos, elementos en curso, entradas del diario y decisiones.
 4. **Análisis**: análisis de cartera y campañas derivadas de promesas.
@@ -143,6 +144,14 @@ La configuración de rendimiento avanzada expone los controles públicos seguros
 
 Los valores predeterminados son intencionalmente conservadores y se aplican solo a enlaces de documentos públicos del mismo origen. El tiempo de ejecución excluye los enlaces de administración, pago, gestión de compromiso, comunidad de seguidores, tokenizados, externos y de consultas confidenciales. La publicación de estas configuraciones actualiza `_config.yml`, refleja las variables de trabajo `INTENT_PREFETCH_*` y requiere la reconstrucción estática normal antes de que las páginas públicas usen los nuevos valores.
 
+### Uso del plan
+
+El uso del plan es una sección de solo lectura exclusiva para superadministradores para conocer los límites operativos del proveedor. Se carga automáticamente cuando se abre **Configuración -> Uso del plan** y se actualiza solo cuando el administrador recarga la página.
+
+El trabajador llama a Cloudflare y Resend con credenciales del lado del servidor y devuelve nombres de planes, números de uso, límites, gravedad y enlaces de proveedores desinfectados. Los tokens del proveedor nunca llegan al navegador y el punto final no escribe KV ni enumera los espacios de nombres de KV.
+
+El uso de Cloudflare utiliza `CLOUDFLARE_USAGE_API_TOKEN` o `CLOUDFLARE_ANALYTICS_API_TOKEN` más `CLOUDFLARE_ACCOUNT_ID`. Agregue lectura de facturación al token de uso si la detección automática del plan de trabajadores debería funcionar; de lo contrario, establezca `PLAN_USAGE_CLOUDFLARE_PLAN`. El uso de reenvío utiliza `RESEND_API_KEY`; Existen anulaciones de planes/límites opcionales porque las sondas de reenvío seguras pueden exponer encabezados de límite de velocidad sin encabezados de uso de envío mensual.
+
 ### Diseño
 
 La configuración de diseño expone variables seleccionadas del tema, como la fuente del cuerpo, la fuente del encabezado, los colores del texto, los colores de superficie/borde/primarios y el radio del botón.
@@ -204,7 +213,7 @@ Cada campaña tiene estas subpestañas:
 
 ### Configuración de campaña
 
-La configuración de la campaña incluye identidad, fechas, monto objetivo, estado cargado/de solo lectura, correos electrónicos de informes del corredor, anulaciones de envío, medios destacados, imagen del creador, fondos y otros temas de la campaña.
+La configuración de la campaña incluye identidad, fechas, monto objetivo, estado cargado/de solo lectura, correos electrónicos de informe del corredor, anulaciones de envío, medios destacados, imagen del creador, fondos y otros temas de la campaña.
 
 Slug y URL son campos derivados de sólo lectura. Se conservan las babosas de campaña existentes. Para nuevas campañas creadas con repositorios, mantenga la URL del slug segura y estable porque el pago, los informes, los enlaces mágicos y los registros de compromiso dependen de ello.
 
@@ -288,9 +297,9 @@ La pestaña Partidarios muestra filas de seguidores con alcance de rol con filtr
 
 Los análisis se derivan de índices de compromisos y resúmenes de campañas existentes. No debería crear escrituras KV específicas de análisis en la vista.
 
-El panel muestra tarjetas con los totales de promesas, categorías de ingresos, impuestos, envío, tarifas de Stripe, estado de la promesa, patrocinadores, promesa promedio, complementos de campaña, atribución de referencia, fuente UTM, tipo de cumplimiento, idioma y otros desgloses derivados de la promesa. Los valores monetarios muestran centavos exactos.
+El panel muestra tarjetas para los totales de promesas, categorías de ingresos, ingresos netos después de las tarifas de procesador asignadas, impuestos, envío, tarifas de Stripe, estado de la promesa, patrocinadores, promesa promedio, complementos de campaña, atribución de referencia, fuente UTM, tipo de cumplimiento, idioma y otros desgloses derivados de la promesa. Los valores monetarios muestran centavos exactos.
 
-Las tarifas de Stripe utilizan la tarifa de transacción del saldo de Stripe/los valores netos reales almacenados para las promesas cobradas cuando estén disponibles. Las promesas activas y las filas de promesas cargadas más antiguas sin datos reales del saldo de Stripe continúan utilizando la estimación de planificación estándar. Los reabastecimientos exclusivos de superadministradores pueden recuperar de forma segura datos históricos de transacciones de saldo de Stripe sin escaneos de listas KV a través de `POST /admin/analytics/stripe-financials/backfill`.
+Los ingresos brutos de la campaña y los ingresos de la plataforma permanecen visibles para la conciliación. Los ingresos netos de la campaña y los ingresos netos de la plataforma restan la parte asignada a cada categoría de las tarifas reales del procesador de Stripe cuando existen datos de transacciones de saldo almacenados. Las promesas activas y las filas de promesas cargadas más antiguas sin datos reales del saldo de Stripe continúan utilizando la estimación de planificación estándar. Los reabastecimientos exclusivos de superadministradores pueden recuperar de forma segura datos históricos de transacciones de saldo de Stripe sin escaneos de listas KV a través de `POST /admin/analytics/stripe-financials/backfill`.
 
 ## Marketing
 

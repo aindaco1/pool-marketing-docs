@@ -62,7 +62,7 @@ Tax calculation is now routed through a provider seam in `worker/src/tax.js`:
 - `TAX_PROVIDER=nm_grt` uses the vendored New Mexico starter dataset and can refine New Mexico street-address lookups against the free EDAC GRT API
 - `TAX_PROVIDER=zip_tax` adds local / jurisdiction-level US lookups through ZIP.TAX and falls back to `offline_rules` for destinations outside US/CA
 
-Non-secret provider settings are mirrored from the repo-root `_config.yml` into [`wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) as `TAX_PROVIDER`, `TAX_ORIGIN_COUNTRY`, `TAX_USE_REGIONAL_ORIGIN`, `NM_GRT_API_BASE`, and `ZIP_TAX_API_BASE`. If you enable `zip_tax`, also set `ZIP_TAX_API_KEY` as a Worker secret or in [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars). Refresh the vendored New Mexico starter file with `node ../scripts/update-nm-grt-starter.mjs`.
+Non-secret provider settings are mirrored from the repo-root `_config.yml` into [`wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) as `TAX_PROVIDER`, `TAX_ORIGIN_COUNTRY`, `TAX_USE_REGIONAL_ORIGIN`, `NM_GRT_API_BASE`, and `ZIP_TAX_API_BASE`. If you enable `zip_tax`, also set `ZIP_TAX_API_KEY` as a Worker secret or in `worker/.dev.vars`. Refresh the vendored New Mexico starter file with `node ../scripts/update-nm-grt-starter.mjs`.
 
 In the current browser flow, tax previews are intentionally allowed to stay provisional. If the cart or custom checkout does not yet have enough location data, the site shows `--` and waits for `/tax/quote` or `/checkout-intent/start` to finalize the tax result. New Mexico lookups are the most exact built-in path right now and typically need full street-level address data, not just ZIP/state, before the Worker can return a reliable local GRT result.
 
@@ -87,7 +87,7 @@ Before mutating anything, operators can now run read-only drift checks through:
 
 - `POST /stats/:slug/check`
 - `POST /admin/projections/check`
-- [`scripts/check-projections.sh`](https://github.com/your-org/your-project/blob/main/scripts/check-projections.sh) from the repo root
+- [`scripts/check-projections.sh`](../scripts/check-projections.sh) from the repo root
 
 Those checks compare stored `campaign-pledges:{slug}`, `stats:{slug}`, and `tier-inventory:{slug}` projections against active pledge truth and return a structured diff instead of silently repairing state.
 
@@ -110,7 +110,7 @@ Update `wrangler.toml` with the returned IDs.
 
 ### 2. Configure Secrets
 
-Local development secrets live in ignored [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars). The safest setup path is:
+Local development secrets live in ignored `worker/.dev.vars`. The safest setup path is:
 
 ```bash
 npm run secrets:dev
@@ -160,6 +160,14 @@ wrangler secret put ADMIN_SESSION_SECRET
 # Cloudflare Turnstile challenge verification when public widgets are enabled
 wrangler secret put TURNSTILE_SECRET_KEY
 
+# Optional admin plan usage tracker. Use a read-only GraphQL Analytics token,
+# not the broader Wrangler deploy token. Add Billing Read to detect the
+# current Workers plan from account subscriptions.
+wrangler secret put CLOUDFLARE_USAGE_API_TOKEN
+# Also make CLOUDFLARE_ACCOUNT_ID available to the Worker runtime, either as
+# a plain Worker variable or as a secret if you do not want it in config.
+# CLOUDFLARE_WORKER_SCRIPT_NAME is optional and filters request metrics to one script.
+
 # Optional: scoped launch-reminder Turnstile / unsubscribe-token secrets
 wrangler secret put LAUNCH_REMINDER_TURNSTILE_SECRET_KEY
 wrangler secret put LAUNCH_REMINDER_TOKEN_SECRET
@@ -175,12 +183,14 @@ If a GitHub Actions workflow or operator job calls scoped admin endpoints, set t
 
 The Resend API key must be allowed to send from the domain configured in `PLEDGES_EMAIL_FROM` and `UPDATES_EMAIL_FROM`. For the live Dust Wave deployment, those sender addresses use `site.example.com`; authorizing only a root domain does not authorize subdomain senders, and authorizing only a subdomain does not authorize root-domain senders.
 
+For Settings -> Plan usage, Resend normally needs only `RESEND_API_KEY`. Optional `PLAN_USAGE_RESEND_PLAN`, `RESEND_EMAILS_MONTHLY_LIMIT`, and `RESEND_EMAILS_DAILY_LIMIT` values are display overrides for deployments where Resend returns rate-limit headers but does not expose the monthly sent-usage header through a safe read endpoint.
+
 Custom checkout requires the matching Stripe publishable key for the current `APP_MODE`. If the Worker is configured for custom checkout but no publishable key is available, checkout falls back to Stripe-hosted Checkout instead of returning `503`, so pledges can still continue while the publishable key is being configured.
 
 USPS setup for this repo is split intentionally:
 
-- keep `shipping.usps.client_id` in the repo-root [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) or [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml)
-- keep `USPS_CLIENT_SECRET` in Worker secrets or [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars)
+- keep `shipping.usps.client_id` in the repo-root [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) or `_config.local.yml`
+- keep `USPS_CLIENT_SECRET` in Worker secrets or `worker/.dev.vars`
 - if you want to point the Worker at USPS TEM for testing, also set `shipping.usps.api_base` or `USPS_API_BASE`
 
 The Pool currently only needs USPS OAuth plus the default pricing/shipping-options product set for live quote calculation. It does **not** require USPS Labels / Ship / EPA setup unless the project later grows into label generation.
@@ -306,7 +316,7 @@ Requires admin auth and returns whether the stored campaign index, stats project
 ### POST /admin/projections/check
 Run the same read-only drift check across all campaigns.
 
-This is the Worker-side endpoint that powers [`scripts/check-projections.sh`](https://github.com/your-org/your-project/blob/main/scripts/check-projections.sh) and the newer mutable-pledge smoke assertions.
+This is the Worker-side endpoint that powers [`scripts/check-projections.sh`](../scripts/check-projections.sh) and the newer mutable-pledge smoke assertions.
 
 ## Content Safety Notes
 
@@ -408,6 +418,7 @@ The private `/admin/` and `/es/admin/` shells use cookie-backed Worker routes in
 - `POST /admin/settings/publish` validates and publishes platform settings, platform add-ons, campaign variables, and campaign structured data through GitHub-backed commits
 - `POST /admin/users` saves dashboard-managed admin users directly to `admin-users:v1` in Worker KV and emails newly created users sign-in instructions when Resend is configured
 - `GET /admin/analytics` reads role-scoped pledge-derived revenue, status, language, referral, and campaign/platform split metrics without writing analytics state; dashboard currency presentation keeps exact cents
+- `GET /admin/plan-usage` lets super admins load Cloudflare and Resend plan usage from provider APIs without exposing provider tokens to the browser or writing KV state; the dashboard loads it automatically when Settings -> Plan usage is opened
 - `POST /admin/analytics/stripe-financials/backfill` lets super admins backfill actual Stripe fee/net values from Stripe balance transactions for charged pledges, using campaign pledge indexes instead of KV list scans
 - `GET /admin/content/campaign?campaignSlug=...` loads role-scoped campaign content into the browser editor without persisting a draft
 - `POST /admin/content/preview` validates and renders role-scoped campaign content drafts without publishing, auditing, or writing KV
@@ -421,7 +432,7 @@ The private `/admin/` and `/es/admin/` shells use cookie-backed Worker routes in
 - `GET /admin/add-ons/inventory` reads platform add-on baseline, sold, remaining, and override state for super admins
 - `POST /admin/add-ons/inventory` explicitly sets, restocks, or resets platform add-on inventory baseline overrides with CSRF protection and audit logging
 
-Normal dashboard reads, supporter filters, pagination, pledge-derived analytics, marketing referral lists, report previews, CSV downloads, content loads, content previews, and local editor drafts are designed to add zero KV writes and zero KV list operations. Browser-initiated user saves, marketing referral saves, content publishes, and inventory changes are explicit mutations: user saves write `admin-users:v1`, referral saves write one campaign-scoped referral list, content publishes commit to GitHub, trigger the rebuild workflow, and write one audit event. If an older campaign is missing its `campaign-pledges:{slug}` projection, the dashboard endpoints return zero rows or `campaign_index_required` instead of falling back to a namespace scan; run the existing projection repair/rebuild tools explicitly when that happens.
+Normal dashboard reads, supporter filters, pagination, pledge-derived analytics, marketing referral lists, report previews, CSV downloads, content loads, content previews, and local editor drafts are designed to add zero KV writes and zero KV list operations. Plan usage loads are also KV read-only, but intentionally call Cloudflare and Resend provider APIs once when a super admin opens Settings -> Plan usage. Browser-initiated user saves, marketing referral saves, content publishes, and inventory changes are explicit mutations: user saves write `admin-users:v1`, referral saves write one campaign-scoped referral list, content publishes commit to GitHub, trigger the rebuild workflow, and write one audit event. If an older campaign is missing its `campaign-pledges:{slug}` projection, the dashboard endpoints return zero rows or `campaign_index_required` instead of falling back to a namespace scan; run the existing projection repair/rebuild tools explicitly when that happens.
 
 Admin auth starts/exchanges and browser-admin mutations are rate limited through the `RATELIMIT` binding and return private/no-store failures when throttled. Normal authenticated reads such as session checks, dashboard summaries, supporter filters, report previews, analytics views, and content previews are intentionally not KV-rate-limited. Magic-link login tokens are one-time use, and session reads do not refresh near-expiry sessions or clean up expired sessions on the read path. Cookie-backed admin mutations require both the session CSRF token and a trusted same-site `Origin`/`Referer` or non-cross-site fetch context before durable writes.
 
@@ -609,6 +620,13 @@ curl -X POST https://worker.example.com/test/email \
 | `ADMIN_TURNSTILE_SECRET_KEY` | Optional admin-specific Turnstile secret when not using `TURNSTILE_SECRET_KEY` |
 | `ADMIN_TURNSTILE_REQUIRED` | Optional fail-closed flag for deployments that expect Turnstile to be configured |
 | `ADMIN_TURNSTILE_BYPASS` | Local/test-only bypass for automated admin auth tests; do not enable on deployed Workers |
+| `CLOUDFLARE_USAGE_API_TOKEN` / `CLOUDFLARE_ANALYTICS_API_TOKEN` | Optional read-only GraphQL Analytics token for Settings -> Plan usage; add Billing Read for Workers plan auto-detection and keep it separate from deploy tokens |
+| `CLOUDFLARE_ACCOUNT_ID` | Account id used by Cloudflare plan usage GraphQL queries |
+| `CLOUDFLARE_WORKER_SCRIPT_NAME` | Optional Worker script filter for Cloudflare request metrics; omit for account-wide Workers usage |
+| `PLAN_USAGE_CLOUDFLARE_PLAN` / `PLAN_USAGE_RESEND_PLAN` | Optional display plan keys (`free`, `standard`/`paid`, `pro`, `scale`) used only when provider plan auto-detection is unavailable |
+| `CLOUDFLARE_*_DAILY_LIMIT` / `CLOUDFLARE_*_MONTHLY_LIMIT` | Optional Cloudflare metric limit overrides for Workers requests and KV reads/writes/deletes/lists, for example `CLOUDFLARE_WORKERS_REQUESTS_MONTHLY_LIMIT` |
+| `RESEND_EMAILS_MONTHLY_LIMIT` / `RESEND_EMAILS_DAILY_LIMIT` | Optional Resend display quota overrides used when Resend exposes plan/rate-limit data but omits monthly sent-usage headers |
+| `PLAN_USAGE_WARNING_PERCENT` / `PLAN_USAGE_CRITICAL_PERCENT` | Optional warning thresholds for plan usage progress bars |
 | `LAUNCH_REMINDERS_ENABLED` | Enables public upcoming-campaign launch reminder signup handling; mirrored from `_config.yml` |
 | `LAUNCH_REMINDER_TURNSTILE_SECRET_KEY` | Optional reminder-specific Turnstile secret when not using `TURNSTILE_SECRET_KEY` |
 | `LAUNCH_REMINDER_TURNSTILE_REQUIRED` | Optional fail-closed flag for reminder signups when a reminder Turnstile widget is expected |
@@ -626,7 +644,7 @@ Resend pacing is centralized as `RESEND_RATE_LIMIT_DELAY_MS` in `worker/src/emai
 
 Fork note: treat those identity, email-branding, pricing, and shipping vars as mirrors of the structured site config in [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml), especially the `platform`, `design`, `pricing`, and `shipping` sections. The first-party cart/runtime and the custom on-site checkout UI are built-in platform behavior now, not Worker env toggles you should normally customize directly.
 
-Keep `USPS_CLIENT_SECRET` out of site config. It belongs in Worker secrets or [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars).
+Keep `USPS_CLIENT_SECRET` out of site config. It belongs in Worker secrets or `worker/.dev.vars`.
 
 Localization note: the Worker now localizes supporter-facing email subjects/body copy and localized `/manage/` / `/community/:slug/` links from the shared site locale catalog. In normal operation it fetches that catalog from `SITE_BASE/assets/i18n.json`; tests and advanced deployments can inject `I18N_CATALOG_JSON` instead. That means localized supporter emails and localized routes such as `/es/manage/` or `/es/community/:slug/` stay aligned with the site locale model when a deployment adds those routes.
 

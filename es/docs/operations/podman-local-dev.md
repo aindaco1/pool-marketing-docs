@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-9 de junio de 2026
+11 de junio de 2026
 
 Este repositorio ahora incluye una ruta de desarrollo local sin raíz respaldada por Podman para los dos servicios que generalmente crean la mayor rotación de configuración de host:
 
@@ -76,7 +76,7 @@ El modo Podman está diseñado en torno a tres prioridades:
 |---------|--------------|----------------|
 |macos|`podman machine` máquina virtual|Validado por host en esta rama. Prefiera `libkrun` si `applehv` es inestable.|
 |linux|Podman nativo desarraigado|Compatible con la lógica del iniciador y el flujo de autoverificación, pero no validado por el host en este hilo.|
-|ventanas|`podman machine` máquina virtual|Compatible con la lógica del iniciador y el flujo de autoverificación cuando se ejecuta desde un shell compatible con bash, pero no validado por el host en este hilo.|
+|ventanas|`podman machine` máquina virtual|Compatible con la lógica del iniciador y el flujo de autocomprobación cuando se ejecuta desde un shell compatible con bash, pero no está validado por el host en este hilo.|
 
 En macOS y Windows, `./scripts/dev.sh --podman` inicializará/iniciará el `podman machine` predeterminado cuando sea necesario. En Linux, el iniciador omite la administración de la máquina y se comunica directamente con el motor Podman local sin raíz.
 
@@ -105,7 +105,7 @@ Más concretamente, la autocomprobación cubre:
 - `./scripts/test-worker.sh --podman`
 - `npm run test:e2e:headless:podman`
 
-La puerta de fusión más amplia también ejecuta `./scripts/smoke-pledge-management.sh --podman`, por lo que la ruta de modificación/cancelación mutable aún obtiene una cobertura de estado aislada incluso cuando las fases de compilación del host se realizan correctamente.
+La puerta de fusión más amplia también ejecuta `./scripts/smoke-pledge-management.sh --podman`, por lo que la ruta de modificación/cancelación mutable aún obtiene cobertura de estado aislada incluso cuando las fases de compilación del host se realizan correctamente.
 
 Ese humo de promesa mutable ahora también sigue siendo compatible con configuraciones impositivas impulsadas por el proveedor, como `tax.provider: nm_grt`: la ruta del accesorio de prueba del trabajador genera una dirección de facturación para que `/test/setup` pueda crear una promesa real consciente de los impuestos en lugar de asumir un impuesto fijo.
 
@@ -199,7 +199,7 @@ Para una cobertura del navegador de panel enfocada en la pila respaldada por Pod
 npm run test:e2e:headless:podman -- tests/e2e/admin-dashboard.spec.ts --project=chromium
 ```
 
-Para comandos del lado del host que necesitan un sitio/trabajador respaldado por Podman sin asumir persistencia de pila separada, use [`scripts/podman-stack-run.sh`](https://github.com/your-org/your-project/blob/main/scripts/podman-stack-run.sh). `npm run test:security:podman` usa ese contenedor para iniciar la pila, ejecutar el paquete de seguridad y derribar la pila en una sola invocación.
+Para los comandos del lado del host que necesitan un sitio/trabajador respaldado por Podman sin asumir la persistencia de la pila separada, use [`scripts/podman-stack-run.sh`](../scripts/podman-stack-run.sh). `npm run test:security:podman` usa ese contenedor para iniciar la pila, ejecutar el paquete de seguridad y derribar la pila en una sola invocación.
 
 El contenedor de trabajadores tiene por defecto `node:24-bookworm-slim`. Si la extracción de una imagen de Podman local se detiene pero la imagen de Playwright ya está almacenada en caché, el iniciador puede reutilizar `mcr.microsoft.com/playwright:v1.57.0-noble` como base del Nodo 24 para que el desarrollo aún coincida con el tiempo de ejecución del Nodo 24 de GitHub Actions.
 

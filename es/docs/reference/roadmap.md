@@ -10,15 +10,15 @@ lang: es
 
 ## Última actualización
 
-9 de junio de 2026
+11 de junio de 2026
 
 Esta hoja de ruta está organizada como un historial de lanzamiento de los estados reales del proyecto que realmente utilizamos, en lugar de una lista plana de funciones completadas.
 
 ## Hito actual
 
-**v1.0.3**
+**v1.0.4**
 
-El conjunto de funciones v1.0 y el pase de endurecimiento de lanzamiento están completos. v1.0.3 agrega manejo configurable de zona horaria de plataforma, recordatorios de lanzamiento opcionales para próximas campañas, mejoras de rendimiento en páginas móviles de campaña, secretos de automatización administrativa con alcance, bloqueo de liquidación por campaña, manejo más seguro del ciclo de vida de medios del panel y menor uso estable de escrituras/listados KV.
+El conjunto de funciones v1.0 y el pase de liberación reforzada están completos. v1.0.4 agrega seguimiento del uso del plan de superadministrador para Cloudflare Workers/KV y Resend, análisis de ingresos netos en el panel después de las tarifas asignadas del procesador Stripe, asignación de tarifas a nivel de componente para informes/exportaciones, documentos de credenciales del proveedor de seguimiento de uso y andamios secretos de trabajadores locales agrupados.
 
 ## Historial de lanzamientos
 
@@ -213,23 +213,35 @@ Nuevo en esta versión:
 - `_config.local.yml` puede borrar la clave del sitio Turnstile de recordatorio para que el desarrollo local oculte el widget de manera coherente con el inicio de sesión del administrador local.
 - El optimizador de medios Podman ahora incluye `optipng` y `gifsicle` para la compresión de fuentes PNG/GIF locales a través del mismo flujo de trabajo de medios del repositorio.
 - La generación de imágenes responsivas ahora incluye un renglón WebP `640w` entre las variantes `480w` y `960w` existentes para páginas de campañas móviles.
-- Los videos de los héroes de la campaña de YouTube muestran fachadas de carteles/juegos locales y posponen el iframe remoto hasta que el partidario tenga la intención de jugar.
-- Las listas de verificación públicas para creadores ahora describen los cambios de la versión 1.0.3 para los creadores, incluidos recordatorios de lanzamiento, expectativas de zona horaria de la plataforma, incrustaciones diferidas de héroes de YouTube y variantes WebP receptivas.
-- `ADMIN_SETTLEMENT_SECRET` y `ADMIN_BROADCAST_SECRET` opcionales pueden limitar el acceso a la automatización de liquidación y broadcast; las rutas con alcance rechazan el `ADMIN_SECRET` más amplio cuando el secreto más estrecho está configurado
-- las rutas de liquidación programada, directa, de despacho y por lotes ahora comparten un bloqueo de objeto durable `SETTLEMENT_COORDINATOR` por campaña y claves de idempotencia determinísticas de Stripe, para que los cobros de la misma campaña no se superpongan
-- los checkouts de varias campañas siguen admitidos porque el bundle de checkout se divide en registros de compromiso separados por campaña; los bloqueos y lotes de liquidación permanecen limitados a la campaña que se cobra
-- los documentos de GitHub Actions y operación ahora distinguen entre secretos de runtime del Worker y secretos del repositorio, incluida la necesidad de definir secretos administrativos con alcance en ambos lugares cuando corresponda
-- los documentos de despliegue y exportación de reportes de Cloudflare ahora requieren `CLOUDFLARE_ACCOUNT_ID`, recomiendan tokens de despliegue con alcance de usuario y documentan opciones más estrechas para purga de caché y tokens KV de solo lectura
-- la guía de `worker/.dev.vars` ahora pide explícitamente valores solo locales en lugar de respaldos de secretos de producción
-- las cargas de imagen/video del panel solicitan el optimizador de medios del repositorio con `scope=changed`, mientras que la limpieza al publicar elimina medios del panel de la misma campaña que desaparecieron del contenido escrito y no están referenciados en otro lugar
-- el despacho de recordatorios de lanzamiento, los reintentos de correo de seguidores y el inventario de add-ons de plataforma ahora usan estado de cola o proyecciones de unidades vendidas para evitar listados KV innecesarios en rutas inactivas o de lectura normal
+- Los videos de los héroes de la campaña de YouTube muestran fachadas de carteles/juegos locales y difieren el iframe remoto hasta que el partidario tenga la intención de jugar.
+- Las listas de verificación públicas para creadores ahora describen los cambios v1.0.3 de cara a los creadores, incluidos recordatorios de lanzamiento, expectativas de zona horaria de la plataforma, incrustaciones diferidas de héroes de YouTube y variantes WebP receptivas.
+- `ADMIN_SETTLEMENT_SECRET` y `ADMIN_BROADCAST_SECRET` opcionales pueden limitar el acceso a la liquidación y la automatización de transmisiones; las rutas con alcance rechazan el `ADMIN_SECRET` más amplio cuando se configura el secreto más restringido
+- Las rutas de liquidación programada, directa, de envío y por lotes ahora comparten un bloqueo de objeto duradero `SETTLEMENT_COORDINATOR` con alcance de campaña y claves deterministas de idempotencia de banda para que el cobro de la misma campaña no pueda superponerse.
+- los pagos de múltiples campañas siguen siendo compatibles con la distribución de paquetes de pagos en registros de compromiso separados con alcance de campaña; Los bloqueos y lotes de liquidación permanecen en el ámbito de la campaña que se está cargando.
+- Las acciones de GitHub y los documentos del operador ahora distinguen los secretos del tiempo de ejecución del trabajador de los secretos del repositorio, incluso cuando los secretos de administración con ámbito coincidente deben existir en ambos lugares.
+- Los documentos de implementación y exportación de informes de Cloudflare ahora requieren `CLOUDFLARE_ACCOUNT_ID`, recomiendan tokens de implementación con alcance de usuario y documentan opciones más limitadas de eliminación de caché y tokens KV de solo lectura.
+- La guía `worker/.dev.vars` ahora exige explícitamente valores solo locales en lugar de copias de seguridad secretas de producción.
+- Las cargas de imágenes/vídeos del panel solicitan el optimizador de medios del repositorio con `scope=changed`, mientras que la limpieza en el momento de la publicación elimina los medios propiedad del panel de la misma campaña que desaparecieron del contenido de autor y no se mencionan en ningún otro lugar.
+- El envío de recordatorios de lanzamiento, el reintento de correo electrónico de los asistentes y las rutas de inventario de complementos de plataforma ahora utilizan proyecciones de estado de cola o recuento de ventas para evitar escaneos innecesarios de la lista KV durante rutas de lectura inactivas o normales.
+
+### v1.0.4: uso del plan de administración y análisis de ingresos netos
+
+Esta versión puntual reforzó la superficie del operador administrativo en torno a los límites de uso del proveedor, los informes de ingresos y la configuración secreta local.
+
+Nuevo en esta versión:
+
+- Los superadministradores pueden ver los trabajadores/KV de Cloudflare de solo lectura y el uso del plan de reenvío desde Configuración sin exponer los tokens del proveedor al navegador.
+- Las tarjetas de uso admiten nombres de planes detectados por el proveedor cuando estén disponibles, umbrales de advertencia, barras de progreso y enlaces de proveedores para el seguimiento de la cuenta.
+- Dashboard Analytics ahora muestra los ingresos netos de la campaña y la plataforma después de las tarifas asignadas reales o estimadas del procesador de Stripe, al tiempo que mantiene las tarjetas de ingresos brutos visibles para la conciliación.
+- La asignación de tarifas tiene en cuenta los componentes de los ingresos de la campaña, los ingresos de la plataforma, los impuestos y los envíos, de modo que las exportaciones de tablas y CSV se concilian con las transacciones o estimaciones del saldo de Stripe almacenado.
+- Los documentos de trabajadores y operadores ahora describen el límite del token de lectura de facturación/análisis GraphQL de Cloudflare, el comportamiento de uso de reenvío y las variables de anulación del plan.
+- El andamio local del trabajador `.dev.vars` y la salida `npm run secrets:dev` se agrupan por propósito, incluidas las configuraciones y anulaciones del proveedor de uso del plan.
 
 ## Funciones futuras
 
-El trabajo aún planeado después de `1.0.3` incluye:
+El trabajo aún planeado después de `1.0.4` incluye:
 
 - Trabajo adicional en la calculadora de impuestos para una cobertura más amplia en EE. UU. e internacional, una mayor profundidad de las jurisdicciones locales y flujos de trabajo de actualización de datos tributarios más claros.
-- Análisis de ingresos netos después de las tarifas de procesador asignadas, utilizando datos reales de tarifas de Stripe cuando estén disponibles.
 - Herramientas de marketing de campaña más completas, como la composición de anuncios y el seguimiento de carritos abandonados que tengan en cuenta el consentimiento.
 - diferentes precios por variación adicional
 - Páginas de vista previa de campañas protegidas por correo electrónico para superadministradores, usuarios de campañas y revisores invitados.

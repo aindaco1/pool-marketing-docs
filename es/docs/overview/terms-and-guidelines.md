@@ -1,7 +1,7 @@
 ---
 title: Términos y pautas creativas
 parent: Resumen
-nav_order: 3
+nav_order: 2
 render_with_liquid: false
 lang: es
 ---
@@ -10,9 +10,9 @@ lang: es
 
 ## Última actualización
 
-9 de junio de 2026
+11 de junio de 2026
 
-Estos términos reflejan el hito del lanzamiento de la plataforma The Pool **v1.0.3**.
+Estos términos reflejan el hito del lanzamiento de la plataforma The Pool **v1.0.4**.
 
 ## Términos de compromiso
 
@@ -37,7 +37,7 @@ Estos términos reflejan el hito del lanzamiento de la plataforma The Pool **v1.
 - Los consejos de plataforma opcionales apoyan el mantenimiento de The Pool y están incluidos en el total de su contribución, pero **no cuentan para el objetivo de financiación de una campaña**.
 - Esta implementación también puede ofrecer **complementos de plataforma opcionales** junto con un compromiso. Los complementos de la plataforma respaldan el mantenimiento de The Pool, se incluyen en el total de su contribución y **no cuentan para el objetivo de financiación de una campaña**.
 - Una campaña también puede ofrecer **complementos de campaña opcionales** junto con sus niveles de compromiso. Los complementos de la campaña se incluyen en el total de su compromiso, **cuentan para el objetivo de financiación de esa campaña** y permanecen asociados con esa campaña para informes y cumplimiento.
-- El impuesto sobre las ventas se aplica según las reglas impositivas configuradas para esta implementación. Dependiendo de la implementación, puede ser una tarifa fija configurada o un cálculo de impuestos basado en la ubicación según el destino de facturación o envío que proporcione durante el proceso de pago o cambios de compromiso posteriores.
+- El impuesto sobre las ventas se aplica según las reglas impositivas configuradas para esta implementación. Dependiendo de la implementación, puede ser una tarifa fija configurada o un cálculo de impuestos basado en la ubicación según el destino de facturación o envío que proporcione durante el proceso de pago o cambios de promesa posteriores.
 - Las promesas de productos físicos, los complementos de campañas físicas o los complementos de plataformas físicas pueden incluir cargos de envío configurados para la implementación. Dependiendo de esta implementación y configuración de la campaña, el envío puede cotizarse desde USPS, utilizar una tarifa alternativa configurada, incluir anulaciones de envío gratuito u ofrecer opciones limitadas de actualización de firma nacional. Los complementos de campaña siguen las reglas de envío de la campaña propietaria; Los complementos de la plataforma física se pueden cobrar como un envío de plataforma separado. Su dirección de envío se recopila durante el proceso de pago para que se puedan obtener las recompensas físicas.
 - Para algunos carritos solo digitales o mixtos, The Pool también puede solicitar suficiente información sobre la ubicación de facturación para calcular el impuesto antes de finalizar el total del compromiso. Si aún no está disponible un resultado de impuestos preciso, el carrito puede mostrar los impuestos como una estimación hasta que el pago tenga suficientes detalles del destino.
 - Si hay una opción de entrega disponible para su envío y la cambia al finalizar la compra o en Administrar compromiso, el total de envío almacenado y el total del compromiso se recalculan a partir del estado del compromiso guardado antes de que el cambio persista.
@@ -84,6 +84,7 @@ Esta sección se aplica solo a campañas que solicitan explícitamente envíos c
 - Las páginas públicas pueden precargar páginas públicas elegibles del mismo origen después de pasar el cursor, enfocar o tocar para agilizar la navegación normal. Este comportamiento de captación previa excluye enlaces de administración, pago, gestión de compromiso, comunidad de seguidores, tokenizados, externos y de consultas confidenciales.
 - Las páginas de campañas públicas pueden aplazar las incrustaciones de medios de terceros seleccionados, como vídeos destacados de YouTube, hasta que usted decida reproducirlos. Hasta entonces, la página puede mostrar una imagen de póster local en lugar de comunicarse con ese proveedor de inserción externo.
 - Los enlaces para compartir de la campaña pueden preservar la referencia pública segura o los parámetros de consulta UTM para que los responsables de la campaña puedan comprender las fuentes de promoción pública. No conservan tokens, pedidos, correos electrónicos, sesiones ni otros parámetros de consulta confidenciales.
+- Los operadores de plataforma autorizados pueden cargar el estado de uso del plan de Cloudflare y Reenviar en el panel de administración privado. Esas comprobaciones de proveedores utilizan credenciales del lado del servidor y no envían detalles de promesas, correos electrónicos de seguidores, direcciones de envío ni datos de pago a los puntos finales de uso.
 - No vendemos su información. Lo compartimos solo cuando sea necesario para el procesamiento de pagos, la entrega de correos electrónicos transaccionales, la prevención de abusos, el cálculo de cotizaciones de envío y el cumplimiento de recompensas.
 
 ## Plataforma y tecnología

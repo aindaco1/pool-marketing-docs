@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-3 de junio de 2026
+11 de junio de 2026
 
 Este documento describe el modelo SEO actual de The Pool en 2026. Es intencionalmente conservador: las páginas públicas se hacen más fáciles de rastrear y comprender, mientras que los flujos tokenizados y exclusivos para seguidores permanecen fuera de la intención del índice. La implementación está diseñada en torno a metadatos reales, páginas públicas reales y datos estructurados honestos en lugar de relleno de contenido o cebo de resultados enriquecidos.
 
@@ -50,9 +50,9 @@ La línea de base actual incluye:
 
 Los principales archivos de implementación son:
 
-- [/_includes/seo-meta.html](https://github.com/your-org/your-project/blob/main/_includes/seo-meta.html)
-- [/_includes/seo-json-ld.html](https://github.com/your-org/your-project/blob/main/_includes/seo-json-ld.html)
-- [/_layouts/campaign.html](https://github.com/your-org/your-project/blob/main/_layouts/campaign.html)
+- [/_includes/seo-meta.html](../_includes/seo-meta.html)
+- [/_includes/seo-json-ld.html](../_includes/seo-json-ld.html)
+- [/_layouts/campaign.html](../_layouts/campaign.html)
 - [/worker/src/index.js](https://github.com/your-org/your-project/blob/main/worker/src/index.js)
 - [/robots.txt](/robots.txt)
 - [/sitemap.xml](/sitemap.xml)
@@ -64,7 +64,7 @@ La ruta pública de Open Graph es:
 - `/share/campaign/{slug}.png?lang=en`
 - `/share/campaign/{slug}.png?lang=es`
 
-Esa ruta genera una tarjeta SVG con reconocimiento de estado a partir de datos de campaña en vivo, luego la rasteriza a PNG para que los enlaces compartidos permanezcan seguros para los rastreadores y al mismo tiempo muestren el total comprometido, el progreso de los objetivos, el estado de la campaña y el cuadrado `hero_image` de la campaña con el estilo de tarjeta compartida más rico. El trabajador también mantiene la versión SVG en `/share/campaign/{slug}.svg?lang={lang}` para herramientas internas de vista previa/depuración, pero SVG no es el valor predeterminado de metadatos públicos porque algunos rastreadores externos lo rechazan.
+Esa ruta genera una tarjeta SVG con reconocimiento de estado a partir de datos de campaña en vivo, luego la rasteriza a PNG para que los enlaces compartidos permanezcan seguros para los rastreadores y al mismo tiempo muestren el total prometido, el progreso de los objetivos, el estado de la campaña y el cuadrado `hero_image` de la campaña con el estilo de tarjeta compartida más rico. El trabajador también mantiene la versión SVG en `/share/campaign/{slug}.svg?lang={lang}` para herramientas internas de vista previa/depuración, pero SVG no es el valor predeterminado de metadatos públicos porque algunos rastreadores externos lo rechazan.
 
 Los enlaces para compartir páginas de la campaña mantienen la misma separación de preocupaciones:
 
@@ -102,8 +102,8 @@ Esto se aplica mediante una combinación de:
 
 Contrato del panel de administración:
 
-- [admin.md](https://github.com/your-org/your-project/blob/main/admin.md) y [es/admin/index.html](https://github.com/your-org/your-project/blob/main/es/admin/index.html) deben conservar `indexable: false` y `sitemap: false`
-- [/_layouts/admin.html](https://github.com/your-org/your-project/blob/main/_layouts/admin.html) debe llamar a `seo-meta.html` con `indexable=false` y `social=false`
+- [admin.md](https://github.com/your-org/your-project/blob/main/admin.md) y [es/admin/index.html](../es/admin/index.html) deben conservar `indexable: false` y `sitemap: false`
+- [/_layouts/admin.html](../_layouts/admin.html) debe llamar a `seo-meta.html` con `indexable=false` y `social=false`
 - [`robots.txt`](/robots.txt) debe rechazar `/admin/` y `/es/admin/`
 - [`sitemap.xml`](/sitemap.xml) no debe incluir rutas de administración
 - el diseño del administrador no debe emitir metadatos de vista previa social JSON-LD o Open Graph/Twitter; el panel es una superficie de aplicación privada, no un resultado de búsqueda público ni un objetivo compartido

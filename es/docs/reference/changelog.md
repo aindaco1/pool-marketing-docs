@@ -10,18 +10,27 @@ lang: es
 
 ## Última actualización
 
-9 de junio de 2026
+11 de junio de 2026
+
+## v1.0.4 - 2026-06-11
+
+- Se agregaron configuraciones de superadministrador -> Seguimiento del uso del plan para trabajadores de Cloudflare/KV y cuotas de reenvío, con carga automática, nombres de planes detectados por el proveedor cuando estén disponibles, barras de progreso, umbrales de advertencia y enlaces de planes de proveedor mientras se mantienen los tokens de proveedor en el servidor.
+- Se agregó un panel de análisis de ingresos netos de campaña/plataforma después de asignar las tarifas reales o estimadas del procesador de Stripe, al tiempo que se conservan los ingresos brutos de la campaña y las tarjetas de ingresos de la plataforma para la conciliación.
+- Se agregó la asignación de tarifas de procesador a nivel de componente entre los ingresos de la campaña, los ingresos de la plataforma, los impuestos y el envío para que las exportaciones de tablas/CSV se concilien con las transacciones de saldo almacenadas de Stripe o las estimaciones de tarifas existentes.
+- Variables de entorno de seguimiento de uso documentadas y límite de token de lectura de facturación y análisis GraphQL de Cloudflare de solo lectura para el uso y la detección del plan de trabajadores.
+- Se reorganizó el andamiaje local del trabajador `.dev.vars` y la salida `npm run secrets:dev` en grupos basados en propósitos, incluidas las configuraciones y anulaciones del proveedor de uso del plan.
+- Metadatos de versión actualizados a `1.0.4`.
 
 ## v1.0.3 - 2026-06-01
 
-- Se agregaron secretos opcionales de automatización administrativa con alcance: `ADMIN_SETTLEMENT_SECRET` para rutas de liquidación y `ADMIN_BROADCAST_SECRET` para rutas de anuncio, diario e hitos. Cuando se configura un secreto con alcance, esas rutas rechazan el `ADMIN_SECRET` más amplio.
-- Se agregó serialización de liquidación con alcance de campaña mediante el objeto durable `SETTLEMENT_COORDINATOR`, validación de lotes de la misma campaña y claves de idempotencia determinísticas de Stripe para grupos de cobro por campaña/seguidor.
-- Se aclaró que los checkouts de varias campañas todavía se dividen en registros de compromiso separados por campaña, mientras que los bloqueos de liquidación, lotes, estado de trabajo y marcadores de finalización siguen ligados a la campaña que se cobra.
-- Se actualizaron los documentos de despliegue y operación para `CLOUDFLARE_ACCOUNT_ID`, tokens de despliegue de Cloudflare con alcance de usuario, tokens más estrechos para purga de caché, tokens KV de solo lectura para exportación de reportes y la diferencia entre secretos de runtime del Worker y secretos del repositorio de GitHub.
-- Se reforzó la guía de secretos locales para que `worker/.dev.vars` use valores separados solo locales y no se trate como respaldo de secretos de producción.
-- Se actualizó la documentación de medios del panel para el despacho del optimizador de imagen/video con `scope=changed`, cargas que preservan la fuente, preservación de audio fuente y limpieza al publicar de medios del panel de la misma campaña que ya no estén referenciados.
-- Se documentó el endurecimiento del presupuesto de listados para despacho de recordatorios de lanzamiento, colas de reintento de correo de confirmación de seguidores y proyecciones de conteo vendido de add-ons de plataforma, de modo que las rutas inactivas o de lectura normal eviten listados innecesarios de namespaces KV.
-- Se actualizó la documentación de logging para reflejar que el logging de consola sigue habilitado de forma predeterminada, mientras que la salida verbose de menor severidad para debug/info/log queda desactivada por defecto.
+- Se agregaron secretos de automatización de administración con alcance opcionales: `ADMIN_SETTLEMENT_SECRET` para rutas de liquidación y `ADMIN_BROADCAST_SECRET` para rutas de anuncios, diarios e hitos. Cuando se configura un secreto de ámbito, esas rutas rechazan el `ADMIN_SECRET` más amplio.
+- Se agregó serialización de liquidación en el ámbito de la campaña con el objeto duradero `SETTLEMENT_COORDINATOR`, validación por lotes de la misma campaña y claves deterministas de idempotencia de Stripe para grupos de cargos de campaña/partidarios.
+- Se aclaró que los pagos de varias campañas aún se despliegan en registros de promesas separados con alcance de campaña, mientras que los bloqueos de liquidación, los lotes, el estado del trabajo y los marcadores de finalización permanecen vinculados a la campaña que se está cargando.
+- Documentos actualizados de implementación y operador para `CLOUDFLARE_ACCOUNT_ID`, tokens de implementación de Cloudflare con alcance de usuario, tokens de purga de caché más limitados, tokens de exportación de informes KV de solo lectura y la diferencia entre los secretos de tiempo de ejecución de Worker y los secretos del repositorio de GitHub.
+- Se ha reforzado la guía de secretos locales para que `worker/.dev.vars` utilice valores locales separados únicamente y no se trate como una copia de seguridad de secretos de producción.
+- Documentación de medios del panel actualizada para el envío del optimizador de imágenes/vídeo con `scope=changed`, cargas con preservación de fuente, preservación de fuentes de audio y limpieza en el momento de la publicación de medios propiedad del panel de la misma campaña sin referencia.
+- Se documentó el endurecimiento del presupuesto de lista para el envío de recordatorios de lanzamiento, las colas de reintento de correo electrónico de confirmación de los seguidores y las proyecciones de recuento de ventas de complementos de la plataforma para que las rutas de lectura normales o inactivas eviten escaneos innecesarios del espacio de nombres KV.
+- Se actualizó la documentación de registro para reflejar que el registro de la consola permanece habilitado de forma predeterminada, mientras que la salida detallada de depuración/información/registro de menor gravedad está desactivada de forma predeterminada.
 - Se agregó manejo de zona horaria de plataforma configurable en todo el estado de la campaña de Jekyll, cuentas regresivas del navegador, automatización del ciclo de vida de los trabajadores, informes de los ejecutores de campañas, configuración del panel y duplicación de la configuración de los trabajadores. El valor predeterminado sigue siendo `America/Denver` por motivos de compatibilidad y los superadministradores pueden elegir entre las zonas horarias admitidas por la IANA.
 - Se agregaron recordatorios del próximo lanzamiento de campaña con un formulario de registro público delgado, verificación de Cloudflare Turnstile, deduplicación de campaña/correo electrónico, enlaces de cancelación de suscripción firmados, trabajos de envío de KV limitados y reenvío de entrega a través del módulo de correo electrónico compartido existente.
 - Se redujo el uso de escritura de KV de los trabajadores de referencia al cambiar el latido del programador a nivel de minutos para que persista cada hora en lugar de cada minuto, preservando la visibilidad del estado del cron y manteniendo el presupuesto de escritura de nivel gratuito disponible para mutaciones reales.
@@ -74,7 +83,7 @@ lang: es
 - Se actualizó el Worker `compatibility_date` a `2026-05-03` para que Wrangler 4/Miniflare comience limpiamente en el Nodo 24.
 - Se actualizaron los contenedores de pruebas de host y Podman para preferir el Nodo 24, con el Nodo 22 como el respaldo mínimo de Wrangler 4.
 - Se cambió el arranque de dependencia de Podman Worker a `npm ci` para que los inicios del contenedor local no reescriban `worker/package-lock.json`.
-- Documentación de lanzamiento para creadores ampliada con complementos, inserciones alojadas, expectativas de respaldo de impuestos/envío, decisiones de envío gratuito, destinatarios de informes y transferencia de cumplimiento.
+- Documentación de lanzamiento ampliada para creadores con complementos, inserciones alojadas, expectativas de respaldo de impuestos/envío, decisiones de envío gratuito, destinatarios de informes y transferencia de cumplimiento.
 - Se agregó una ruta de lista de verificación de creadores en español para la incorporación de creadores y bifurcaciones.
 - Se verificó la puerta de fusión completa, incluida la suite de seguridad, el humo del anfitrión, el humo de promesa mutable de Podman y el E2E sin cabeza.
 

@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-3 de junio de 2026
+11 de junio de 2026
 
 Esta guía cubre la superficie de personalización sin código compatible para las bifurcaciones de The Pool tal como existe ahora.
 
@@ -23,7 +23,7 @@ El modelo de configuración estructurado en [`_config.yml`](https://github.com/y
 Para la mayoría de las bifurcaciones, los principales archivos de personalización son:
 
 - [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml)
-- [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml)
+- `_config.local.yml`
 - [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml)
 
 Utilice `./scripts/dev.sh --podman` para la verificación local después de los cambios de configuración.
@@ -36,7 +36,7 @@ Para ediciones normales del operador, utilice el panel de administración privad
 - **Configuración -> Usuarios** es solo en tiempo de ejecución y se guarda directamente en Worker KV en `admin-users:v1`; no se publica en GitHub.
 - **Secretos y credenciales** tiene un estado de solo lectura. Los valores secretos aún pertenecen a los secretos de los trabajadores, los secretos del repositorio de GitHub o los archivos env locales ignorados.
 
-Trate [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml) como un archivo de solo anulación. Mantenga la configuración de bifurcación canónica en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) y use el archivo local solo para cosas que deberían diferir en su máquina, como las URL del host local o la visibilidad de la campaña solo local.
+Trate `_config.local.yml` como un archivo de sólo anulación. Mantenga la configuración de bifurcación canónica en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) y use el archivo local solo para cosas que deberían diferir en su máquina, como las URL del host local o la visibilidad de la campaña solo local.
 
 La ruta local normal ahora está basada en localhost:
 
@@ -67,7 +67,7 @@ La configuración del sitio está organizada en torno a estas secciones orientad
 
 ### Nivel superior `title` / `description`
 
-Utilice los metadatos de Jekyll de nivel superior para la identidad social/búsqueda predeterminada del sitio.
+Utilice los metadatos de Jekyll de nivel superior para la búsqueda/identidad social predeterminada del sitio.
 
 Teclas admitidas:
 
@@ -119,7 +119,7 @@ Estos valores alimentan:
 Notas:
 
 - `platform.*` es la superficie de marca principal.
-- `platform.version` debe ser la versión canónica del producto legible por máquina para el sitio, mientras que `platform.release_label` puede seguir siendo más amigable para copias públicas como `v1.0.3`.
+- `platform.version` debe ser la versión canónica del producto legible por máquina para el sitio, mientras que `platform.release_label` puede seguir siendo más amigable para copias públicas como `v1.0.4`.
 - `platform.timezone` debe ser una zona horaria compatible con la IANA. El valor predeterminado es `America/Denver`, por lo que las bifurcaciones existentes mantienen el comportamiento del ciclo de vida anterior hasta que lo cambien.
 - `title` / `author` de nivel superior todavía existen en Jekyll, pero trátelos como metadatos/respaldo generales del sitio en lugar de la interfaz principal de personalización de la bifurcación.
 - `platform.default_social_image_path` es el valor predeterminado admitido para tarjetas OG/Twitter cuando una página o campaña no proporciona una imagen más específica.
@@ -131,8 +131,8 @@ Ejemplo:
 ```yml
 platform:
   name: My Fork
-  version: 1.0.3
-  release_label: v1.0.3
+  version: 1.0.4
+  release_label: v1.0.4
   company_name: Example Studio
   support_email: support@example.com
   pledges_email_from: "My Fork <pledges@pool.example.com>"
@@ -382,10 +382,10 @@ Cuando una promesa califica para múltiples opciones de entrega, el carrito comp
 Límite secreto importante:
 
 - mantener `shipping.usps.client_id` en `_config.yml`
-- mantenga el compañero `USPS_CLIENT_SECRET` en Secretos del trabajador o `worker/.dev.vars`
+- mantenga el compañero `USPS_CLIENT_SECRET` en Secretos de trabajador o `worker/.dev.vars`
 - no guardes el secreto en la configuración de Jekyll
 
-La lista de destinos de pago ahora está intencionalmente separada de esas perillas. Mantenga los países de envío permitidos actualmente en [`_data/shipping_countries.yml`](https://github.com/your-org/your-project/blob/main/_data/shipping_countries.yml) en lugar de editar el código de ejecución del navegador.
+La lista de destinos de pago ahora está intencionalmente separada de esas perillas. Mantenga los países de envío permitidos actualmente en [`_data/shipping_countries.yml`](../_data/shipping_countries.yml) en lugar de editar el código de ejecución del navegador.
 
 Ejemplo:
 
@@ -463,7 +463,7 @@ El patrón más seguro es codificar deliberadamente un orden válido más barato
   - `USPS_GROUND_ADVANTAGE`
   - `PRIORITY_MAIL`
 
-Si un producto no califica de manera confiable para una clase más barata, déjelo en la ruta de paquete predeterminada. También tenga en cuenta que la ruta actual de la API de precios de USPS no expone directamente la calificación plana o de carta de primera clase nacional, por lo que la lógica de "sobre grande" se implementa aquí como una tabla manual explícita (`FIRST_CLASS_FLAT`), no como una cotización API de USPS en vivo.
+Si un producto no califica de manera confiable para una clase más barata, déjelo en la ruta de paquete predeterminada. También tenga en cuenta que la ruta actual de la API de precios de USPS no expone directamente la calificación plana/carta de primera clase nacional, por lo que la lógica de "sobre grande" se implementa aquí como una tabla manual explícita (`FIRST_CLASS_FLAT`), no como una cotización API de USPS en vivo.
 
 ### `add_ons`
 
@@ -520,7 +520,7 @@ En el panel de administración, los complementos de la plataforma se encuentran 
 Comportamiento de envío de complementos:
 
 - `category: digital` significa que el complemento nunca contribuye al envío.
-- `category: physical` significa que el complemento participa en la misma calculadora de envío utilizada para los niveles físicos y los artículos de soporte físico.
+- `category: physical` significa que el complemento participa en la misma calculadora de envío utilizada para niveles físicos y artículos de soporte físico.
 - Los complementos físicos pueden:
   - hacer referencia a un `shipping_preset` compartido
   - o proporcione `shipping.weight_oz`, `shipping.packaging_weight_oz`, `shipping.length_in`, `shipping.width_in`, `shipping.height_in` y `shipping.stack_height_in` explícitos
@@ -613,11 +613,11 @@ runner_report_emails:
 
 Utilice `design` para anulaciones seleccionadas del sistema de diseño que no requieren ediciones de Sass.
 
-Estos valores se emiten en la hoja de estilo generada [assets/main.css](https://github.com/your-org/your-project/blob/main/assets/main.scss), que mantiene el puente de variables de diseño compatible con el estricto CSP del sitio. [assets/theme-vars.css](https://github.com/your-org/your-project/blob/main/assets/theme-vars.css) permanece como un artefacto de compatibilidad, pero los diseños públicos no lo solicitan por separado. Las bifurcaciones no necesitan editar Sass solo para cambiar los tokens admitidos.
+Estos valores se emiten en la hoja de estilo generada [assets/main.css](../assets/main.scss), lo que mantiene el puente de variables de diseño compatible con el estricto CSP del sitio. [assets/theme-vars.css](../assets/theme-vars.css) permanece como un artefacto de compatibilidad, pero los diseños públicos no lo solicitan por separado. Las bifurcaciones no necesitan editar Sass solo para cambiar los tokens admitidos.
 
 Las mismas variables CSS generadas ahora también son el tema del sidecar Stripe Elements en el sitio, por lo que las anulaciones de tipografía/color/radio admitidas se llevan a cabo en la interfaz de usuario de pago personalizada sin agregar una capa de configuración separada solo para el pago.
 
-Un subconjunto deliberadamente más pequeño de la misma superficie de marca se refleja en el Worker para que los correos electrónicos de los seguidores puedan reutilizar el logotipo configurado, las pilas de fuentes, el color principal, los colores de borde/superficie y el radio del botón.
+Un subconjunto deliberadamente más pequeño de la misma superficie de marca se refleja en el Worker para que los correos electrónicos de los seguidores puedan reutilizar el logotipo configurado, las pilas de fuentes, el color primario, los colores de borde/superficie y el radio del botón.
 
 Claves admitidas actualmente:
 
@@ -907,7 +907,7 @@ Tenga en cuenta también:
 1. Prefiere el panel de administración para configuraciones/campañas/ediciones de complementos admitidas. Utilice ediciones directas de archivos al revisar los cambios generados, cambiar campos no admitidos o trabajar sin el trabajador.
 2. Si edita archivos directamente, actualice `_config.yml` o el `_campaigns/*.md` correspondiente.
 3. Ejecute `npm run sync:worker-config` si está editando configuraciones fuera de los puntos de entrada normales y desea actualizar `worker/wrangler.toml` inmediatamente.
-4. Ejecutar:
+4. Correr:
 
 ```bash
 npm run podman:doctor

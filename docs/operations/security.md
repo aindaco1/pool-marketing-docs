@@ -138,6 +138,7 @@ If a deployment needs a stricter posture than that default, the most likely next
 
 ---
 
+
 ## Secrets Checklist
 
 Before deploying to production, verify these secrets are set:
@@ -155,6 +156,7 @@ Before deploying to production, verify these secrets are set:
 | Broadcast Admin Secret | `ADMIN_BROADCAST_SECRET` (optional, scoped) | 32+ chars |
 | Turnstile Secret | `TURNSTILE_SECRET_KEY`, `ADMIN_TURNSTILE_SECRET_KEY`, or `LAUNCH_REMINDER_TURNSTILE_SECRET_KEY` | N/A |
 | Resend API Key | `RESEND_API_KEY` | N/A |
+| Cloudflare Usage Analytics Token | `CLOUDFLARE_USAGE_API_TOKEN` or `CLOUDFLARE_ANALYTICS_API_TOKEN` | GraphQL Analytics Read; optional Billing Read for plan detection |
 
 When GitHub Actions or an operator script calls protected admin endpoints, add only the needed matching secret to GitHub repository secrets. The default deploy workflow uses `ADMIN_BROADCAST_SECRET` for the post-deploy diary check when it is configured; future settlement automation should use `ADMIN_SETTLEMENT_SECRET` rather than the broader fallback secret.
 

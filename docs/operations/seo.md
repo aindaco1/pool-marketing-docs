@@ -49,9 +49,9 @@ The current baseline includes:
 
 The main implementation files are:
 
-- [/_includes/seo-meta.html](https://github.com/your-org/your-project/blob/main/_includes/seo-meta.html)
-- [/_includes/seo-json-ld.html](https://github.com/your-org/your-project/blob/main/_includes/seo-json-ld.html)
-- [/_layouts/campaign.html](https://github.com/your-org/your-project/blob/main/_layouts/campaign.html)
+- [/_includes/seo-meta.html](../_includes/seo-meta.html)
+- [/_includes/seo-json-ld.html](../_includes/seo-json-ld.html)
+- [/_layouts/campaign.html](../_layouts/campaign.html)
 - [/worker/src/index.js](https://github.com/your-org/your-project/blob/main/worker/src/index.js)
 - [/robots.txt](/robots.txt)
 - [/sitemap.xml](/sitemap.xml)
@@ -101,8 +101,8 @@ This is enforced through a mix of:
 
 Admin dashboard contract:
 
-- [admin.md](https://github.com/your-org/your-project/blob/main/admin.md) and [es/admin/index.html](https://github.com/your-org/your-project/blob/main/es/admin/index.html) must keep `indexable: false` and `sitemap: false`
-- [/_layouts/admin.html](https://github.com/your-org/your-project/blob/main/_layouts/admin.html) must call `seo-meta.html` with `indexable=false` and `social=false`
+- [admin.md](https://github.com/your-org/your-project/blob/main/admin.md) and [es/admin/index.html](../es/admin/index.html) must keep `indexable: false` and `sitemap: false`
+- [/_layouts/admin.html](../_layouts/admin.html) must call `seo-meta.html` with `indexable=false` and `social=false`
 - [`robots.txt`](/robots.txt) must disallow `/admin/` and `/es/admin/`
 - [`sitemap.xml`](/sitemap.xml) must not include admin routes
 - the admin layout must not emit JSON-LD or Open Graph/Twitter social-preview metadata; the dashboard is a private app surface, not a public search result or share target

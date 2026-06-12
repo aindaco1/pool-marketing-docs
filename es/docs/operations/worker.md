@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-9 de junio de 2026
+11 de junio de 2026
 
 Cloudflare Worker se encarga de la canonicalización de pagos propios, la integración de Stripe, la gestión de promesas, la autenticación de seguidores con alcance de pedidos, los recordatorios de lanzamiento de próximas campañas y las API del panel de administración del navegador privado.
 
@@ -63,7 +63,7 @@ El cálculo de impuestos ahora se dirige a través de una costura de proveedor e
 - `TAX_PROVIDER=nm_grt` utiliza el conjunto de datos inicial de Nuevo México suministrado y puede refinar las búsquedas de direcciones de calles de Nuevo México con la API gratuita EDAC GRT.
 - `TAX_PROVIDER=zip_tax` agrega búsquedas de EE. UU. a nivel local/jurisdiccional a través de ZIP.TAX y recurre a `offline_rules` para destinos fuera de EE. UU./CA
 
-La configuración del proveedor no secreto se refleja desde la raíz del repositorio `_config.yml` en [`wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) como `TAX_PROVIDER`, `TAX_ORIGIN_COUNTRY`, `TAX_USE_REGIONAL_ORIGIN`, `NM_GRT_API_BASE` y `ZIP_TAX_API_BASE`. Si habilita `zip_tax`, configure también `ZIP_TAX_API_KEY` como secreto de trabajador o en [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars). Actualice el archivo inicial de Nuevo México suministrado con `node ../scripts/update-nm-grt-starter.mjs`.
+La configuración del proveedor no secreto se refleja desde la raíz del repositorio `_config.yml` en [`wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) como `TAX_PROVIDER`, `TAX_ORIGIN_COUNTRY`, `TAX_USE_REGIONAL_ORIGIN`, `NM_GRT_API_BASE` y `ZIP_TAX_API_BASE`. Si habilita `zip_tax`, configure también `ZIP_TAX_API_KEY` como secreto de trabajador o en `worker/.dev.vars`. Actualice el archivo inicial de Nuevo México suministrado con `node ../scripts/update-nm-grt-starter.mjs`.
 
 En el flujo actual del navegador, se permite intencionalmente que las vistas previas de impuestos permanezcan provisionales. Si el carrito o el pago personalizado aún no tiene suficientes datos de ubicación, el sitio muestra `--` y espera a que `/tax/quote` o `/checkout-intent/start` finalicen el resultado del impuesto. Las búsquedas de Nuevo México son la ruta integrada más exacta en este momento y normalmente necesitan datos completos de direcciones a nivel de calle, no solo código postal/estado, antes de que el trabajador pueda devolver un resultado de GRT local confiable.
 
@@ -88,7 +88,7 @@ Antes de mutar algo, los operadores ahora pueden ejecutar comprobaciones de deri
 
 - `POST /stats/:slug/check`
 - `POST /admin/projections/check`
-- [`scripts/check-projections.sh`](https://github.com/your-org/your-project/blob/main/scripts/check-projections.sh) de la raíz del repositorio
+- [`scripts/check-projections.sh`](../scripts/check-projections.sh) desde la raíz del repositorio
 
 Esas comprobaciones comparan las proyecciones almacenadas `campaign-pledges:{slug}`, `stats:{slug}` y `tier-inventory:{slug}` con la verdad del compromiso activo y devuelven una diferencia estructurada en lugar de un estado de reparación silenciosa.
 
@@ -111,7 +111,7 @@ Actualice `wrangler.toml` con los ID devueltos.
 
 ### 2. Configurar secretos
 
-Los secretos del desarrollo local viven en ignorados [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars). La ruta de configuración más segura es:
+Los secretos del desarrollo local viven en `worker/.dev.vars` ignorados. La ruta de configuración más segura es:
 
 ```bash
 npm run secrets:dev
@@ -161,6 +161,14 @@ wrangler secret put ADMIN_SESSION_SECRET
 # Cloudflare Turnstile challenge verification when public widgets are enabled
 wrangler secret put TURNSTILE_SECRET_KEY
 
+# Optional admin plan usage tracker. Use a read-only GraphQL Analytics token,
+# not the broader Wrangler deploy token. Add Billing Read to detect the
+# current Workers plan from account subscriptions.
+wrangler secret put CLOUDFLARE_USAGE_API_TOKEN
+# Also make CLOUDFLARE_ACCOUNT_ID available to the Worker runtime, either as
+# a plain Worker variable or as a secret if you do not want it in config.
+# CLOUDFLARE_WORKER_SCRIPT_NAME is optional and filters request metrics to one script.
+
 # Optional: scoped launch-reminder Turnstile / unsubscribe-token secrets
 wrangler secret put LAUNCH_REMINDER_TURNSTILE_SECRET_KEY
 wrangler secret put LAUNCH_REMINDER_TOKEN_SECRET
@@ -176,17 +184,19 @@ Si un flujo de trabajo de GitHub Actions o un trabajo de operador llama a puntos
 
 Se debe permitir que la clave API de reenvío se envíe desde el dominio configurado en `PLEDGES_EMAIL_FROM` y `UPDATES_EMAIL_FROM`. Para la implementación en vivo de Dust Wave, esas direcciones de remitente usan `site.example.com`; autorizar solo un dominio raíz no autoriza a los remitentes de subdominios, y autorizar solo un subdominio no autoriza a los remitentes de dominios raíz.
 
+Para Configuración -> Uso del plan, Reenviar normalmente solo necesita `RESEND_API_KEY`. Los valores opcionales `PLAN_USAGE_RESEND_PLAN`, `RESEND_EMAILS_MONTHLY_LIMIT` y `RESEND_EMAILS_DAILY_LIMIT` son anulaciones de visualización para implementaciones en las que Resend devuelve encabezados de límite de velocidad pero no expone el encabezado de uso enviado mensual a través de un punto final de lectura segura.
+
 El pago personalizado requiere la clave publicable de Stripe correspondiente para el `APP_MODE` actual. Si el trabajador está configurado para el pago personalizado pero no hay una clave publicable disponible, el pago vuelve al pago alojado en Stripe en lugar de devolver `503`, por lo que los compromisos aún pueden continuar mientras se configura la clave publicable.
 
 La configuración de USPS para este repositorio se divide intencionalmente:
 
-- mantenga `shipping.usps.client_id` en la raíz del repositorio [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) o [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml)
-- mantener `USPS_CLIENT_SECRET` en Secretos del trabajador o [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars)
+- mantenga `shipping.usps.client_id` en la raíz del repositorio [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) o `_config.local.yml`
+- mantener `USPS_CLIENT_SECRET` en Secretos de trabajador o `worker/.dev.vars`
 - Si desea señalar al trabajador en USPS TEM para realizar pruebas, configure también `shipping.usps.api_base` o `USPS_API_BASE`.
 
 Actualmente, The Pool solo necesita USPS OAuth más el conjunto de productos predeterminado de opciones de precio/envío para el cálculo de cotizaciones en vivo. **No** requiere la configuración de etiquetas/envío/EPA de USPS a menos que el proyecto crezca posteriormente hasta convertirse en la generación de etiquetas.
 
-Ejemplo de archivo local `worker/.dev.vars`:
+Ejemplo de archivo `worker/.dev.vars` local:
 
 ```dotenv
 STRIPE_SECRET_KEY_TEST=sk_test_your_test_key
@@ -261,7 +271,7 @@ El trabajador reconstruye el nivel, el complemento del paquete, el soporte perso
 
 Cuando un compromiso califica para mejoras de envío, el Trabajador también mantiene la opción de entrega limitada seleccionada (`standard`, `signature_required` o `adult_signature_required`) para que el carrito, la Gestión del compromiso, el total del compromiso almacenado y los correos electrónicos de los seguidores permanezcan alineados.
 
-Las reservas y los reclamos de nivel limitado se serializan a través de un coordinador de objetos duraderos por campaña antes de que se actualice la instantánea del inventario de KV, por lo que los inicios, reintentos, modificaciones y finalizaciones de webhooks simultáneos no pueden sobrevender las escasas recompensas.
+Las reservas y los reclamos de nivel limitado se serializan a través de un coordinador de objetos duraderos por campaña antes de que se actualice la instantánea del inventario de KV, por lo que los inicios de pago simultáneos, los reintentos, las modificaciones y las finalizaciones de webhooks no pueden sobrevender las escasas recompensas.
 
 ### GET /pledges?token={token}
 Obtenga la(s) promesa(s) autorizada(s) mediante un token de enlace mágico.
@@ -307,7 +317,7 @@ Requiere autenticación de administrador y devuelve si el índice de campaña al
 ### POST /admin/projections/check
 Ejecute la misma verificación de deriva de solo lectura en todas las campañas.
 
-Este es el punto final del lado del trabajador que impulsa [`scripts/check-projections.sh`](https://github.com/your-org/your-project/blob/main/scripts/check-projections.sh) y las nuevas afirmaciones de humo de compromiso mutable.
+Este es el punto final del lado del trabajador que impulsa [`scripts/check-projections.sh`](../scripts/check-projections.sh) y las nuevas afirmaciones de humo de compromiso mutable.
 
 ## Notas de seguridad del contenido
 
@@ -409,6 +419,7 @@ Los shells privados `/admin/` y `/es/admin/` utilizan rutas de trabajo respaldad
 - `POST /admin/settings/publish` valida y publica configuraciones de plataforma, complementos de plataforma, variables de campaña y datos estructurados de campaña a través de confirmaciones respaldadas por GitHub.
 - `POST /admin/users` guarda los usuarios administradores administrados por el panel directamente en `admin-users:v1` en Worker KV y envía por correo electrónico las instrucciones de inicio de sesión de los usuarios recién creados cuando se configura Resend
 - `GET /admin/analytics` lee métricas de ingresos, estado, idioma, referencias y división de campaña/plataforma derivadas de compromisos con alcance de rol sin escribir el estado analítico; La presentación de la moneda en el tablero mantiene los centavos exactos.
+- `GET /admin/plan-usage` permite a los superadministradores cargar Cloudflare y el uso del plan de reenvío desde las API del proveedor sin exponer los tokens del proveedor al navegador ni escribir el estado de KV; el panel lo carga automáticamente cuando se abre Configuración -> Uso del plan
 - `POST /admin/analytics/stripe-financials/backfill` permite a los superadministradores reponer los valores netos y de tarifas de Stripe reales a partir de las transacciones de saldo de Stripe para las promesas cobradas, utilizando índices de promesas de campaña en lugar de escaneos de listas de KV.
 - `GET /admin/content/campaign?campaignSlug=...` carga contenido de campaña con alcance de roles en el editor del navegador sin conservar un borrador
 - `POST /admin/content/preview` valida y presenta borradores de contenido de campaña con alcance de roles sin publicar, auditar ni escribir KV
@@ -422,7 +433,7 @@ Los shells privados `/admin/` y `/es/admin/` utilizan rutas de trabajo respaldad
 - `GET /admin/add-ons/inventory` lee el estado inicial, vendido, restante y de anulación del complemento de plataforma para superadministradores
 - `POST /admin/add-ons/inventory` establece, reabastece o restablece explícitamente las anulaciones de la línea base del inventario de complementos de la plataforma con protección CSRF y registro de auditoría
 
-Las lecturas normales del panel, los filtros de seguidores, la paginación, los análisis derivados de promesas, las listas de referencias de marketing, las vistas previas de informes, las descargas de CSV, las cargas de contenido, las vistas previas de contenido y los borradores del editor local están diseñados para agregar escrituras de KV cero y operaciones de lista de KV cero. Los guardados de usuarios iniciados por el navegador, los guardados de referencias de marketing, las publicaciones de contenido y los cambios de inventario son mutaciones explícitas: los guardados de usuarios escriben `admin-users:v1`, los guardados de referencias escriben una lista de referencias con alcance de campaña, las publicaciones de contenido se comprometen con GitHub, activan el flujo de trabajo de reconstrucción y escriben un evento de auditoría. Si a una campaña anterior le falta su proyección `campaign-pledges:{slug}`, los puntos finales del panel devuelven cero filas o `campaign_index_required` en lugar de recurrir a un escaneo de espacio de nombres; ejecute las herramientas de reparación/reconstrucción de proyecciones existentes explícitamente cuando eso suceda.
+Las lecturas normales del panel, los filtros de seguidores, la paginación, los análisis derivados de promesas, las listas de referencias de marketing, las vistas previas de informes, las descargas de CSV, las cargas de contenido, las vistas previas de contenido y los borradores del editor local están diseñados para agregar escrituras de KV cero y operaciones de lista de KV cero. Las cargas de uso del plan también son de solo lectura KV, pero llaman intencionalmente a las API del proveedor de Cloudflare y Reenvío una vez cuando un superadministrador abre Configuración -> Uso del plan. Los guardados de usuarios iniciados por el navegador, los guardados de referencias de marketing, las publicaciones de contenido y los cambios de inventario son mutaciones explícitas: los guardados de usuarios escriben `admin-users:v1`, los guardados de referencias escriben una lista de referencias con alcance de campaña, las publicaciones de contenido se comprometen con GitHub, activan el flujo de trabajo de reconstrucción y escriben un evento de auditoría. Si a una campaña anterior le falta su proyección `campaign-pledges:{slug}`, los puntos finales del panel devuelven cero filas o `campaign_index_required` en lugar de recurrir a un escaneo de espacio de nombres; ejecute las herramientas de reparación/reconstrucción de proyecciones existentes explícitamente cuando eso suceda.
 
 Los inicios/intercambios de autenticación de administrador y las mutaciones de administrador de navegador tienen una velocidad limitada a través del enlace `RATELIMIT` y devuelven fallas privadas/sin almacenamiento cuando se aceleran. Las lecturas autenticadas normales, como comprobaciones de sesiones, resúmenes de paneles, filtros de soporte, vistas previas de informes, vistas de análisis y vistas previas de contenido, no están limitadas intencionalmente por la velocidad de KV. Los tokens de inicio de sesión de Magic-link son de un solo uso y las lecturas de sesión no actualizan las sesiones cercanas a su vencimiento ni limpian las sesiones vencidas en la ruta de lectura. Las mutaciones de administrador respaldadas por cookies requieren tanto el token CSRF de sesión como un contexto de recuperación confiable del mismo sitio `Origin`/`Referer` o que no sea entre sitios antes de escrituras duraderas.
 
@@ -565,7 +576,7 @@ curl -X POST https://worker.example.com/test/email \
 
 ## Variables de entorno
 
-|variable|Descripción|
+|Variable|Descripción|
 |----------|-------------|
 |`SITE_BASE`|URL base del sitio Jekyll|
 |`WORKER_BASE`|URL base pública del Trabajador|
@@ -610,6 +621,13 @@ curl -X POST https://worker.example.com/test/email \
 |`ADMIN_TURNSTILE_SECRET_KEY`|Secreto de torniquete opcional específico del administrador cuando no se utiliza `TURNSTILE_SECRET_KEY`|
 |`ADMIN_TURNSTILE_REQUIRED`|Indicador opcional de cierre fallido para implementaciones que esperan que se configure Turnstile|
 |`ADMIN_TURNSTILE_BYPASS`|Omisión local/solo de prueba para pruebas de autenticación de administrador automatizadas; no habilitar en trabajadores desplegados|
+|`CLOUDFLARE_USAGE_API_TOKEN` / `CLOUDFLARE_ANALYTICS_API_TOKEN`|Token GraphQL Analytics de solo lectura opcional para Configuración -> Plan de uso; agregue la detección automática del plan Billing Read for Workers y manténgalo separado de los tokens de implementación|
+|`CLOUDFLARE_ACCOUNT_ID`|ID de cuenta utilizada por las consultas GraphQL de uso del plan Cloudflare|
+|`CLOUDFLARE_WORKER_SCRIPT_NAME`|Filtro de script de trabajador opcional para métricas de solicitud de Cloudflare; omitir para el uso de trabajadores en toda la cuenta|
+|`PLAN_USAGE_CLOUDFLARE_PLAN` / `PLAN_USAGE_RESEND_PLAN`|Teclas de plan de visualización opcionales (`free`, `standard`/`paid`, `pro`, `scale`) se usan solo cuando la detección automática del plan de proveedor no está disponible|
+|`CLOUDFLARE_*_DAILY_LIMIT` / `CLOUDFLARE_*_MONTHLY_LIMIT`|Anulaciones de límites de métricas opcionales de Cloudflare para solicitudes de trabajadores y lecturas/escrituras/eliminaciones/listas de KV, por ejemplo `CLOUDFLARE_WORKERS_REQUESTS_MONTHLY_LIMIT`|
+|`RESEND_EMAILS_MONTHLY_LIMIT` / `RESEND_EMAILS_DAILY_LIMIT`|Anulaciones de cuota de visualización de reenvío opcionales que se utilizan cuando Resend expone datos de límite de tarifa/plan pero omite encabezados de uso de envío mensual|
+|`PLAN_USAGE_WARNING_PERCENT` / `PLAN_USAGE_CRITICAL_PERCENT`|Umbrales de advertencia opcionales para las barras de progreso de uso del plan|
 |`LAUNCH_REMINDERS_ENABLED`|Habilita el manejo público del registro de recordatorios de lanzamiento de próximas campañas; reflejado de `_config.yml`|
 |`LAUNCH_REMINDER_TURNSTILE_SECRET_KEY`|Secreto de torniquete específico de recordatorio opcional cuando no se utiliza `TURNSTILE_SECRET_KEY`|
 |`LAUNCH_REMINDER_TURNSTILE_REQUIRED`|Indicador opcional de cierre fallido para registros de recordatorio cuando se espera un widget de torniquete de recordatorio|
@@ -627,7 +645,7 @@ El ritmo de reenvío se centraliza como `RESEND_RATE_LIMIT_DELAY_MS` en `worker/
 
 Nota de bifurcación: trate esas variables de identidad, marca de correo electrónico, precios y envío como espejos de la configuración estructurada del sitio en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml), especialmente las secciones `platform`, `design`, `pricing` y `shipping`. El carrito/tiempo de ejecución propios y la interfaz de usuario de pago en el sitio personalizada son comportamientos integrados de la plataforma ahora, no opciones de entorno de trabajo que normalmente debería personalizar directamente.
 
-Mantenga `USPS_CLIENT_SECRET` fuera de la configuración del sitio. Pertenece a los secretos del trabajador o [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars).
+Mantenga `USPS_CLIENT_SECRET` fuera de la configuración del sitio. Pertenece a Secretos de trabajador o `worker/.dev.vars`.
 
 Nota de localización: el trabajador ahora localiza los asuntos/el cuerpo del correo electrónico dirigidos a los seguidores y los enlaces `/manage/` / `/community/:slug/` localizados desde el catálogo de configuración regional del sitio compartido. En funcionamiento normal, recupera ese catálogo de `SITE_BASE/assets/i18n.json`; las pruebas y las implementaciones avanzadas pueden inyectar `I18N_CATALOG_JSON` en su lugar. Eso significa que los correos electrónicos de soporte localizados y las rutas localizadas como `/es/manage/` o `/es/community/:slug/` permanecen alineadas con el modelo local del sitio cuando una implementación agrega esas rutas.
 

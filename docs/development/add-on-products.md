@@ -228,11 +228,11 @@ The current shipping split is:
 
 ## Runtime Contract
 
-The current catalog is exposed to browser runtime config through [assets/js/pool-config.js](https://github.com/your-org/your-project/blob/main/assets/js/pool-config.js) and the shared runtime boot include [/_includes/cart-runtime-foot.html](https://github.com/your-org/your-project/blob/main/_includes/cart-runtime-foot.html).
+The current catalog is exposed to browser runtime config through [assets/js/pool-config.js](../assets/js/pool-config.js) and the shared runtime boot include [/_includes/cart-runtime-foot.html](../_includes/cart-runtime-foot.html).
 
 That means cart-side and Manage Pledge UI can read one stable `POOL_CONFIG.addOns` source of truth instead of duplicating product data in multiple templates or scripts.
 
-The Worker now also has a matching static catalog source at [/api/add-ons.json](https://github.com/your-org/your-project/blob/main/api/add-ons.json), and pending checkout manifests can carry:
+The Worker now also has a matching static catalog source at [/api/add-ons.json](../api/add-ons.json), and pending checkout manifests can carry:
 
 - `bundleAddOns`
 - `bundleAddOnAnchorCampaignSlug`

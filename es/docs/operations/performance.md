@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-3 de junio de 2026
+11 de junio de 2026
 
 The Pool es una plataforma de financiación colectiva estática con un trabajador de Cloudflare para mutaciones, lecturas en vivo y operaciones administrativas. El trabajo de rendimiento debe preservar esa forma: las páginas públicas deben ser rápidas desde HTML estático, el código de aplicación pesado debe cargarse sólo cuando un usuario lo necesita y el trabajo especulativo debe ser lo suficientemente conservador como para nunca hacer que los flujos de pago, administración o soporte sean menos confiables.
 
@@ -44,14 +44,14 @@ Jekyll genera el sitio público y lo implementa como salida de GitHub Pages. El 
 
 Superficies de repositorio importantes:
 
-- [`_layouts/default.html`](https://github.com/your-org/your-project/blob/main/_layouts/default.html): diseño público compartido
-- [`_layouts/campaign.html`](https://github.com/your-org/your-project/blob/main/_layouts/campaign.html): diseño de detalle de la campaña
-- [`_includes/cart-runtime-foot.html`](https://github.com/your-org/your-project/blob/main/_includes/cart-runtime-foot.html): cargador de carro liviano incluido
-- [`_includes/page-prefetch.html`](https://github.com/your-org/your-project/blob/main/_includes/page-prefetch.html): inclusión de captación previa de documentos públicos
-- [`assets/js/cart-runtime-loader.js`](https://github.com/your-org/your-project/blob/main/assets/js/cart-runtime-loader.js): arranque del tiempo de ejecución del carrito diferido
-- [`assets/js/page-prefetch.js`](https://github.com/your-org/your-project/blob/main/assets/js/page-prefetch.js): tiempo de ejecución de captación previa de documentos basado en intención
-- [`scripts/minify-site-assets.mjs`](https://github.com/your-org/your-project/blob/main/scripts/minify-site-assets.mjs): minificación CSS/JS generada
-- [`scripts/sync-worker-config.rb`](https://github.com/your-org/your-project/blob/main/scripts/sync-worker-config.rb): duplicación de configuración de sitio a trabajador
+- [`_layouts/default.html`](../_layouts/default.html): diseño público compartido
+- [`_layouts/campaign.html`](../_layouts/campaign.html): diseño de detalle de la campaña
+- [`_includes/cart-runtime-foot.html`](../_includes/cart-runtime-foot.html): incluye cargador de carro liviano
+- [`_includes/page-prefetch.html`](../_includes/page-prefetch.html): inclusión de captación previa de documentos públicos
+- [`assets/js/cart-runtime-loader.js`](../assets/js/cart-runtime-loader.js): arranque de tiempo de ejecución de carrito diferido
+- [`assets/js/page-prefetch.js`](../assets/js/page-prefetch.js): tiempo de ejecución de captación previa de documentos basado en intención
+- [`scripts/minify-site-assets.mjs`](../scripts/minify-site-assets.mjs): minificación CSS/JS generada
+- [`scripts/sync-worker-config.rb`](../scripts/sync-worker-config.rb): duplicación de configuración de sitio a trabajador
 
 ## Representación crítica
 
@@ -85,12 +85,12 @@ El cargador debería activarse en:
 
 Los archivos de carros pesados ​​no deben ser parte de una primera carga pública ordinaria a menos que esté presente uno de esos estados:
 
-- [`assets/js/cart-provider.js`](https://github.com/your-org/your-project/blob/main/assets/js/cart-provider.js)
-- [`assets/js/cart.js`](https://github.com/your-org/your-project/blob/main/assets/js/cart.js)
-- [`assets/js/buy-buttons.js`](https://github.com/your-org/your-project/blob/main/assets/js/buy-buttons.js)
+- [`assets/js/cart-provider.js`](../assets/js/cart-provider.js)
+- [`assets/js/cart.js`](../assets/js/cart.js)
+- [`assets/js/buy-buttons.js`](../assets/js/buy-buttons.js)
 - sidecars de pago y complementos compartidos/ayudantes de envío
 
-Al cambiar el carrito o la carga del carrito, verifique con las herramientas de red del navegador que una vista anónima de la página de la campaña no descargue con entusiasmo la pila completa del carrito.
+Al cambiar la carga del carrito o del proceso de pago, verifique con las herramientas de red del navegador que una vista anónima de la página de la campaña no descargue con entusiasmo la pila completa del carrito.
 
 ## Minificación de activos generados
 
@@ -124,7 +124,7 @@ Mantenga estas responsabilidades separadas:
 
 Cloudflare Auto Minify debería permanecer deshabilitado. Reescribe las respuestas en el borde, lo que hace que el comportamiento de producción sea más difícil de reproducir localmente y de probar en CI. Prefiera el paso de activos generados controlados por repositorios.
 
-Mantenga Rocket Loader y la ofuscación de direcciones de correo electrónico desactivadas para este sitio. Rocket Loader reescribe etiquetas de script en el borde, mientras que la ofuscación de direcciones de correo electrónico inyecta `/cdn-cgi/scripts/*/cloudflare-static/email-decode.min.js`; Ambos hacen que las páginas con CSP estricto sean más difíciles de reproducir localmente y pueden aparecer como bloqueo de procesamiento o diagnóstico de ruido de consola en PageSpeed ​​Insights.
+Mantenga el cargador Rocket y la ofuscación de direcciones de correo electrónico desactivados para este sitio. Rocket Loader reescribe etiquetas de script en el borde, mientras que la ofuscación de direcciones de correo electrónico inyecta `/cdn-cgi/scripts/*/cloudflare-static/email-decode.min.js`; Ambos hacen que las páginas con CSP estricto sean más difíciles de reproducir localmente y pueden aparecer como bloqueo de procesamiento o diagnóstico de ruido de consola en PageSpeed ​​Insights.
 
 Si Cloudflare Web Analytics está habilitado, las páginas de la campaña deben permitir el script de análisis de Cloudflare y el punto final de baliza en el CSP de la campaña. Las superficies privadas/administrativas deben ser más estrictas a menos que exista una decisión explícita de análisis/privacidad para incluirlas.
 
@@ -136,11 +136,11 @@ Las variables CSS del token de diseño generadas se incluyen en `assets/main.css
 
 El grupo incluye un tiempo de ejecución de búsqueda previa de documentos del mismo origen opcional para enlaces de navegación públicos. Está inspirado en el modelo de intención de desplazamiento/toque de instant.page, pero la implementación es local, pequeña y deliberadamente conservadora.
 
-El tiempo de ejecución se encuentra en [`assets/js/page-prefetch.js`](https://github.com/your-org/your-project/blob/main/assets/js/page-prefetch.js). Se carga en superficies de páginas públicas de forma predeterminada y permanece fuera de los diseños de aplicaciones privadas.
+El tiempo de ejecución se encuentra en [`assets/js/page-prefetch.js`](../assets/js/page-prefetch.js). Se carga en superficies de páginas públicas de forma predeterminada y permanece fuera de los diseños de aplicaciones privadas.
 
 ### Configuración
 
-La inclusión compartida es [`_includes/page-prefetch.html`](https://github.com/your-org/your-project/blob/main/_includes/page-prefetch.html). Emite el tiempo de ejecución sólo cuando esta configuración está habilitada:
+La inclusión compartida es [`_includes/page-prefetch.html`](../_includes/page-prefetch.html). Emite el tiempo de ejecución sólo cuando esta configuración está habilitada:
 
 ```yml
 performance:
@@ -151,8 +151,8 @@ performance:
 
 La inclusión está conectada a superficies de páginas públicas:
 
-- [`_layouts/default.html`](https://github.com/your-org/your-project/blob/main/_layouts/default.html)
-- [`_layouts/campaign.html`](https://github.com/your-org/your-project/blob/main/_layouts/campaign.html)
+- [`_layouts/default.html`](../_layouts/default.html)
+- [`_layouts/campaign.html`](../_layouts/campaign.html)
 
 Los diseños de aplicaciones privadas no cargan el tiempo de ejecución de captación previa.
 
@@ -289,7 +289,7 @@ Si PageSpeed ​​marca imágenes de campaña de gran tamaño que ya fluyen a t
 El canal de medios:
 
 - comprime imágenes cuando el resultado optimizado es más pequeño
-- genera variantes WebP responsivas en `320w`, `480w`, `640w`, `960w` y `1600w` para plantillas de imágenes públicas cuando la imagen de origen es más grande que esa variante
+- genera variantes WebP responsivas en `320w`, `480w`, `640w`, `960w` y `1600w` para plantillas de imágenes públicas cuando la imagen de origen es más grande que esa variante.
 - omite la reoptimización de `cwebp` para derivados animados de WebP porque `cwebp` no puede decodificar archivos WebP animados
 - genera derivados WebM para videos subidos
 - reescribe referencias literales `_campaigns` / `_config.yml` de videos fuente subidos a derivados WebM generados
@@ -322,6 +322,8 @@ La configuración de rendimiento del administrador se encuentra actualmente en *
 - `performance.intent_prefetch_delay_ms`
 - `performance.intent_prefetch_limit`
 
+Configuración -> El uso del plan está intencionalmente separado de la configuración de rendimiento público. Realiza una instantánea del proveedor Cloudflare/Resend de solo lectura cuando se abre la sección, no realiza encuestas en segundo plano y se actualiza solo cuando el administrador recarga la página.
+
 ## Medición de cambios
 
 Utilice controles locales para regresiones y controles similares a los de producción para obtener confianza final.
@@ -335,7 +337,7 @@ npm run assets:minify:check
 npm run test:unit
 ```
 
-Validación enfocada del navegador para cambios en la interfaz de usuario pública:
+Validación de navegador enfocada para cambios en la interfaz de usuario pública:
 
 ```bash
 python3 -m http.server 4100 --bind 127.0.0.1 --directory _site
@@ -368,7 +370,7 @@ La validación de producción o puesta en escena debe comparar:
 Utilice esta lista de verificación antes de fusionar cambios de rendimiento:
 
 - Las páginas de origen aún muestran contenido significativo antes de que finalice JavaScript.
-- no se precarga ninguna ruta privada, tokenizada, de pago o de administración
+- no se busca previamente ninguna ruta privada, tokenizada, de pago o de administración
 - los activos generados `_site` pasan `npm run assets:minify:check`
 - La compresión de Cloudflare permanece habilitada y Auto Minify permanece deshabilitada
 - La primera carga pública evita archivos pesados de carrito/tiempo de ejecución a menos que el estado del carrito o la intención del usuario los requieran.

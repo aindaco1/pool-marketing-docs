@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-9 de junio de 2026
+11 de junio de 2026
 
 Este documento describe el modelo de envío actual en The Pool, incluido su flujo de precios centrado en el trabajador, la superficie de configuración orientada a la bifurcación, el límite de integración de USPS y el árbol de reglas que ahora siguen el carrito, el pago, la gestión de promesas, los informes y los correos electrónicos.
 
@@ -51,7 +51,7 @@ La función de envío debe preservar la línea base de accesibilidad actual:
 - La dirección relacionada con el envío, la cotización y los estados alternativos deben ser comprensibles mediante la interacción únicamente con el teclado.
 - Cualquier nuevo error o aviso debe vincularse a los campos relevantes y a las regiones en vivo de manera adecuada.
 - Las actualizaciones del resumen de envío en el proceso de pago y en Administrar compromiso deben seguir siendo comprensibles para el lector de pantalla.
-- no hay regresiones a la semántica de diálogo/enfoque/error existente en checkout o `Update Card`
+- no hay regresiones a la semántica de diálogo/enfoque/error existente en el proceso de pago o `Update Card`
 - La cobertura de accesibilidad a nivel del navegador debe ampliarse si se introducen nuevos estados de la interfaz de usuario de envío.
 
 ### Internacionalización
@@ -65,7 +65,7 @@ La característica de envío debe ajustarse al modelo i18n actual:
 
 ## Por qué encaja este alcance
 
-### Riesgo de USPS
+### riesgo de USPS
 
 Las API de precios de USPS parecen utilizables sin una facturación obvia por llamada para el acceso a precios básicos, pero tienen una cuota limitada y pueden requerir solicitudes manuales de aumento de cuota.
 
@@ -108,7 +108,7 @@ Eso significa:
 
 Si USPS no está disponible, caduca o no devuelve una tarifa utilizable:
 
-- utilice la tarifa fija de envío alternativa configurada
+- utilizar la tarifa fija de envío alternativa configurada
 
 Para The Pool:
 
@@ -382,10 +382,10 @@ En este repositorio, eso se asigna a:
 
 Para una configuración local de estilo de producción normal, los valores mínimos que necesita este repositorio son:
 
-- [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) o [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml)
+- [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) o `_config.local.yml`
   - `shipping.usps.enabled: true`
   - `shipping.usps.client_id: "<your Consumer Key>"`
-- [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars)
+- `worker/.dev.vars`
   - `USPS_CLIENT_SECRET=<your Consumer Secret>`
 
 Si desea realizar pruebas con USPS TEM con las mismas credenciales de producción que describe USPS, configure también:
@@ -397,7 +397,7 @@ o
 Para pruebas locales:
 
 - configure `shipping.usps.client_id` en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) o su ruta de anulación local
-- establezca `USPS_CLIENT_SECRET=...` en [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars)
+- establecer `USPS_CLIENT_SECRET=...` en `worker/.dev.vars`
 - ejecutar:
 
 ```bash
@@ -477,7 +477,7 @@ La regla importante es:
 
 - no convierta las cotizaciones de envío en un subsistema KV de alta escritura
 
-El selector de país de pago ahora se alimenta desde [`_data/shipping_countries.yml`](https://github.com/your-org/your-project/blob/main/_data/shipping_countries.yml), lo que mantiene el mantenimiento del destino de USPS en una fuente dedicada en lugar de ocultarlo en el código de ejecución del navegador.
+El selector de país de pago ahora se alimenta desde [`_data/shipping_countries.yml`](../_data/shipping_countries.yml), lo que mantiene el mantenimiento del destino de USPS en una fuente dedicada en lugar de ocultarlo en el código de ejecución del navegador.
 
 ## Puntos de contacto entre trabajadores y frontend
 
@@ -526,7 +526,7 @@ La cobertura automatizada actual incluye:
 
 Documentos actuales que deberían mantenerse alineados con el comportamiento de envío:
 
-- [Acerca de The Pool](/es/docs/overview/about-the-pool/)
+- [README.md](/es/docs/overview/about-the-pool/)
 - [docs/PERSONALIZACIÓN.md](/es/docs/development/customization-guide/)
 - [docs/DEV_NOTES.md](/es/docs/development/developer-notes/)
 - [docs/TESTING.md](/es/docs/operations/testing/)
@@ -669,7 +669,7 @@ La implementación del envío está en buen estado cuando:
 
 - Las promesas físicas nacionales e internacionales pueden usar la calificación en vivo de USPS a través del Trabajador
 - La tarifa plana de campaña anula el cortocircuito de USPS para esos envíos de campaña.
-- Los artículos calificados con tarifa manual como `sticker` y `signed_script` omiten USPS y usan la tabla plana documentada.
+- Los artículos calificados con tarifa manual como `sticker` y `signed_script` omiten USPS y utilizan la tabla plana documentada.
 - Los complementos de campaña heredan las reglas de envío y las anulaciones de la campaña propietaria.
 - Los complementos globales físicos se combinan en un envío de plataforma separado en lugar de tomar prestado el envío de la campaña.
 - Los editores de productos del panel de administración ocultan el envío de artículos digitales y muestran campos preestablecidos/paquetes solo para artículos físicos.

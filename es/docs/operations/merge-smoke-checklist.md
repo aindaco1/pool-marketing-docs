@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-29 de mayo de 2026
+11 de junio de 2026
 
 Utilice esta lista de verificación antes de fusionar sucursales que cambien el pago, la persistencia del webhook, la gestión de promesas, el inventario, la liquidación o las transmisiones de seguidores.
 
@@ -266,14 +266,15 @@ Ejecute esta sección cuando la sucursal cambie la interfaz de usuario del panel
 
 1. Inicie sesión en `/admin/` con un correo electrónico de administrador autorizado.
 2. Verifique que las pestañas principales se representen sin desbordamiento horizontal en los anchos de escritorio, tableta y dispositivo móvil.
-3. En **Configuración**, confirmar que las secciones publicables muestran un botón `Publish` deshabilitado hasta que se realice un cambio real. Confirme que **Usuarios**, **Secretos y credenciales** y **Diagnóstico en tiempo de ejecución** no muestren una acción de publicación no utilizada.
+3. En **Configuración**, confirmar que las secciones publicables muestran un botón `Publish` deshabilitado hasta que se realice un cambio real. Confirme que **Usuarios**, **Uso del plan**, **Secretos y credenciales** y **Diagnóstico en tiempo de ejecución** no muestren una acción de publicación no utilizada.
 4. En **Configuración -> Usuarios**, cree o edite un usuario de campaña, guarde y confirme que el cambio entre en vigor sin un flujo de publicación de GitHub.
-5. En **Campañas**, cambie las subpestañas de la campaña y verifique que el contenido, los niveles, los complementos de la campaña, las entradas del diario y las decisiones se carguen solo para la campaña seleccionada.
-6. En **Contenido** y **Entradas del diario**, agregue/edite un bloque de contenido, verifique el comportamiento de la vista previa WYSIWYG y confirme que `Save Draft` solo se habilita cuando el borrador local difiere del valor guardado.
-7. En **Complementos** y **Complementos** de campaña, verifique que los productos físicos muestren campos preestablecidos de envío/paquete, que los productos digitales oculten los campos de envío y que los ID de producto/variante deriven de nombres/etiquetas para nuevas entradas.
-8. En **Análisis**, **Informes** y **Colaboradores**, verifique que la vista predeterminada `All` solo muestre las campañas disponibles para el administrador actual, los montos en dólares muestren los centavos exactos cuando corresponda y la exportación CSV coincida con las filas visibles.
-9. En **Marketing**, guarde/edite/elimine un código de referencia, verifique que el creador de URL se borre después de guardar/actualizar y confirme que el creador de campañas integrado todavía funciona.
-10. Para `/es/admin/`, verifique que las etiquetas de pestañas traducidas y la navegación en tableta/móvil no se desborden.
+5. En **Configuración -> Uso del plan**, verifique que el uso se cargue automáticamente, no hay ningún botón `Refresh usage`, los encabezados de Cloudflare/Reenviar tienen texto de ayuda legible y las tarjetas no se desbordan en el móvil.
+6. En **Campañas**, cambie las subpestañas de la campaña y verifique que el contenido, los niveles, los complementos de la campaña, las entradas del diario y las decisiones se carguen solo para la campaña seleccionada.
+7. En **Contenido** y **Entradas del diario**, agregue/edite un bloque de contenido, verifique el comportamiento de la vista previa WYSIWYG y confirme que `Save Draft` solo se habilita cuando el borrador local difiere del valor guardado.
+8. En **Complementos** y **Complementos** de campaña, verifique que los productos físicos muestren campos preestablecidos de envío/paquete, que los productos digitales oculten los campos de envío y que los ID de producto/variante deriven de nombres/etiquetas para nuevas entradas.
+9. En **Análisis**, **Informes** y **Colaboradores**, verifique que la vista predeterminada `All` solo muestre las campañas disponibles para el administrador actual, que los montos de ingresos brutos y netos muestren los centavos exactos cuando corresponda, y que la exportación CSV coincida con las filas visibles.
+10. En **Marketing**, guarde/edite/elimine un código de referencia, verifique que el creador de URL se borre después de guardar/actualizar y confirme que el creador de campañas integrado todavía funciona.
+11. Para `/es/admin/`, verifique que las etiquetas de pestañas traducidas, las etiquetas/enlaces de uso del plan y la navegación para tableta/móvil no se desborden.
 
 ## Plantilla de aprobación
 

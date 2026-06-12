@@ -9,13 +9,13 @@ render_with_liquid: false
 
 ## Last Updated
 
-June 9, 2026
+June 11, 2026
 
 **The Pool** is an open-source, static-first crowdfunding platform for independent film, media, and other artist-driven projects.
 
 It is designed around a simple promise: supporters can pledge toward a creative project without creating an account, and their cards are only charged if the campaign reaches its goal. Behind that lightweight supporter experience, The Pool gives creators and operators real infrastructure for pledge checkout, fulfillment, updates, reporting, admin editing, localization, and deployment.
 
-Current release milestone: **v1.0.3**. The v1.0 feature set and launch-hardening pass are complete, including configurable platform timezones, launch reminders, mobile campaign-page performance improvements, scoped admin automation secrets, campaign-scoped settlement locking, safer media lifecycle handling, and lower steady-state KV write/list usage.
+Current release milestone: **v1.0.4**. The v1.0 feature set and launch-hardening pass are complete. v1.0.4 adds super-admin plan-usage tracking for Cloudflare Workers/KV and Resend, dashboard net revenue analytics after allocated Stripe processor fees, component-level fee allocation for reports/exports, usage-tracker provider credential docs, and grouped local Worker secret scaffolding.
 
 ## All-or-Nothing Pledging
 
