@@ -9,15 +9,15 @@ render_with_liquid: false
 
 ## Last Updated
 
-June 11, 2026
+June 15, 2026
 
 This roadmap is organized as a release history of the real project states we actually used, rather than a flat completed-features list.
 
 ## Current Milestone
 
-**v1.0.4**
+**v1.0.5**
 
-The v1.0 feature set and release-hardening pass are complete. v1.0.4 adds super-admin plan-usage tracking for Cloudflare Workers/KV and Resend, dashboard net revenue analytics after allocated Stripe processor fees, component-level fee allocation for reports/exports, usage-tracker provider credential docs, and grouped local Worker secret scaffolding.
+The v1.0 feature set and release-hardening pass are complete. v1.0.5 focuses on protected draft-campaign collaboration: email-protected preview pages, dashboard-visible publisher links, explicitly invited reviewer links that expire in 24 hours, super-admin new campaign creation with campaign-user assignment emails, and super-admin archiving for non-live campaigns.
 
 ## Release History
 
@@ -236,14 +236,29 @@ New in this version:
 - Worker and operator docs now describe the Cloudflare GraphQL Analytics / Billing Read token boundary, Resend usage behavior, and plan override variables
 - local Worker `.dev.vars` scaffolding and `npm run secrets:dev` output are grouped by purpose, including Plan Usage provider settings and overrides
 
+### v1.0.5 — Protected Campaign Previews And Archiving
+
+This point release made draft-campaign collaboration and campaign lifecycle cleanup part of the admin workflow.
+
+New in this version:
+
+- protected campaign previews for super admins, assigned campaign users, and explicitly invited reviewer emails
+- noindex preview shells at `/campaigns/:slug/preview/` and localized equivalents, with read-only pledge controls and 24-hour signed reviewer links
+- preview-only campaign creation from the dashboard, including optional assignment of existing users or creation of new campaign users
+- campaign-assignment emails through the shared transactional email path when delivery is configured
+- super-admin-only archiving for non-live campaigns, with local repo writes in development and a validated GitHub Actions workflow in production
+- archive moves that keep campaign source and campaign-owned media under `archive/campaigns/<slug>/` instead of deleting campaign data
+- preview-only/public filtering across campaign routes, indexes, campaign JSON, embeds, share-card metadata, sitemap output, robots intent, and public prefetch eligibility
+- GitHub base-revision conflict checks for campaign content and preview publishes so stale publishes fail without discarding browser-local drafts
+- Podman local development resilience improvements, including supervised service restarts, stale Podman recovery attempts, and local repo helper support for create/archive testing
+
 ## Future Features
 
-Work still planned after `1.0.4` includes:
+Work still planned after `1.0.5` includes:
 
 - further tax-calculator work for broader US and international coverage, better local-jurisdiction depth, and clearer tax-data refresh workflows
 - richer campaign marketing tools such as announcement composition and consent-aware abandoned-cart follow-up
 - different prices per add-on variation
-- email-protected campaign preview pages for super admins, campaign users, and invited reviewers
 
 ## Known Issues
 

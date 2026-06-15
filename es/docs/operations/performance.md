@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-11 de junio de 2026
+15 de junio de 2026
 
 The Pool es una plataforma de financiación colectiva estática con un trabajador de Cloudflare para mutaciones, lecturas en vivo y operaciones administrativas. El trabajo de rendimiento debe preservar esa forma: las páginas públicas deben ser rápidas desde HTML estático, el código de aplicación pesado debe cargarse sólo cuando un usuario lo necesita y el trabajo especulativo debe ser lo suficientemente conservador como para nunca hacer que los flujos de pago, administración o soporte sean menos confiables.
 
@@ -90,7 +90,7 @@ Los archivos de carros pesados ​​no deben ser parte de una primera carga pú
 - [`assets/js/buy-buttons.js`](../assets/js/buy-buttons.js)
 - sidecars de pago y complementos compartidos/ayudantes de envío
 
-Al cambiar la carga del carrito o del proceso de pago, verifique con las herramientas de red del navegador que una vista anónima de la página de la campaña no descargue con entusiasmo la pila completa del carrito.
+Al cambiar el carrito o la carga del carrito, verifique con las herramientas de red del navegador que una vista anónima de la página de la campaña no descargue con entusiasmo la pila completa del carrito.
 
 ## Minificación de activos generados
 
@@ -124,7 +124,7 @@ Mantenga estas responsabilidades separadas:
 
 Cloudflare Auto Minify debería permanecer deshabilitado. Reescribe las respuestas en el borde, lo que hace que el comportamiento de producción sea más difícil de reproducir localmente y de probar en CI. Prefiera el paso de activos generados controlados por repositorios.
 
-Mantenga el cargador Rocket y la ofuscación de direcciones de correo electrónico desactivados para este sitio. Rocket Loader reescribe etiquetas de script en el borde, mientras que la ofuscación de direcciones de correo electrónico inyecta `/cdn-cgi/scripts/*/cloudflare-static/email-decode.min.js`; Ambos hacen que las páginas con CSP estricto sean más difíciles de reproducir localmente y pueden aparecer como bloqueo de procesamiento o diagnóstico de ruido de consola en PageSpeed ​​Insights.
+Mantenga Rocket Loader y la ofuscación de direcciones de correo electrónico desactivadas para este sitio. Rocket Loader reescribe etiquetas de script en el borde, mientras que la ofuscación de direcciones de correo electrónico inyecta `/cdn-cgi/scripts/*/cloudflare-static/email-decode.min.js`; Ambos hacen que las páginas con CSP estricto sean más difíciles de reproducir localmente y pueden aparecer como bloqueo de procesamiento o diagnóstico de ruido de consola en PageSpeed ​​Insights.
 
 Si Cloudflare Web Analytics está habilitado, las páginas de la campaña deben permitir el script de análisis de Cloudflare y el punto final de baliza en el CSP de la campaña. Las superficies privadas/administrativas deben ser más estrictas a menos que exista una decisión explícita de análisis/privacidad para incluirlas.
 
@@ -186,6 +186,8 @@ La lista de permitidos es intencionalmente estrecha. Las rutas elegibles actuale
 - páginas de detalles de campañas públicas como `/campaigns/hand-relations/`
 - rutas de campaña públicas localizadas cuando se generan con el mismo modelo de ruta
 
+Las vistas previas de campañas protegidas, como `/campaigns/:slug/preview/`, no son páginas de detalles de campañas públicas para este propósito y nunca son elegibles.
+
 El tiempo de ejecución rechaza cualquier enlace que no sea un documento de navegación `http:` o `https:` del mismo origen.
 
 ### Exclusiones
@@ -199,8 +201,9 @@ El tiempo de ejecución rechaza enlaces cuando cualquiera de estos es verdadero:
 - el enlace tiene un `target` distinto de `_self`
 - el enlace tiene `data-no-prefetch`
 - los puntos de navegación en el documento actual, incluidos los enlaces de solo fragmentos
-- la URL contiene parámetros de consulta confidenciales como `token`, `publicToken`, `adminToken`, `orderId`, `email` o `session`.
+- la URL contiene parámetros de consulta confidenciales como `t`, `token`, `publicToken`, `adminToken`, `orderId`, `email` o `session`.
 - la ruta está en `/admin`, `/manage`, `/community`, `/cart`, `/checkout`, `/checkout-intent`, `/pledge-success`, `/pledge-cancelled`, `/api` o `/worker`.
+- la ruta es una ruta de vista previa de campaña protegida como `/campaigns/:slug/preview/`
 - la ruta no está en la lista pública permitida
 
 Utilice `data-no-prefetch` para exclusiones únicas en enlaces públicos que de otro modo serían elegibles.
@@ -289,7 +292,7 @@ Si PageSpeed ​​marca imágenes de campaña de gran tamaño que ya fluyen a t
 El canal de medios:
 
 - comprime imágenes cuando el resultado optimizado es más pequeño
-- genera variantes WebP responsivas en `320w`, `480w`, `640w`, `960w` y `1600w` para plantillas de imágenes públicas cuando la imagen de origen es más grande que esa variante.
+- genera variantes WebP responsivas en `320w`, `480w`, `640w`, `960w` y `1600w` para plantillas de imágenes públicas cuando la imagen de origen es más grande que esa variante
 - omite la reoptimización de `cwebp` para derivados animados de WebP porque `cwebp` no puede decodificar archivos WebP animados
 - genera derivados WebM para videos subidos
 - reescribe referencias literales `_campaigns` / `_config.yml` de videos fuente subidos a derivados WebM generados
@@ -306,13 +309,14 @@ Para páginas de campaña, prefiera:
 
 ## Administrador y superficies privadas
 
-Las rutas de administración, gestión, pago, resultados de compromiso, comunidad y tokenizadas deben optimizarse para lograr corrección y privacidad antes que la velocidad especulativa.
+El administrador, la vista previa de la campaña protegida, la gestión, el pago, el resultado del compromiso, la comunidad y las rutas tokenizadas deben optimizarse para lograr corrección y privacidad antes que la velocidad especulativa.
 
 Reglas para superficies privadas:
 
 - no cargar la búsqueda previa de documentos públicos
 - no precargar enlaces que contengan tokens o pedidos
 - mantenga las respuestas de autenticación, pago y recuperación privadas y sin caché
+- mantenga las respuestas de carga útil de vista previa protegidas privadas y sin caché, y elimine los tokens de revisor de la barra de direcciones después de que el shell de vista previa tenga suficiente contexto para cargar
 - mantenga visibles los mensajes de estado y error sin necesidad de una recarga completa
 - Evite enviar secretos, datos exclusivos de administrador o tokens de apoyo a páginas generadas estáticamente.
 
@@ -335,9 +339,11 @@ bundle exec jekyll build --config _config.yml,_config.local.yml --quiet
 npm run assets:minify
 npm run assets:minify:check
 npm run test:unit
+npx vitest run tests/unit/page-prefetch.test.ts tests/unit/layout-accessibility.test.ts
+npm run test:e2e:headless:podman -- tests/e2e/admin-dashboard.spec.ts --project=chromium
 ```
 
-Validación de navegador enfocada para cambios en la interfaz de usuario pública:
+Validación enfocada del navegador para cambios en la interfaz de usuario pública:
 
 ```bash
 python3 -m http.server 4100 --bind 127.0.0.1 --directory _site
@@ -370,7 +376,7 @@ La validación de producción o puesta en escena debe comparar:
 Utilice esta lista de verificación antes de fusionar cambios de rendimiento:
 
 - Las páginas de origen aún muestran contenido significativo antes de que finalice JavaScript.
-- no se busca previamente ninguna ruta privada, tokenizada, de pago o de administración
+- no se precarga ninguna ruta privada, tokenizada, de pago o de administración
 - los activos generados `_site` pasan `npm run assets:minify:check`
 - La compresión de Cloudflare permanece habilitada y Auto Minify permanece deshabilitada
 - La primera carga pública evita archivos pesados de carrito/tiempo de ejecución a menos que el estado del carrito o la intención del usuario los requieran.

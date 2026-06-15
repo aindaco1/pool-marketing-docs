@@ -10,13 +10,13 @@ lang: es
 
 ## Última actualización
 
-11 de junio de 2026
+15 de junio de 2026
 
 **The Pool** es una plataforma de financiación colectiva estática de código abierto para películas independientes, medios y otros proyectos impulsados ​​por artistas.
 
-Está diseñado en torno a una promesa simple: los seguidores pueden comprometerse con un proyecto creativo sin crear una cuenta, y sus tarjetas solo se cargan si la campaña alcanza su objetivo. Detrás de esa experiencia liviana para los seguidores, The Pool brinda a los creadores y operadores una infraestructura real para el pago, el cumplimiento, las actualizaciones, los informes, la edición administrativa, la localización y la implementación.
+Está diseñado en torno a una promesa simple: los seguidores pueden comprometerse con un proyecto creativo sin crear una cuenta, y sus tarjetas solo se cargan si la campaña alcanza su objetivo. Detrás de esa experiencia liviana para los seguidores, The Pool brinda a los creadores y operadores una infraestructura real para el pago, el cumplimiento, las actualizaciones, los informes, la edición administrativa, la localización y la implementación de las promesas.
 
-Hito de lanzamiento actual: **v1.0.4**. El conjunto de funciones v1.0 y el pase de refuerzo de lanzamiento están completos. v1.0.4 agrega seguimiento del uso del plan de superadministrador para Cloudflare Workers/KV y Resend, análisis de ingresos netos en el panel después de las tarifas asignadas del procesador Stripe, asignación de tarifas a nivel de componente para informes/exportaciones, documentos de credenciales del proveedor de seguimiento de uso y andamios secretos de trabajadores locales agrupados.
+Hito de lanzamiento actual: **v1.0.5**. El conjunto de funciones v1.0 y el pase de refuerzo de lanzamiento están completos. v1.0.5 agrega vistas previas de campañas protegidas para superadministradores, usuarios de campaña asignados y revisores invitados explícitamente, creación de nuevas campañas por superadministradores con correos electrónicos de asignación de usuarios de campaña y archivado por superadministradores para campañas no activas.
 
 ## Compromiso de todo o nada
 
@@ -57,6 +57,9 @@ The Pool está diseñado para cineastas y equipos creativos que necesitan una ca
 - **Complementos de plataforma opcionales**: ofrezca productos de la plataforma junto con promesas cuando esté habilitado, con inventario y manejo de envío separados que no cuentan para el objetivo de financiamiento de una campaña.
 - **Complementos de campaña**: vende productos o extras específicos de la campaña en el mismo flujo de compromiso y, al mismo tiempo, mantienes los ingresos, el inventario y los envíos vinculados a esa campaña.
 - **Panel de administración privado**: brinde a los miembros confiables del equipo un espacio de trabajo enfocado en la configuración de la campaña, el contenido de la página, las recompensas, las actualizaciones, las decisiones, los informes, los seguidores, los análisis, los enlaces de marketing, los complementos y los usuarios.
+- **Vistas previas de campañas protegidas**: comparta borradores o campañas solo de vista previa de forma privada con usuarios de campaña asignados y revisores invitados explícitamente antes de que se lance la página de campaña pública.
+- **Configuración de nueva campaña**: los superadministradores pueden crear un borrador de campaña privado a partir de un título y usuarios de campaña asignados, y luego completar el resto de la campaña desde el panel.
+- **Archivado de campañas**: los superadministradores pueden archivar campañas no activas sin eliminar el origen de la campaña ni los medios cargados, manteniendo un registro revisable fuera de las listas de campañas activas.
 - **Zona horaria de plataforma configurable**: los superadministradores pueden elegir la zona horaria de la IANA utilizada para los plazos de campaña, las cuentas regresivas, los informes programados y la automatización del ciclo de vida.
 - **Cargas de medios del panel**: organice imágenes, videos y audio del diario y la campaña con vistas previas, publíquelos en rutas de recursos de la campaña a través del flujo de trabajo revisable normal, active la optimización de imágenes/videos y limpie los medios propiedad del panel a los que ya no se hace referencia.
 - **Informes cuando los necesite**: obtenga una vista previa y descargue archivos CSV de compromiso o cumplimiento desde el panel, con correos electrónicos opcionales de los ejecutores de campaña durante las campañas activas.
@@ -94,7 +97,7 @@ La pila está diseñada para ser práctica para equipos pequeños y tenedores. C
 
 El modelo de rendimiento de la página pública permanece estático primero. El sitio minimiza los artefactos de compilación generados, permite que Cloudflare maneje la compresión de transferencia, reserva espacio estable para el progreso de la campaña y los medios, ofrece variantes de imágenes responsivas generadas cuando están disponibles, pospone las incrustaciones remotas de héroes de YouTube hasta la intención de reproducción y retrasa el código de carrito propio más pesado hasta que realmente sea necesario.
 
-El panel de administración sigue la misma disciplina de costos. La navegación, el filtrado, las vistas previas, los análisis, los informes y los borradores locales evitan las escrituras en KV. Las escrituras duraderas ocurren solo cuando un administrador guarda explícitamente el estado del panel o publica un cambio de campaña/plataforma.
+El panel de administración sigue la misma disciplina de costos. La navegación, el filtrado, las vistas previas, los análisis, los informes y los borradores locales evitan las escrituras en KV. Las escrituras duraderas ocurren solo cuando un administrador guarda explícitamente el estado del panel, crea una campaña, publica una vista previa protegida o publica un cambio de campaña/plataforma.
 
 Con el fortalecimiento del presupuesto de lista v1.0.3, el envío de recordatorios de lanzamiento inactivo, el reintento de correo electrónico de soporte y las rutas de inventario de complementos de plataforma utilizan proyecciones de estado de cola o recuento de ventas para evitar exploraciones innecesarias del espacio de nombres KV durante las rutas de lectura normales.
 
@@ -106,7 +109,7 @@ Para el desarrollo local, la ruta recomendada es el flujo Podman sin raíz docum
 
 Para la implementación, presione `main` para crear el sitio de GitHub Pages e implementar Cloudflare Worker cuando el repositorio requerido y los secretos del Worker estén configurados. Utilice [Pledge Worker](/es/docs/operations/worker/) para la configuración del trabajador, [Customization Guide](/es/docs/development/customization-guide/) para la configuración orientada a la bifurcación, [Testing Guide](/es/docs/operations/testing/) para verificaciones de liberación y [Security Guide](/es/docs/operations/security/) para secretos, control de acceso y expectativas de ruta de abuso.
 
-La misma arquitectura admite accesibilidad y SEO sin debilitar la seguridad. Las páginas públicas emiten metadatos rastreables y datos estructurados conservadores, mientras que las páginas privadas con enlaces mágicos, como Manage Pledge, las páginas de la comunidad de seguidores y el panel de administración, permanecen fuera de la indexación de búsqueda. Los flujos de pago y administración agregan teclado, enfoque, diálogo, región en vivo y comportamiento de puntos de referencia alrededor de la interfaz de usuario de pago seguro de Stripe en lugar de reemplazarla.
+La misma arquitectura admite accesibilidad y SEO sin debilitar la seguridad. Las páginas públicas emiten metadatos rastreables y datos estructurados conservadores, mientras que las páginas privadas con enlaces mágicos, como Manage Pledge, páginas de la comunidad de seguidores, vistas previas de campañas protegidas y el panel de administración, permanecen fuera de la indexación de búsqueda. Los flujos de pago y administración agregan teclado, enfoque, diálogo, región en vivo y comportamiento de puntos de referencia alrededor de la interfaz de usuario de pago seguro de Stripe en lugar de reemplazarla.
 
 ## Código abierto
 

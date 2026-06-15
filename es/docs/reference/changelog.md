@@ -10,7 +10,30 @@ lang: es
 
 ## Última actualización
 
-11 de junio de 2026
+15 de junio de 2026
+
+## v1.0.5 - 2026-06-14
+
+Alcance de la versión:
+
+- Se agregaron vistas previas de campañas protegidas para superadministradores, usuarios de campañas asignados y correos electrónicos de revisores invitados explícitamente. Los enlaces de vista previa están firmados, tienen alcance de campaña, son visibles en el panel para el administrador de publicación y caducan después de 24 horas.
+- Se agregó la creación de campañas de superadministrador para campañas de solo vista previa. Los usuarios de la campaña son opcionales en el momento de la creación; Los superadministradores pueden asignar varios usuarios existentes o crear varios usuarios nuevos, y los usuarios asignados reciben el enlace del panel de administración por correo electrónico cuando se configura la entrega.
+- Se agregó el archivado de campañas por superadministradores para campañas no activas. El desarrollo local archiva a través del helper de repositorio montado, mientras que producción despacha el flujo de trabajo validado de GitHub Actions `archive-campaign`.
+- Visibilidad pública preservada y límites de SEO: las campañas de solo vista previa permanecen ocultas de las rutas de campaña públicas, índices de inicio/comunidad/complementos, `/api/campaigns.json`, incrustaciones, metadatos de tarjetas compartidas, salida de mapas del sitio, intención de robots y captación previa pública hasta su lanzamiento.
+- Se conserva la disciplina presupuestaria de KV: las lecturas del panel, la representación preliminar, la exploración de campos, los borradores locales, los informes, los soportes y los análisis siguen siendo de solo lectura; Las acciones explícitas de creación, vista previa de publicación, guardado de usuario, auditoría de archivo y correo electrónico realizan escrituras limitadas.
+- Se agregaron salvaguardias livianas de edición multiusuario con verificaciones de revisión base de GitHub para contenido de campaña y publicaciones de vista previa, conflictos de publicación obsoleta, preservación de borradores locales y eventos de auditoría para acciones de creación, publicación de vista previa, archivo y publicación de contenido.
+- Mantuvo la nueva interfaz de usuario del panel accesible, localizada, con capacidad de respuesta móvil y SECO al reutilizar etiquetas de administración compartidas/ayuda/botón de información, lista de correo electrónico, patrones modales, de enfoque y de estado.
+- Se mejoró la resiliencia del desarrollo local de Podman con reinicios de servicios supervisados, intentos de recuperación de Podman obsoletos, soporte de ayuda de repositorio local para pruebas de creación/archivo y documentación actualizada de Podman.
+
+- Se agregó publicación de vistas previas protegidas respaldada por GitHub en `/admin/campaign-preview/publish`, lecturas no-store de cargas de vista previa en `/admin/campaign-preview/:slug`, shells genéricos noindex de vista previa en `/campaigns/:slug/preview/` para cada slug de campaña, de modo que los enlaces enviados por correo no dependan de una reconstrucción posterior a la publicación, y allowlists KV de acceso a vista previa por 24 horas en `campaign-preview-reviewers:<slug>`.
+- Se agregaron enlaces firmados de vista previa del panel de 24 horas para el administrador de publicación, correos electrónicos de vista previa firmados opcionales del revisor y correos electrónicos de asignaciones de campaña a través del tema de correo electrónico compartido Reenviar y el catálogo i18n.
+- Se renderizaron cargas de vista previa protegidas como vistas previas completas de páginas de campaña de solo lectura con CSS/fuentes de campaña cargados, embeds de medios habilitados y controles de promesa deshabilitados.
+- Se alineó el renderizado del diario de vista previa protegida con las pestañas del diario público de campaña, los paneles de fase y las tarjetas de entrada con borde punteado.
+- Se agregaron controles del panel de superadministrador para la creación de nuevas campañas solo de vista previa y la publicación de vista previa protegida.
+- Se agregó archivado de campañas solo para superadministradores para campañas no activas desde Campañas -> Configuración, respaldado localmente por escrituras de repositorio solo para desarrolladores y en producción por un flujo de trabajo manual de GitHub Actions que mueve `_campaigns/<slug>.md` y los medios propiedad de la campaña a `archive/campaigns/<slug>/` sin eliminar los datos archivados.
+- Se agregó filtrado público/de solo vista previa en JSON de campaña, índices de página de inicio/comunidad/complementos, páginas localizadas, mapa del sitio, intención de robots y elegibilidad de captación previa.
+- Se agregaron verificaciones de conflictos de revisión base para contenido de campaña y publicaciones de vista previa.
+- Mantuve los correos electrónicos de vista previa fuera de la campaña Markdown respaldada por GitHub y de los artefactos generados públicamente; La fuente de la campaña ahora solo incluye el indicador de vista previa y `preview_reviewer_emails: []` vacío de compatibilidad.
 
 ## v1.0.4 - 2026-06-11
 
@@ -73,7 +96,6 @@ lang: es
 - Se preservó el objetivo de nivel gratuito KV de Cloudflare Workers manteniendo las lecturas normales del panel, las vistas previas, los filtros, los análisis y los borradores locales en cero escrituras KV.
 - Configuración del remitente de correo electrónico de promesa alineada con el dominio del remitente de reenvío autorizado y configuración documentada del dominio del remitente para bifurcaciones.
 - Se hicieron explícitos los permisos de implementación de GitHub Pages para el flujo de trabajo de implementación de producción.
-- Se agregó accesibilidad al panel de administración, i18n, SEO/noindex, seguridad, capacidad de respuesta para dispositivos móviles/tabletas y pases DRY UI, además de cobertura de unidad enfocada, Playwright, Podman smoke y presupuesto de escritura KV.
 
 ## v0.9.5 - 2026-05-03
 
@@ -81,9 +103,8 @@ lang: es
 - Se actualizó el Worker `compatibility_date` a `2026-05-03` para que Wrangler 4/Miniflare comience limpiamente en el Nodo 24.
 - Se actualizaron los contenedores de pruebas de host y Podman para preferir el Nodo 24, con el Nodo 22 como el respaldo mínimo de Wrangler 4.
 - Se cambió el arranque de dependencia de Podman Worker a `npm ci` para que los inicios del contenedor local no reescriban `worker/package-lock.json`.
-- Documentación de lanzamiento ampliada para creadores con complementos, inserciones alojadas, expectativas de respaldo de impuestos/envío, decisiones de envío gratuito, destinatarios de informes y transferencia de cumplimiento.
+- Documentación de lanzamiento para creadores ampliada con complementos, inserciones alojadas, expectativas de respaldo de impuestos/envío, decisiones de envío gratuito, destinatarios de informes y transferencia de cumplimiento.
 - Se agregó una ruta de lista de verificación de creadores en español para la incorporación de creadores y bifurcaciones.
-- Se verificó la puerta de fusión completa, incluida la suite de seguridad, el humo del anfitrión, el humo de promesa mutable de Podman y el E2E sin cabeza.
 
 ## v0.9.4 - 2026-05-02
 

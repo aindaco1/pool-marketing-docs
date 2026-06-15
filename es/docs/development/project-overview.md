@@ -6,11 +6,11 @@ render_with_liquid: false
 lang: es
 ---
 
-# Descripción general del proyecto
+# Resumen del proyecto
 
 ## Última actualización
 
-3 de junio de 2026
+15 de junio de 2026
 
 **Objetivo:**
 Habilite el crowdfunding creativo con una verdadera lógica de *todo o nada* utilizando alojamiento estático.
@@ -37,6 +37,7 @@ Los creadores definen campañas en Markdown; los patrocinadores se comprometen a
 |**Estilo**|Sass + vars de tema generados|Sistema de diseño compartido para páginas públicas, pago, gestión de promesas y superficies de pago/correo electrónico de marca.|
 
 Todo el código está versionado y auditable. La edición de la campaña ahora fluye a través del panel de administración privado o ediciones directas del repositorio, y los cambios publicables aún se confirman en el repositorio a través de la ruta de GitHub controlada por el trabajador.
+Los superadministradores pueden crear campañas de solo vista previa a través de la misma ruta; esas campañas permanecen ocultas de las rutas de campaña públicas hasta su lanzamiento. Los superadministradores también pueden archivar campañas no activas a través de un movimiento validado de GitHub Actions en `archive/campaigns/<slug>/`, manteniendo las fuentes y los medios archivados en el repositorio en lugar de eliminar datos. Las listas de correo electrónico de revisores de vista previa protegidas permitidas se encuentran en registros KV de trabajador de corta duración en lugar de Markdown de campaña.
 Las cargas de medios del panel conservan el origen en el límite del trabajador: las cargas de imágenes/videos solicitan el flujo de trabajo de optimización del repositorio después de la confirmación, y las publicaciones de contenido/diario eliminan los medios propiedad del panel de la misma campaña a los que ya no se hace referencia.
 
 ## Planificar notas de eficiencia para bifurcaciones
@@ -47,6 +48,8 @@ La arquitectura actual está optimizada deliberadamente para que las implementac
 - el navegador almacena en caché las estadísticas en vivo y el inventario en `localStorage` para los TTL configurados, y las pestañas ocultas dejan de actualizarse hasta que vuelven a ser visibles.
 - Los informes del panel, los partidarios, los análisis, los asistentes de liquidación, las búsquedas de audiencia de transmisión de administradores y las estadísticas/conciliación de inventario prefieren el índice `campaign-pledges:{slug}` y evitan costosas exploraciones de espacios de nombres en rutas de lectura normales.
 - Las cargas/vistas previas de contenido del panel, vistas previas/descargas de informes, filtros de soporte, vistas de análisis y listas de referencias de marketing están diseñadas para agregar cero escrituras de KV.
+- las lecturas de carga útil de vista previa protegida son de escritura cero; La publicación de una vista previa protegida escribe una lista permitida de acceso a la vista previa de 24 horas más un evento de auditoría.
+- las operaciones de archivo de campaña escriben un evento de auditoría; el movimiento del archivo fuente/medios se ejecuta localmente en desarrollo y en GitHub Actions para producción
 - Las rutas de escritura de nivel limitado ahora solicitan al coordinador de cada campaña la disponibilidad según la reserva, mientras que el inventario público permanece en KV como proyección.
 - El inventario de complementos de la plataforma utiliza una proyección de recuento de ventas después del arranque en lugar de reconstruirse a partir de escaneos del espacio de nombres de compromiso en lecturas normales.
 - iniciar el envío de recordatorios y la confirmación del partidario reintentar el sondeo utiliza marcadores de estado de cola, por lo que los ticks programados inactivos omiten los escaneos de la lista KV y recurren a las verificaciones de compatibilidad cada hora
@@ -170,7 +173,7 @@ Para conocer los límites actuales de Cloudflare, consulte:
 8. ✅ La campaña de prueba se ejecuta de un extremo a otro en el modo de prueba de Stripe.
 9. ✅ El contenido de formato largo desinfecta los esquemas de enlaces de Markdown y solo muestra incrustaciones estructuradas de orígenes exactos aprobados.
 10. ✅ Las lecturas de enlaces mágicos de promesas faltantes fallan al cerrarse con `404`.
-11. ✅ El panel de administración privado emite `noindex`, utiliza autenticación de enlace mágico y mantiene las mutaciones KV de usuario/referencia separadas de los flujos de publicación respaldados por GitHub.
+11. ✅ El panel de administración privado emite `noindex`, utiliza autenticación de enlace mágico, mantiene las mutaciones KV de usuario/referencia/revisor de vista previa separadas de los flujos de publicación respaldados por GitHub y mantiene las campañas de solo vista previa fuera de las rutas públicas hasta su lanzamiento.
 
 ---
 
@@ -196,5 +199,6 @@ Para conocer los límites actuales de Cloudflare, consulte:
 10. **Chrome localizado debe permanecer compartido**: los controles de la página de la campaña y la copia de estado que pertenecen a la plataforma, no al creador, deben fluir a través del catálogo de configuración regional compartido para que las plantillas públicas, la interfaz de usuario en tiempo de ejecución y los correos electrónicos de los seguidores no se separen.
 11. **El trabajo de rendimiento debe permanecer estático primero**: prefiera la salida estable de Jekyll, la minificación de activos generados, la carga en tiempo de ejecución diferida y la captación previa conservadora solo pública antes de agregar complejidad al cliente.
 12. **El trabajo del ciclo de vida de los medios debe permanecer respaldado por el repositorio**: las cargas del panel confirman primero los archivos fuente, la automatización del repositorio posee la optimización nativa de imágenes/videos y la limpieza en el momento de la publicación solo elimina los medios de la misma campaña que desaparecieron del contenido de autor y no se mencionan en ningún otro lugar.
+13. **Los datos de acceso a la vista previa deben permanecer fuera de la fuente**: Markdown de vista previa protegida solo incluye indicadores de vista previa; Los correos electrónicos de acceso previo pertenecen a listas permitidas de Worker KV de corta duración y enlaces firmados de 24 horas.
 
 ---

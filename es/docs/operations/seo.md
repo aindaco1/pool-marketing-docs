@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-11 de junio de 2026
+15 de junio de 2026
 
 Este documento describe el modelo SEO actual de The Pool en 2026. Es intencionalmente conservador: las páginas públicas se hacen más fáciles de rastrear y comprender, mientras que los flujos tokenizados y exclusivos para seguidores permanecen fuera de la intención del índice. La implementación está diseñada en torno a metadatos reales, páginas públicas reales y datos estructurados honestos en lugar de relleno de contenido o cebo de resultados enriquecidos.
 
@@ -43,6 +43,7 @@ La línea de base actual incluye:
 - generado [`sitemap.xml`](/sitemap.xml)
 - `noindex,nofollow` explícito en diseños tokenizados o solo para seguidores
 - `noindex,nofollow,noarchive`, `sitemap: false` explícitos, robots no permitidos y metadatos sociales deshabilitados en el panel de administración privado
+- shells de vista previa de campaña protegidos con `noindex,nofollow,noarchive`, sin metadatos sociales, sin JSON-LD, sin inclusión de mapa de sitio público y sin elegibilidad de captación previa pública
 - conservador `Organization` / `WebSite` JSON-LD
 - campaña conservadora `CreativeWork` más ruta de navegación JSON-LD, ambos alineados con el idioma de la página activa donde sea compatible
 - campaña `CreativeWork` JSON-LD ahora también incluye `headline`, `mainEntityOfPage`, `isPartOf` y marcas de tiempo publicadas/modificadas para que las páginas de campaña públicas se parezcan más a páginas de inicio editoriales reales que a blobs anónimos.
@@ -64,7 +65,7 @@ La ruta pública de Open Graph es:
 - `/share/campaign/{slug}.png?lang=en`
 - `/share/campaign/{slug}.png?lang=es`
 
-Esa ruta genera una tarjeta SVG con reconocimiento de estado a partir de datos de campaña en vivo, luego la rasteriza a PNG para que los enlaces compartidos permanezcan seguros para los rastreadores y al mismo tiempo muestren el total prometido, el progreso de los objetivos, el estado de la campaña y el cuadrado `hero_image` de la campaña con el estilo de tarjeta compartida más rico. El trabajador también mantiene la versión SVG en `/share/campaign/{slug}.svg?lang={lang}` para herramientas internas de vista previa/depuración, pero SVG no es el valor predeterminado de metadatos públicos porque algunos rastreadores externos lo rechazan.
+Esa ruta genera una tarjeta SVG con reconocimiento de estado a partir de datos de campaña en vivo, luego la rasteriza a PNG para que los enlaces compartidos permanezcan seguros para los rastreadores y al mismo tiempo muestren el total comprometido, el progreso de los objetivos, el estado de la campaña y el cuadrado `hero_image` de la campaña con el estilo de tarjeta compartida más rico. El trabajador también mantiene la versión SVG en `/share/campaign/{slug}.svg?lang={lang}` para herramientas internas de vista previa/depuración, pero SVG no es el valor predeterminado de metadatos públicos porque algunos rastreadores externos lo rechazan.
 
 Los enlaces para compartir páginas de la campaña mantienen la misma separación de preocupaciones:
 
@@ -90,6 +91,7 @@ No indexable por defecto:
 - `/manage/`
 - `/admin/`
 - `/es/admin/`
+- páginas de vista previa de campaña protegidas como `/campaigns/:slug/preview/`
 - páginas de la comunidad de seguidores
 - rutas tokenizadas y rutas de acceso a cadenas de consulta específicas del usuario
 
@@ -107,6 +109,14 @@ Contrato del panel de administración:
 - [`robots.txt`](/robots.txt) debe rechazar `/admin/` y `/es/admin/`
 - [`sitemap.xml`](/sitemap.xml) no debe incluir rutas de administración
 - el diseño del administrador no debe emitir metadatos de vista previa social JSON-LD o Open Graph/Twitter; el panel es una superficie de aplicación privada, no un resultado de búsqueda público ni un objetivo compartido
+
+Contrato de vista previa de campaña protegida:
+
+- `/_layouts/campaign-preview.html` debe conservar `indexable=false` y `social=false`
+- las páginas de vista previa no deben aparecer en `sitemap.xml`
+- Las campañas de solo vista previa no deben generar páginas públicas `/campaigns/:slug/`, páginas de campañas públicas localizadas, entradas JSON de campañas públicas, entradas de catálogos complementarios, metadatos de tarjetas compartidas ni destinos de inserción públicos hasta su lanzamiento.
+- Las páginas de vista previa deben obtener contenido protegido a través del Trabajador en el momento de la solicitud en lugar de incrustar títulos de campaña o borradores de cargas útiles en HTML estático.
+- la captación previa pública debe rechazar `/campaigns/:slug/preview/` y cadenas de consulta de token como `?t=...`
 
 ## Datos estructurados
 
@@ -201,6 +211,7 @@ Al verificar una implementación manualmente:
 - `sitemap.xml` es accesible y solo incluye URL públicas previstas.
 - las páginas privadas/tokenizadas emiten `noindex` cuando corresponda
 - `/admin/` y `/es/admin/` emiten `noindex,nofollow,noarchive`, no aparecen en `sitemap.xml` y no emiten vista previa social ni metadatos JSON-LD.
+- `/campaigns/:slug/preview/` emite `noindex,nofollow,noarchive`, no aparece en `sitemap.xml` y no emite vista previa social ni metadatos JSON-LD.
 - JSON-LD valida limpiamente
 - Las páginas localizadas mantienen enlaces canónicos y alternativos coherentes.
 - Las páginas de campaña localizadas mantienen enlaces canónicos y alternativos coherentes.

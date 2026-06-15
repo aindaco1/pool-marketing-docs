@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-11 de junio de 2026
+15 de junio de 2026
 
 Este documento registra la estructura de localización actual de The Pool y el flujo de trabajo admitido para agregar idiomas en una bifurcación.
 
@@ -36,12 +36,12 @@ El modelo i18n actual cubre:
   - `/admin/`
   - `/creator-campaign-checklist/`
   - páginas de la comunidad de seguidores
-- copia localizada en tiempo de ejecución propiedad del sitio para carrito, pago, gestión de compromiso, autenticación de administrador/panel de control/vistas previas de informes/exploración de seguidores/vista previa de contenido, flujos de la comunidad, cuentas regresivas de la campaña (incluido el estado del tiempo restante del lector de pantalla), recordatorios de lanzamiento de la próxima campaña, videos destacados/estados de carga y títulos de inserción, avance de la comunidad de seguidores en Chrome, pestañas del diario, controles de la fase de producción, etiquetas de galería, texto de estado de estadísticas en vivo e inserción de la campaña. constructor/widget
+- copia localizada en tiempo de ejecución propiedad del sitio para carrito, pago, gestión de compromiso, autenticación de administrador/panel de control/vistas previas de informes/exploración de seguidores/vista previa de contenido, creación de nuevas campañas, vistas previas de campañas protegidas, flujos de la comunidad, cuentas regresivas de campañas (incluido el estado del tiempo restante del lector de pantalla), recordatorios de lanzamiento de próximas campañas, videos destacados/estados de carga y títulos insertados, avance de la comunidad de seguidores en Chrome, pestañas de diario, controles de fase de producción, etiquetas de galería, estadísticas en vivo texto de estado y el widget/creador de inserción de campaña
 - El cambio de idioma del administrador conserva el estado de vista seguro, como los filtros de campaña y los hashes, pero elimina los tokens de enlace mágico `admin_login` antes de vincularlos al idioma alternativo.
 - etiquetas de sección de complementos de campaña localizadas tanto en el carrito como en Manage Pledge, además de una copia de ayuda para el pago, como resúmenes de los botones del carrito, etiquetas de ubicación fiscal y una copia del siguiente paso del pago alojado
 - Cambio de pie de página de campaña localizado y formato de fecha de campaña localizado para Chrome de campaña pública
 - Etiquetas localizadas de enlaces para compartir de campañas, además de texto de intención de compartir con conocimiento del estado para campañas próximas, activas, financiadas y finalizadas.
-- Correos electrónicos de apoyo de Worker localizados y enlaces `/manage/` / `/community/:slug/` localizados basados en `preferredLang` persistente
+- Correos electrónicos de soporte/administrador de Worker localizados y enlaces de vista previa protegidos `/manage/`, `/community/:slug/`, `/admin/` y protegidos según el idioma persistente o solicitado relevante
 - rutas localizadas de tarjetas compartidas de campañas de trabajadores como `/share/campaign/:slug.png?lang=es`
 - metadatos públicos localizados y sugerencias de lenguaje de datos estructurados en páginas públicas y páginas de campaña localizadas
 
@@ -115,7 +115,7 @@ Esto incluye:
 - etiquetas de estado
 - progreso/metatexto
 - carrito/pagar/Administrar copia en tiempo de ejecución de promesa
-- Pestañas del panel de administración, filtros, etiquetas de formulario generadas, etiquetas de opciones, texto de ayuda, copia de carga de medios, copia de informe/soporte/análisis/marketing y controles del editor de contenido
+- Pestañas del panel de administración, filtros, etiquetas de formulario generadas, etiquetas de opciones, texto de ayuda, copia de carga de medios, copia de informe/soporte/análisis/marketing, copia de diálogo de nueva campaña, copia de diálogo de vista previa protegida y controles del editor de contenido
 - Etiquetas de la sección de complementos de la campaña y copia auxiliar de pago alojada/personalizada.
 - copia en tiempo de ejecución de la comunidad
 - cuenta regresiva de la campaña / video-heroe / comunidad-de-seguidores / diario / fase-de-producción / galería / copia de estadísticas en vivo
@@ -227,6 +227,7 @@ Comportamiento práctico:
 - si un partidario se compromete o administra desde `/es/...`, el trabajador puede persistir `preferredLang=es`
 - Los correos electrónicos de los seguidores y las URL de enlaces mágicos utilizan el modelo de ruta en español, como `/es/manage/?t=...`.
 - Los correos electrónicos de recordatorio de lanzamiento utilizan el `preferredLang` persistente del registro y se vinculan a la ruta de la campaña localizada cuando hay una disponible.
+- los correos electrónicos de asignaciones de campaña y los correos electrónicos de revisores de vista previa protegidos utilizan el tema de correo electrónico compartido y el catálogo local; La copia del correo electrónico de vista previa del revisor debe indicar que el enlace caduca en 24 horas.
 - Las tarjetas compartidas de campaña también se pueden solicitar según la configuración regional, como `/share/campaign/sunder.png?lang=es`
 
 ## Qué hace y qué no hace un archivo YAML de configuración regional
@@ -253,7 +254,7 @@ El soporte completo de idiomas también necesita:
 3. Agregue rutas de páginas públicas localizadas a `i18n.pages`.
 4. Agregue páginas de origen localizadas para contenido de formato largo como `/about/`, `/terms/`, `/manage/` o páginas de índice de la comunidad seleccionadas cuando sea necesario.
 5. Verifique las rutas de recopilación generadas, como `/es/campaigns/{slug}/`, y cualquier ruta de inserción con reconocimiento regional que exponga su implementación.
-6. Para cambios en el panel de administración, agregue claves `admin` coincidentes en cada archivo local antes del envío. En particular, los campos generados necesitan las claves deterministas `settings_field_*`, `settings_readonly_*`, `campaign_field_*` o `campaign_readonly_*` descritas anteriormente.
+6. Para cambios en el panel de administración, agregue claves `admin` coincidentes en cada archivo local antes del envío. En particular, los campos generados necesitan las claves deterministas `settings_field_*`, `settings_readonly_*`, `campaign_field_*` o `campaign_readonly_*` descritas anteriormente; Los flujos creados manualmente, como **Crear nueva campaña** y **Vista previa**, necesitan claves de diálogo/acción/ayuda explícitas.
 7. Ejecute la pila local y verifique tanto la copia de la IU compartida como las rutas localizadas, incluidas `/admin/` y `/es/admin/` cuando las cadenas de la IU del administrador cambiaron:
 
 ```bash

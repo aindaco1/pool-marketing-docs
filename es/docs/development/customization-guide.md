@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-11 de junio de 2026
+15 de junio de 2026
 
 Esta guía cubre la superficie de personalización sin código compatible para las bifurcaciones de The Pool tal como existe ahora.
 
@@ -33,6 +33,8 @@ Para ediciones normales del operador, utilice el panel de administración privad
 - **Configuración** edita la configuración de toda la plataforma y las herramientas de administración de tiempo de ejecución para superadministradores.
 - **Complementos** edita productos complementarios de la plataforma para superadministradores.
 - **Campañas** edita la configuración de la campaña, el contenido de la página, los niveles, los elementos de soporte, los complementos de la campaña, los objetivos ampliados, los elementos en curso, las entradas del diario y las decisiones.
+- **Campañas** también permite a los superadministradores crear campañas de solo vista previa a partir de un título más uno o más usuarios de la campaña; esas campañas permanecen fuera de las rutas públicas hasta su lanzamiento.
+- **Vista previa** publica una vista previa protegida de la campaña para administradores autorizados y revisores invitados explícitamente sin agregar correos electrónicos de vista previa a la fuente de la campaña.
 - **Configuración -> Usuarios** es solo en tiempo de ejecución y se guarda directamente en Worker KV en `admin-users:v1`; no se publica en GitHub.
 - **Secretos y credenciales** tiene un estado de solo lectura. Los valores secretos aún pertenecen a los secretos de los trabajadores, los secretos del repositorio de GitHub o los archivos env locales ignorados.
 
@@ -67,7 +69,7 @@ La configuración del sitio está organizada en torno a estas secciones orientad
 
 ### Nivel superior `title` / `description`
 
-Utilice los metadatos de Jekyll de nivel superior para la búsqueda/identidad social predeterminada del sitio.
+Utilice los metadatos de Jekyll de nivel superior para la identidad social/búsqueda predeterminada del sitio.
 
 Teclas admitidas:
 
@@ -119,7 +121,7 @@ Estos valores alimentan:
 Notas:
 
 - `platform.*` es la superficie de marca principal.
-- `platform.version` debe ser la versión canónica del producto legible por máquina para el sitio, mientras que `platform.release_label` puede seguir siendo más amigable para copias públicas como `v1.0.4`.
+- `platform.version` debe ser la versión canónica del producto legible por máquina para el sitio, mientras que `platform.release_label` puede seguir siendo más amigable para copias públicas como `v1.0.5`.
 - `platform.timezone` debe ser una zona horaria compatible con la IANA. El valor predeterminado es `America/Denver`, por lo que las bifurcaciones existentes mantienen el comportamiento del ciclo de vida anterior hasta que lo cambien.
 - `title` / `author` de nivel superior todavía existen en Jekyll, pero trátelos como metadatos/respaldo generales del sitio en lugar de la interfaz principal de personalización de la bifurcación.
 - `platform.default_social_image_path` es el valor predeterminado admitido para tarjetas OG/Twitter cuando una página o campaña no proporciona una imagen más específica.
@@ -131,8 +133,8 @@ Ejemplo:
 ```yml
 platform:
   name: My Fork
-  version: 1.0.4
-  release_label: v1.0.4
+  version: 1.0.5
+  release_label: v1.0.5
   company_name: Example Studio
   support_email: support@example.com
   pledges_email_from: "My Fork <pledges@pool.example.com>"
@@ -382,7 +384,7 @@ Cuando una promesa califica para múltiples opciones de entrega, el carrito comp
 Límite secreto importante:
 
 - mantener `shipping.usps.client_id` en `_config.yml`
-- mantenga el compañero `USPS_CLIENT_SECRET` en Secretos de trabajador o `worker/.dev.vars`
+- mantenga el compañero `USPS_CLIENT_SECRET` en Secretos del trabajador o `worker/.dev.vars`
 - no guardes el secreto en la configuración de Jekyll
 
 La lista de destinos de pago ahora está intencionalmente separada de esas perillas. Mantenga los países de envío permitidos actualmente en [`_data/shipping_countries.yml`](../_data/shipping_countries.yml) en lugar de editar el código de ejecución del navegador.
@@ -463,7 +465,7 @@ El patrón más seguro es codificar deliberadamente un orden válido más barato
   - `USPS_GROUND_ADVANTAGE`
   - `PRIORITY_MAIL`
 
-Si un producto no califica de manera confiable para una clase más barata, déjelo en la ruta de paquete predeterminada. También tenga en cuenta que la ruta actual de la API de precios de USPS no expone directamente la calificación plana/carta de primera clase nacional, por lo que la lógica de "sobre grande" se implementa aquí como una tabla manual explícita (`FIRST_CLASS_FLAT`), no como una cotización API de USPS en vivo.
+Si un producto no califica de manera confiable para una clase más barata, déjelo en la ruta de paquete predeterminada. También tenga en cuenta que la ruta actual de la API de precios de USPS no expone directamente la calificación plana o de carta de primera clase nacional, por lo que la lógica de "sobre grande" se implementa aquí como una tabla manual explícita (`FIRST_CLASS_FLAT`), no como una cotización API de USPS en vivo.
 
 ### `add_ons`
 
@@ -617,7 +619,7 @@ Estos valores se emiten en la hoja de estilo generada [assets/main.css](../asset
 
 Las mismas variables CSS generadas ahora también son el tema del sidecar Stripe Elements en el sitio, por lo que las anulaciones de tipografía/color/radio admitidas se llevan a cabo en la interfaz de usuario de pago personalizada sin agregar una capa de configuración separada solo para el pago.
 
-Un subconjunto deliberadamente más pequeño de la misma superficie de marca se refleja en el Worker para que los correos electrónicos de los seguidores puedan reutilizar el logotipo configurado, las pilas de fuentes, el color primario, los colores de borde/superficie y el radio del botón.
+Un subconjunto deliberadamente más pequeño de la misma superficie de marca se refleja en el Worker para que los correos electrónicos de los seguidores puedan reutilizar el logotipo configurado, las pilas de fuentes, el color principal, los colores de borde/superficie y el radio del botón.
 
 Claves admitidas actualmente:
 
@@ -894,6 +896,7 @@ Todavía a nivel de código hoy:
 - cambiar el estilo de campo propiedad de Stripe más allá del puente de token de diseño admitido y la API de apariencia de Stripe
 - introducir estructuras de diseño, plantillas de página o tipos de bloques de contenido completamente nuevos
 - cambiar el comportamiento del alojamiento de fuentes/CSP más allá de las pilas de fuentes actualmente admitidas
+- cambiar el modelo de autorización de vista previa protegida, la caducidad del enlace del revisor o las reglas de filtrado público de solo vista previa
 
 Tenga en cuenta también:
 
@@ -907,7 +910,7 @@ Tenga en cuenta también:
 1. Prefiere el panel de administración para configuraciones/campañas/ediciones de complementos admitidas. Utilice ediciones directas de archivos al revisar los cambios generados, cambiar campos no admitidos o trabajar sin el trabajador.
 2. Si edita archivos directamente, actualice `_config.yml` o el `_campaigns/*.md` correspondiente.
 3. Ejecute `npm run sync:worker-config` si está editando configuraciones fuera de los puntos de entrada normales y desea actualizar `worker/wrangler.toml` inmediatamente.
-4. Correr:
+4. Ejecutar:
 
 ```bash
 npm run podman:doctor
@@ -924,7 +927,7 @@ npm run podman:doctor
 - Estilo de interfaz de usuario de pago de franjas
 - Gestionar compromiso
 - correos electrónicos de seguidores
-- Estado de publicación del panel de administración, estado de secretos de solo lectura y visibilidad de la campaña con alcance de función cuando se cambian los campos del panel
+- Estado de publicación/vista previa del panel de administración, estado de secretos de solo lectura, correos electrónicos de acceso a vista previa protegidos, correos electrónicos de asignación de nuevas campañas y visibilidad de la campaña con alcance de función cuando los campos del panel cambiaron
 
 6. Ejecute las comprobaciones pertinentes:
 

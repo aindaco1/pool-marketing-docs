@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-11 de junio de 2026
+15 de junio de 2026
 
 Este documento rastrea la línea base de accesibilidad actual de The Pool, las superficies de interacción de mayor riesgo que verificamos activamente y el trabajo de seguimiento restante necesario para pasar de una "postura de accesibilidad fuerte" hacia un cumplimiento de accesibilidad más completo.
 
@@ -74,6 +74,7 @@ El reciente pase de refuerzo de accesibilidad agregó:
   - Controles de carga de medios del editor de contenido con entradas de archivos nativos etiquetados, enfoque visible en el botón de carga con estilo, regiones de estado de carga y vistas previas locales del navegador antes de la publicación.
   - Configuración de subtítulos de imagen de la galería que reutilizan la etiqueta compartida/patrón de ayuda y exponen el editor de subtítulos flotantes como un cuadro de texto de texto enriquecido etiquetado.
   - Configuración -> Planificar encabezados de proveedores de uso que reutilizan la etiqueta de administración compartida/patrón de ayuda, el estado de carga gradual, el texto de la barra de progreso accesible y las tarjetas de métricas responsivas
+  - Cree una nueva campaña y cuadros de diálogo de vista previa protegidos que reutilicen el patrón de etiqueta de administrador/ayuda/botón de información compartido, campos nativos, entrada de token de lista de correo electrónico, manejo de enfoque de diálogo y mensajes de estado cortés.
   - tablas de datos ordenables que exponen el estado `aria-sort` y los botones de clasificación
 
 ## Superficies críticas
@@ -115,6 +116,8 @@ El panel de administración tiene suficiente interfaz de usuario personalizada q
 - La configuración del bloque de galería y la configuración de imágenes de galería individuales deben permanecer visual y semánticamente distintas, pero ambas deben reutilizar la etiqueta del campo de administración compartido y los componentes de ayuda.
 - Las tablas de administración ordenables deben usar botones reales en los encabezados de las columnas, mantener `aria-sort` y mantener los botones de exportación fuera de las regiones de la tabla desplazables horizontalmente.
 - Los mensajes de estado de Guardar/Publicar deben utilizar regiones de estado educadas; Los errores de validación o bloqueo deben permanecer cerca del campo o flujo de trabajo relevante.
+- Los campos modales Crear/Vista previa deben usar el mismo botón de información de administrador compartido/implementación de ayuda que los campos Configuración y Campaña; Evite la ayuda en línea única que pueda engancharse contra los bordes modales.
+- Los esquemas de enfoque del teclado deben usar el token de enfoque negro compartido, incluidos los campos modales de administrador y las entradas de la lista de correo electrónico.
 
 ## Cobertura automatizada
 
@@ -125,7 +128,7 @@ La cobertura automatizada actual relacionada con la accesibilidad incluye:
   - `tests/unit/manage-page.test.ts`
 - Cobertura unitaria para enlaces de salto de shell público y puntos de referencia principales en:
   - `tests/unit/layout-accessibility.test.ts`
-- Cobertura unitaria para etiquetas accesibles con activación por carrito y estado ampliado en:
+- Cobertura unitaria para etiquetas accesibles con activación por carrito y estado expandido en:
   - `tests/unit/cart-icon.test.ts`
 - Cobertura unitaria para pestañas de teclado en:
   - `tests/unit/diary-tabs.test.ts`
@@ -151,7 +154,7 @@ La cobertura automatizada actual relacionada con la accesibilidad incluye:
     - la página de índice de la comunidad
     - la página denegada de la comunidad de seguidores
     - la página de contenido de la comunidad de seguidores
-  - El barrido de accesibilidad de páginas públicas respaldado por Podman es la verificación final preferida cuando las sucursales cambian contenido público, páginas públicas respaldadas por documentos o Chrome de páginas de campaña sin necesidad de host Bundler/Jekyll.
+  - el barrido de accesibilidad de páginas públicas respaldado por Podman es la verificación final preferida cuando las sucursales cambian contenido público, páginas públicas respaldadas por documentos o Chrome de páginas de campaña sin necesidad de host Bundler/Jekyll
 - Cobertura instantánea de ARIA en Playwright para:
   - regiones principales de la página pública clave
   - el cuadro de diálogo de carrito/pago durante los flujos de solo teclado
@@ -170,7 +173,7 @@ La cobertura automatizada actual relacionada con la accesibilidad incluye:
   - estos verifican que la navegación por la pestaña del diario, la navegación por la galería en carrusel, la entrada de cantidades personalizadas, la entrada de elementos de soporte y la activación del avance de la comunidad de seguidores sigan siendo utilizables sin necesidad de ingresar un puntero.
 - aserciones de teclado, hacha y semántica del panel de administración en:
   - `tests/e2e/admin-dashboard.spec.ts`
-  - esto cubre el inicio de sesión de administrador, pestañas controladas por funciones, pestañas de la sección de configuración, subpestañas de campaña, ayuda de campo compartido, grupos de casillas de verificación de campaña de usuario, editor WYSIWYG cromado, paneles de configuración de medios, estado de carga de medios por etapas/ARIA, ayuda con subtítulos de galería, superficies de datos ordenables y carga de ruta de administrador en español.
+  - esto cubre el inicio de sesión de administrador, pestañas controladas por funciones, pestañas de la sección de configuración, subpestañas de campaña, ayuda de campo compartido, cuadros de diálogo de creación/vista previa, grupos de casillas de verificación de campaña de usuario, editor WYSIWYG cromado, paneles de configuración de medios, estado de carga de medios por etapas/ARIA, ayuda con subtítulos de galería, superficies de datos ordenables y carga de ruta de administrador en español.
 
 Ejecute el segmento de accesibilidad enfocado con:
 
@@ -241,6 +244,7 @@ Las comprobaciones automáticas ayudan, pero estas comprobaciones de accesibilid
 - Los mensajes de error son comprensibles y aparecen cerca de los campos correctos.
 - Las pestañas del panel de administración, las barras laterales de Configuración, las barras laterales de Campaña y las subpestañas de Campaña se pueden recorrer solo con el teclado.
 - Los botones de ayuda del panel de administración anuncian descripciones de campos útiles sin interferir con la etiqueta visible del campo.
+- Los campos de diálogo Crear nueva campaña y Vista previa exponen el mismo comportamiento de ayuda/botón de información reutilizable y no recortan el texto de ayuda contra los bordes modales.
 - Configuración -> El uso del plan anuncia el estado de carga, expone la ayuda del proveedor y mantiene las barras de progreso de uso comprensibles cuando un proveedor solo devuelve límites o cuotas ilimitadas.
 - Los controles de bloque del editor WYSIWYG no son accesibles mientras están ocultos y se vuelven accesibles después de que el bloque está enfocado o activado
 - La clasificación de tablas del panel de administración y los flujos de exportación CSV se pueden operar solo con el teclado

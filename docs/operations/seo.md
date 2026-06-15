@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-June 11, 2026
+June 15, 2026
 
 This document describes The Pool's current SEO model in 2026. It is intentionally conservative: public pages are made easier to crawl and understand, while supporter-only and tokenized flows stay out of index intent. The implementation is designed around real metadata, real public pages, and honest structured data rather than content padding or rich-result bait.
 
@@ -42,6 +42,7 @@ The current baseline includes:
 - generated [`sitemap.xml`](/sitemap.xml)
 - explicit `noindex,nofollow` on tokenized or supporter-only layouts
 - explicit `noindex,nofollow,noarchive`, `sitemap: false`, robots disallows, and disabled social metadata on the private admin dashboard
+- protected campaign preview shells with `noindex,nofollow,noarchive`, no social metadata, no JSON-LD, no public sitemap inclusion, and no public prefetch eligibility
 - conservative `Organization` / `WebSite` JSON-LD
 - conservative campaign `CreativeWork` plus breadcrumb JSON-LD, both aligned with the active page language where supported
 - campaign `CreativeWork` JSON-LD now also includes `headline`, `mainEntityOfPage`, `isPartOf`, and published/modified timestamps so public campaign pages read more like real editorial landing pages than anonymous blobs
@@ -89,6 +90,7 @@ Non-indexable by default:
 - `/manage/`
 - `/admin/`
 - `/es/admin/`
+- protected campaign preview pages such as `/campaigns/:slug/preview/`
 - supporter community pages
 - tokenized routes and user-specific query-string access paths
 
@@ -106,6 +108,14 @@ Admin dashboard contract:
 - [`robots.txt`](/robots.txt) must disallow `/admin/` and `/es/admin/`
 - [`sitemap.xml`](/sitemap.xml) must not include admin routes
 - the admin layout must not emit JSON-LD or Open Graph/Twitter social-preview metadata; the dashboard is a private app surface, not a public search result or share target
+
+Protected campaign preview contract:
+
+- `/_layouts/campaign-preview.html` must keep `indexable=false` and `social=false`
+- preview pages must not appear in `sitemap.xml`
+- preview-only campaigns must not generate public `/campaigns/:slug/` pages, localized public campaign pages, public campaign JSON entries, add-on catalog entries, share-card metadata, or public embed targets until launched
+- preview pages must fetch protected content through the Worker at request time instead of embedding campaign titles or draft payloads in static HTML
+- public prefetching must reject `/campaigns/:slug/preview/` and token query strings such as `?t=...`
 
 ## Structured Data
 
@@ -200,6 +210,7 @@ When checking a deployment manually:
 - `sitemap.xml` is reachable and only includes intended public URLs
 - private/tokenized pages emit `noindex` where appropriate
 - `/admin/` and `/es/admin/` emit `noindex,nofollow,noarchive`, do not appear in `sitemap.xml`, and do not emit social-preview or JSON-LD metadata
+- `/campaigns/:slug/preview/` emits `noindex,nofollow,noarchive`, does not appear in `sitemap.xml`, and does not emit social-preview or JSON-LD metadata
 - JSON-LD validates cleanly
 - localized pages keep coherent canonical and alternate links
 - localized campaign pages keep coherent canonical and alternate links

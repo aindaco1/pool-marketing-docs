@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-9 de junio de 2026
+15 de junio de 2026
 
 The Pool utiliza un **sistema de gestión de promesas basado en correo electrónico y sin cuenta**. Los patrocinadores guardan un método de pago a través de Stripe en el paso de pago en el sitio de The Pool, administran las promesas a través de enlaces mágicos con alcance de pedido y solo se les cobra si la campaña está financiada.
 
@@ -71,7 +71,7 @@ upcoming → live → post
 
 Las promesas se almacenan en Cloudflare KV. Patrones clave:
 
-|Llave|Contenido|
+|clave|Contenidos|
 |-----|----------|
 |`pledge:{orderId}`|Datos completos del compromiso (correo electrónico, monto, nivel, ID de Stripe, estado, historial)|
 |`email:{email}`|Conjunto de ID de pedido para ese correo electrónico|
@@ -387,6 +387,9 @@ Flujos primarios:
 
 - El resumen del panel, los análisis, los informes, los soportes, las cargas de contenido y las vistas previas de contenido son flujos de navegación de solo lectura.
 - El contenido/configuración de la campaña y la configuración/complementos de la plataforma se publican a través de la validación del trabajador y las confirmaciones respaldadas por GitHub.
+- El superadministrador **Crear nueva campaña** escribe un archivo Markdown de campaña de solo vista previa localmente en desarrollo o a través de la ruta respaldada por GitHub en producción, opcionalmente guarda varios usuarios de campaña nuevos en `admin-users:v1`, envía correos electrónicos a los usuarios asignados con el enlace del panel de administración y mantiene la campaña oculta de las rutas públicas hasta el lanzamiento.
+- La campaña **Vista previa** publica indicadores de vista previa protegidos a través de GitHub, almacena el administrador publicador más los correos electrónicos de revisores opcionales solo en una allowlist KV de 24 horas `campaign-preview-reviewers:{slug}`, devuelve un enlace de 24 horas visible en el panel para el administrador publicador, envía enlaces firmados de 24 horas a revisores opcionales y sirve cargas de vista previa privadas/no-store a través de `/admin/campaign-preview/:slug`.
+- El superadministrador **Archivar campaña** está disponible solo para campañas no activas. El Worker valida el rol, CSRF, slug de campaña y estado efectivo, luego archiva directamente en el repositorio montado para desarrollo local o despacha `.github/workflows/archive-campaign.yml` en producción; el movimiento de archivado escribe `archive-manifest.json` y mantiene el código fuente/medios de la campaña en `archive/campaigns/<slug>/`.
 - **Configuración -> Usuarios** guarda directamente en Worker KV en `admin-users:v1`.
 - Los códigos de referencia guardados en **Marketing** se guardan en KV con alcance de campaña.
 - **Informes** muestra una vista previa de las filas de promesas/cumplimiento y descarga archivos CSV; no envía correos electrónicos y no marca informes como enviados.
@@ -541,11 +544,11 @@ Se mantiene automáticamente una serie de ID de pedido por campaña (`campaign-p
 **Comportamientos clave:**
 - Los compromisos cancelados nunca se cobran
 - Varias promesas del mismo correo electrónico = un cargo agregado (subtotales + envío + impuestos + propina sumada)
-- Los carritos de campañas múltiples siguen siendo compatibles porque la persistencia del pago crea un registro de compromiso por campaña; los bloqueos y lotes de liquidación tienen un alcance de campaña y rechazan lotes de campaña mixta
+- Los carritos de múltiples campañas siguen siendo compatibles porque la persistencia del pago crea un registro de compromiso por campaña; los bloqueos y lotes de liquidación tienen un alcance de campaña y rechazan lotes de campaña mixta
 - Utiliza el método de pago actualizado más recientemente para cada partidario
 - Las promesas ya cobradas se omiten de forma segura (idempotentes)
 - Se puede activar manualmente a través de `POST /admin/settle-dispatch/:slug` con `ADMIN_SETTLEMENT_SECRET` cuando está configurado; de lo contrario, `ADMIN_SECRET`
-- El asentamiento monolítico heredado aún está disponible: `POST /admin/settle/:slug`; Utiliza el mismo bloqueo de campaña y la misma ruta de clave de idempotencia de Stripe, pero se prefiere `settle-dispatch` para campañas grandes.
+- El asentamiento monolítico heredado todavía está disponible: `POST /admin/settle/:slug`; Utiliza el mismo bloqueo de campaña y la misma ruta de clave de idempotencia de Stripe, pero se prefiere `settle-dispatch` para campañas grandes.
 - Latido del cron: verificar a través de `GET /admin/cron/status`
 
 ### Error de pago y reintento
@@ -612,7 +615,7 @@ async function sendSupporterEmail(env, { email, campaignSlug, campaignTitle, amo
 
 Todos los correos electrónicos muestran cantidades exactas con 2 decimales (sin redondeo).
 
-**Confirmación de compromiso** (enviada después de que la sesión de Stripe en el modo de configuración se complete con éxito)
+**Confirmación de compromiso** (enviada después de que la sesión de Stripe en el modo de configuración se complete exitosamente)
 - Asunto: "Compromiso confirmado | {Título de la campaña}"
 - Contiene: desglose completo (subtotal, propina opcional de The Pool, impuestos, envío si es físico, total), artículos prometidos, enlace de administración, enlace comunitario
 - Incluye: CTA de Instagram (si la campaña tiene URL de Instagram)

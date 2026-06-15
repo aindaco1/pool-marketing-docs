@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-11 de junio de 2026
+15 de junio de 2026
 
 Este documento está dirigido a personas y LLM que trabajan en bifurcaciones de **The Pool**. Es una guía práctica para el operador para realizar cambios seguros en este repositorio sin dessincronizar el sitio, el trabajador, las matemáticas de pago o el comportamiento público/localizado.
 
@@ -104,7 +104,7 @@ Controlar:
 - enrutamiento localizado/público si la página de la campaña debe funcionar limpiamente en `/es/`
 - Comportamiento de vista previa de inserción/compartición si se cambia la imagen principal, la propaganda, el título o el estado en vivo
 
-### Cambiar la configuración de la marca o del producto
+### Cambiar la configuración de marca o producto
 
 Comience con:
 
@@ -216,6 +216,8 @@ Si agrega una nueva página pública, ruta de inserción o flujo específico de 
 
 `/manage/`, las páginas de resultados de compromiso y las rutas privadas/con token deben permanecer fuera de la indexación de búsqueda y deben preservar el comportamiento de token/consulta al cambiar de idioma.
 
+Las vistas previas de campañas protegidas también son privadas. Las campañas de solo vista previa deben permanecer fuera de las rutas de campaña públicas hasta su lanzamiento, y los correos electrónicos de acceso a vista previa deben estar solo en listas permitidas de Worker KV de corta duración, no en Markdown de campaña ni en artefactos generados públicamente.
+
 ### 7. Las campañas finalizadas no deben comportarse como las activas.
 
 Las cuentas regresivas, los controles de promesas y el estado de inserción/compartición previa deben respetar el estado efectivo de la campaña, especialmente después de las fechas límite.
@@ -246,4 +248,4 @@ Si eres un LLM y estás ayudando con este código base:
 - prefiera enlaces de documentación relacionados con el repositorio, no rutas específicas de la máquina
 - no abandone silenciosamente el soporte local, el comportamiento de inserción o el comportamiento de vista previa compartida mientras cambia las páginas de la campaña
 
-En caso de duda, realice el cambio más pequeño que mantenga alineados al sitio y al trabajador, luego verifíquelo con la prueba significativa más estrecha más la puerta más amplia cuando esté justificado.
+En caso de duda, realice el cambio más pequeño que mantenga alineados al sitio y al trabajador, luego verifíquelo con la prueba significativa más estrecha más la puerta más amplia cuando sea necesario.

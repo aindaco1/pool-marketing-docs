@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-11 de junio de 2026
+15 de junio de 2026
 
 Este repositorio ahora incluye una ruta de desarrollo local sin raíz respaldada por Podman para los dos servicios que generalmente crean la mayor rotación de configuración de host:
 
@@ -76,7 +76,7 @@ El modo Podman está diseñado en torno a tres prioridades:
 |---------|--------------|----------------|
 |macos|`podman machine` máquina virtual|Validado por host en esta rama. Prefiera `libkrun` si `applehv` es inestable.|
 |linux|Podman nativo desarraigado|Compatible con la lógica del iniciador y el flujo de autoverificación, pero no validado por el host en este hilo.|
-|ventanas|`podman machine` máquina virtual|Compatible con la lógica del iniciador y el flujo de autocomprobación cuando se ejecuta desde un shell compatible con bash, pero no está validado por el host en este hilo.|
+|ventanas|`podman machine` máquina virtual|Compatible con la lógica del iniciador y el flujo de autoverificación cuando se ejecuta desde un shell compatible con bash, pero no validado por el host en este hilo.|
 
 En macOS y Windows, `./scripts/dev.sh --podman` inicializará/iniciará el `podman machine` predeterminado cuando sea necesario. En Linux, el iniciador omite la administración de la máquina y se comunica directamente con el motor Podman local sin raíz.
 
@@ -105,7 +105,7 @@ Más concretamente, la autocomprobación cubre:
 - `./scripts/test-worker.sh --podman`
 - `npm run test:e2e:headless:podman`
 
-La puerta de fusión más amplia también ejecuta `./scripts/smoke-pledge-management.sh --podman`, por lo que la ruta de modificación/cancelación mutable aún obtiene cobertura de estado aislada incluso cuando las fases de compilación del host se realizan correctamente.
+La puerta de fusión más amplia también ejecuta `./scripts/smoke-pledge-management.sh --podman`, por lo que la ruta de modificación/cancelación mutable aún obtiene una cobertura de estado aislada incluso cuando las fases de compilación del host se realizan correctamente.
 
 Ese humo de promesa mutable ahora también sigue siendo compatible con configuraciones impositivas impulsadas por el proveedor, como `tax.provider: nm_grt`: la ruta del accesorio de prueba del trabajador genera una dirección de facturación para que `/test/setup` pueda crear una promesa real consciente de los impuestos en lugar de asumir un impuesto fijo.
 
@@ -122,6 +122,7 @@ Eso será:
 - crear un pod Podman con los puertos locales estándar
 - montar el repositorio en ambos contenedores
 - generar automáticamente secretos `worker/.dev.vars` si es necesario
+- reinicie el sitio o los contenedores de trabajo automáticamente si alguno de los procesos de desarrollo sale
 - Opcionalmente, inicie el reenvío de webhooks de Stripe desde el host.
 
 Después del arranque, el panel de administración local está disponible en:
@@ -130,7 +131,9 @@ Después del arranque, el panel de administración local está disponible en:
 http://127.0.0.1:4000/admin/
 ```
 
-El trabajador local ofrece API de panel en `http://127.0.0.1:8787`, con `CORS_ALLOWED_ORIGIN` derivado para el sitio local. El panel puede ejercitar las campañas de prueba locales inicializadas y el KV local. La gestión de usuarios del panel guarda la escritura en KV local (`admin-users:v1`) en lugar de comprometerse con GitHub.
+El trabajador local ofrece API de panel en `http://127.0.0.1:8787`, con `CORS_ALLOWED_ORIGIN` derivado para el sitio local. El panel puede ejercitar las campañas de prueba locales inicializadas y el KV local. La gestión de usuarios del panel guarda la escritura en KV local (`admin-users:v1`) en lugar de comprometerse con GitHub. La configuración de Dev Worker también establece `ADMIN_LOCAL_REPO_WRITES_ENABLED=true` e inicia un asistente de repositorio local protegido por token en la dirección de bucle invertido del contenedor de Worker, por lo que **Crear nueva campaña** y **Archivar campaña** pueden escribir/mover archivos en el repositorio montado en lugar de depender del envío del flujo de trabajo de GitHub mientras se realizan pruebas localmente.
+
+Foreground `./scripts/dev.sh --podman` también supervisa el módulo de desarrollo. Si Jekyll o Wrangler salen, el iniciador imprime registros recientes, reinicia el contenedor detenido y recrea el pod si un reinicio directo no es suficiente. Se vuelve a intentar la recreación del pod porque Podman ocasionalmente puede devolver errores de inicio parcial como `starting some containers: internal libpod error`; entre intentos, el iniciador elimina contenedores/pods de desarrollo parciales por nombre y etiqueta de pila de desarrollo, verifica que los artefactos antiguos hayan desaparecido, actualiza la conexión Podman y reinicia la máquina Podman en macOS/Windows si la limpieza por sí sola no borra el estado obsoleto. El iniciador también inicia el pod vacío antes de agregar el sitio y los contenedores de trabajo, lo que evita una ruta de Podman inestable donde un pod creado puede dejar `pool-dev-site` creado y `pool-dev-worker` perdido. Ajuste el intervalo de verificación con `PODMAN_SUPERVISE_INTERVAL`, la cola del registro de reinicio con `PODMAN_SUPERVISE_LOG_LINES`, los reintentos de inicio con `PODMAN_STACK_START_ATTEMPTS` y el retraso de reintento con `PODMAN_STACK_RETRY_DELAY`. Los flujos auxiliares separados aún reciben la política de reinicio `unless-stopped` de Podman en el sitio y en los contenedores de trabajadores.
 
 ## Reconstruir imágenes
 
@@ -182,7 +185,7 @@ CLOUDFLARE_API_TOKEN=your-token
 CLOUDFLARE_ACCOUNT_ID=your-account-id
 ```
 
-Correr:
+Ejecutar:
 
 ```bash
 ./scripts/pledge-report.sh --podman --env production --remote > ~/Desktop/pool-pledge-report.csv
@@ -198,6 +201,8 @@ Para una cobertura del navegador de panel enfocada en la pila respaldada por Pod
 ```bash
 npm run test:e2e:headless:podman -- tests/e2e/admin-dashboard.spec.ts --project=chromium
 ```
+
+Esa suite enfocada es la verificación del navegador local preferida para cambios en la interfaz de usuario del administrador, como Crear nueva campaña, publicación de vista previa protegida, botón de información compartido/comportamiento de ayuda y diseño de barra lateral de Campañas responsiva.
 
 Para los comandos del lado del host que necesitan un sitio/trabajador respaldado por Podman sin asumir la persistencia de la pila separada, use [`scripts/podman-stack-run.sh`](../scripts/podman-stack-run.sh). `npm run test:security:podman` usa ese contenedor para iniciar la pila, ejecutar el paquete de seguridad y derribar la pila en una sola invocación.
 
@@ -235,6 +240,8 @@ Si el pod ya se está ejecutando, inspeccione los registros con:
 podman logs -f pool-dev-site
 podman logs -f pool-dev-worker
 ```
+
+Cuando la supervisión en primer plano reinicia un servicio detenido, imprime las últimas líneas `PODMAN_SUPERVISE_LOG_LINES` para ese contenedor antes de reiniciarlo. Para mirar continuamente, mantenga abierta una terminal `podman logs -f` separada.
 
 Si la puerta de fusión más amplia falla específicamente en `7b. Podman mutable-pledge smoke`, primero confirme que la pila esté en buen estado con:
 

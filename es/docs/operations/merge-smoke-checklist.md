@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-11 de junio de 2026
+15 de junio de 2026
 
 Utilice esta lista de verificación antes de fusionar sucursales que cambien el pago, la persistencia del webhook, la gestión de promesas, el inventario, la liquidación o las transmisiones de seguidores.
 
@@ -224,7 +224,7 @@ curl -s -X POST \
 1. Ejecute el reabastecimiento del cliente para una campaña con valores `stripeCustomerId` faltantes conocidos.
 2. Resultado esperado:
    - Todos los compromisos calificados en la paginación KV están actualizados.
-   - volver a ejecutar la liquidación después del reabastecimiento reduce o borra los registros de clientes omitidos
+   - La repetición de la liquidación después del reabastecimiento reduce o borra los registros de clientes omitidos.
 
 ```bash
 curl -s -X POST \
@@ -270,11 +270,13 @@ Ejecute esta sección cuando la sucursal cambie la interfaz de usuario del panel
 4. En **Configuración -> Usuarios**, cree o edite un usuario de campaña, guarde y confirme que el cambio entre en vigor sin un flujo de publicación de GitHub.
 5. En **Configuración -> Uso del plan**, verifique que el uso se cargue automáticamente, no hay ningún botón `Refresh usage`, los encabezados de Cloudflare/Reenviar tienen texto de ayuda legible y las tarjetas no se desbordan en el móvil.
 6. En **Campañas**, cambie las subpestañas de la campaña y verifique que el contenido, los niveles, los complementos de la campaña, las entradas del diario y las decisiones se carguen solo para la campaña seleccionada.
-7. En **Contenido** y **Entradas del diario**, agregue/edite un bloque de contenido, verifique el comportamiento de la vista previa WYSIWYG y confirme que `Save Draft` solo se habilita cuando el borrador local difiere del valor guardado.
-8. En **Complementos** y **Complementos** de campaña, verifique que los productos físicos muestren campos preestablecidos de envío/paquete, que los productos digitales oculten los campos de envío y que los ID de producto/variante deriven de nombres/etiquetas para nuevas entradas.
-9. En **Análisis**, **Informes** y **Colaboradores**, verifique que la vista predeterminada `All` solo muestre las campañas disponibles para el administrador actual, que los montos de ingresos brutos y netos muestren los centavos exactos cuando corresponda, y que la exportación CSV coincida con las filas visibles.
-10. En **Marketing**, guarde/edite/elimine un código de referencia, verifique que el creador de URL se borre después de guardar/actualizar y confirme que el creador de campañas integrado todavía funciona.
-11. Para `/es/admin/`, verifique que las etiquetas de pestañas traducidas, las etiquetas/enlaces de uso del plan y la navegación para tableta/móvil no se desborden.
+7. Como superadministrador, verifique que la primera fila de la barra lateral de Campañas sea el botón `+`, cree una campaña de solo vista previa con varios usuarios de campaña nuevos o existentes y confirme que los usuarios asignados reciban el correo electrónico con el enlace del panel cuando se configure el reenvío.
+8. En **Contenido**, verifique que **Publicar** y **Vista previa** aparezcan juntos. Publique una vista previa protegida, confirme que el panel muestra el enlace de vista previa del usuario actual, agregue correos electrónicos de revisor opcionales, confirme que la copia del correo electrónico dice que el enlace caduca en 24 horas y confirme que los correos electrónicos de vista previa no se escriben en Markdown de la campaña o en JSON público.
+9. En **Contenido** y **Entradas del diario**, agregue/edite un bloque de contenido, verifique el comportamiento de la vista previa WYSIWYG y confirme que `Save Draft` solo se habilita cuando el borrador local difiere del valor guardado.
+10. En **Complementos** y **Complementos** de campaña, verifique que los productos físicos muestren campos preestablecidos de envío/paquete, que los productos digitales oculten los campos de envío y que los ID de producto/variante deriven de nombres/etiquetas para nuevas entradas.
+11. En **Análisis**, **Informes** y **Colaboradores**, verifique que la vista predeterminada `All` solo muestre las campañas disponibles para el administrador actual, que los montos de ingresos brutos y netos muestren los centavos exactos cuando corresponda, y que la exportación CSV coincida con las filas visibles.
+12. En **Marketing**, guarde/edite/elimine un código de referencia, verifique que el creador de URL se borre después de guardar/actualizar y confirme que el creador de campañas integrado todavía funciona.
+13. Para `/es/admin/`, verifique que las etiquetas de pestañas traducidas, Planificar etiquetas/enlaces de uso, Crear nueva campaña/Copia vista previa y que la navegación en tableta/móvil no se desborde.
 
 ## Plantilla de aprobación
 
@@ -292,6 +294,7 @@ Smoke completed on <date> in <staging|local>.
 - Backfill: pass
 - Broadcast pagination/milestones: pass
 - Admin dashboard smoke, if relevant: pass
+- Create new campaign/protected preview smoke, if relevant: pass
 
 Notes:
 - <any intentional behavior observed>

@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-June 3, 2026
+June 15, 2026
 
 ## Getting Started
 
@@ -122,7 +122,7 @@ For dashboard UI changes, also skim `docs/ACCESSIBILITY.md`, `docs/I18N.md`, `do
 
 🚧 **Active focus:**
 - Merge-gate discipline and release-readiness audits across accessibility, customization, dashboard, i18n, performance, security, and SEO
-- Tax calculator depth, net revenue analytics, richer campaign marketing tools, add-on variant pricing, and protected campaign preview pages
+- Tax calculator depth, richer campaign marketing tools, add-on variant pricing, and post-release hardening for protected campaign previews and new campaign creation
 
 ---
 

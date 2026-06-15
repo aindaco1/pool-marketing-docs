@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-3 de junio de 2026
+15 de junio de 2026
 
 ## Empezando
 
@@ -123,7 +123,7 @@ Para cambios en la interfaz de usuario del tablero, lea también `docs/ACCESSIBI
 
 🚧 **Enfoque activo:**
 - Auditorías de disciplina de puerta de fusión y preparación para el lanzamiento en accesibilidad, personalización, panel de control, i18n, rendimiento, seguridad y SEO
-- Profundidad de la calculadora de impuestos, análisis de ingresos netos, herramientas de marketing de campañas más completas, variantes de precios adicionales y páginas de vista previa de campañas protegidas.
+- Profundidad de la calculadora de impuestos, herramientas de marketing de campañas más completas, precios de variantes adicionales y refuerzo posterior al lanzamiento para vistas previas de campañas protegidas y creación de nuevas campañas.
 
 ---
 

@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-11 de junio de 2026
+15 de junio de 2026
 
 Esta guía cubre los conjuntos de pruebas automatizadas, la infraestructura de pruebas local y las rutas de verificación manual.
 
@@ -27,6 +27,7 @@ npm run test:e2e:headless  # CI mode
 npm run test:e2e:headless:podman  # Automated browser suite with Playwright in Podman
 npm run test:e2e:parity    # First-party critical-path browser flows
 npx playwright test tests/e2e/admin-dashboard.spec.ts --project=chromium  # Focused admin dashboard browser suite
+npm run test:e2e:headless:podman -- tests/e2e/admin-dashboard.spec.ts --project=chromium  # Podman-backed admin create/preview/browser suite
 npm run podman:doctor      # Cross-platform Podman readiness check
 npm run test:security      # Security pen tests (Worker must be running)
 npm run test:security:podman  # Security pen tests with a one-shot Podman-backed stack
@@ -81,7 +82,7 @@ Pruebas rápidas y aisladas para funciones JS en `tests/unit/`.
 |`votes`|Almacenamiento/descopia de votos basado en correo electrónico, recuperación del estado de los votos, resultados de campaña, agregación de resultados|
 |`admin-dashboard`|Seguimiento del estado sucio del panel, serialización de configuraciones, normalización de contenido/editor, cargas de medios por etapas, análisis/relleno de tarifas reales de Stripe, ayudas de URL de referencia, utilidades de soporte responsivo/i18n|
 |`campaign-page`|Construcción de URL de enlaces compartidos, preservación segura de consultas, texto compartido con reconocimiento de estado, envío de formularios de recordatorio de lanzamiento, controles de campañas públicas y comportamiento de la página de campaña sensible a SEO|
-|`page-prefetch`|Listas permitidas de rutas públicas del mismo origen, exclusiones de consultas confidenciales, protecciones de red, manejo de retrasos/límites y creación de sugerencias de captación previa de documentos|
+|`page-prefetch`|Listas permitidas de rutas públicas del mismo origen, exclusiones de consultas confidenciales, protecciones de red, manejo de demoras/límites y creación de sugerencias de captación previa de documentos|
 |`cart-runtime-loader`|Arranque diferido en tiempo de ejecución del carrito, detección de carrito persistente/de recuperación, carga idempotente y activadores de intención del usuario|
 |`site-asset-minification`|Comportamiento de minificación CSS/JS generado `_site` y casos de falla del modo de verificación|
 |`media-optimization-script`|Selección de archivos modificados, decisiones de optimización de imágenes sin pérdidas, denominación de derivados de vídeo y reescritura de referencias de fuente a WebM|
@@ -121,7 +122,7 @@ Estas Worker suites cubren la validación del registro de recordatorio de lanzam
 - Guiones de humo locales contra la campaña mutable de solo prueba:
   - `scripts/test-worker.sh` para verificaciones de contrato de sitio/trabajador y verificación de `/checkout-intent/start` con formato incorrecto
   - `scripts/smoke-pledge-management.sh` para una cobertura de modificación/cancelación exitosa en la campaña mutable solo local, utilizando las respuestas de reconstrucción del administrador más verificaciones de deriva de proyección de solo lectura como fuente autorizada de estadísticas/inventario durante el humo.
-El script ahora rota sus IP de solicitud de administrador sintéticas durante esas llamadas de reconstrucción/verificación para que el limitador de velocidad de administrador real no cree un falso negativo en la activación de combinación local.
+El script ahora rota sus IP de solicitud de administrador sintéticas durante esas llamadas de reconstrucción/verificación para que el limitador de velocidad de administrador real no cree un falso negativo en la activación de fusión local.
 - Suite de unidad completa a través de `npm run test:unit`
 - Paquete de seguridad a través de `npm run test:security` contra un trabajador local iniciado automáticamente
 - Suite de seguridad respaldada por Podman a través de `npm run test:security:podman` cuando desea que el sitio/pila de trabajo se inicie y se ejerza en la misma invocación.
@@ -131,7 +132,7 @@ El script ahora rota sus IP de solicitud de administrador sintéticas durante es
 
 El script previo a la fusión ahora inicia automáticamente Jekyll con `_config.yml,_config.local.yml` cuando es necesario, de modo que la campaña `smoke-editable` solo local esté disponible durante la activación de la fusión y el arnés Playwright use la misma configuración combinada localmente.
 Esa puerta ahora intenta primero la ruta del host Bundler/Jekyll, incluido un intento único de `bundle install` cuando Bundler está presente pero faltan gemas. Mantiene el humo del trabajador del host más ligero, pero ejecuta el humo de compromiso mutable a través de la pila respaldada por Podman para que la ruta de modificación/cancelación con estado utilice un estado de servicio local aislado incluso cuando la ruta de compilación del host tiene éxito. Si la ruta Ruby del host aún no puede compilarse limpiamente, recurre a una compilación Jekyll respaldada por Podman más los asistentes de navegador/humo compatibles con Podman restantes en lugar de fallar solo en la configuración del host.
-Para ejecuciones de navegadores sin cabeza, Playwright ahora crea un `_site` estático y entrega esa salida con un servidor HTTP liviano en lugar de usar `jekyll serve`, lo que mantiene las comprobaciones automatizadas del navegador más cercanas al diseño real de los activos publicados.
+Para ejecuciones de navegadores sin cabeza, Playwright ahora construye un `_site` estático y sirve esa salida con un servidor HTTP liviano en lugar de usar `jekyll serve`, lo que mantiene las comprobaciones automatizadas del navegador más cercanas al diseño real de los activos publicados.
 
 Esta rama ahora tiene como valor predeterminado la ruta de tiempo de ejecución/carro propio tanto en `_config.yml` como en `_config.local.yml`, y la ruta del navegador ya no admite el antiguo tiempo de ejecución del carro alojado.
 
@@ -424,6 +425,9 @@ Pruebas basadas en navegador para flujos de usuarios completos en `tests/e2e/`.
 **Aspectos destacados de la cobertura del panel de administración:**
 - Inicio de sesión con enlace mágico, pestañas con alcance de función y restricciones de acceso de usuarios de campaña
 - Configuración, complementos, campañas, análisis, informes, seguidores y comportamiento de la pestaña Marketing
+- Superadministrador Cree un nuevo flujo de campaña, incluidos varios usuarios de campaña nuevos o existentes y el comportamiento del correo electrónico de asignación.
+- Flujo de publicación de vista previa protegida, incluida la creación de vínculos al panel de control del usuario actual, UX de entrada de correo electrónico del revisor opcional, manejo de conflictos de revisión base, vínculos del revisor las 24 horas y cero persistencia del correo electrónico del revisor en la campaña Markdown
+- Flujo de campaña de archivo de superadministrador, que incluye visibilidad no en vivo, rechazo de campaña en vivo, rechazo de usuario de campaña, movimientos de archivo local, cuerpo de envío de GitHub Action y presupuesto de redacción de eventos de auditoría
 - Configuración -> Carga automática del uso del plan, texto de ayuda del proveedor, enlaces de proveedores localizados y presupuesto de lectura sin escritura
 - Ingresos brutos de campaña/plataforma, ingresos netos de campaña/plataforma después de las tarifas de procesador asignadas y presentación de análisis de centavos exactos
 - Editor de contenido Edición de bloques WYSIWYG, configuración de enlaces/medios, reutilización del editor de diario, estado de borrador, estado de publicación y vista previa móvil
@@ -909,6 +913,7 @@ Esperado: devuelve `{ success: true }` y activa el flujo de trabajo de GitHub.
 - `APP_MODE` — `live` o `test`
 - `CHECKOUT_INTENT_SECRET`: cadena aleatoria de más de 32 caracteres para firmar el pago
 - `MAGIC_LINK_SECRET`: cadena aleatoria de más de 32 caracteres para la firma de tokens HMAC
+- `CAMPAIGN_PREVIEW_SECRET`: secreto de firma de enlace de revisor de vista previa dedicado opcional; si se omite, el Trabajador recurre a los secretos de firma existentes
 - `RESEND_API_KEY` — Reenviar clave API para correos electrónicos de soporte (re_...)
 - `ADMIN_SECRET`: cadena aleatoria para puntos finales de API de administración
 - `ADMIN_SETTLEMENT_SECRET`: secreto de administración de ámbito opcional para puntos finales de liquidación; use un valor solo local separado en `worker/.dev.vars`
@@ -929,6 +934,7 @@ Esperado: devuelve `{ success: true }` y activa el flujo de trabajo de GitHub.
   - Claves: `pledge:{orderId}` → promesa JSON
   - Claves: `email:{email}` → conjunto de ID de pedido
   - Teclas: `stats:{campaignSlug}` → `{ pledgedAmount, pledgeCount, tierCounts }`
+  - Claves: `campaign-preview-reviewers:{campaignSlug}` → Lista permitida de correo electrónico del revisor de vista previa protegida de 24 horas
 - **Espacio de nombres**: `VOTES` — Votos de la comunidad de tiendas
   - Claves: `vote:{campaignSlug}:{decisionId}:{orderId}` → cadena de opción
   - Claves: `results:{campaignSlug}:{decisionId}` → JSON `{optionA: count, ...}`
@@ -941,5 +947,5 @@ Esperado: devuelve `{ success: true }` y activa el flujo de trabajo de GitHub.
 ### Reenviar panel
 - **Dominio**: Verifique la parte del dominio de las direcciones del remitente configuradas en `_config.yml`/Worker env. Para esta implementación, `PLEDGES_EMAIL_FROM` es `The Pool <pledges@site.example.com>`, por lo que Resend debe autorizar `site.example.com`.
 - **Clave API**: Crear clave con permiso de "Acceso de envío"
-- Se utiliza para: todos los correos electrónicos de compromiso dirigidos a los seguidores (confirmación, acceso a administración/comunidad, recordatorios de lanzamiento, actualizaciones del diario, anuncios, informes, éxito de carga, fracaso de pago, cancelaciones)
+- Se utiliza para: todos los correos electrónicos de compromiso dirigidos a los seguidores (confirmación, administración/acceso a la comunidad, recordatorios de lanzamiento, actualizaciones del diario, anuncios, informes, éxito de carga, fracaso de pago, cancelaciones)
 - Nota del desarrollador local: incluso cuando `SITE_BASE` apunta a `127.0.0.1`, las imágenes de correo electrónico incrustadas aún usan la base de recursos pública `https://site.example.com`, por lo que las vistas previas de la bandeja de entrada no muestran URL de imágenes de host local rotas.

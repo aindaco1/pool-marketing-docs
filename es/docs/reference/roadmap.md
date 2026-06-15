@@ -10,15 +10,15 @@ lang: es
 
 ## Última actualización
 
-11 de junio de 2026
+15 de junio de 2026
 
 Esta hoja de ruta está organizada como un historial de lanzamiento de los estados reales del proyecto que realmente utilizamos, en lugar de una lista plana de funciones completadas.
 
 ## Hito actual
 
-**v1.0.4**
+**v1.0.5**
 
-El conjunto de funciones v1.0 y el pase de liberación reforzada están completos. v1.0.4 agrega seguimiento del uso del plan de superadministrador para Cloudflare Workers/KV y Resend, análisis de ingresos netos en el panel después de las tarifas asignadas del procesador Stripe, asignación de tarifas a nivel de componente para informes/exportaciones, documentos de credenciales del proveedor de seguimiento de uso y andamios secretos de trabajadores locales agrupados.
+El conjunto de funciones v1.0 y el pase de liberación reforzada están completos. La versión 1.0.5 se centra en la colaboración protegida de borradores de campañas: páginas de vista previa protegidas por correo electrónico, enlaces de editores visibles en el panel, enlaces de revisores invitados explícitamente que caducan en 24 horas, creación de nuevas campañas por superadministradores con correos electrónicos de asignación de usuarios de campaña y archivado por superadministradores para campañas no activas.
 
 ## Historial de lanzamientos
 
@@ -176,7 +176,7 @@ Esta versión puntual mejoró el flujo de trabajo del nuevo panel después de la
 
 Nuevo en esta versión:
 
-- Las promesas recién cobradas capturan los ID de transacción reales de la tarifa de transacción del saldo de Stripe, neto, bruto, cargo y saldo cuando estén disponibles.
+- Las promesas recién cobradas capturan la tarifa de transacción del saldo real de Stripe, los ID de transacción netos, brutos, de cargo y de saldo cuando estén disponibles.
 - Dashboard Analytics prefiere las tarifas reales almacenadas de Stripe cuando estén disponibles y etiqueta claramente los valores mixtos o estimados.
 - Los superadministradores pueden reponer los registros de compromisos cargados más antiguos con datos de transacciones de saldo de Stripe sin escaneos de la lista KV.
 - Los editores de contenido de campañas y diarios pueden organizar cargas de imágenes, videos y audio con vistas previas inmediatas y publicarlas en los directorios de activos de campaña correctos.
@@ -213,16 +213,16 @@ Nuevo en esta versión:
 - `_config.local.yml` puede borrar la clave del sitio Turnstile de recordatorio para que el desarrollo local oculte el widget de manera coherente con el inicio de sesión del administrador local.
 - El optimizador de medios Podman ahora incluye `optipng` y `gifsicle` para la compresión de fuentes PNG/GIF locales a través del mismo flujo de trabajo de medios del repositorio.
 - La generación de imágenes responsivas ahora incluye un renglón WebP `640w` entre las variantes `480w` y `960w` existentes para páginas de campañas móviles.
-- Los videos de los héroes de la campaña de YouTube muestran fachadas de carteles/juegos locales y difieren el iframe remoto hasta que el partidario tenga la intención de jugar.
-- Las listas de verificación públicas para creadores ahora describen los cambios v1.0.3 de cara a los creadores, incluidos recordatorios de lanzamiento, expectativas de zona horaria de la plataforma, incrustaciones diferidas de héroes de YouTube y variantes WebP receptivas.
-- `ADMIN_SETTLEMENT_SECRET` y `ADMIN_BROADCAST_SECRET` opcionales pueden limitar el acceso a la liquidación y la automatización de transmisiones; las rutas con alcance rechazan el `ADMIN_SECRET` más amplio cuando se configura el secreto más restringido
+- Los videos de los héroes de la campaña de YouTube muestran fachadas de carteles/juegos locales y posponen el iframe remoto hasta que el partidario tenga la intención de jugar.
+- Las listas de verificación públicas para creadores ahora describen los cambios de la versión 1.0.3 para los creadores, incluidos recordatorios de lanzamiento, expectativas de zona horaria de la plataforma, incrustaciones diferidas de héroes de YouTube y variantes WebP receptivas.
+- `ADMIN_SETTLEMENT_SECRET` y `ADMIN_BROADCAST_SECRET` opcionales pueden limitar el acceso a la liquidación y la automatización de transmisiones; las rutas con alcance rechazan el `ADMIN_SECRET` más amplio cuando se configura el secreto más limitado
 - Las rutas de liquidación programada, directa, de envío y por lotes ahora comparten un bloqueo de objeto duradero `SETTLEMENT_COORDINATOR` con alcance de campaña y claves deterministas de idempotencia de banda para que el cobro de la misma campaña no pueda superponerse.
 - los pagos de múltiples campañas siguen siendo compatibles con la distribución de paquetes de pagos en registros de compromiso separados con alcance de campaña; Los bloqueos y lotes de liquidación permanecen en el ámbito de la campaña que se está cargando.
 - Las acciones de GitHub y los documentos del operador ahora distinguen los secretos del tiempo de ejecución del trabajador de los secretos del repositorio, incluso cuando los secretos de administración con ámbito coincidente deben existir en ambos lugares.
 - Los documentos de implementación y exportación de informes de Cloudflare ahora requieren `CLOUDFLARE_ACCOUNT_ID`, recomiendan tokens de implementación con alcance de usuario y documentan opciones más limitadas de eliminación de caché y tokens KV de solo lectura.
 - La guía `worker/.dev.vars` ahora exige explícitamente valores solo locales en lugar de copias de seguridad secretas de producción.
 - Las cargas de imágenes/vídeos del panel solicitan el optimizador de medios del repositorio con `scope=changed`, mientras que la limpieza en el momento de la publicación elimina los medios propiedad del panel de la misma campaña que desaparecieron del contenido de autor y no se mencionan en ningún otro lugar.
-- El envío de recordatorios de lanzamiento, el reintento de correo electrónico de los asistentes y las rutas de inventario de complementos de plataforma ahora utilizan proyecciones de estado de cola o recuento de ventas para evitar escaneos innecesarios de la lista KV durante rutas de lectura inactivas o normales.
+- El envío de recordatorios de lanzamiento, el reintento de correo electrónico de los asistentes y las rutas de inventario de complementos de plataforma ahora utilizan proyecciones de estado de cola o de recuento de ventas para evitar escaneos innecesarios de la lista KV durante rutas de lectura normales o inactivas.
 
 ### v1.0.4: uso del plan de administración y análisis de ingresos netos
 
@@ -232,19 +232,34 @@ Nuevo en esta versión:
 
 - Los superadministradores pueden ver los trabajadores/KV de Cloudflare de solo lectura y el uso del plan de reenvío desde Configuración sin exponer los tokens del proveedor al navegador.
 - Las tarjetas de uso admiten nombres de planes detectados por el proveedor cuando estén disponibles, umbrales de advertencia, barras de progreso y enlaces de proveedores para el seguimiento de la cuenta.
-- Dashboard Analytics ahora muestra los ingresos netos de la campaña y la plataforma después de las tarifas asignadas reales o estimadas del procesador de Stripe, al tiempo que mantiene las tarjetas de ingresos brutos visibles para la conciliación.
+- Dashboard Analytics ahora muestra los ingresos netos de la campaña y la plataforma después de las tarifas asignadas reales o estimadas del procesador de Stripe, al mismo tiempo que mantiene las tarjetas de ingresos brutos visibles para la conciliación.
 - La asignación de tarifas tiene en cuenta los componentes de los ingresos de la campaña, los ingresos de la plataforma, los impuestos y los envíos, de modo que las exportaciones de tablas y CSV se concilian con las transacciones o estimaciones del saldo de Stripe almacenado.
 - Los documentos de trabajadores y operadores ahora describen el límite del token de lectura de facturación/análisis GraphQL de Cloudflare, el comportamiento de uso de reenvío y las variables de anulación del plan.
 - El andamio local del trabajador `.dev.vars` y la salida `npm run secrets:dev` se agrupan por propósito, incluidas las configuraciones y anulaciones del proveedor de uso del plan.
 
+### v1.0.5: vistas previas protegidas y archivado de campañas
+
+Esta versión puntual hizo que la colaboración en el borrador de la campaña y la limpieza del ciclo de vida de la campaña fueran parte del flujo de trabajo de administración.
+
+Nuevo en esta versión:
+
+- vistas previas de campañas protegidas para superadministradores, usuarios de campañas asignados y correos electrónicos de revisores invitados explícitamente
+- Shells de vista previa de noindex en `/campaigns/:slug/preview/` y equivalentes localizados, con controles de compromiso de solo lectura y enlaces de revisor firmados las 24 horas
+- Creación de campañas de solo vista previa desde el panel, incluida la asignación opcional de usuarios existentes o la creación de nuevos usuarios de campaña.
+- correos electrónicos de asignación de campaña a través de la ruta de correo electrónico transaccional compartida cuando la entrega está configurada
+- Archivado exclusivo de superadministrador para campañas no activas, con escrituras de repositorios locales en desarrollo y un flujo de trabajo de GitHub Actions validado en producción.
+- movimientos de archivo que mantienen la fuente de la campaña y los medios propiedad de la campaña bajo `archive/campaigns/<slug>/` en lugar de eliminar los datos de la campaña.
+- Filtrado público/de solo vista previa en rutas de campaña, índices, JSON de campaña, incrustaciones, metadatos de tarjetas compartidas, resultados de mapas del sitio, intención de robots y elegibilidad de captación previa pública.
+- El conflicto de revisión base de GitHub verifica el contenido de la campaña y las publicaciones de vista previa para que las publicaciones obsoletas fallen sin descartar los borradores locales del navegador.
+- Mejoras en la resiliencia del desarrollo local de Podman, incluidos reinicios de servicios supervisados, intentos de recuperación obsoletos de Podman y soporte de ayuda de repositorio local para pruebas de creación/archivo.
+
 ## Funciones futuras
 
-El trabajo aún planeado después de `1.0.4` incluye:
+El trabajo aún planeado después de `1.0.5` incluye:
 
 - Trabajo adicional en la calculadora de impuestos para una cobertura más amplia en EE. UU. e internacional, una mayor profundidad de las jurisdicciones locales y flujos de trabajo de actualización de datos tributarios más claros.
 - Herramientas de marketing de campaña más completas, como la composición de anuncios y el seguimiento de carritos abandonados que tengan en cuenta el consentimiento.
 - diferentes precios por variación adicional
-- Páginas de vista previa de campañas protegidas por correo electrónico para superadministradores, usuarios de campañas y revisores invitados.
 
 ## Problemas conocidos
 

@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-11 de junio de 2026
+15 de junio de 2026
 
 Este documento es la referencia del operador para el panel de administración privado de The Pool y debe ser tratado como la fuente de verdad para la edición de campañas, informes, análisis, enlaces de marketing, complementos y administración de usuarios basados ​​en el panel.
 
@@ -66,6 +66,9 @@ El panel separa intencionalmente la navegación de solo lectura, los borradores 
 |Resumen del panel, análisis, informes, seguidores, filtrado de tablas y vista previa del contenido|Sólo lectura; debería agregar cero escrituras KV|
 |Editor de contenido **Guardar borrador**|Solo borrador local del navegador|
 |Publicación del contenido/configuración de la campaña|El trabajador valida la entrada, escribe en archivos respaldados por GitHub, activa la ruta normal de reconstrucción/implementación y registra un evento de auditoría.|
+|Publicación de vista previa protegida|El trabajador valida el alcance de la campaña y la revisión base, escribe solo indicadores de vista previa en Markdown de la campaña respaldada por GitHub, almacena el administrador de publicación más los correos electrónicos del revisor opcional en `PLEDGES` KV en `campaign-preview-reviewers:<slug>` con un TTL de 24 horas, devuelve un enlace firmado visible en el panel para el editor, envía enlaces firmados a revisores opcionales y registra un evento de auditoría|
+|Creación de campaña de superadministrador|El trabajador crea un archivo `_campaigns/<slug>.md` de solo vista previa localmente en desarrollo o a través de GitHub en producción, opcionalmente guarda usuarios de campaña asignados/nuevos en `admin-users:v1`, envía correos electrónicos a los usuarios de campaña asignados cuando están presentes, activa la reconstrucción cuando está respaldado por GitHub y registra un evento de auditoría.|
+|Archivado de campaña por superadministrador|El Worker valida el rol de superadministrador, CSRF, la existencia de la campaña y el estado no activo, luego archiva localmente en desarrollo o despacha `.github/workflows/archive-campaign.yml` en producción; el movimiento de archivado mantiene el código fuente de la campaña y los medios propiedad de la campaña bajo `archive/campaigns/<slug>/`|
 |Publicación de configuración de plataforma y complementos de plataforma|El trabajador valida la entrada, escribe en la configuración/activos respaldados por GitHub, activa la ruta normal de reconstrucción/implementación y muestra el resultado como un mensaje de la plataforma del panel|
 |Cargas de imágenes/vídeo/audio|El trabajador valida los medios, confirma la ruta del activo a través de GitHub y actualiza el campo relevante localmente hasta su publicación.|
 |Guardar/editar/eliminar referencias de marketing|Mutación KV en el ámbito de la campaña para códigos de referencia guardados|
@@ -95,7 +98,7 @@ Las configuraciones están agrupadas en una barra lateral izquierda. Los superad
 
 ### Plataforma
 
-Los campos de identidad de la plataforma incluyen título del sitio, nombre de la plataforma, empresa, autor, nombre del creador predeterminado, correo electrónico de soporte, descripción del sitio, nombres de los remitentes del correo electrónico, modo de aplicación y zona horaria predeterminada de la plataforma.
+Los campos de identidad de la plataforma incluyen título del sitio, nombre de la plataforma, empresa, autor, nombre del creador predeterminado, correo electrónico de soporte, descripción del sitio, URL canónicas del sitio/trabajador, nombres de los remitentes de correo electrónico, modo de aplicación y zona horaria predeterminada de la plataforma. Los campos de URL canónicos se encuentran debajo de Descripción del sitio en la sección Plataforma, uno por columna en ventanas gráficas amplias.
 
 Los campos de remitente de compromiso y actualización deben utilizar dominios autorizados para la clave API de reenvío configurada. Para esta implementación, las confirmaciones de compromiso utilizan `The Pool <pledges@site.example.com>` para que el dominio del remitente coincida con el dominio de reenvío autorizado `site.example.com`.
 
@@ -111,10 +114,6 @@ Utilice una URL igual por línea. Utilice URL de perfil público canónico, por 
 https://www.instagram.com/example
 https://www.imdb.com/name/nm0000000/
 ```
-
-### URL canónicas
-
-Los campos de URL canónicos controlan el sitio de producción y los orígenes de los trabajadores utilizados en los enlaces generados, los metadatos, la configuración del tiempo de ejecución del administrador y las expectativas de CORS de los trabajadores.
 
 La pila local puede anular `SITE_BASE` y `WORKER_BASE` de `_config.local.yml`, pero `scripts/sync-worker-config.rb` mantiene `CANONICAL_SITE_BASE` y `CANONICAL_WORKER_BASE` fijados a los valores de producción de `_config.yml`. Eso permite que el panel local muestre los objetivos de publicación de producción sin interrumpir las solicitudes de localhost.
 
@@ -154,7 +153,7 @@ El uso de Cloudflare utiliza `CLOUDFLARE_USAGE_API_TOKEN` o `CLOUDFLARE_ANALYTIC
 
 ### Diseño
 
-La configuración de diseño expone variables seleccionadas del tema, como la fuente del cuerpo, la fuente del encabezado, los colores del texto, los colores de superficie/borde/primarios y el radio del botón.
+La configuración de diseño expone variables seleccionadas del tema, como la fuente del cuerpo, la fuente del título, los colores del texto, los colores de superficie/borde/primarios y el radio del botón.
 
 Los campos de fuentes deben hacer referencia a fuentes ya cargadas por el CSS del sitio. El panel no importa fuentes remotas arbitrarias.
 
@@ -199,6 +198,8 @@ Los complementos digitales ocultan los campos de envío. Los complementos físic
 
 Las campañas se muestran en una barra lateral izquierda. Los superadministradores ven todas las campañas. Los usuarios de campañas solo ven las campañas asignadas.
 
+Para los superadministradores, la primera fila de la barra lateral de Campañas es un botón `+` con solo íconos para **Crear nueva campaña**. Las campañas existentes aparecen debajo de esa fila. Los usuarios de la campaña no ven el botón crear.
+
 Cada campaña tiene estas subpestañas:
 
 1. **Configuración**
@@ -211,11 +212,42 @@ Cada campaña tiene estas subpestañas:
 8. **Entradas del diario**
 9. **Decisiones**
 
+### Crear nueva campaña
+
+Crear nueva campaña es solo para superadministradores. Crea una campaña de solo vista previa que permanece invisible para `/campaigns/:slug/` público, rutas de campaña localizadas, índices de página de inicio/comunidad/complementos, `/api/campaigns.json`, tarjetas compartidas, resultados de mapas del sitio, intención de rastreo de robots, incrustaciones y elegibilidad de captación previa pública hasta que se lanza la campaña.
+
+Campos obligatorios:
+
+- título de la campaña
+- uno o más usuarios de la campaña
+
+Los superadministradores pueden crear una campaña sin usuarios de campaña asignados, seleccionar varios usuarios de campaña existentes, elegir **Crear nuevo usuario de campaña** y agregar uno o más usuarios de campaña nuevos con los nombres y correos electrónicos requeridos en el mismo cuadro de diálogo. Los nuevos usuarios se guardan en `admin-users:v1`; Los usuarios de campaña asignados reciben un correo electrónico con reenvío con el enlace del panel de administración cuando se configura la entrega de correo electrónico.
+
+El trabajador deriva el slug del título, escribe `_campaigns/<slug>.md` a través de la ruta de publicación existente de GitHub, establece valores predeterminados de solo vista previa/ocultos para el público, activa la reconstrucción normal y registra un evento de auditoría. El flujo no requiere fechas de lanzamiento, monto objetivo, recompensas, imágenes ni contenido de la página.
+
+### Vista previa protegida
+
+El botón **Vista previa** aparece junto a **Publicar** para el contenido de la campaña. Los superadministradores y los usuarios de campañas asignados pueden publicar una vista previa protegida de las campañas que pueden editar.
+
+Vista previa de publicación:
+
+- valida el alcance de la campaña actual y el token CSRF
+- rechaza revisiones de base obsoletas cuando el Markdown de la campaña cambió desde que se cargó el editor
+- escribe solo el estado de vista previa en Markdown de la campaña respaldada por GitHub; los correos electrónicos de la vista previa no están confirmados
+- almacena el administrador de publicación más la lista de permitidos de revisor opcional en `PLEDGES` KV en `campaign-preview-reviewers:<slug>` con un TTL de 24 horas
+- devuelve un enlace de vista previa firmado para el administrador de publicación para que el panel pueda mantenerlo visible después de que se cierre el modal
+- Los correos electrónicos invitaban explícitamente a revisores adicionales. Enlaces de vista previa firmados que caducan en 24 horas, y ese vencimiento se indica en la copia del correo electrónico.
+- registra un evento de auditoría administrativa
+
+Vista previa de páginas en vivo en `/campaigns/:slug/preview/` y equivalentes localizados. Se generan shells estáticos genéricos para cada slug de campaña, de modo que los enlaces de vista previa enviados por correo electrónico se puedan abrir inmediatamente; el shell no incluye el título de la campaña ni el borrador del contenido. Obtiene una vista previa completa de la página de la campaña de solo lectura a través del Worker con la sesión de administrador actual o un token de revisor válido, carga la hoja de estilo de la campaña y el kit de fuentes, permite incrustaciones de reproductores multimedia aprobados y deshabilita los controles de compromiso. El shell de vista previa estática es `noindex,nofollow,noarchive`, no utiliza metadatos sociales, elimina el token de vista previa de la barra de direcciones después de la carga y permanece fuera de la salida del mapa del sitio público y de la elegibilidad de captación previa pública.
+
 ### Configuración de campaña
 
-La configuración de la campaña incluye identidad, fechas, monto objetivo, estado cargado/de solo lectura, correos electrónicos de informe del corredor, anulaciones de envío, medios destacados, imagen del creador, fondos y otros temas de la campaña.
+La configuración de la campaña incluye identidad, fechas, monto objetivo, estado cargado/de solo lectura, correos electrónicos de informes del corredor, anulaciones de envío, medios destacados, imagen del creador, fondos y otros temas de la campaña.
 
 Slug y URL son campos derivados de sólo lectura. Se conservan las babosas de campaña existentes. Para nuevas campañas creadas con repositorios, mantenga la URL del slug segura y estable porque el pago, los informes, los enlaces mágicos y los registros de compromiso dependen de ello.
+
+Los superadministradores ven **Archivar campaña** en la parte inferior de la subpestaña Configuración después de **Fondo de campaña** y **Fondo de progreso** cuando la campaña no está activa actualmente. Los usuarios de la campaña nunca ven este control y las campañas activas lo ocultan por completo. Al archivar se solicita confirmación y luego se saca la campaña del código fuente activo sin eliminar datos. En el desarrollo local, `ADMIN_LOCAL_REPO_WRITES_ENABLED=true` enruta al Worker a través de un helper de repositorio local protegido por token que mueve los archivos del repositorio montado. En producción, el Worker inicia la GitHub Action del repositorio **Archivar campaña**. Ambas rutas mueven `_campaigns/<slug>.md`, los archivos de imagen/video/audio propiedad de la campaña y los medios de add-ons de campaña referenciados a `archive/campaigns/<slug>/`, escriben un `archive-manifest.json` y dejan en su lugar, y enumerados en el manifiesto, los medios todavía referenciados por otras campañas activas.
 
 ### Contenido
 
@@ -297,7 +329,7 @@ La pestaña Partidarios muestra filas de seguidores con alcance de rol con filtr
 
 Los análisis se derivan de índices de compromisos y resúmenes de campañas existentes. No debería crear escrituras KV específicas de análisis en la vista.
 
-El panel muestra tarjetas para los totales de promesas, categorías de ingresos, ingresos netos después de las tarifas de procesador asignadas, impuestos, envío, tarifas de Stripe, estado de la promesa, patrocinadores, promesa promedio, complementos de campaña, atribución de referencia, fuente UTM, tipo de cumplimiento, idioma y otros desgloses derivados de la promesa. Los valores monetarios muestran centavos exactos.
+El panel muestra tarjetas con los totales de promesas, categorías de ingresos, ingresos netos después de las tarifas de procesador asignadas, impuestos, envío, tarifas de Stripe, estado de la promesa, patrocinadores, promesa promedio, complementos de campaña, atribución de referencia, fuente UTM, tipo de cumplimiento, idioma y otros desgloses derivados de la promesa. Los valores monetarios muestran centavos exactos.
 
 Los ingresos brutos de la campaña y los ingresos de la plataforma permanecen visibles para la conciliación. Los ingresos netos de la campaña y los ingresos netos de la plataforma restan la parte asignada a cada categoría de las tarifas reales del procesador de Stripe cuando existen datos de transacciones de saldo almacenados. Las promesas activas y las filas de promesas cargadas más antiguas sin datos reales del saldo de Stripe continúan utilizando la estimación de planificación estándar. Los reabastecimientos exclusivos de superadministradores pueden recuperar de forma segura datos históricos de transacciones de saldo de Stripe sin escaneos de listas KV a través de `POST /admin/analytics/stripe-financials/backfill`.
 
@@ -342,6 +374,8 @@ Cuando se elimina un bloque de medios de contenido publicado, o se elimina una e
 
 El punto final de carga del trabajador preserva el origen. Valida el tipo, tamaño, alcance de la campaña, directorio y nombre de archivo, pero no ejecuta optimizadores de imágenes nativos ni FFmpeg. Para cargas de imágenes y videos, el trabajador envía el flujo de trabajo **Optimizar medios del panel** de acciones de GitHub con `scope=changed` después de que la confirmación de GitHub se realice correctamente. La compresión de imágenes sin pérdidas y la transcodificación de vídeo aún se ejecutan fuera del Worker a través del canal de medios del repositorio.
 
+Los movimientos de archivado de campaña se realizan del lado del repositorio por el mismo motivo. En desarrollo local, el Worker llama al helper de repositorio local cuando `ADMIN_LOCAL_REPO_WRITES_ENABLED=true`; en producción, el panel despacha el flujo de trabajo **Archivar campaña** después de la autorización del superadministrador, y el flujo de trabajo valida el slug antes de mover el código fuente de la campaña y los medios propiedad de la campaña a `archive/campaigns/<slug>/`.
+
 Utilice `npm run media:optimize` localmente o envíe manualmente el flujo de trabajo cuando vuelva a intentar la optimización, revise los cambios de medios del repositorio o procese archivos fuera de la ruta de carga del panel. Si la máquina host no tiene instalados los optimizadores nativos, use `npm run media:optimize:podman` para ejecutar el mismo script dentro de la imagen del sitio Podman con `optipng`, `gifsicle`, `libjpeg-turbo-progs`, `webp` y `ffmpeg`. Utilice `npm run media:optimize:check` o `npm run media:optimize:check:podman` cuando revise una rama con muchos medios y desee fallar en optimizaciones de imágenes pendientes, variantes WebP responsivas o derivados de video faltantes. La canalización optimiza las imágenes en su lugar cuando el resultado optimizado es más pequeño, genera variantes de imagen `.webp` responsivas para plantillas públicas en `320w`, `480w`, `640w`, `960w` y `1600w`, genera derivados de `.webm` de alta calidad junto a los archivos MP4/MOV cargados y reescribe `_campaigns` literal. / `_config.yml` hace referencia del vídeo fuente subido al derivado WebM generado. Las imágenes y los vídeos originales permanecen en el repositorio para revertirlos y volver a codificarlos en el futuro. Utilice la opción manual `scope=all` del flujo de trabajo cuando los medios existentes implementados necesiten un reprocesamiento completo.
 
 Utilice texto alternativo significativo para imágenes que comuniquen contenido. Los fondos decorativos pueden utilizar texto alternativo vacío en las plantillas públicas.
@@ -354,6 +388,7 @@ El panel sigue estas reglas del proyecto:
 - Todas las mutaciones requieren una sesión de administrador válida y un encabezado CSRF.
 - El alcance de las funciones y las campañas se aplica en el lado del servidor.
 - Los secretos nunca se almacenan en `_config.yml`, campaña YAML, borradores de paneles, registros de usuarios de KV o confirmaciones de GitHub.
+- Los correos electrónicos de acceso a vista previa se almacenan solo en listas permitidas de Worker KV de corta duración, no en Markdown de campaña, JSON público, salida de mapa del sitio ni metadatos de página generados.
 - Se deben utilizar componentes de ayuda/etiqueta de administrador compartidos para los campos nuevos.
 - El editor oculto Chrome no debería ser accesible mediante el teclado.
 - Las tablas ordenables deben exponer `aria-sort`.

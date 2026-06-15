@@ -9,13 +9,13 @@ render_with_liquid: false
 
 ## Last Updated
 
-June 11, 2026
+June 15, 2026
 
 **The Pool** is an open-source, static-first crowdfunding platform for independent film, media, and other artist-driven projects.
 
 It is designed around a simple promise: supporters can pledge toward a creative project without creating an account, and their cards are only charged if the campaign reaches its goal. Behind that lightweight supporter experience, The Pool gives creators and operators real infrastructure for pledge checkout, fulfillment, updates, reporting, admin editing, localization, and deployment.
 
-Current release milestone: **v1.0.4**. The v1.0 feature set and launch-hardening pass are complete. v1.0.4 adds super-admin plan-usage tracking for Cloudflare Workers/KV and Resend, dashboard net revenue analytics after allocated Stripe processor fees, component-level fee allocation for reports/exports, usage-tracker provider credential docs, and grouped local Worker secret scaffolding.
+Current release milestone: **v1.0.5**. The v1.0 feature set and launch-hardening pass are complete. v1.0.5 adds protected campaign previews for super admins, assigned campaign users, and explicitly invited reviewers, super-admin new campaign creation with campaign-user assignment emails, and super-admin campaign archiving for non-live campaigns.
 
 ## All-or-Nothing Pledging
 
@@ -56,6 +56,9 @@ The Pool is designed for filmmakers and creative teams that need a campaign they
 - **Optional platform add-ons** — Offer platform merch alongside pledges when enabled, with separate inventory and shipping handling that does not count toward a campaign's funding goal.
 - **Campaign add-ons** — Sell campaign-specific merch or extras in the same pledge flow while keeping revenue, inventory, and shipping tied to that campaign.
 - **Private admin dashboard** — Give trusted team members a focused workspace for campaign settings, page content, rewards, updates, decisions, reports, supporters, analytics, marketing links, add-ons, and users.
+- **Protected campaign previews** — Share draft or preview-only campaigns privately with assigned campaign users and explicitly invited reviewers before the public campaign page launches.
+- **New campaign setup** — Super admins can create a private draft campaign from a title and assigned campaign users, then fill in the rest of the campaign from the dashboard.
+- **Campaign archiving** — Super admins can archive non-live campaigns without deleting campaign source or uploaded media, keeping a reviewable record outside active campaign lists.
 - **Configurable platform timezone** — Super admins can choose the IANA timezone used for campaign deadlines, countdowns, scheduled reports, and lifecycle automation.
 - **Dashboard media uploads** — Stage campaign and diary images, video, and audio with previews, publish them into campaign asset paths through the normal reviewable workflow, trigger image/video optimization, and clean up dashboard-owned media that is no longer referenced.
 - **Reports when you need them** — Preview and download pledge or fulfillment CSVs from the dashboard, with optional campaign-runner emails during active campaigns.
@@ -93,7 +96,7 @@ The stack is designed to be practical for small teams and forks. Each major serv
 
 The public page performance model stays static-first. The site minifies generated build artifacts, lets Cloudflare handle transfer compression, reserves stable space for campaign progress and media, serves generated responsive image variants where available, defers remote YouTube hero embeds until play intent, and delays heavier first-party cart code until it is actually needed.
 
-The admin dashboard follows the same cost discipline. Browsing, filtering, previews, analytics, reports, and local drafts avoid KV writes. Durable writes happen only when an admin explicitly saves dashboard-only state or publishes a campaign/platform change.
+The admin dashboard follows the same cost discipline. Browsing, filtering, previews, analytics, reports, and local drafts avoid KV writes. Durable writes happen only when an admin explicitly saves dashboard-only state, creates a campaign, publishes a protected preview, or publishes a campaign/platform change.
 
 With the v1.0.3 list-budget hardening, idle launch-reminder dispatch, supporter-email retry, and platform add-on inventory paths use queue-state or sold-count projections to avoid unnecessary KV namespace scans during normal read paths.
 
@@ -105,7 +108,7 @@ For local development, the recommended path is the rootless Podman flow document
 
 For deployment, pushes to `main` build the GitHub Pages site and deploy the Cloudflare Worker when the required repository and Worker secrets are configured. Use [Pledge Worker](/docs/operations/worker/) for Worker setup, [Customization Guide](/docs/development/customization-guide/) for fork-facing config, [Testing Guide](/docs/operations/testing/) for release checks, and [Security Guide](/docs/operations/security/) for secrets, access control, and abuse-path expectations.
 
-The same architecture supports accessibility and SEO without weakening security. Public pages emit crawlable metadata and conservative structured data, while private magic-link pages such as Manage Pledge, supporter community pages, and the admin dashboard stay out of search indexing. Checkout and management flows add keyboard, focus, dialog, live-region, and landmark behavior around Stripe's secure payment UI rather than replacing it.
+The same architecture supports accessibility and SEO without weakening security. Public pages emit crawlable metadata and conservative structured data, while private magic-link pages such as Manage Pledge, supporter community pages, protected campaign previews, and the admin dashboard stay out of search indexing. Checkout and management flows add keyboard, focus, dialog, live-region, and landmark behavior around Stripe's secure payment UI rather than replacing it.
 
 ## Open Source
 
