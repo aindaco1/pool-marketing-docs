@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-June 15, 2026
+June 20, 2026
 
 The Pool uses a **no-account, email-based pledge management system**. Backers save a payment method through Stripe in The Pool's on-site payment step, manage pledges via order-scoped magic links, and are only charged if the campaign is funded.
 
@@ -85,11 +85,19 @@ Pledges are stored in Cloudflare KV. Key patterns:
 | `launch-reminder-sent:{campaignSlug}:{emailHash}` | Launch reminder send idempotency marker |
 | `launch-reminder-dispatch:{campaignSlug}` | Bounded dispatch job cursor for a campaign that just became live |
 | `launch-reminder-dispatch-queue:v1` | Queue-state marker that lets idle launch reminder scheduled ticks skip dispatch list scans |
+| `abandoned-cart:{orderId}` | Explicitly opted-in abandoned-checkout reminder record |
+| `abandoned-cart-resume:{orderId}` | Short-lived signed-link checkout resume snapshot created only after a reminder sends |
+| `abandoned-cart-queue:v1` | Queue-state marker that lets idle abandoned-checkout scheduled ticks skip namespace scans |
+| `abandoned-cart-sent:{emailHash}:{campaignSetHash}` | Abandoned-checkout send idempotency marker |
+| `abandoned-cart-suppressed:{emailHash}` | Abandoned-checkout unsubscribe marker |
+| `abandoned-cart-suppressed-campaign:{campaignSlug}:{emailHash}` | Admin-managed campaign-scoped reminder suppression marker |
+| `abandoned-cart-health:v1` | Aggregate abandoned-checkout queue/outcome counters for campaign-scoped health views |
 | `supporter-email-retry:{orderId}` | Queued supporter confirmation email retry payload |
 | `supporter-email-retry-queue:v1` | Queue-state marker with the next due supporter email retry time |
 | `add-on-inventory-sold:v1` | Sold-count projection for platform add-on inventory |
 | `admin-users:v1` | Runtime dashboard users saved from **Settings -> Users** |
-| `admin-marketing-referrals:{campaignSlug}` | Saved referral code metadata for the dashboard Marketing tab |
+| `admin-marketing-referrals:{campaignSlug}` | Saved referral code and QR source metadata for the dashboard Marketing tab |
+| `admin-marketing-draft:{campaignSlug}:{surface}` | Explicit shared Marketing/Blast draft with 7-day TTL and revision conflict protection |
 
 Scarce-tier reservations and committed claim state now live in the per-campaign Durable Object coordinator rather than KV. `tier-inventory:{campaignSlug}` remains the public projection used by `/inventory/:slug` and `/live/:slug`.
 
@@ -353,8 +361,37 @@ Trigger a GitHub Pages rebuild (for state transitions).
 **Headers:** `Authorization: Bearer ADMIN_SECRET`  
 **Request:** `{ "reason": "campaign-state-change" }` (optional)
 
+### `POST /admin/marketing/announcement`
+Dry-run, test-send, or live-send a Campaigns -> Blast supporter email from the browser dashboard.
+
+The browser route requires a dashboard session, CSRF/origin checks, campaign scope, and an indexed `campaign-pledges:{slug}` audience. Dry runs validate the exact subject/content/CTA/audience and return a `dryRunHash` without sending email, writing audits, or listing KV namespaces. Test sends go only to the signed-in admin. Live sends require the matching dry-run hash and write one admin-audit event after dispatch.
+
+**Request:**
+```json
+{
+  "campaignSlug": "worst-movie-ever",
+  "subject": "Submissions close March 6th!",
+  "content": [
+    { "type": "text", "body": "The deadline is this Thursday at midnight in the platform timezone." }
+  ],
+  "ctaLabel": "Submit Your Reward",
+  "ctaUrl": "https://example.com/submit",
+  "dryRunHash": "required-for-live-send"
+}
+```
+
+### Marketing dashboard helpers
+
+Referral and UTM performance lives in `GET /admin/analytics`, which reads campaign pledge indexes and returns referral plus UTM source/medium/campaign/content breakdowns without listing pledge truth. Missing campaign indexes produce a non-blocking Analytics notice instead of a Marketing-tab failure.
+
+`GET /admin/marketing/draft?campaignSlug=...&surface=marketing|blast`, `POST /admin/marketing/draft`, and `DELETE /admin/marketing/draft` load, save, and clear explicit shared drafts. Draft writes are campaign-scoped, expire after 7 days, and carry a revision token so stale saves return a conflict.
+
+`GET /admin/media/library?campaignSlug=...` lists existing campaign images for WYSIWYG image blocks. Campaign users see only assigned campaign media; super admins can also choose shared/default images. The picker reads GitHub directories and does not create KV state.
+
+`GET /admin/abandoned-checkout/health?campaignSlug=...` reads aggregate abandoned-checkout reminder health without KV list operations. Admin-created suppression outcomes include the suppressed email so the dashboard can show and clear those rows. `POST` and `DELETE /admin/abandoned-checkout/suppression` explicitly set or clear campaign-scoped reminder suppressions with CSRF, hashed email identifiers, audit events, and bounded KV writes. Signed reminder resume links read `abandoned-cart-resume:{orderId}` and restore a sanitized browser checkout snapshot so supporters can start a fresh Stripe session from the same campaign/cart context.
+
 ### `POST /admin/broadcast/announcement`
-Send a custom announcement email with optional CTA link to all campaign supporters.
+Legacy shared-secret operator endpoint for a custom announcement email with optional CTA link to all campaign supporters.
 
 **Headers:** `Authorization: Bearer ADMIN_BROADCAST_SECRET` when configured, otherwise `Authorization: Bearer ADMIN_SECRET`
 **Request:**
@@ -390,10 +427,11 @@ Primary flows:
 - Campaign **Preview** publishes protected preview flags through GitHub, stores the publishing admin plus optional reviewer emails only in a 24-hour `campaign-preview-reviewers:{slug}` KV allowlist, returns a dashboard-visible 24-hour link for the publishing admin, sends signed 24-hour links to optional reviewers, and serves private/no-store preview payloads through `/admin/campaign-preview/:slug`.
 - Super-admin **Archive campaign** is available only for non-live campaigns. The Worker validates role, CSRF, campaign slug, and effective state, then archives directly in the mounted repo for local dev or dispatches `.github/workflows/archive-campaign.yml` in production; the archive move writes `archive-manifest.json` and keeps campaign source/media under `archive/campaigns/<slug>/`.
 - **Settings -> Users** saves directly to Worker KV at `admin-users:v1`.
-- Saved referral codes in **Marketing** save to campaign-scoped KV.
+- Saved referral codes and shared Marketing/Blast drafts save to campaign-scoped KV only when explicitly saved or cleared.
+- **Analytics** attribution reporting and **Marketing** abandoned-checkout health read indexed/aggregate data without KV namespace scans.
 - **Reports** previews pledge/fulfillment rows and downloads CSVs; it does not send email and does not mark reports as sent.
 - **Analytics** uses stored actual Stripe fee/net data when available and exposes a super-admin backfill for older charged pledges.
-- Content-editor media uploads stage files locally, upload on publish, and commit source-preserved assets through the GitHub-backed path; image/video uploads then request the `Optimize dashboard media` workflow with `scope=changed` for image compression, responsive WebP variants (`320w`, `480w`, `640w`, `960w`, `1600w`), and video derivatives. Publish also deletes same-campaign dashboard-owned media that disappeared from content blocks or removed diary entries and is not referenced elsewhere in the campaign.
+- Content-editor media uploads stage files locally, upload on publish or Blast send, and commit source-preserved assets through the GitHub-backed path; image/video uploads then request the `Optimize dashboard media` workflow with `scope=changed` for image compression, responsive WebP variants (`320w`, `480w`, `640w`, `960w`, `1600w`), and video derivatives. Image blocks can also choose existing campaign images from a scoped read-only media picker. Publish also deletes same-campaign dashboard-owned media that disappeared from content blocks or removed diary entries and is not referenced elsewhere in the campaign.
 - **Secrets & credentials** reports configured/missing status only; it does not expose or store secret values.
 
 Report preview/download endpoints used by the dashboard:
@@ -648,11 +686,11 @@ All emails show exact amounts with 2 decimal places (no rounding).
 - Includes: Supporter access links (community + manage), Instagram CTA (if campaign has Instagram URL)
 - Note: Excerpts strip markdown formatting; the full content is on the campaign page
 
-**Announcement** (sent via admin broadcast with optional CTA link)
+**Blast / Announcement** (sent via Campaigns -> Blast or legacy admin broadcast with optional CTA link)
 - Subject: "{Subject} | {Campaign Title}"
-- Contains: Custom heading, message body, optional highlighted CTA button (custom label + URL)
+- Contains: Campaign-scoped update content, optional hosted campaign images, email-safe YouTube/Vimeo links, and optional highlighted CTA button (custom label + URL)
 - Includes: Supporter access links (community + manage), Instagram CTA (if campaign has Instagram URL)
-- Endpoint: `POST /admin/broadcast/announcement`
+- Endpoints: `POST /admin/marketing/announcement` for browser Blast, `POST /admin/broadcast/announcement` for legacy operator sends
 
 **Launch Reminder** (sent once when an upcoming campaign becomes live)
 - Subject: "Now live | {Campaign Title}"

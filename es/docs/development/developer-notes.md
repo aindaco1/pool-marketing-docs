@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-11 de junio de 2026
+20 de junio de 2026
 
 ## Pila
 
@@ -53,7 +53,7 @@ La configuración ahora utiliza un modelo de configuración estructurado en [`_c
 - `launch_reminders`
 - `cache`
 
-Trate `_config.local.yml` como un archivo de anulación fino para las URL de host local y otras diferencias locales de la máquina, no como un segundo lugar para duplicar la configuración de bifurcación canónica.
+Trate [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml) como un archivo de anulación fino para las URL de host local y otras diferencias locales de la máquina, no como un segundo lugar para duplicar la configuración de bifurcación canónica.
 
 El objetivo de sincronización es [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) y los puntos de entrada de desarrollo/pruebas admitidos por el repositorio lo mantienen alineado automáticamente.
 
@@ -391,7 +391,7 @@ tiers:
 
 En el panel de administración, los ID de nivel son de solo lectura para los editores: los ID heredados se conservan, mientras que los ID de nivel nuevos se derivan del nombre. `shipping_preset` se oculta para niveles digitales. Si un nivel físico no tiene un valor preestablecido, se muestran campos explícitos de peso/dimensión del paquete.
 
-**Productos complementarios de plataforma**: los productos globales o los artículos de venta adicional ahora tienen una ruta de configuración separada en `add_ons` en [/_config.yml](https://github.com/your-org/your-project/blob/main/_config.yml). Ese catálogo está destinado a productos de precio fijo en toda la plataforma con variantes simples, como tallas de camisa, y no debe modelarse como la campaña `support_items`. El trabajador refleja el catálogo a través de [/api/add-ons.json](../api/add-ons.json), expone una instantánea del inventario actual a través de `/add-ons/inventory`, incluye selecciones de complementos a nivel de paquete más una campaña ancla durante el proceso de pago, conserva esos complementos vinculados al ancla en el compromiso sin contarlos para los totales de los objetivos de la campaña y ahora los expone por separado en las exportaciones de compromiso y cumplimiento. Los recuentos vendidos se encuentran en la proyección `add-on-inventory-sold:v1` después del arranque, y el carrito y Manage Pledge consumen la misma lógica de estado del producto que tiene en cuenta el inventario, incluidos mensajes de stock bajo y filtrado de variantes agotadas.
+**Productos complementarios de plataforma**: los productos globales o los artículos de venta adicional ahora tienen una ruta de configuración separada en `add_ons` en [/_config.yml](https://github.com/your-org/your-project/blob/main/_config.yml). Ese catálogo está destinado a productos de precio fijo en toda la plataforma con variantes simples, como tallas de camisa, y no debe modelarse como la campaña `support_items`. El trabajador refleja el catálogo a través de [/api/add-ons.json](https://github.com/your-org/your-project/blob/main/api/add-ons.json), expone una instantánea del inventario actual a través de `/add-ons/inventory`, incluye selecciones de complementos a nivel de paquete más una campaña ancla durante el proceso de pago, conserva esos complementos vinculados al ancla en el compromiso sin contarlos para los totales de los objetivos de la campaña y ahora los expone por separado en las exportaciones de compromiso y cumplimiento. Los recuentos vendidos se encuentran en la proyección `add-on-inventory-sold:v1` después del arranque, y el carrito y Manage Pledge consumen la misma lógica de estado del producto que tiene en cuenta el inventario, incluidos mensajes de stock bajo y filtrado de variantes agotadas.
 
 - Los complementos `category: digital` nunca contribuyen al envío
 - Los complementos `category: physical` participan en la misma calculadora de envío que se utiliza para los niveles físicos y los artículos de soporte físico.
@@ -1221,7 +1221,7 @@ Utilice los ayudantes locales para el enrutamiento de páginas:
 {% include language-switcher.html position="footer" %}
 ```
 
-Los mensajes en tiempo de ejecución para los flujos JS propiedad del sitio se emiten a través de [`assets/i18n.json`](../assets/i18n.json) y se inician en `POOL_CONFIG.i18n.messages`, por lo que los flujos de carrito, pago, comunidad de seguidores y Administrar promesa pueden usar el mismo catálogo local sin una capa de traducción estilo SPA.
+Los mensajes en tiempo de ejecución para los flujos JS propiedad del sitio se emiten a través de [`assets/i18n.json`](https://github.com/your-org/your-project/blob/main/assets/i18n.json) y se inician en `POOL_CONFIG.i18n.messages`, por lo que los flujos de carrito, pago, comunidad de seguidores y Administrar promesa pueden usar el mismo catálogo local sin una capa de traducción estilo SPA.
 
 Las plantillas de campañas públicas ahora también obtienen más Chrome compartido de los mismos datos locales, incluido el texto de carga/reproducción de videos de héroes, texto de adelanto de la comunidad de seguidores, etiquetas de pestañas del diario y estados vacíos, etiquetas/CTA de la fase de producción y etiquetas de accesibilidad de la galería.
 

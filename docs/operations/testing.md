@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-June 15, 2026
+June 20, 2026
 
 This guide covers the automated test suites, local test infrastructure, and manual verification paths.
 
@@ -77,9 +77,9 @@ Fast, isolated tests for JS functions in `tests/unit/`.
 | `pledge-management` | DST-aware deadline enforcement through the configured platform timezone, cancel/modify/payment-method validation, pledge status transitions, multi-campaign independence, shipping in pledge records, API response shape |
 | `settlement` | Charge aggregation (including shipping fees), payment success/failure, retry flow, dry-run mode, edge cases, batched settlement, campaign pledge index, settlement dispatch, shipping in settlement, cron heartbeat |
 | `email-broadcasts` | Diary excerpt extraction (with ellipsis truncation), diary/milestone tracking helpers, milestone checking logic, rate limiting |
-| `email-tip` | Tip-aware supporter email breakdowns across confirmation / modified / cancelled / failed / charged emails, plus launch reminder email routing through the shared updates sender |
+| `email-tip` | Tip-aware supporter email breakdowns across confirmation / modified / cancelled / failed / charged emails, plus launch reminder and abandoned-checkout email routing through the shared updates sender |
 | `votes` | Email-based vote storage/dedup, vote status retrieval, campaign results, result aggregation |
-| `admin-dashboard` | Dashboard dirty-state tracking, settings serialization, content/editor normalization, staged media uploads, actual Stripe fee analytics/backfill, referral URL helpers, responsive/i18n support utilities |
+| `admin-dashboard` | Dashboard dirty-state tracking, settings serialization, content/editor normalization, staged media uploads/media picker, actual Stripe fee analytics/backfill, Analytics attribution reporting, marketing shared drafts, abandoned-checkout health/suppression, referral URL helpers, responsive/i18n support utilities |
 | `campaign-page` | Share-link URL construction, safe query preservation, state-aware share text, launch reminder form submission, public campaign controls, and SEO-sensitive campaign-page behavior |
 | `page-prefetch` | Same-origin public-route allowlisting, sensitive-query exclusions, network guards, delay/limit handling, and document prefetch hint creation |
 | `cart-runtime-loader` | Lazy cart-runtime boot, persisted/recovery cart detection, idempotent loading, and user-intent triggers |
@@ -114,7 +114,9 @@ This runs:
   - `tests/unit/worker-business-logic.test.ts`
   - `tests/unit/worker-ops-integrity.test.ts`
   - `tests/unit/stats-pagination.test.ts`
-  These Worker suites cover launch reminder signup validation, unsubscribe suppression, queued dispatch idempotency, and the shared Resend send path.
+  - `tests/unit/setup-deploy-script.test.ts`
+- Worker suites cover launch reminder signup validation, abandoned-checkout opt-in/dispatch/suppression, signed checkout resume links, campaign-scoped suppression, aggregate health counters, unsubscribe suppression, queued dispatch idempotency, and the shared Resend send path.
+- Setup-helper tests run the deployment CLI in temporary repo copies with fake `npm`, `npx`/Wrangler, `gh`, `stripe`, and `ruby` commands. They cover help/error handling, dry-run no-write behavior, KV namespace reuse/create planning, non-interactive local secret generation, generated production Worker secrets, and read-only readiness probes without live provider mutations.
 - Content safety filter regressions in `tests/unit/content-safety-filter.test.ts`, including unsafe Markdown link schemes, dashboard-authored emphasis spacing, and strict structured-embed URL validation
 - Campaign-content audit coverage in `tests/unit/campaign-content-security.test.ts`, including the allowed inline HTML subset and rejection of disallowed raw tags
 - Durable Object tier-inventory serialization coverage in `tests/unit/tier-inventory-do.test.ts`
@@ -152,9 +154,11 @@ npm run media:optimize:check:podman # use when host-native media tools are missi
 
 The local Worker defaults in [worker/wrangler.toml](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) now match that first-party setup. `./scripts/dev.sh --podman` now auto-generates a local `CHECKOUT_INTENT_SECRET` in `worker/.dev.vars` if it is missing, so fresh local checkout starts do not fail closed on an uninitialized dev secret.
 
+When the merge gate or local security suite uses the placeholder `STRIPE_SECRET_KEY=sk_test_smoke`, `/test/setup` seeds deterministic synthetic Stripe customer IDs instead of calling Stripe. Use a real Stripe test key only when you specifically need payment-method-update smoke coverage against Stripe's API.
+
 For local work, prefer `./scripts/dev.sh --podman`. It starts Jekyll and the Worker in rootless Podman containers while preserving the same ports and local Wrangler state.
 
-`_config.local.yml` is now an override-only layer, not a second base config. When you change or add fork-facing settings, prefer [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) unless the value should truly differ only on your local machine.
+[`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml) is now an override-only layer, not a second base config. When you change or add fork-facing settings, prefer [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) unless the value should truly differ only on your local machine.
 
 The browser helper scripts support the same mode:
 
@@ -169,7 +173,7 @@ The browser helper scripts support the same mode:
 
 Those helpers still run Playwright and shell smoke logic on the host for now, but they boot the site and Worker through the shared Podman-backed local stack first. The report scripts can now run directly through the Worker container as well. That keeps local testing and exports closer to production-like service boundaries without forcing host Ruby or host Wrangler setup.
 
-For host-side commands that need the Podman-backed stack but should not depend on detached stack persistence across separate shells, use [`scripts/podman-stack-run.sh`](../scripts/podman-stack-run.sh). `npm run test:security:podman` uses that wrapper.
+For host-side commands that need the Podman-backed stack but should not depend on detached stack persistence across separate shells, use [`scripts/podman-stack-run.sh`](https://github.com/your-org/your-project/blob/main/scripts/podman-stack-run.sh). `npm run test:security:podman` uses that wrapper.
 
 For a mostly host-independent browser path, `npm run test:e2e:headless:podman` now runs the automated Playwright suite inside a dedicated Podman container on the same local pod network as the site and Worker.
 
@@ -430,7 +434,7 @@ Browser-based tests for full user flows in `tests/e2e/`.
 - Settings -> Plan usage automatic loading, provider help text, localized provider links, and zero-write read budget
 - Gross campaign/platform revenue, net campaign/platform revenue after allocated processor fees, and exact-cent analytics presentation
 - Content editor WYSIWYG block editing, link/media settings, diary editor reuse, draft state, publish state, and mobile preview
-- Saved marketing referral codes, campaign URL builder, CSV exports, sorting, and zero-write read flows
+- Saved marketing referral codes, campaign URL builder, QR download behavior, Blast dry-run/test/live-send flows, sent Blast history, CSV exports, sorting, and zero-write read flows
 - Desktop/tablet/mobile responsiveness, including compact Spanish tablet menus
 - Axe checks for the authenticated dashboard shell
 
@@ -923,6 +927,7 @@ Expected: Returns `{ success: true }` and triggers GitHub workflow.
 - `TURNSTILE_SECRET_KEY` — Shared Cloudflare Turnstile secret when admin sign-in or launch reminder widgets are enabled
 - `LAUNCH_REMINDER_TURNSTILE_SECRET_KEY` — Optional reminder-specific Turnstile secret if not using the shared secret
 - `LAUNCH_REMINDER_TOKEN_SECRET` — Optional reminder unsubscribe-token secret; falls back to `MAGIC_LINK_SECRET`
+- `ABANDONED_CART_TOKEN_SECRET` — Optional abandoned-checkout reminder token secret for unsubscribe and resume links; falls back to `MAGIC_LINK_SECRET`
 - `GITHUB_TOKEN` — GitHub PAT with repo/workflow access for dashboard publish actions and rebuild triggers; optional only when you are not testing GitHub-backed publishing
 - `ADMIN_BOOTSTRAP_EMAILS` — Optional local/recovery super-admin email list for dashboard sign-in; local dev reads this from `worker/.dev.vars`
 - `ADMIN_USERS_JSON` — Optional seed/recovery admin user list mirrored from `_config.yml`; dashboard Users edits save to KV at `admin-users:v1`
@@ -946,5 +951,5 @@ Expected: Returns `{ success: true }` and triggers GitHub workflow.
 ### Resend Dashboard
 - **Domain**: Verify the domain portion of the sender addresses configured in `_config.yml` / Worker env. For this deployment, `PLEDGES_EMAIL_FROM` is `The Pool <pledges@site.example.com>`, so Resend must authorize `site.example.com`.
 - **API Key**: Create key with "Sending access" permission
-- Used for: All supporter-facing pledge email (confirmation, manage/community access, launch reminders, diary updates, announcements, reports, charge success, payment failure, cancellations)
+- Used for: All supporter-facing pledge email (confirmation, manage/community access, launch reminders, abandoned-checkout reminders, diary updates, Blast/announcement emails, reports, charge success, payment failure, cancellations)
 - Local dev note: even when `SITE_BASE` points at `127.0.0.1`, embedded email images still use the public `https://site.example.com` asset base so inbox previews do not show broken localhost image URLs.

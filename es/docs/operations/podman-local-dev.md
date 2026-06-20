@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-15 de junio de 2026
+20 de junio de 2026
 
 Este repositorio ahora incluye una ruta de desarrollo local sin raíz respaldada por Podman para los dos servicios que generalmente crean la mayor rotación de configuración de host:
 
@@ -133,7 +133,7 @@ http://127.0.0.1:4000/admin/
 
 El trabajador local ofrece API de panel en `http://127.0.0.1:8787`, con `CORS_ALLOWED_ORIGIN` derivado para el sitio local. El panel puede ejercitar las campañas de prueba locales inicializadas y el KV local. La gestión de usuarios del panel guarda la escritura en KV local (`admin-users:v1`) en lugar de comprometerse con GitHub. La configuración de Dev Worker también establece `ADMIN_LOCAL_REPO_WRITES_ENABLED=true` e inicia un asistente de repositorio local protegido por token en la dirección de bucle invertido del contenedor de Worker, por lo que **Crear nueva campaña** y **Archivar campaña** pueden escribir/mover archivos en el repositorio montado en lugar de depender del envío del flujo de trabajo de GitHub mientras se realizan pruebas localmente.
 
-Foreground `./scripts/dev.sh --podman` también supervisa el módulo de desarrollo. Si Jekyll o Wrangler salen, el iniciador imprime registros recientes, reinicia el contenedor detenido y recrea el pod si un reinicio directo no es suficiente. Se vuelve a intentar la recreación del pod porque Podman ocasionalmente puede devolver errores de inicio parcial como `starting some containers: internal libpod error`; entre intentos, el iniciador elimina contenedores/pods de desarrollo parciales por nombre y etiqueta de pila de desarrollo, verifica que los artefactos antiguos hayan desaparecido, actualiza la conexión Podman y reinicia la máquina Podman en macOS/Windows si la limpieza por sí sola no borra el estado obsoleto. El iniciador también inicia el pod vacío antes de agregar el sitio y los contenedores de trabajo, lo que evita una ruta de Podman inestable donde un pod creado puede dejar `pool-dev-site` creado y `pool-dev-worker` perdido. Ajuste el intervalo de verificación con `PODMAN_SUPERVISE_INTERVAL`, la cola del registro de reinicio con `PODMAN_SUPERVISE_LOG_LINES`, los reintentos de inicio con `PODMAN_STACK_START_ATTEMPTS` y el retraso de reintento con `PODMAN_STACK_RETRY_DELAY`. Los flujos auxiliares separados aún reciben la política de reinicio `unless-stopped` de Podman en el sitio y en los contenedores de trabajadores.
+Foreground `./scripts/dev.sh --podman` también supervisa el módulo de desarrollo. Si Jekyll o Wrangler salen, el iniciador imprime registros recientes, reinicia el contenedor detenido y recrea el pod si un reinicio directo no es suficiente. Se vuelve a intentar la recreación del pod porque Podman ocasionalmente puede devolver errores de inicio parcial como `starting some containers: internal libpod error`; entre intentos, el iniciador elimina contenedores/pods de desarrollo parciales por nombre y etiqueta de pila de desarrollo, verifica que los artefactos antiguos hayan desaparecido, espera a que se libere el puerto de Podman, actualiza la conexión de Podman y reinicia la máquina Podman en macOS/Windows si la limpieza por sí sola no borra el estado obsoleto. El iniciador también inicia el pod vacío antes de agregar el sitio y los contenedores de trabajo, lo que evita una ruta de Podman inestable donde un pod creado puede dejar `pool-dev-site` creado y `pool-dev-worker` perdido. Las comprobaciones de preparación de Jekyll esperan la página `/admin/` real en lugar de cualquier respuesta HTTP, por lo que un oyente obsoleto o un sitio aún en construcción no cuentan como listos. Ajuste el intervalo de verificación con `PODMAN_SUPERVISE_INTERVAL`, la cola del registro de reinicio con `PODMAN_SUPERVISE_LOG_LINES`, los reintentos de inicio con `PODMAN_STACK_START_ATTEMPTS`, el retraso de reintento con `PODMAN_STACK_RETRY_DELAY`, el tiempo de espera de preparación del sitio con `PODMAN_SITE_READY_TIMEOUT` y el tiempo de espera de preparación del trabajador con `PODMAN_WORKER_READY_TIMEOUT`. Los flujos auxiliares separados aún reciben la política de reinicio `unless-stopped` de Podman en el sitio y en los contenedores de trabajadores.
 
 ## Reconstruir imágenes
 
@@ -185,7 +185,7 @@ CLOUDFLARE_API_TOKEN=your-token
 CLOUDFLARE_ACCOUNT_ID=your-account-id
 ```
 
-Ejecutar:
+Correr:
 
 ```bash
 ./scripts/pledge-report.sh --podman --env production --remote > ~/Desktop/pool-pledge-report.csv
@@ -204,7 +204,7 @@ npm run test:e2e:headless:podman -- tests/e2e/admin-dashboard.spec.ts --project=
 
 Esa suite enfocada es la verificación del navegador local preferida para cambios en la interfaz de usuario del administrador, como Crear nueva campaña, publicación de vista previa protegida, botón de información compartido/comportamiento de ayuda y diseño de barra lateral de Campañas responsiva.
 
-Para los comandos del lado del host que necesitan un sitio/trabajador respaldado por Podman sin asumir la persistencia de la pila separada, use [`scripts/podman-stack-run.sh`](../scripts/podman-stack-run.sh). `npm run test:security:podman` usa ese contenedor para iniciar la pila, ejecutar el paquete de seguridad y derribar la pila en una sola invocación.
+Para comandos del lado del host que necesitan un sitio/trabajador respaldado por Podman sin asumir persistencia de pila separada, use [`scripts/podman-stack-run.sh`](https://github.com/your-org/your-project/blob/main/scripts/podman-stack-run.sh). `npm run test:security:podman` usa ese contenedor para iniciar la pila, ejecutar el paquete de seguridad y derribar la pila en una sola invocación.
 
 El contenedor de trabajadores tiene por defecto `node:24-bookworm-slim`. Si la extracción de una imagen de Podman local se detiene pero la imagen de Playwright ya está almacenada en caché, el iniciador puede reutilizar `mcr.microsoft.com/playwright:v1.57.0-noble` como base del Nodo 24 para que el desarrollo aún coincida con el tiempo de ejecución del Nodo 24 de GitHub Actions.
 

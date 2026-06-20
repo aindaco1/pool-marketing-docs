@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-June 15, 2026
+June 20, 2026
 
 This document records the current localization structure for The Pool and the supported workflow for adding languages in a fork.
 
@@ -20,7 +20,7 @@ The immediate shipped secondary locale is Spanish, but the real goal is to make 
 The current i18n model covers:
 
 - structured locale config in [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml)
-- shared translation catalogs in [`_data/i18n/`](../_data/i18n)
+- shared translation catalogs in [`_data/i18n/`](https://github.com/your-org/your-project/tree/main/_data/i18n)
 - locale-aware URL helpers and a shared footer language switcher
 - localized public routes for:
   - `/`
@@ -104,8 +104,8 @@ Campaign pages are the main exception: they are generated from the campaign coll
 
 Shared site-owned strings live in one YAML file per locale:
 
-- [/_data/i18n/en.yml](../_data/i18n/en.yml)
-- [/_data/i18n/es.yml](../_data/i18n/es.yml)
+- [/_data/i18n/en.yml](https://github.com/your-org/your-project/blob/main/_data/i18n/en.yml)
+- [/_data/i18n/es.yml](https://github.com/your-org/your-project/blob/main/_data/i18n/es.yml)
 
 This includes:
 
@@ -136,7 +136,7 @@ Examples:
 - [terms.md](/docs/overview/terms-and-guidelines/)
 - [es/terms.md](/docs/overview/terms-and-guidelines/)
 - [creator-campaign-checklist.md](https://github.com/your-org/your-project/blob/main/creator-campaign-checklist.md)
-- [es/creator-campaign-checklist.md](../es/creator-campaign-checklist.md)
+- [es/creator-campaign-checklist.md](https://github.com/your-org/your-project/blob/main/es/creator-campaign-checklist.md)
 
 That same pattern should be used for future content-heavy pages.
 
@@ -169,23 +169,23 @@ Campaign collection routes are now generated in both locales, so the footer lang
 
 Shared locale helpers:
 
-- [/_includes/t.html](../_includes/t.html)
-- [/_includes/localized-url.html](../_includes/localized-url.html)
-- [/_includes/language-switcher.html](../_includes/language-switcher.html)
-- [/_includes/localized-date.html](../_includes/localized-date.html)
-- [/_includes/localized-datetime.html](../_includes/localized-datetime.html)
+- [/_includes/t.html](https://github.com/your-org/your-project/blob/main/_includes/t.html)
+- [/_includes/localized-url.html](https://github.com/your-org/your-project/blob/main/_includes/localized-url.html)
+- [/_includes/language-switcher.html](https://github.com/your-org/your-project/blob/main/_includes/language-switcher.html)
+- [/_includes/localized-date.html](https://github.com/your-org/your-project/blob/main/_includes/localized-date.html)
+- [/_includes/localized-datetime.html](https://github.com/your-org/your-project/blob/main/_includes/localized-datetime.html)
 
 Runtime locale payloads:
 
-- [/assets/i18n.json](../assets/i18n.json)
-- [/_includes/runtime-messages-json.html](../_includes/runtime-messages-json.html)
-- [assets/js/pool-config.js](../assets/js/pool-config.js)
+- [/assets/i18n.json](https://github.com/your-org/your-project/blob/main/assets/i18n.json)
+- [/_includes/runtime-messages-json.html](https://github.com/your-org/your-project/blob/main/_includes/runtime-messages-json.html)
+- [assets/js/pool-config.js](https://github.com/your-org/your-project/blob/main/assets/js/pool-config.js)
 
 Admin dashboard localization:
 
-- static admin shell copy in [/_layouts/admin.html](../_layouts/admin.html) uses the shared Liquid translation helper
+- static admin shell copy in [/_layouts/admin.html](https://github.com/your-org/your-project/blob/main/_layouts/admin.html) uses the shared Liquid translation helper
 - runtime admin copy is included in the full admin catalog emitted by `runtime-messages-json.html`
-- generated Settings and Campaigns fields come from Worker JSON, but [assets/js/admin-dashboard.js](../assets/js/admin-dashboard.js) localizes them with deterministic keys:
+- generated Settings and Campaigns fields come from Worker JSON, but [assets/js/admin-dashboard.js](https://github.com/your-org/your-project/blob/main/assets/js/admin-dashboard.js) localizes them with deterministic keys:
   - `settings_section_*` for top-level settings sidebar sections
   - `settings_field_*_label`, `settings_field_*_help`, and `settings_field_*_placeholder` for editable platform settings
   - `settings_readonly_*_label` and `settings_readonly_*_help` for platform read-only diagnostics and secret status rows
@@ -248,7 +248,7 @@ Full language support also needs:
 
 ## Recommended Fork Workflow
 
-1. Copy [/_data/i18n/en.yml](../_data/i18n/en.yml) to `/_data/i18n/{lang}.yml`.
+1. Copy [/_data/i18n/en.yml](https://github.com/your-org/your-project/blob/main/_data/i18n/en.yml) to `/_data/i18n/{lang}.yml`.
 2. Add the language to the `i18n` block in [/_config.yml](https://github.com/your-org/your-project/blob/main/_config.yml).
 3. Add localized public-page routes to `i18n.pages`.
 4. Add localized source pages for long-form content such as `/about/`, `/terms/`, `/manage/`, or curated community index pages where needed.

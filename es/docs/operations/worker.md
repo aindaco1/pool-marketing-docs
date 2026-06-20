@@ -10,9 +10,9 @@ lang: es
 
 ## Última actualización
 
-15 de junio de 2026
+20 de junio de 2026
 
-Cloudflare Worker se encarga de la canonicalización de pagos propios, la integración de Stripe, la gestión de promesas, la autenticación de seguidores con alcance de pedidos, los recordatorios de lanzamiento de próximas campañas, las vistas previas protegidas de campañas y las API del panel de administración del navegador privado.
+Cloudflare Worker se encarga de la canonicalización de pagos propios, la integración de Stripe, la gestión de promesas, la autenticación de seguidores con alcance de pedidos, los recordatorios de lanzamiento de próximas campañas, los recordatorios de checkout abandonado basados en consentimiento, los blasts a seguidores de campaña, las vistas previas protegidas de campañas y las API del panel de administración del navegador privado.
 
 Para el desarrollo local diario, prefiera la ruta Podman de raíz de repositorio:
 
@@ -63,7 +63,7 @@ El cálculo de impuestos ahora se dirige a través de una costura de proveedor e
 - `TAX_PROVIDER=nm_grt` utiliza el conjunto de datos inicial de Nuevo México suministrado y puede refinar las búsquedas de direcciones de calles de Nuevo México con la API gratuita EDAC GRT.
 - `TAX_PROVIDER=zip_tax` agrega búsquedas de EE. UU. a nivel local/jurisdiccional a través de ZIP.TAX y recurre a `offline_rules` para destinos fuera de EE. UU./CA
 
-La configuración del proveedor no secreto se refleja desde la raíz del repositorio `_config.yml` en [`wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) como `TAX_PROVIDER`, `TAX_ORIGIN_COUNTRY`, `TAX_USE_REGIONAL_ORIGIN`, `NM_GRT_API_BASE` y `ZIP_TAX_API_BASE`. Si habilita `zip_tax`, configure también `ZIP_TAX_API_KEY` como secreto de trabajador o en `worker/.dev.vars`. Actualice el archivo inicial de Nuevo México suministrado con `node ../scripts/update-nm-grt-starter.mjs`.
+La configuración del proveedor no secreto se refleja desde la raíz del repositorio `_config.yml` en [`wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) como `TAX_PROVIDER`, `TAX_ORIGIN_COUNTRY`, `TAX_USE_REGIONAL_ORIGIN`, `NM_GRT_API_BASE` y `ZIP_TAX_API_BASE`. Si habilita `zip_tax`, configure también `ZIP_TAX_API_KEY` como secreto de trabajador o en [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars). Actualice el archivo inicial de Nuevo México suministrado con `node ../scripts/update-nm-grt-starter.mjs`.
 
 En el flujo actual del navegador, se permite intencionalmente que las vistas previas de impuestos permanezcan provisionales. Si el carrito o el pago personalizado aún no tiene suficientes datos de ubicación, el sitio muestra `--` y espera a que `/tax/quote` o `/checkout-intent/start` finalicen el resultado del impuesto. Las búsquedas de Nuevo México son la ruta integrada más exacta en este momento y normalmente necesitan datos completos de direcciones a nivel de calle, no solo código postal/estado, antes de que el trabajador pueda devolver un resultado de GRT local confiable.
 
@@ -76,9 +76,11 @@ Los informes de los ejecutores de campaña utilizan la zona horaria de la plataf
 
 Los recordatorios del próximo lanzamiento de campaña también se ejecutan en el programador de minutos. Las páginas de campañas públicas recopilan recordatorios explícitos por correo electrónico solo mientras se aproxima una campaña; El trabajador almacena claves de registro hash con alcance de campaña, pone en cola un trabajo de envío cuando esa campaña se activa y envía a través del módulo de correo electrónico de reenvío existente con el remitente de las actualizaciones. La cola de envío mantiene el estado `launch-reminder-dispatch-queue:v1`, por lo que los ticks programados inactivos omiten los análisis del espacio de nombres de envío; los trabajos en cola marcan el estado pendiente inmediatamente y el estado inactivo vence cada hora para compatibilidad con los trabajos insertados manualmente. La ruta del recordatorio no agrega una segunda integración de API de reenvío.
 
+Los recordatorios de checkout abandonado usan el mismo patrón de presupuesto. El navegador muestra una casilla explícita de un solo recordatorio solo en la superficie de contacto del checkout propio personalizado, y `/checkout-intent/start` pone en cola `abandoned-cart:{orderId}` solo después de que Stripe crea correctamente la Checkout Session. La persistencia exitosa del webhook elimina el registro de recordatorio de ese mismo pedido. El pase programado lee primero `abandoned-cart-queue:v1` y omite listas de espacio de nombres cuando está inactivo o antes del siguiente vencimiento; cuando corresponde, procesa un lote acotado, revisa el índice de promesas de campaña para evitar enviar correo a seguidores que completaron desde otro pedido, escribe un marcador enviado por conjunto de correo/campaña y envía a través del módulo compartido de Resend con tokens firmados de `/abandoned-cart/unsubscribe` y enlace de reanudación. El `ABANDONED_CART_TOKEN_SECRET` opcional recurre a `MAGIC_LINK_SECRET`.
+
 Los reintentos de correo electrónico de confirmación del colaborador utilizan el mismo patrón de nivel gratuito. Los envíos fallidos escriben `supporter-email-retry:{orderId}` más `supporter-email-retry-queue:v1` y el pase de reintento programado omite los escaneos de la lista KV mientras la cola está inactiva o antes de que venza el siguiente reintento.
 
-La optimización de los medios de las páginas de campañas públicas sigue siendo una preocupación del sitio estático más que una preocupación del tiempo de ejecución de los trabajadores. El trabajador conserva las cargas del panel como archivos fuente y envía el optimizador del repositorio para las cargas de imágenes/videos confirmadas; Las plantillas Jekyll, el optimizador de medios del repositorio y el paso de implementación del artefacto manejan variantes WebP responsivas, fachadas de carteles de héroes locales de YouTube y minificación CSS/JS generada antes de que se publique el artefacto de páginas públicas.
+La optimización de los medios de las páginas de campañas públicas sigue siendo una preocupación del sitio estático más que una preocupación del tiempo de ejecución de los trabajadores. El trabajador conserva las cargas del panel como archivos fuente y envía el optimizador del repositorio para las cargas de imágenes/videos confirmadas; Las plantillas Jekyll, el optimizador de medios del repositorio y el paso de implementación del artefacto manejan variantes WebP responsivas, fachadas de carteles de héroes locales de YouTube y minificación CSS/JS generada antes de que se publique el artefacto de páginas públicas. Las cargas de imágenes de anuncios Blast reutilizan el tipo y directorio de carga de contenido de campaña, por lo que las imágenes de correo se alojan bajo `assets/images/campaigns/<slug>/` y se optimizan mediante el mismo flujo de trabajo del repositorio en lugar de agregar procesamiento de imágenes del lado del Worker o estado KV extra.
 
 La frecuencia de muestreo predeterminada es `0.1` y se puede anular con `OBSERVABILITY_SAMPLE_RATE=0.05` (o cualquier valor de `0-1`) si una bifurcación desea menos o más escrituras de tiempo muestreadas.
 
@@ -88,13 +90,22 @@ Antes de mutar algo, los operadores ahora pueden ejecutar comprobaciones de deri
 
 - `POST /stats/:slug/check`
 - `POST /admin/projections/check`
-- [`scripts/check-projections.sh`](../scripts/check-projections.sh) desde la raíz del repositorio
+- [`scripts/check-projections.sh`](https://github.com/your-org/your-project/blob/main/scripts/check-projections.sh) desde la raíz del repositorio
 
 Esas comprobaciones comparan las proyecciones almacenadas `campaign-pledges:{slug}`, `stats:{slug}` y `tier-inventory:{slug}` con la verdad del compromiso activo y devuelven una diferencia estructurada en lugar de un estado de reparación silenciosa.
 
 La misma regla de "verdad guardada sobre el estado del borrador" ahora se aplica a los complementos de la plataforma: `_config.yml` define la línea base de inventario inicial para cada producto o variante, mientras que las tiendas Worker venden recuentos en `add-on-inventory-sold:v1`, actualiza esa proyección después de los eventos de creación, modificación o cancelación de promesas, y evita escaneos repetidos del espacio de nombres de promesas para lecturas normales de inventario después del arranque de la proyección inicial.
 
 ## Configuración
+
+Para una configuración guiada y multiplataforma desde la raíz del repositorio, prefiera:
+
+```bash
+npm run setup:deploy -- --mode=local
+npm run setup:deploy -- --mode=production --dry-run
+```
+
+El helper comprueba autenticación de `gh`, `wrangler` y Stripe CLI opcional, sincroniza `_config.yml` hacia esta configuración del Worker, crea espacios de nombres KV, actualiza `wrangler.toml`, escribe secretos del Worker, escribe secretos del repositorio de GitHub y puede desplegar cuando se pasa `--deploy`. Revise primero el dry run; los secretos de producción se solicitan/generan por separado y no se copian desde `.dev.vars` locales ignorados.
 
 ### 1. Cree espacios de nombres KV
 
@@ -111,7 +122,7 @@ Actualice `wrangler.toml` con los ID devueltos.
 
 ### 2. Configurar secretos
 
-Los secretos del desarrollo local viven en `worker/.dev.vars` ignorados. La ruta de configuración más segura es:
+Los secretos del desarrollo local viven en [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars) ignorado. La ruta de configuración más segura es:
 
 ```bash
 npm run secrets:dev
@@ -177,6 +188,10 @@ wrangler secret put CLOUDFLARE_USAGE_API_TOKEN
 wrangler secret put LAUNCH_REMINDER_TURNSTILE_SECRET_KEY
 wrangler secret put LAUNCH_REMINDER_TOKEN_SECRET
 
+# Opcional: secreto dedicado de token para recordatorios de checkout abandonado.
+# Recurre a MAGIC_LINK_SECRET cuando se omite.
+wrangler secret put ABANDONED_CART_TOKEN_SECRET
+
 # USPS OAuth secret (keep the client id in site config)
 wrangler secret put USPS_CLIENT_SECRET
 
@@ -194,8 +209,8 @@ El pago personalizado requiere la clave publicable de Stripe correspondiente par
 
 La configuración de USPS para este repositorio se divide intencionalmente:
 
-- mantenga `shipping.usps.client_id` en la raíz del repositorio [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) o `_config.local.yml`
-- mantener `USPS_CLIENT_SECRET` en Secretos de trabajador o `worker/.dev.vars`
+- mantenga `shipping.usps.client_id` en la raíz del repositorio [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) o [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml)
+- mantener `USPS_CLIENT_SECRET` en Secretos de trabajador o [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars)
 - Si desea señalar al trabajador en USPS TEM para realizar pruebas, configure también `shipping.usps.api_base` o `USPS_API_BASE`.
 
 Actualmente, The Pool solo necesita USPS OAuth más el conjunto de productos predeterminado de opciones de precio/envío para el cálculo de cotizaciones en vivo. **No** requiere la configuración de etiquetas/envío/EPA de USPS a menos que el proyecto crezca posteriormente hasta convertirse en la generación de etiquetas.
@@ -321,7 +336,7 @@ Requiere autenticación de administrador y devuelve si el índice de campaña al
 ### POST /admin/projections/check
 Ejecute la misma verificación de deriva de solo lectura en todas las campañas.
 
-Este es el punto final del lado del trabajador que impulsa [`scripts/check-projections.sh`](../scripts/check-projections.sh) y las nuevas afirmaciones de humo de compromiso mutable.
+Este es el punto final del lado del trabajador que impulsa [`scripts/check-projections.sh`](https://github.com/your-org/your-project/blob/main/scripts/check-projections.sh) y las nuevas afirmaciones de humo de compromiso mutable.
 
 ## Notas de seguridad del contenido
 
@@ -426,7 +441,7 @@ Los shells privados `/admin/` y `/es/admin/` utilizan rutas de trabajo respaldad
 - `POST /admin/campaigns/archive` permite que los superadministradores archiven campañas no activas localmente en desarrollo o mediante el despacho de `.github/workflows/archive-campaign.yml` en producción; el Worker valida CSRF, rol, slug, existencia de campaña y estado efectivo, registra un evento de auditoría y mueve el código fuente/medios de la campaña mediante el helper local del repositorio o GitHub Actions
 - `POST /admin/campaign-preview/publish` permite que los superadministradores y usuarios de campaña asignados publiquen una vista previa protegida, guarda el administrador publicador y los correos opcionales de revisores en `campaign-preview-reviewers:{slug}` con TTL de 24 horas, devuelve un enlace firmado de vista previa para el administrador publicador, envía enlaces firmados a los revisores opcionales, escribe solo flags de vista previa en el Markdown de campaña y registra un evento de auditoría
 - `GET /admin/campaign-preview/:slug` devuelve una carga privada/no-store de vista previa completa de la página de campaña, con fuentes, embeds de medios y controles de promesa de solo lectura, cuando quien solicita tiene una sesión de administrador autorizada o un token de revisor válido cuyo correo todavía está en la allowlist KV de 24 horas
-- `GET /admin/analytics` lee métricas de ingresos, estado, idioma, referencias y división de campaña/plataforma derivadas de compromisos con alcance de rol sin escribir el estado analítico; La presentación de la moneda en el tablero mantiene los centavos exactos.
+- `GET /admin/analytics` lee métricas de ingresos, estado, idioma, referencias, UTM source/medium/campaign/content y división de campaña/plataforma derivadas de compromisos con alcance de rol sin escribir el estado analítico; La presentación de la moneda en el tablero mantiene los centavos exactos.
 - `GET /admin/plan-usage` permite a los superadministradores cargar Cloudflare y el uso del plan de reenvío desde las API del proveedor sin exponer los tokens del proveedor al navegador ni escribir el estado de KV; el panel lo carga automáticamente cuando se abre Configuración -> Uso del plan
 - `POST /admin/analytics/stripe-financials/backfill` permite a los superadministradores reponer los valores netos y de tarifas de Stripe reales a partir de las transacciones de saldo de Stripe para las promesas cobradas, utilizando índices de promesas de campaña en lugar de escaneos de listas de KV.
 - `GET /admin/content/campaign?campaignSlug=...` carga contenido de campaña con alcance de roles en el editor del navegador sin conservar un borrador
@@ -438,10 +453,17 @@ Los shells privados `/admin/` y `/es/admin/` utilizan rutas de trabajo respaldad
 - `GET /admin/marketing/referrals?campaignSlug=...` enumera los códigos de referencia de campaña guardados sin escribir ni escanear la verdad del compromiso
 - `POST /admin/marketing/referrals` guarda o actualiza explícitamente un código de referencia de campaña con protección CSRF y una escritura KV con alcance de campaña.
 - `DELETE /admin/marketing/referrals` elimina explícitamente un código de referencia de campaña guardado con protección CSRF y una escritura KV con alcance de campaña.
+- `GET /admin/marketing/draft?campaignSlug=...&surface=marketing|blast`, `POST /admin/marketing/draft` y `DELETE /admin/marketing/draft` proporcionan carga/guardado/borrado explícitos de borradores compartidos de Marketing/Blast con TTL de 7 días, protección contra conflictos de revisión y una escritura KV con alcance de campaña solo al guardar/borrar
+- `GET /admin/media/library?campaignSlug=...` lista imágenes de campaña existentes para bloques de imagen WYSIWYG mediante lecturas de directorios de GitHub; los usuarios de campaña permanecen limitados a su campaña, y los superadministradores también pueden ver imágenes compartidas/predeterminadas
+- `GET /admin/abandoned-checkout/health?campaignSlug=...` lee salud agregada de recordatorios de checkout abandonado sin listas KV; los resultados de supresión creados por admins incluyen el correo suprimido para que los admins de campaña puedan borrarlos desde la tabla de resultados recientes
+- `POST /admin/abandoned-checkout/suppression` y `DELETE /admin/abandoned-checkout/suppression` establecen o borran explícitamente una supresión de recordatorio de checkout abandonado con alcance de campaña, protección CSRF, identificadores de correo hasheados, eventos de auditoría y escrituras KV acotadas
+- `GET /abandoned-cart/resume?t=...` verifica un token firmado, lee el snapshot de corta duración `abandoned-cart-resume:{orderId}` creado después de enviar un recordatorio y devuelve solo datos sanitizados de borrador de carrito/contacto para que el navegador pueda iniciar una sesión nueva de checkout
+- `GET /admin/marketing/announcements?campaignSlug=...` lee historial reciente de Blast enviados desde registros acotados de auditoría administrativa para la campaña seleccionada
+- `POST /admin/marketing/announcement` ejecuta prueba, envío de prueba o envío real de un mensaje Campaigns -> Blast con sesión del panel, comprobaciones CSRF/origen, validación de audiencia indexada, exigencia del hash de prueba correspondiente para envíos reales y una escritura de auditoría después del despacho
 - `GET /admin/add-ons/inventory` lee el estado inicial, vendido, restante y de anulación del complemento de plataforma para superadministradores
 - `POST /admin/add-ons/inventory` establece, reabastece o restablece explícitamente las anulaciones de la línea base del inventario de complementos de la plataforma con protección CSRF y registro de auditoría
 
-Las lecturas normales del panel, los filtros de seguidores, la paginación, los análisis derivados de promesas, las listas de referencias de marketing, las vistas previas de informes, las descargas de CSV, las cargas de contenido, las lecturas de cargas de vista previa protegida, las vistas previas de contenido y los borradores del editor local están diseñados para agregar escrituras de KV cero y operaciones de lista de KV cero. Las cargas de uso del plan también son de solo lectura KV, pero llaman intencionalmente a las API del proveedor de Cloudflare y Reenvío una vez cuando un superadministrador abre Configuración -> Uso del plan. Los guardados de usuarios iniciados por el navegador, los guardados de referencias de marketing, las publicaciones de contenido, las publicaciones de vista previa, la creación de nuevas campañas, las operaciones de archivado de campañas y los cambios de inventario son mutaciones explícitas: los guardados de usuarios escriben `admin-users:v1`, los guardados de referencias escriben una lista de referencias con alcance de campaña, las publicaciones de contenido hacen commit en GitHub, activan el flujo de trabajo de reconstrucción y escriben un evento de auditoría, las publicaciones de vista previa escriben una allowlist de acceso efímera `campaign-preview-reviewers:{slug}` más un evento de auditoría, la creación de una campaña nueva puede escribir `admin-users:v1` más un evento de auditoría además del archivo Markdown de campaña, y el archivado escribe un evento de auditoría mientras el desarrollo local o `.github/workflows/archive-campaign.yml` mueve el código fuente/medios a `archive/campaigns/<slug>/`. Si a una campaña anterior le falta su proyección `campaign-pledges:{slug}`, los puntos finales del panel devuelven cero filas o `campaign_index_required` en lugar de recurrir a un escaneo de espacio de nombres; ejecute las herramientas de reparación/reconstrucción de proyecciones existentes explícitamente cuando eso suceda.
+Las lecturas normales del panel, los filtros de seguidores, la paginación, los análisis derivados de promesas, las listas de referencias de marketing, la salud de checkout abandonado, las cargas del selector de medios, las vistas previas de informes, las descargas de CSV, las cargas de contenido, las lecturas de cargas de vista previa protegida, las vistas previas de contenido, las pruebas de Blast y los borradores del editor local están diseñados para agregar escrituras de KV cero y operaciones de lista de KV cero. Las cargas de uso del plan también son de solo lectura KV, pero llaman intencionalmente a las API del proveedor de Cloudflare y Reenvío una vez cuando un superadministrador abre Configuración -> Uso del plan. Los guardados de usuarios iniciados por el navegador, los guardados de referencias de marketing, los guardados/borrados de borradores compartidos, las mutaciones de supresión de checkout abandonado con alcance, los envíos reales de Blast, las publicaciones de contenido, las publicaciones de vista previa, la creación de nuevas campañas, las operaciones de archivado de campañas y los cambios de inventario son mutaciones explícitas: los guardados de usuarios escriben `admin-users:v1`, los guardados de referencias escriben una lista de referencias con alcance de campaña, los guardados de borrador compartido escriben un registro de borrador de 7 días, las supresiones de recordatorio con alcance escriben/eliminan un registro de supresión más actualizaciones de auditoría/salud, los envíos reales de Blast escriben un evento de auditoría después del despacho, las publicaciones de contenido hacen commit en GitHub, activan el flujo de trabajo de reconstrucción y escriben un evento de auditoría, las publicaciones de vista previa escriben una allowlist de acceso efímera `campaign-preview-reviewers:{slug}` más un evento de auditoría, la creación de una campaña nueva puede escribir `admin-users:v1` más un evento de auditoría además del archivo Markdown de campaña, y el archivado escribe un evento de auditoría mientras el desarrollo local o `.github/workflows/archive-campaign.yml` mueve el código fuente/medios a `archive/campaigns/<slug>/`. Los envíos de recordatorio de checkout abandonado también escriben un registro efímero `abandoned-cart-resume:{orderId}` para que el CTA firmado del correo pueda restaurar un borrador sanitizado de checkout del navegador sin agregar escaneos de cola. Si a una campaña anterior le falta su proyección `campaign-pledges:{slug}`, los puntos finales de lectura del panel devuelven cero filas o un aviso no bloqueante de índice faltante en lugar de recurrir a un escaneo de espacio de nombres; ejecute las herramientas de reparación/reconstrucción de proyecciones existentes explícitamente cuando eso suceda.
 
 Los inicios/intercambios de autenticación de administrador y las mutaciones de administrador de navegador tienen una velocidad limitada a través del enlace `RATELIMIT` y devuelven fallas privadas/sin almacenamiento cuando se aceleran. Las lecturas autenticadas normales, como comprobaciones de sesiones, resúmenes de paneles, filtros de soporte, vistas previas de informes, vistas de análisis y vistas previas de contenido, no están limitadas intencionalmente por la velocidad de KV. Los tokens de inicio de sesión de Magic-link son de un solo uso y las lecturas de sesión no actualizan las sesiones cercanas a su vencimiento ni limpian las sesiones vencidas en la ruta de lectura. Las mutaciones de administrador respaldadas por cookies requieren tanto el token CSRF de sesión como un contexto de recuperación confiable del mismo sitio `Origin`/`Referer` o que no sea entre sitios antes de escrituras duraderas.
 
@@ -449,7 +471,7 @@ Cuando se configura `TURNSTILE_SECRET_KEY`, `POST /admin/auth/start` verifica el
 
 El inventario complementario de la plataforma utiliza `_config.yml` como línea base configurada, el estado KV `add-on-inventory-overrides` opcional para reabastecimientos del operador y `add-on-inventory-sold:v1` para recuentos vendidos derivados de la verdad del compromiso guardado. Las vistas de la página de inventario del administrador no cargan la tabla de inventario automáticamente; la lectura del inventario del superadministrador es explícita y utiliza la proyección del recuento de ventas después del arranque, mientras que las acciones de configuración/reabastecimiento/restablecimiento escriben solo el estado de anulación más un evento de auditoría.
 
-La sección de la herramienta de marketing mantiene la creación de URL de la campaña, los parámetros UTM/referencia, los accesos directos del creador de incrustaciones, las preferencias de campos locales y los fragmentos de copia en el estado del navegador. Los códigos de referencia guardados son independientes: enumerarlos es una llamada de trabajador con alcance de campaña de solo lectura y guardar uno es una mutación explícita.
+La sección de la herramienta de marketing mantiene la creación de URL de la campaña, los parámetros UTM/referencia, los accesos directos del creador de incrustaciones, las preferencias de campos locales, las vistas previas/descargas QR y las ediciones de campos sin guardar en el estado del navegador. Los códigos de referencia guardados y los borradores compartidos son independientes: listar referencias es de solo lectura, guardar referencias y guardar borradores compartidos son mutaciones KV explícitas con alcance de campaña, y los guardados de borrador compartido obsoletos fallan si la revisión no coincide. Los informes de rendimiento de referencia/UTM pertenecen a Analytics y permanecen en modo de solo lectura. Las ediciones locales de Blast permanecen en el navegador salvo que se guarden explícitamente como borrador compartido; la carga de imágenes es una mutación explícita de medios respaldada por GitHub antes de envíos de prueba/reales, las pruebas usan el índice de promesas de campaña sin listas ni escrituras KV, y los envíos reales escriben solo el evento de auditoría requerido después del despacho.
 
 ### POST /admin/broadcast/diary
 Envíe una notificación de actualización del diario a todos los partidarios de la campaña. Requiere el encabezado `x-admin-key`.
@@ -592,7 +614,7 @@ curl -X POST https://worker.example.com/test/email \
 |`PLATFORM_COMPANY_NAME`|Nombre de la empresa/autor de la plataforma utilizado para la copia de sugerencias de la plataforma|
 |`SUPPORT_EMAIL`|Contacto de soporte reflejado desde la configuración del sitio|
 |`PLEDGES_EMAIL_FROM`|Identidad del remitente de correos electrónicos relacionados con promesas; su dominio debe estar autorizado en Reenviar|
-|`UPDATES_EMAIL_FROM`|Identidad del remitente para correos electrónicos de actualización/hitos/anuncios; su dominio debe estar autorizado en Reenviar|
+|`UPDATES_EMAIL_FROM`|Identidad del remitente para correos electrónicos de actualización/hitos/Blast/anuncios; su dominio debe estar autorizado en Reenviar|
 |`EMAIL_LOGO_PATH`|Ruta del logotipo de correo electrónico del colaborador reflejada desde `platform.logo_path`|
 |`EMAIL_FONT_FAMILY`|Pila de fuentes del cuerpo del correo electrónico del colaborador reflejada desde `design.font_body`|
 |`EMAIL_HEADING_FONT_FAMILY`|Pila de fuentes de encabezado de correo electrónico de apoyo reflejada desde `design.font_display`|
@@ -646,17 +668,18 @@ curl -X POST https://worker.example.com/test/email \
 |`LAUNCH_REMINDER_TOKEN_SECRET`|Secreto de firma de token de cancelación de suscripción opcional; vuelve a `MAGIC_LINK_SECRET`|
 |`LAUNCH_REMINDER_DISPATCH_BATCH_SIZE`|Anulación opcional del tamaño del lote de envío de recordatorio por trabajo|
 |`LAUNCH_REMINDER_DISPATCH_JOB_LIMIT`|Número opcional de trabajos de envío de recordatorios para procesar por tick programado|
+|`ABANDONED_CART_TOKEN_SECRET`|Secreto opcional de token para recordatorios de checkout abandonado, usado por enlaces de cancelación de suscripción y reanudación; recurre a `MAGIC_LINK_SECRET`|
 |`INTENT_PREFETCH_ENABLED`|Indicador habilitado de captación previa de intención de documento público reflejado desde la configuración del sitio|
 |`INTENT_PREFETCH_DELAY_MS`|Retraso de desplazamiento/enfoque antes de que comience la captación previa de documentos públicos|
 |`INTENT_PREFETCH_LIMIT`|Precargas máximas de documentos públicos por vista de página|
 
 Cuando `SITE_BASE` apunta al desarrollador local (`localhost` / `127.0.0.1`), las imágenes de correo electrónico incrustadas aún regresan a la base de activos pública `https://site.example.com` para que los clientes de la bandeja de entrada no reciban URL de imágenes de host local rotas.
 
-El ritmo de reenvío se centraliza como `RESEND_RATE_LIMIT_DELAY_MS` en `worker/src/email.js` y se reutiliza en transmisiones de seguidores, informes y envío de recordatorios de lanzamiento. Mantenga los nuevos flujos de trabajo de correo electrónico en la ruta compartida `sendResendEmail`/generador de carga útil para que la identidad del remitente, la localización, la marca y el comportamiento del límite de velocidad no se desvíen.
+El ritmo de reenvío se centraliza como `RESEND_RATE_LIMIT_DELAY_MS` en `worker/src/email.js` y se reutiliza en transmisiones de seguidores, informes, recordatorios de lanzamiento, recordatorios de checkout abandonado y envíos de Campaigns -> Blast. Mantenga los nuevos flujos de trabajo de correo electrónico en la ruta compartida `sendResendEmail`/generador de carga útil para que la identidad del remitente, la localización, la marca y el comportamiento del límite de velocidad no se desvíen.
 
 Nota de bifurcación: trate esas variables de identidad, marca de correo electrónico, precios y envío como espejos de la configuración estructurada del sitio en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml), especialmente las secciones `platform`, `design`, `pricing` y `shipping`. El carrito/tiempo de ejecución propios y la interfaz de usuario de pago en el sitio personalizada son comportamientos integrados de la plataforma ahora, no opciones de entorno de trabajo que normalmente debería personalizar directamente.
 
-Mantenga `USPS_CLIENT_SECRET` fuera de la configuración del sitio. Pertenece a Secretos de trabajador o `worker/.dev.vars`.
+Mantenga `USPS_CLIENT_SECRET` fuera de la configuración del sitio. Pertenece a Secretos de trabajador o [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars).
 
 Nota de localización: el trabajador ahora localiza los asuntos/el cuerpo del correo electrónico dirigidos a los seguidores y los enlaces `/manage/` / `/community/:slug/` localizados desde el catálogo de configuración regional del sitio compartido. En funcionamiento normal, recupera ese catálogo de `SITE_BASE/assets/i18n.json`; las pruebas y las implementaciones avanzadas pueden inyectar `I18N_CATALOG_JSON` en su lugar. Eso significa que los correos electrónicos de soporte localizados y las rutas localizadas como `/es/manage/` o `/es/community/:slug/` permanecen alineadas con el modelo local del sitio cuando una implementación agrega esas rutas.
 

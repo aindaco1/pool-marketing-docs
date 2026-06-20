@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-15 de junio de 2026
+20 de junio de 2026
 
 Este documento registra la estructura de localización actual de The Pool y el flujo de trabajo admitido para agregar idiomas en una bifurcación.
 
@@ -21,7 +21,7 @@ La ubicación secundaria enviada inmediatamente es español, pero el objetivo re
 El modelo i18n actual cubre:
 
 - configuración regional estructurada en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml)
-- catálogos de traducción compartidos en [`_data/i18n/`](../_data/i18n)
+- catálogos de traducción compartidos en [`_data/i18n/`](https://github.com/your-org/your-project/tree/main/_data/i18n)
 - asistentes de URL con reconocimiento regional y un selector de idioma de pie de página compartido
 - rutas públicas localizadas para:
   - `/`
@@ -105,8 +105,8 @@ Las páginas de campaña son la principal excepción: se generan a partir de la 
 
 Las cadenas compartidas propiedad del sitio se encuentran en un archivo YAML por configuración regional:
 
-- [/_data/i18n/en.yml](../_data/i18n/en.yml)
-- [/_data/i18n/es.yml](../_data/i18n/es.yml)
+- [/_data/i18n/en.yml](https://github.com/your-org/your-project/blob/main/_data/i18n/en.yml)
+- [/_data/i18n/es.yml](https://github.com/your-org/your-project/blob/main/_data/i18n/es.yml)
 
 Esto incluye:
 
@@ -137,7 +137,7 @@ Ejemplos:
 - [términos.md](/es/docs/overview/terms-and-guidelines/)
 - [es/terms.md](/es/docs/overview/terms-and-guidelines/)
 - [lista-de-verificación-de-campaña-de-creadores.md](https://github.com/your-org/your-project/blob/main/creator-campaign-checklist.md)
-- [es/creator-campaign-checklist.md](../es/creator-campaign-checklist.md)
+- [es/creator-campaign-checklist.md](https://github.com/your-org/your-project/blob/main/es/creator-campaign-checklist.md)
 
 Ese mismo patrón debería usarse para futuras páginas con mucho contenido.
 
@@ -170,23 +170,23 @@ Las rutas de recopilación de campañas ahora se generan en ambas configuracione
 
 Ayudantes locales compartidos:
 
-- [/_includes/t.html](../_includes/t.html)
-- [/_includes/localized-url.html](../_includes/localized-url.html)
-- [/_includes/language-switcher.html](../_includes/language-switcher.html)
-- [/_includes/fecha-localizada.html](../_includes/fecha-localizada.html)
-- [/_includes/localized-datetime.html](../_includes/localized-datetime.html)
+- [/_includes/t.html](https://github.com/your-org/your-project/blob/main/_includes/t.html)
+- [/_includes/localized-url.html](https://github.com/your-org/your-project/blob/main/_includes/localized-url.html)
+- [/_includes/language-switcher.html](https://github.com/your-org/your-project/blob/main/_includes/language-switcher.html)
+- [/_includes/fecha-localizada.html](https://github.com/your-org/your-project/blob/main/_includes/localized-date.html)
+- [/_includes/localized-datetime.html](https://github.com/your-org/your-project/blob/main/_includes/localized-datetime.html)
 
 Cargas útiles de configuración regional en tiempo de ejecución:
 
-- [/assets/i18n.json](../assets/i18n.json)
-- [/_includes/runtime-messages-json.html](../_includes/runtime-messages-json.html)
-- [activos/js/pool-config.js](../assets/js/pool-config.js)
+- [/assets/i18n.json](https://github.com/your-org/your-project/blob/main/assets/i18n.json)
+- [/_includes/runtime-messages-json.html](https://github.com/your-org/your-project/blob/main/_includes/runtime-messages-json.html)
+- [activos/js/pool-config.js](https://github.com/your-org/your-project/blob/main/assets/js/pool-config.js)
 
 Localización del panel de administración:
 
-- La copia estática del shell de administración en [/_layouts/admin.html](../_layouts/admin.html) utiliza el asistente de traducción Liquid compartido
+- La copia estática del shell de administración en [/_layouts/admin.html](https://github.com/your-org/your-project/blob/main/_layouts/admin.html) usa el asistente de traducción Liquid compartido
 - La copia de administración en tiempo de ejecución está incluida en el catálogo de administración completo emitido por `runtime-messages-json.html`.
-- Los campos de Configuración y Campañas generados provienen de Worker JSON, pero [assets/js/admin-dashboard.js](../assets/js/admin-dashboard.js) los localiza con claves deterministas:
+- Los campos de Configuración y Campañas generados provienen de Worker JSON, pero [assets/js/admin-dashboard.js](https://github.com/your-org/your-project/blob/main/assets/js/admin-dashboard.js) los localiza con claves deterministas:
   - `settings_section_*` para secciones de la barra lateral de configuración de nivel superior
   - `settings_field_*_label`, `settings_field_*_help` y `settings_field_*_placeholder` para configuraciones de plataforma editables
   - `settings_readonly_*_label` y `settings_readonly_*_help` para diagnósticos de solo lectura de plataforma y filas de estado secreto
@@ -249,7 +249,7 @@ El soporte completo de idiomas también necesita:
 
 ## Flujo de trabajo de bifurcación recomendado
 
-1. Copie [/_data/i18n/en.yml](../_data/i18n/en.yml) a `/_data/i18n/{lang}.yml`.
+1. Copie [/_data/i18n/en.yml](https://github.com/your-org/your-project/blob/main/_data/i18n/en.yml) a `/_data/i18n/{lang}.yml`.
 2. Agregue el idioma al bloque `i18n` en [/_config.yml](https://github.com/your-org/your-project/blob/main/_config.yml).
 3. Agregue rutas de páginas públicas localizadas a `i18n.pages`.
 4. Agregue páginas de origen localizadas para contenido de formato largo como `/about/`, `/terms/`, `/manage/` o páginas de índice de la comunidad seleccionadas cuando sea necesario.

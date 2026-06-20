@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-15 de junio de 2026
+20 de junio de 2026
 
 Este documento es la referencia del operador para el panel de administración privado de The Pool y debe ser tratado como la fuente de verdad para la edición de campañas, informes, análisis, enlaces de marketing, complementos y administración de usuarios basados ​​en el panel.
 
@@ -86,11 +86,11 @@ El orden del panel de nivel superior es:
 
 1. **Configuración**: configuración de plataforma, marca/SEO, precios, impuestos, envío, informes de ejecución, diseño, usuarios, rendimiento, uso del plan, depuración, estado de credenciales y diagnóstico de tiempo de ejecución.
 2. **Complementos**: disponibilidad de complementos de la plataforma y detalles del producto, visibles solo para superadministradores.
-3. **Campañas**: configuración de campaña con alcance de función, contenido de la página, recompensas, complementos de campaña, objetivos ambiciosos, elementos en curso, entradas del diario y decisiones.
+3. **Campañas**: configuración de campaña con alcance de función, contenido de la página, recompensas, complementos de campaña, objetivos ambiciosos, elementos en curso, entradas del diario, decisiones y blasts de correo para seguidores.
 4. **Análisis**: análisis de cartera y campañas derivadas de promesas.
 5. **Informes**: vista previa/descarga CSV para informes de compromiso y cumplimiento.
 6. **Colaboradores**: navegación, filtrado, clasificación y exportación CSV de los colaboradores según el rol.
-7. **Marketing**: creador de URL de referencia, códigos de referencia guardados, fragmentos de lanzamiento y controles del generador de inserción.
+7. **Marketing**: creador de URL de referencia, códigos de referencia guardados, códigos QR de campaña descargables y controles del generador de inserción.
 
 ## Ajustes
 
@@ -264,7 +264,7 @@ Los tipos de bloques admitidos incluyen:
 - incrustar
 - divisor
 
-El editor admite comandos de barra diagonal, deshacer con el teclado para cambios de bloques, formato en línea estilo Markdown, enlaces, listas desordenadas/ordenadas, controles de alineación, configuraciones de medios y vista previa móvil. **Guardar borrador** almacena un borrador local del navegador. **Publicar** valida y escribe a través del Trabajador.
+El editor admite controles de inserción de bloques, deshacer con el teclado para cambios de bloques, formato en línea estilo Markdown, enlaces, listas desordenadas/ordenadas, controles de alineación, configuraciones de medios y vista previa móvil. **Guardar borrador** almacena un borrador local del navegador. **Publicar** valida y escribe a través del Trabajador.
 
 Los bloques de vídeo subidos pueden incluir una imagen de póster explícita. Cuando no se establece ningún póster, el panel y la página de la campaña pública generan un póster en el navegador a partir del primer cuadro del video mientras mantienen el video reproducible cargado de forma diferida hasta que el usuario presiona reproducir.
 
@@ -329,22 +329,41 @@ La pestaña Partidarios muestra filas de seguidores con alcance de rol con filtr
 
 Los análisis se derivan de índices de compromisos y resúmenes de campañas existentes. No debería crear escrituras KV específicas de análisis en la vista.
 
-El panel muestra tarjetas con los totales de promesas, categorías de ingresos, ingresos netos después de las tarifas de procesador asignadas, impuestos, envío, tarifas de Stripe, estado de la promesa, patrocinadores, promesa promedio, complementos de campaña, atribución de referencia, fuente UTM, tipo de cumplimiento, idioma y otros desgloses derivados de la promesa. Los valores monetarios muestran centavos exactos.
+El panel muestra tarjetas con los totales de promesas, categorías de ingresos, ingresos netos después de las tarifas de procesador asignadas, impuestos, envío, tarifas de Stripe, estado de la promesa, patrocinadores, promesa promedio, complementos de campaña, atribución de referencia, UTM source/medium/campaign/content, tipo de cumplimiento, idioma y otros desgloses derivados de la promesa. Los valores monetarios muestran centavos exactos.
+
+Si a una campaña le falta su proyección `campaign-pledges:<slug>`, Analytics permanece en modo de solo lectura, devuelve una fila de campaña en cero y muestra un aviso no bloqueante de índice faltante en lugar de listar la verdad de promesas o fallar la pestaña Marketing.
 
 Los ingresos brutos de la campaña y los ingresos de la plataforma permanecen visibles para la conciliación. Los ingresos netos de la campaña y los ingresos netos de la plataforma restan la parte asignada a cada categoría de las tarifas reales del procesador de Stripe cuando existen datos de transacciones de saldo almacenados. Las promesas activas y las filas de promesas cargadas más antiguas sin datos reales del saldo de Stripe continúan utilizando la estimación de planificación estándar. Los reabastecimientos exclusivos de superadministradores pueden recuperar de forma segura datos históricos de transacciones de saldo de Stripe sin escaneos de listas KV a través de `POST /admin/analytics/stripe-financials/backfill`.
 
 ## Marketing
 
-La pestaña Marketing crea URL de campaña con parámetros UTM y de referencia, guarda códigos de referencia, genera fragmentos de lanzamiento y expone la interfaz de usuario del generador de inserción de campaña.
+La pestaña Marketing crea URL de campaña con parámetros UTM y de referencia, muestra los controles de vista previa/descarga de QR junto a la salida de URL, guarda códigos de referencia, expone la interfaz de usuario del generador de inserción, carga/guarda un borrador compartido de campaña y muestra la salud de recordatorios de checkout abandonado para la campaña seleccionada. El rendimiento de referencias y UTM vive en Analytics para que los informes de campaña permanezcan en un solo lugar.
 
 Tienda de códigos de referencia guardados:
 
 - nombre de referencia
 - código de referencia
 - URL generada
+- metadatos de fuente QR para la URL generada
 - marca de tiempo de creación
 
 El creador de URL se borra después de guardar y actualizar. Los guardados, ediciones y eliminaciones de referencias son mutaciones KV explícitas.
+
+Los códigos QR se generan en el navegador a partir de la salida actual del creador de URL de campaña o de una URL de referencia guardada, incluidos parámetros de referencia y UTM. La vista previa actual del creador se actualiza sin llamadas al Worker, y las descargas PNG/SVG son descargas locales del navegador. Las acciones de vista previa y descarga de QR no leen ni escriben KV.
+
+Los borradores compartidos de Marketing son explícitos: los usuarios hacen clic en **Cargar borrador compartido**, **Guardar borrador compartido** o **Borrar borrador compartido**. Un borrador es un registro KV con alcance de campaña, TTL de 7 días y token de revisión para que los guardados obsoletos fallen con conflicto en lugar de sobrescribir el trabajo de otro admin. Cargar es de solo lectura; guardar o borrar son las únicas escrituras de borrador.
+
+El panel de checkout abandonado muestra salud de recordatorios con alcance de campaña desde contadores agregados de cola/resultados y resultados recientes sin listar KV. Los resultados de supresión creados por admins incluyen el correo suprimido para que los admins puedan borrar esa supresión desde la tabla de resultados recientes; las mutaciones de supresión siguen ocurriendo solo mediante acción explícita y no incluyen una acción de reintentar este carrito específico.
+
+## Blast
+
+Campaigns -> Blast envía correos a seguidores para la campaña seleccionada sin agregar otra vista de nivel superior del panel. Los usuarios de campaña pueden enviar blasts para campañas asignadas, y los superadministradores pueden enviar para cualquier campaña. Los borradores de Blast permanecen locales en el navegador salvo que un admin use explícitamente los botones de borrador compartido; los borradores compartidos de Blast usan el mismo modelo KV de 7 días, protegido por revisión y con alcance de campaña que los borradores de Marketing. Blast reutiliza el editor WYSIWYG de campaña para encabezados, texto, citas, listas, enlaces, imágenes de campaña alojadas subidas, imágenes de campaña existentes del selector de medios y enlaces de video YouTube/Vimeo listos para correo. El panel sube automáticamente las imágenes provisionales de Blast por la misma ruta de carga de medios de campaña que usan Content y diary antes de la prueba, de modo que los archivos quedan confirmados bajo `assets/images/campaigns/<slug>/` y en cola para optimización de medios del repositorio antes de construir la carga del correo. El panel ejecuta automáticamente la validación de prueba antes de Enviar prueba o Enviar blast; los fallos de carga o audiencia explican el motivo antes de intentar enviar correo.
+
+Las pruebas validan el mensaje, calculan el conteo de audiencia indexada y devuelven un hash de prueba sin escrituras de rate limit, auditoría, envíos de correo ni listas KV. Los envíos de prueba van solo al admin con sesión iniciada. Los envíos reales requieren el hash de prueba correspondiente para el mensaje y la audiencia exactos, envían mediante el remitente compartido de actualizaciones de Resend y escriben un evento de auditoría después del despacho. La pestaña Blast muestra historial de envíos de solo lectura desde eventos recientes de auditoría, incluido asunto, contenido, CTA Button Label y CTA Button URL.
+
+El renderizado de correo de Blast solo incluye imágenes alojadas del sitio desde `/assets/images/...`; las URL arbitrarias de imágenes remotas se omiten del lado del servidor. Los bloques de YouTube y Vimeo se renderizan como enlaces/botones seguros para correo en lugar de iframes o embeds de video, porque la mayoría de clientes de correo bloquean reproductores embebidos.
+
+Si falta `campaign-pledges:<slug>`, las pruebas y envíos de Blast fallan cerrados con `campaign_index_required`; reconstruya el índice de campaña antes de enviar. Esto evita recurrir a escaneos de espacios de nombres de promesas en una ruta de operador que puede ejecutarse en producción.
 
 ## Medios de comunicación
 
@@ -366,7 +385,9 @@ Medios de campaña recomendados:
 - Imagen social predeterminada: imagen grande 16:9 o compatible con Open Graph
 - Vídeo heroico: carga directa MP4/WebM/MOV de hasta 100 MB, o una URL de YouTube/Vimeo
 
-El editor de contenido de la campaña y los editores de contenido de entrada del diario colocan primero los medios seleccionados en el navegador. El bloque muestra la imagen, el vídeo o la selección de audio seleccionados inmediatamente, pero el archivo no se carga hasta que el usuario lo publica. Durante la publicación, el panel carga medios preparados en el directorio de activos de la campaña, reemplaza la vista previa temporal del navegador con la ruta final `/assets/...` y luego confirma el YAML de la campaña.
+El editor de contenido de la campaña, los editores de contenido de entrada del diario y los bloques de imagen de Blast colocan primero los medios seleccionados en el navegador. El bloque muestra la imagen, el vídeo o la selección de audio seleccionados inmediatamente, pero el archivo no se carga hasta que el usuario publica contenido o envía/prueba un Blast. Durante la publicación o el envío de Blast, el panel carga medios preparados en el directorio de activos de la campaña, reemplaza la vista previa temporal del navegador con la ruta final `/assets/...` y luego confirma el YAML de la campaña o construye la carga del correo Blast.
+
+Los bloques de imagen en Campaign Content, Diary y Blast también pueden elegir una imagen existente desde un diálogo de biblioteca de medios con alcance. El selector lista archivos de imagen existentes respaldados por GitHub bajo `assets/images/campaigns/<slug>/`; los superadministradores también pueden elegir archivos compartidos/predeterminados bajo `assets/images/defaults/`. El selector es de solo lectura, no agrega estado KV y establece directamente la ruta del bloque de imagen. El campo Source URL sigue disponible para reparación o edición avanzada de rutas.
 
 Las cargas de medios relacionadas con la campaña requieren acceso a esa campaña. Los superadministradores pueden cargar cualquier medio de campaña y plataforma/medio predeterminado; Los administradores de campañas solo pueden cargar medios para las campañas que administran. Las cargas de complementos de plataforma y marcas de plataforma siguen siendo solo para superadministradores.
 

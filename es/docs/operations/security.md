@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-15 de junio de 2026
+20 de junio de 2026
 
 Este documento cubre la arquitectura de seguridad, los riesgos conocidos, las medidas de refuerzo aplicadas, las compensaciones aceptadas y los procedimientos de prueba de penetración para la plataforma de financiación colectiva The Pool.
 
@@ -49,7 +49,8 @@ Este documento cubre la arquitectura de seguridad, los riesgos conocidos, las me
 |`admin-login:{hash}`|PROMESAS|Inicio de sesión único de administrador y correo electrónico|**Medio**: autenticación de administrador efímera|
 |`admin-session:{hash}`|PROMESAS|Correo electrónico de administrador, función, alcance de la campaña, token CSRF, vencimiento|**Alta** - autenticación de administrador|
 |`admin-users:v1`|PROMESAS|Usuarios administradores de tiempo de ejecución y alcances de campaña|**Alto** - control de acceso|
-|`admin-marketing-referrals:{slug}`|PROMESAS|Metadatos del código de referencia guardado|**Bajo**: datos de marketing escritos por el administrador|
+|`admin-marketing-referrals:{slug}`|PROMESAS|Código de referencia guardado y metadatos de origen QR|**Bajo**: datos de marketing escritos por el administrador|
+|`admin-marketing-draft:{slug}:{surface}`|PROMESAS|Borrador explícito compartido de Marketing/Blast con retención breve|**Medio**: contenido de enlace/correo electrónico de campaña creado por un administrador|
 |`campaign-preview-reviewers:{slug}`|PROMESAS|Lista de correo electrónico permitido para revisores normalizada para vistas previas de campañas protegidas, con TTL de 24 horas|**Mediano**: lista de acceso a correo electrónico específica de la campaña|
 |`admin-audit:{date}:{action}:{id}`|PROMESAS|Eventos recientes de auditoría de mutación de administrador|**Medio**: identidad del administrador + metadatos operativos|
 |`launch-reminder:{slug}:{emailHash}`|PROMESAS|Correo electrónico de recordatorio de próxima campaña y metadatos de suscripción|**Medio**: correo electrónico relacionado con la campaña|
@@ -57,6 +58,13 @@ Este documento cubre la arquitectura de seguridad, los riesgos conocidos, las me
 |`launch-reminder-sent:{slug}:{emailHash}`|PROMESAS|Recordatorio de envío de marcador de idempotencia|**Bajo** - estado de envío|
 |`launch-reminder-dispatch:{slug}`|PROMESAS|Cursor/progreso del trabajo de envío de recordatorio acotado|**Bajo** - estado operativo|
 |`launch-reminder-dispatch-queue:v1`|PROMESAS|Cola de envío de recordatorio inactiva/marcador pendiente|**Bajo** - estado operativo|
+|`abandoned-cart:{orderId}`|PROMESAS|Instantánea de la campaña y correo electrónico de recordatorio de pago explícitamente aceptado|**Medio**: correo electrónico relacionado con la campaña|
+|`abandoned-cart-resume:{orderId}`|PROMESAS|Instantánea de breve duración del currículum de pago con enlace firmado después de enviar un recordatorio|**Medio**: correo electrónico de la campaña y resumen del carrito desinfectado|
+|`abandoned-cart-sent:{emailHash}:{campaignSetHash}`|PROMESAS|Recordatorio de pago enviar marcador de idempotencia|**Bajo** - estado de envío|
+|`abandoned-cart-suppressed:{emailHash}`|PROMESAS|Marcador de cancelación de suscripción de recordatorio de pago|**Medio**: hash de correo electrónico del colaborador|
+|`abandoned-cart-suppressed-campaign:{slug}:{emailHash}`|PROMESAS|Marcador de supresión de recordatorio de pago con alcance de campaña administrado por el administrador|**Medio**: hash de correo electrónico del colaborador|
+|`abandoned-cart-queue:v1`|PROMESAS|Cola de recordatorio de pago inactiva/marcador pendiente|**Bajo** - estado operativo|
+|`abandoned-cart-health:v1`|PROMESAS|Contadores de salud de resultados/cola de recordatorio de pago agregado|**Bajo** - agregado operativo|
 |`supporter-email-retry:{orderId}`|PROMESAS|Carga útil de reintento de correo electrónico de confirmación de colaborador en cola|**Medio**: carga útil de correo electrónico de apoyo|
 |`supporter-email-retry-queue:v1`|PROMESAS|Reintento de correo electrónico del colaborador inactivo/pendiente y marcador de siguiente intento|**Bajo** - estado operativo|
 |`add-on-inventory-sold:v1`|PROMESAS|Proyección de recuento de ventas de complementos de plataforma|**Bajo**: estado del inventario agregado|
@@ -106,7 +114,7 @@ La postura de seguridad actual está diseñada en torno a algunos principios bá
 
 ### Validación de entrada y contenido
 
-- Las cargas útiles de inicio de pago validan identificadores de campaña, direcciones de correo electrónico, artículos del carrito y entradas de contribución antes de la reconstrucción canónica.
+- Las cargas útiles de inicio de pago validan identificadores de campaña, direcciones de correo electrónico, artículos del carrito y entradas de contribuciones antes de la reconstrucción canónica.
 - Los puntos finales de votación validan los identificadores de decisiones y los valores de las opciones antes de que alcancen la lógica de cambio de estado.
 - La configuración del panel, los campos de la campaña, los bloques de contenido, los complementos, los niveles, los elementos de soporte, las entradas del diario, las decisiones y los registros de los usuarios se normalizan en el lado del servidor antes de la persistencia.
 - Las cargas de medios del panel tienen un alcance por función, acceso a la campaña, tipo de carga, tipo de contenido, tamaño de archivo, directorio de destino y nombre de archivo canónico.
@@ -146,13 +154,14 @@ Si una implementación necesita una postura más estricta que la predeterminada,
 
 Antes de implementar en producción, verifique que estos secretos estén configurados:
 
-|Secreto|Variable de entorno|Longitud mínima|
+|secreto|Variable de entorno|Longitud mínima|
 |--------|---------------------|------------|
 |Clave API de banda|`STRIPE_SECRET_KEY_LIVE`|N/A|
 |Secreto del webhook de rayas|`STRIPE_WEBHOOK_SECRET_LIVE`|32+ caracteres|
 |Secreto de intención de pago|`CHECKOUT_INTENT_SECRET`|32+ caracteres|
 |Secreto del enlace mágico|`MAGIC_LINK_SECRET`|32+ caracteres|
 |Secreto del token de recordatorio de lanzamiento|Reserva `LAUNCH_REMINDER_TOKEN_SECRET` o `MAGIC_LINK_SECRET`|32+ caracteres|
+|Secreto del token de pago abandonado|Reserva `ABANDONED_CART_TOKEN_SECRET` o `MAGIC_LINK_SECRET` para enlaces de recordatorio para cancelar/reanudar suscripción|32+ caracteres|
 |Secreto de sesión de administrador|`ADMIN_SESSION_SECRET`|32+ caracteres|
 |Secreto de administrador|`ADMIN_SECRET`|32+ caracteres|
 |Secreto de administración de liquidación|`ADMIN_SETTLEMENT_SECRET` (opcional, con alcance)|32+ caracteres|

@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-June 15, 2026
+June 20, 2026
 
 This document is for people and LLMs working on forks of **The Pool**. It is a practical operator guide for making safe changes in this repo without drifting the site, the Worker, checkout math, or localized/public behavior out of sync.
 
@@ -46,15 +46,15 @@ If a change affects pricing, campaign totals, availability, pledge state, email 
 When you need to understand or change behavior, start here:
 
 - [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml): canonical fork-facing configuration
-- `_config.local.yml`: local overrides only
-- [`_campaigns/`](../_campaigns): campaign content, tiers, goals, diary data, community hooks, campaign-scoped merch
-- [`_data/i18n/`](../_data/i18n): shared UI/runtime/email copy by language
-- [`_layouts/`](../_layouts) and [`_includes/`](../_includes): public pages, campaign pages, embeds, SEO, localized routing helpers
-- [`assets/`](../assets): JS runtime, shared Sass partials, theme variables, generated i18n payload
+- [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml): local overrides only
+- [`_campaigns/`](https://github.com/your-org/your-project/tree/main/_campaigns): campaign content, tiers, goals, diary data, community hooks, campaign-scoped merch
+- [`_data/i18n/`](https://github.com/your-org/your-project/tree/main/_data/i18n): shared UI/runtime/email copy by language
+- [`_layouts/`](https://github.com/your-org/your-project/tree/main/_layouts) and [`_includes/`](https://github.com/your-org/your-project/tree/main/_includes): public pages, campaign pages, embeds, SEO, localized routing helpers
+- [`assets/`](https://github.com/your-org/your-project/tree/main/assets): JS runtime, shared Sass partials, theme variables, generated i18n payload
 - [`worker/src/`](https://github.com/your-org/your-project/tree/main/worker/src): checkout, webhooks, live stats, email sending, share previews, settlement, admin/report logic
 - [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml): Worker env wiring mirrored from site config plus local/dev defaults
 - [`tests/`](https://github.com/your-org/your-project/tree/main/tests): unit, security, and E2E expectations
-- [`scripts/`](../scripts): local dev, merge gate, smoke tests, reports, and sync helpers
+- [`scripts/`](https://github.com/your-org/your-project/tree/main/scripts): local dev, merge gate, smoke tests, reports, and sync helpers
 - [`docs/DASHBOARD.md`](/docs/operations/admin-dashboard/): private admin dashboard editing and operations reference
 
 ## Safe Workflow
@@ -91,8 +91,8 @@ Useful focused checks:
 Start with:
 
 - the dashboard **Campaigns** tab for normal browser edits
-- [`_campaigns/<slug>.md`](../_campaigns)
-- campaign assets under [`assets/images/campaigns/<slug>/`](../assets/images/campaigns)
+- [`_campaigns/<slug>.md`](https://github.com/your-org/your-project/tree/main/_campaigns)
+- campaign assets under [`assets/images/campaigns/<slug>/`](https://github.com/your-org/your-project/tree/main/assets/images/campaigns)
 - supporting docs in [docs/DASHBOARD.md](/docs/operations/admin-dashboard/)
 
 Check:
@@ -125,8 +125,8 @@ npm run sync:worker-config
 
 Start with:
 
-- site runtime in [`assets/js/`](../assets/js)
-- campaign/cart/manage templates in [`_includes/`](../_includes) and [`_layouts/`](../_layouts)
+- site runtime in [`assets/js/`](https://github.com/your-org/your-project/tree/main/assets/js)
+- campaign/cart/manage templates in [`_includes/`](https://github.com/your-org/your-project/tree/main/_includes) and [`_layouts/`](https://github.com/your-org/your-project/tree/main/_layouts)
 - Worker checkout logic in [`worker/src/`](https://github.com/your-org/your-project/tree/main/worker/src)
 
 Always assume there is a site-side piece and a Worker-side piece.
@@ -148,7 +148,7 @@ If only one side changes, you probably have a bug.
 Start with:
 
 - Worker mail logic in [`worker/src/`](https://github.com/your-org/your-project/tree/main/worker/src)
-- translation copy in [`_data/i18n/`](../_data/i18n)
+- translation copy in [`_data/i18n/`](https://github.com/your-org/your-project/tree/main/_data/i18n)
 - contact/sender identity in [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml)
 
 If you touch deliverability-sensitive behavior, also sanity-check:
@@ -156,18 +156,20 @@ If you touch deliverability-sensitive behavior, also sanity-check:
 - `from` domain alignment
 - `reply_to`
 - plain-text body generation
+- hosted image URLs and email-safe video links for Blast content
 - transactional vs promotional content mixing
 
 ### Change embeds or rich previews
 
 Start with:
 
-- dashboard **Marketing** tab if the task is only building a campaign embed snippet or saved referral URL
-- embed routes and layout in [`embed/`](../embed) and [`_layouts/campaign-embed.html`](../_layouts/campaign-embed.html)
-- embed client/runtime in [`assets/js/campaign-embed.js`](../assets/js/campaign-embed.js)
-- embed styles in [`assets/partials/_embed.scss`](../assets/partials/_embed.scss)
+- dashboard **Marketing** tab if the task is only building a campaign embed snippet, saved referral URL, QR download, or tracked campaign link
+- dashboard **Campaigns -> Blast** if the task changes supporter email blast drafting, dry runs, test sends, live sends, or sent history
+- embed routes and layout in [`embed/`](https://github.com/your-org/your-project/tree/main/embed) and [`_layouts/campaign-embed.html`](https://github.com/your-org/your-project/blob/main/_layouts/campaign-embed.html)
+- embed client/runtime in [`assets/js/campaign-embed.js`](https://github.com/your-org/your-project/blob/main/assets/js/campaign-embed.js)
+- embed styles in [`assets/partials/_embed.scss`](https://github.com/your-org/your-project/blob/main/assets/partials/_embed.scss)
 - Worker share cards in [`worker/src/`](https://github.com/your-org/your-project/tree/main/worker/src)
-- SEO metadata in [`_includes/seo-meta.html`](../_includes/seo-meta.html)
+- SEO metadata in [`_includes/seo-meta.html`](https://github.com/your-org/your-project/blob/main/_includes/seo-meta.html)
 - guidance in [docs/EMBEDS.md](/docs/development/campaign-embeds/) and [docs/SEO.md](/docs/operations/seo/)
 
 Keep embed state, share-preview state, and campaign-page metadata conceptually aligned even when the rendered surfaces differ.
@@ -177,10 +179,10 @@ Keep embed state, share-preview state, and campaign-page metadata conceptually a
 Start with:
 
 - [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) `i18n` block
-- [`_data/i18n/<lang>.yml`](../_data/i18n)
+- [`_data/i18n/<lang>.yml`](https://github.com/your-org/your-project/tree/main/_data/i18n)
 - localized long-form pages like [`es/about.md`](/docs/overview/about-the-pool/) and [`es/terms.md`](/docs/overview/terms-and-guidelines/)
-- locale helpers in [`_includes/localized-url.html`](../_includes/localized-url.html)
-- generated localized campaign pages in [`_plugins/localized_campaign_pages.rb`](../_plugins/localized_campaign_pages.rb)
+- locale helpers in [`_includes/localized-url.html`](https://github.com/your-org/your-project/blob/main/_includes/localized-url.html)
+- generated localized campaign pages in [`_plugins/localized_campaign_pages.rb`](https://github.com/your-org/your-project/blob/main/_plugins/localized_campaign_pages.rb)
 
 Shared system strings belong in `_data/i18n/{lang}.yml`.
 Campaign content authored by creators should usually remain campaign content, not be moved into translation YAML.

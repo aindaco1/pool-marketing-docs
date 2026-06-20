@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-11 de junio de 2026
+20 de junio de 2026
 
 Este documento describe el modelo de envío actual en The Pool, incluido su flujo de precios centrado en el trabajador, la superficie de configuración orientada a la bifurcación, el límite de integración de USPS y el árbol de reglas que ahora siguen el carrito, el pago, la gestión de promesas, los informes y los correos electrónicos.
 
@@ -51,7 +51,7 @@ La función de envío debe preservar la línea base de accesibilidad actual:
 - La dirección relacionada con el envío, la cotización y los estados alternativos deben ser comprensibles mediante la interacción únicamente con el teclado.
 - Cualquier nuevo error o aviso debe vincularse a los campos relevantes y a las regiones en vivo de manera adecuada.
 - Las actualizaciones del resumen de envío en el proceso de pago y en Administrar compromiso deben seguir siendo comprensibles para el lector de pantalla.
-- no hay regresiones a la semántica de diálogo/enfoque/error existente en el proceso de pago o `Update Card`
+- no hay regresiones a la semántica de diálogo/enfoque/error existente en checkout o `Update Card`
 - La cobertura de accesibilidad a nivel del navegador debe ampliarse si se introducen nuevos estados de la interfaz de usuario de envío.
 
 ### Internacionalización
@@ -108,7 +108,7 @@ Eso significa:
 
 Si USPS no está disponible, caduca o no devuelve una tarifa utilizable:
 
-- utilizar la tarifa fija de envío alternativa configurada
+- utilice la tarifa fija de envío alternativa configurada
 
 Para The Pool:
 
@@ -382,10 +382,10 @@ En este repositorio, eso se asigna a:
 
 Para una configuración local de estilo de producción normal, los valores mínimos que necesita este repositorio son:
 
-- [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) o `_config.local.yml`
+- [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) o [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml)
   - `shipping.usps.enabled: true`
   - `shipping.usps.client_id: "<your Consumer Key>"`
-- `worker/.dev.vars`
+- [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars)
   - `USPS_CLIENT_SECRET=<your Consumer Secret>`
 
 Si desea realizar pruebas con USPS TEM con las mismas credenciales de producción que describe USPS, configure también:
@@ -397,7 +397,7 @@ o
 Para pruebas locales:
 
 - configure `shipping.usps.client_id` en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) o su ruta de anulación local
-- establecer `USPS_CLIENT_SECRET=...` en `worker/.dev.vars`
+- establezca `USPS_CLIENT_SECRET=...` en [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars)
 - ejecutar:
 
 ```bash
@@ -477,7 +477,7 @@ La regla importante es:
 
 - no convierta las cotizaciones de envío en un subsistema KV de alta escritura
 
-El selector de país de pago ahora se alimenta desde [`_data/shipping_countries.yml`](../_data/shipping_countries.yml), lo que mantiene el mantenimiento del destino de USPS en una fuente dedicada en lugar de ocultarlo en el código de ejecución del navegador.
+El selector de país de pago ahora se alimenta desde [`_data/shipping_countries.yml`](https://github.com/your-org/your-project/blob/main/_data/shipping_countries.yml), lo que mantiene el mantenimiento del destino de USPS en una fuente dedicada en lugar de ocultarlo en el código de ejecución del navegador.
 
 ## Puntos de contacto entre trabajadores y frontend
 

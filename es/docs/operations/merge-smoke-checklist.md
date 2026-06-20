@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-15 de junio de 2026
+20 de junio de 2026
 
 Utilice esta lista de verificación antes de fusionar sucursales que cambien el pago, la persistencia del webhook, la gestión de promesas, el inventario, la liquidación o las transmisiones de seguidores.
 
@@ -24,6 +24,8 @@ Estos comportamientos cambiaron intencionalmente y **no** deben tratarse como re
 - `/checkout-intent/start` ahora reserva un inventario limitado y escaso antes de la confirmación del pago, y la persistencia exitosa confirma esa reserva.
 - El `GET /checkout` heredado está deshabilitado.
 - La liquidación solo marca una campaña completamente liquidada cuando no se omitió ninguna promesa activa.
+- Campañas -> Marketing ahora incluye herramientas de descarga de QR local en el navegador, y Campañas -> Blast contiene herramientas de redacción/envío masivo de correos electrónicos para cada campaña.
+- El pago propio personalizado puede poner en cola un recordatorio de pago abandonado basado en el consentimiento; el campo debe estar ausente de las cargas útiles de pago a menos que el partidario haya optado por participar.
 
 ## Ambiente
 
@@ -66,6 +68,14 @@ Utilice el ensayo local para comprobar la integridad del proceso de pago, la ent
 Para sucursales con muchos paneles, abra el panel local en `http://127.0.0.1:4000/admin/`. La pila de desarrollo genera los valores predeterminados del administrador de arranque documentados en `README.md` y `worker/README.md`; Los cambios de gestión de usuarios realizados en el panel se guardan en el KV del trabajador local y se restablecen con el estado del KV local.
 
 Para verificaciones de gestión de promesas solo locales, utilice la campaña `smoke-editable`. Se define como `test_only: true`, por lo que aparece en el desarrollo local cuando `_config.local.yml` habilita `show_test_campaigns`, mientras permanece excluido de la página de inicio de producción y de producción `/api/campaigns.json`.
+
+Antes de probar las superficies de implementación, ejecute el asistente de configuración en modo de prueba y confirme que planifica los cambios de Cloudflare/GitHub sin modificar nada:
+
+```bash
+npm run setup:deploy -- --mode=production --dry-run --skip-auth --skip-secrets
+```
+
+Utilice `--skip-readiness` para un ensayo limitado solo local, o deje la preparación habilitada cuando desee que el asistente realice comprobaciones de solo lectura en GitHub, Wrangler, Stripe, Resend, USPS y ZIP.TAX con cualquier credencial de proveedor disponible. El conjunto de unidades también incluye cobertura de CLI falsa para el asistente de configuración, por lo que las pruebas de puerta de fusión deberían detectar regresiones en la planificación de prueba, el comportamiento de reutilización/creación de KV, la generación de secretos locales y las escrituras de secretos de trabajadores generadas antes del humo real.
 
 Configuración local recomendada para modificar/cancelar humo:
 
@@ -224,7 +234,7 @@ curl -s -X POST \
 1. Ejecute el reabastecimiento del cliente para una campaña con valores `stripeCustomerId` faltantes conocidos.
 2. Resultado esperado:
    - Todos los compromisos calificados en la paginación KV están actualizados.
-   - La repetición de la liquidación después del reabastecimiento reduce o borra los registros de clientes omitidos.
+   - volver a ejecutar la liquidación después del reabastecimiento reduce o borra los registros de clientes omitidos
 
 ```bash
 curl -s -X POST \
@@ -272,11 +282,13 @@ Ejecute esta sección cuando la sucursal cambie la interfaz de usuario del panel
 6. En **Campañas**, cambie las subpestañas de la campaña y verifique que el contenido, los niveles, los complementos de la campaña, las entradas del diario y las decisiones se carguen solo para la campaña seleccionada.
 7. Como superadministrador, verifique que la primera fila de la barra lateral de Campañas sea el botón `+`, cree una campaña de solo vista previa con varios usuarios de campaña nuevos o existentes y confirme que los usuarios asignados reciban el correo electrónico con el enlace del panel cuando se configure el reenvío.
 8. En **Contenido**, verifique que **Publicar** y **Vista previa** aparezcan juntos. Publique una vista previa protegida, confirme que el panel muestra el enlace de vista previa del usuario actual, agregue correos electrónicos de revisor opcionales, confirme que la copia del correo electrónico dice que el enlace caduca en 24 horas y confirme que los correos electrónicos de vista previa no se escriben en Markdown de la campaña o en JSON público.
-9. En **Contenido** y **Entradas del diario**, agregue/edite un bloque de contenido, verifique el comportamiento de la vista previa WYSIWYG y confirme que `Save Draft` solo se habilita cuando el borrador local difiere del valor guardado.
+9. En **Contenido** y **Entradas del diario**, agregue/edite un bloque de contenido, verifique el comportamiento de vista previa WYSIWYG, abra el selector de medios del bloque de imágenes, confirme que los usuarios de la campaña solo vean los medios de la campaña y confirme que `Save Draft` solo se habilita cuando el borrador local difiere del valor guardado.
 10. En **Complementos** y **Complementos** de campaña, verifique que los productos físicos muestren campos preestablecidos de envío/paquete, que los productos digitales oculten los campos de envío y que los ID de producto/variante deriven de nombres/etiquetas para nuevas entradas.
-11. En **Análisis**, **Informes** y **Colaboradores**, verifique que la vista predeterminada `All` solo muestre las campañas disponibles para el administrador actual, que los montos de ingresos brutos y netos muestren los centavos exactos cuando corresponda, y que la exportación CSV coincida con las filas visibles.
-12. En **Marketing**, guarde/edite/elimine un código de referencia, verifique que el creador de URL se borre después de guardar/actualizar y confirme que el creador de campañas integrado todavía funciona.
-13. Para `/es/admin/`, verifique que las etiquetas de pestañas traducidas, Planificar etiquetas/enlaces de uso, Crear nueva campaña/Copia vista previa y que la navegación en tableta/móvil no se desborde.
+11. En **Análisis**, **Informes** y **Colaboradores**, verifique que la vista predeterminada `All` solo muestre las campañas disponibles para el administrador actual, los montos de ingresos brutos y netos muestren los centavos exactos cuando corresponda, los desgloses de referencia/fuente UTM/medio/campaña/contenido se cargan desde promesas indexadas y la exportación CSV coincide con las filas visibles.
+12. En **Marketing**, guarde/edite/elimine un código de referencia, verifique que el creador de URL se borre después de guardar/actualizar, confirme las actualizaciones de vista previa de QR de la URL de la campaña actual, descargue archivos QR PNG/SVG, use **Guardar borrador compartido** / **Cargar borrador compartido** / **Borrar borrador compartido**, confirme las cargas de estado de pago abandonado sin listado de KV, verifique que las filas de supresión creadas por el administrador muestren el correo electrónico suprimido con una acción Borrar y confirme que el creador de campañas integrado todavía funciona.
+13. En el proceso de pago propio, confirme que la casilla de recordatorio de pago abandonado no esté marcada de forma predeterminada, utilice una copia de beneficios, persista después de ser marcada y que los enlaces de recordatorio firmados restablezcan el borrador del carrito/contacto abandonado antes de iniciar una nueva sesión de Stripe.
+14. En **Campañas -> Blast**, redacte un correo electrónico masivo para seguidores con texto más una imagen alojada, una imagen existente seleccionada o un bloque de YouTube/Vimeo; use **Guardar borrador compartido** / **Cargar borrador compartido** / **Borrar borrador compartido**; Haga clic en **Enviar prueba** y verifique que el ensayo automático devuelva un recuento de audiencia/hash antes de que el correo electrónico de prueba llegue al administrador que inició sesión. Luego haga clic en **Enviar envío masivo**, confirme el envío en vivo y verifique el tema, el contenido, la etiqueta del botón de CTA y la URL del botón de CTA debajo del editor. Utilice una campaña con un índice `campaign-pledges:<slug>` reconstruido; Los índices faltantes no deberían cerrarse con `campaign_index_required` antes de enviar cualquier correo electrónico.
+15. Para `/es/admin/`, verifique que las etiquetas de pestañas traducidas, Planificar etiquetas/enlaces de uso, Crear nueva campaña/Copia vista previa y que la navegación en tableta/móvil no se desborde.
 
 ## Plantilla de aprobación
 

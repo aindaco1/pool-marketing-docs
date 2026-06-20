@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-June 15, 2026
+June 20, 2026
 
 This document is the operator reference for The Pool's private admin dashboard and should be treated as the source of truth for dashboard-based campaign editing, reporting, analytics, marketing links, add-ons, and user management.
 
@@ -85,11 +85,11 @@ The top-level dashboard order is:
 
 1. **Settings**: platform configuration, branding/SEO, pricing, tax, shipping, runner reports, design, users, performance, plan usage, debug, credential status, and runtime diagnostics.
 2. **Add-ons**: platform add-on availability and product details, visible only to super admins.
-3. **Campaigns**: role-scoped campaign settings, page content, rewards, campaign add-ons, stretch goals, ongoing items, diary entries, and decisions.
+3. **Campaigns**: role-scoped campaign settings, page content, rewards, campaign add-ons, stretch goals, ongoing items, diary entries, decisions, and supporter email blasts.
 4. **Analytics**: pledge-derived campaign and portfolio analytics.
 5. **Reports**: CSV preview/download for pledge and fulfillment reports.
 6. **Supporters**: role-scoped supporter browsing, filtering, sorting, and CSV export.
-7. **Marketing**: referral URL builder, saved referral codes, launch snippets, and embed-builder controls.
+7. **Marketing**: referral URL builder, saved referral codes, downloadable campaign QR codes, and embed-builder controls.
 
 ## Settings
 
@@ -263,7 +263,7 @@ Supported block types include:
 - embed
 - divider
 
-The editor supports slash commands, keyboard undo for block changes, Markdown-style inline formatting, links, unordered/ordered lists, alignment controls, media settings, and mobile preview. **Save draft** stores a browser-local draft. **Publish** validates and writes through the Worker.
+The editor supports block insertion controls, keyboard undo for block changes, Markdown-style inline formatting, links, unordered/ordered lists, alignment controls, media settings, and mobile preview. **Save draft** stores a browser-local draft. **Publish** validates and writes through the Worker.
 
 Uploaded video blocks can include an explicit poster image. When no poster is set, the dashboard and public campaign page generate an in-browser poster from the video's first frame while keeping the playable video itself lazy-loaded until the user presses play.
 
@@ -328,22 +328,41 @@ The Supporters tab shows role-scoped supporter rows with live filtering, sorting
 
 Analytics is derived from existing pledge indexes and campaign summaries. It should not create analytics-specific KV writes on view.
 
-The dashboard shows cards for pledge totals, revenue categories, net revenue after allocated processor fees, tax, shipping, Stripe fees, pledge status, supporters, average pledge, campaign add-ons, referral attribution, UTM source, fulfillment type, language, and other pledge-derived breakdowns. Money values display exact cents.
+The dashboard shows cards for pledge totals, revenue categories, net revenue after allocated processor fees, tax, shipping, Stripe fees, pledge status, supporters, average pledge, campaign add-ons, referral attribution, UTM source/medium/campaign/content, fulfillment type, language, and other pledge-derived breakdowns. Money values display exact cents.
+
+If a campaign is missing its `campaign-pledges:<slug>` projection, Analytics stays read-only, returns a zeroed campaign row, and shows a non-blocking missing-index notice instead of listing pledge truth or failing the Marketing tab.
 
 Gross Campaign revenue and Platform revenue remain visible for reconciliation. Net campaign revenue and Net platform revenue subtract each category's allocated share of actual Stripe processor fees when stored balance transaction data exists. Active pledges and older charged pledge rows without actual Stripe balance data continue to use the standard planning estimate. Super-admin-only backfills can safely retrieve historical balance transaction data from Stripe without KV list scans through `POST /admin/analytics/stripe-financials/backfill`.
 
 ## Marketing
 
-The Marketing tab builds campaign URLs with referral and UTM parameters, saves referral codes, generates launch snippets, and exposes the campaign embed-builder UI.
+The Marketing tab builds campaign URLs with referral and UTM parameters, shows the campaign QR preview/download controls beside the URL output, saves referral codes, exposes the campaign embed-builder UI, loads/saves one shared campaign draft, and shows abandoned-checkout reminder health for the selected campaign. Referral and UTM performance lives in Analytics so campaign performance reporting stays in one place.
 
 Saved referral codes store:
 
 - referrer name
 - referral code
 - generated URL
+- QR code source metadata for the generated URL
 - creation timestamp
 
 The URL builder clears after saving and on refresh. Referral saves/edits/deletes are explicit KV mutations.
+
+QR codes are generated in the browser from the current campaign URL builder output or a saved referral URL, including referral and UTM parameters. The current builder preview updates without Worker calls, and PNG/SVG downloads are browser-local file downloads. QR preview and download actions do not read or write KV.
+
+Shared Marketing drafts are explicit: users click **Load shared draft**, **Save shared draft**, or **Clear shared draft**. A draft is one campaign-scoped KV record with a 7-day TTL and a revision token so stale saves fail with a conflict instead of overwriting another admin's work. Loading is read-only; saving or clearing is the only draft write.
+
+The abandoned-checkout panel shows campaign-scoped reminder health from aggregate queue/outcome counters and recent outcomes without KV listing. Admin-created suppression outcomes include the suppressed email address so admins can clear that suppression from the recent outcomes table; suppression mutations still happen only on explicit action and do not include a retry-this-specific-cart action.
+
+## Blast
+
+Campaigns -> Blast sends supporter email blasts for the selected campaign without adding another top-level dashboard view. Campaign users may send blasts for campaigns assigned to them, and super admins may send for any campaign. Blast drafts stay browser-local unless an admin explicitly uses the shared draft buttons; shared Blast drafts use the same 7-day, revision-protected campaign-scoped KV model as Marketing drafts. Blast reuses the campaign WYSIWYG content editor for email-ready headings, text, quotes, lists, links, uploaded campaign-hosted images, existing campaign images from the media picker, and YouTube/Vimeo video links. The dashboard automatically uploads staged Blast images through the same campaign media upload path used by Content and diary blocks before the dry run, so image files are committed under `assets/images/campaigns/<slug>/` and queued for repository media optimization before the email payload is built. The dashboard automatically runs the dry-run validation before Send test or Send blast; failed upload or audience checks explain the reason before any email send is attempted.
+
+Dry runs validate the message, compute the indexed audience count, and return a dry-run hash without rate-limit writes, audit writes, email sends, or KV lists. Test sends go only to the signed-in admin. Live sends require the matching dry-run hash for the exact message and audience, send through the shared Resend updates sender, and write one audit event after dispatch. The Blast tab shows read-only sent history from recent audit records, including subject, content, CTA Button Label, and CTA Button URL.
+
+Blast email rendering only includes hosted site images from `/assets/images/...`; arbitrary remote image URLs are omitted server-side. YouTube and Vimeo blocks render as email-safe links/buttons rather than iframe or video embeds because most email clients block embedded players.
+
+If `campaign-pledges:<slug>` is missing, Blast dry-runs and sends fail closed with `campaign_index_required`; rebuild the campaign index before sending. This avoids falling back to pledge namespace scans on an operator path that can run in production.
 
 ## Media
 
@@ -365,7 +384,9 @@ Recommended campaign media:
 - Default social image: large 16:9 or Open Graph-friendly image
 - Hero video: direct MP4/WebM/MOV upload up to 100 MB, or a YouTube/Vimeo URL
 
-The campaign Content editor and diary-entry content editors stage selected media in the browser first. The block shows the selected image, video, or audio selection immediately, but the file is not uploaded until the user publishes. During publish, the dashboard uploads staged media into the campaign asset directory, replaces the temporary browser preview with the final `/assets/...` path, and then commits the campaign YAML.
+The campaign Content editor, diary-entry content editors, and Blast image blocks stage selected media in the browser first. The block shows the selected image, video, or audio selection immediately, but the file is not uploaded until the user publishes content or sends/tests a Blast. During publish or Blast send, the dashboard uploads staged media into the campaign asset directory, replaces the temporary browser preview with the final `/assets/...` path, and then commits the campaign YAML or builds the Blast email payload.
+
+Image blocks in Campaign Content, Diary, and Blast can also choose an existing image from a scoped media-library dialog. The picker lists existing GitHub-backed image files under `assets/images/campaigns/<slug>/`; super admins can also choose shared/default files under `assets/images/defaults/`. The picker is read-only, adds no KV state, and sets the image block path directly. The Source URL field remains available for repair or advanced path editing.
 
 Campaign-scoped media uploads require access to that campaign. Super admins can upload any campaign media and platform/default media; campaign admins can upload only media for campaigns they manage. Platform add-on and platform brand uploads stay super-admin only.
 

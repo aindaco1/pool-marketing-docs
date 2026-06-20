@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-15 de junio de 2026
+20 de junio de 2026
 
 Este documento describe el modelo SEO actual de The Pool en 2026. Es intencionalmente conservador: las páginas públicas se hacen más fáciles de rastrear y comprender, mientras que los flujos tokenizados y exclusivos para seguidores permanecen fuera de la intención del índice. La implementación está diseñada en torno a metadatos reales, páginas públicas reales y datos estructurados honestos en lugar de relleno de contenido o cebo de resultados enriquecidos.
 
@@ -51,9 +51,9 @@ La línea de base actual incluye:
 
 Los principales archivos de implementación son:
 
-- [/_includes/seo-meta.html](../_includes/seo-meta.html)
-- [/_includes/seo-json-ld.html](../_includes/seo-json-ld.html)
-- [/_layouts/campaign.html](../_layouts/campaign.html)
+- [/_includes/seo-meta.html](https://github.com/your-org/your-project/blob/main/_includes/seo-meta.html)
+- [/_includes/seo-json-ld.html](https://github.com/your-org/your-project/blob/main/_includes/seo-json-ld.html)
+- [/_layouts/campaign.html](https://github.com/your-org/your-project/blob/main/_layouts/campaign.html)
 - [/worker/src/index.js](https://github.com/your-org/your-project/blob/main/worker/src/index.js)
 - [/robots.txt](/robots.txt)
 - [/sitemap.xml](/sitemap.xml)
@@ -104,8 +104,8 @@ Esto se aplica mediante una combinación de:
 
 Contrato del panel de administración:
 
-- [admin.md](https://github.com/your-org/your-project/blob/main/admin.md) y [es/admin/index.html](../es/admin/index.html) deben conservar `indexable: false` y `sitemap: false`
-- [/_layouts/admin.html](../_layouts/admin.html) debe llamar a `seo-meta.html` con `indexable=false` y `social=false`
+- [admin.md](https://github.com/your-org/your-project/blob/main/admin.md) y [es/admin/index.html](https://github.com/your-org/your-project/blob/main/es/admin/index.html) deben conservar `indexable: false` y `sitemap: false`
+- [/_layouts/admin.html](https://github.com/your-org/your-project/blob/main/_layouts/admin.html) debe llamar a `seo-meta.html` con `indexable=false` y `social=false`
 - [`robots.txt`](/robots.txt) debe rechazar `/admin/` y `/es/admin/`
 - [`sitemap.xml`](/sitemap.xml) no debe incluir rutas de administración
 - el diseño del administrador no debe emitir metadatos de vista previa social JSON-LD o Open Graph/Twitter; el panel es una superficie de aplicación privada, no un resultado de búsqueda público ni un objetivo compartido

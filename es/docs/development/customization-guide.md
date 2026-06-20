@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-15 de junio de 2026
+20 de junio de 2026
 
 Esta guía cubre la superficie de personalización sin código compatible para las bifurcaciones de The Pool tal como existe ahora.
 
@@ -23,7 +23,7 @@ El modelo de configuración estructurado en [`_config.yml`](https://github.com/y
 Para la mayoría de las bifurcaciones, los principales archivos de personalización son:
 
 - [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml)
-- `_config.local.yml`
+- [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml)
 - [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml)
 
 Utilice `./scripts/dev.sh --podman` para la verificación local después de los cambios de configuración.
@@ -38,7 +38,7 @@ Para ediciones normales del operador, utilice el panel de administración privad
 - **Configuración -> Usuarios** es solo en tiempo de ejecución y se guarda directamente en Worker KV en `admin-users:v1`; no se publica en GitHub.
 - **Secretos y credenciales** tiene un estado de solo lectura. Los valores secretos aún pertenecen a los secretos de los trabajadores, los secretos del repositorio de GitHub o los archivos env locales ignorados.
 
-Trate `_config.local.yml` como un archivo de sólo anulación. Mantenga la configuración de bifurcación canónica en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) y use el archivo local solo para cosas que deberían diferir en su máquina, como las URL del host local o la visibilidad de la campaña solo local.
+Trate [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml) como un archivo de solo anulación. Mantenga la configuración de bifurcación canónica en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) y use el archivo local solo para cosas que deberían diferir en su máquina, como las URL del host local o la visibilidad de la campaña solo local.
 
 La ruta local normal ahora está basada en localhost:
 
@@ -121,7 +121,7 @@ Estos valores alimentan:
 Notas:
 
 - `platform.*` es la superficie de marca principal.
-- `platform.version` debe ser la versión canónica del producto legible por máquina para el sitio, mientras que `platform.release_label` puede seguir siendo más amigable para copias públicas como `v1.0.5`.
+- `platform.version` debe ser la versión canónica del producto legible por máquina para el sitio, mientras que `platform.release_label` puede seguir siendo más amigable para copias públicas como `v1.0.7`.
 - `platform.timezone` debe ser una zona horaria compatible con la IANA. El valor predeterminado es `America/Denver`, por lo que las bifurcaciones existentes mantienen el comportamiento del ciclo de vida anterior hasta que lo cambien.
 - `title` / `author` de nivel superior todavía existen en Jekyll, pero trátelos como metadatos/respaldo generales del sitio en lugar de la interfaz principal de personalización de la bifurcación.
 - `platform.default_social_image_path` es el valor predeterminado admitido para tarjetas OG/Twitter cuando una página o campaña no proporciona una imagen más específica.
@@ -133,8 +133,8 @@ Ejemplo:
 ```yml
 platform:
   name: My Fork
-  version: 1.0.5
-  release_label: v1.0.5
+  version: 1.0.7
+  release_label: v1.0.7
   company_name: Example Studio
   support_email: support@example.com
   pledges_email_from: "My Fork <pledges@pool.example.com>"
@@ -387,7 +387,7 @@ Límite secreto importante:
 - mantenga el compañero `USPS_CLIENT_SECRET` en Secretos del trabajador o `worker/.dev.vars`
 - no guardes el secreto en la configuración de Jekyll
 
-La lista de destinos de pago ahora está intencionalmente separada de esas perillas. Mantenga los países de envío permitidos actualmente en [`_data/shipping_countries.yml`](../_data/shipping_countries.yml) en lugar de editar el código de ejecución del navegador.
+La lista de destinos de pago ahora está intencionalmente separada de esas perillas. Mantenga los países de envío permitidos actualmente en [`_data/shipping_countries.yml`](https://github.com/your-org/your-project/blob/main/_data/shipping_countries.yml) en lugar de editar el código de ejecución del navegador.
 
 Ejemplo:
 
@@ -615,7 +615,7 @@ runner_report_emails:
 
 Utilice `design` para anulaciones seleccionadas del sistema de diseño que no requieren ediciones de Sass.
 
-Estos valores se emiten en la hoja de estilo generada [assets/main.css](../assets/main.scss), lo que mantiene el puente de variables de diseño compatible con el estricto CSP del sitio. [assets/theme-vars.css](../assets/theme-vars.css) permanece como un artefacto de compatibilidad, pero los diseños públicos no lo solicitan por separado. Las bifurcaciones no necesitan editar Sass solo para cambiar los tokens admitidos.
+Estos valores se emiten en la hoja de estilo generada [assets/main.css](https://github.com/your-org/your-project/blob/main/assets/main.scss), que mantiene el puente de variables de diseño compatible con el estricto CSP del sitio. [assets/theme-vars.css](https://github.com/your-org/your-project/blob/main/assets/theme-vars.css) permanece como un artefacto de compatibilidad, pero los diseños públicos no lo solicitan por separado. Las bifurcaciones no necesitan editar Sass solo para cambiar los tokens admitidos.
 
 Las mismas variables CSS generadas ahora también son el tema del sidecar Stripe Elements en el sitio, por lo que las anulaciones de tipografía/color/radio admitidas se llevan a cabo en la interfaz de usuario de pago personalizada sin agregar una capa de configuración separada solo para el pago.
 
@@ -893,7 +893,7 @@ Todavía a nivel de código hoy:
 - agregar nuevos proveedores de pago o modos de pago
 - cambiar proveedores de inserción compatibles
 - ampliar las listas permitidas de CSP para hosts externos arbitrarios
-- cambiar el estilo de campo propiedad de Stripe más allá del puente de token de diseño admitido y la API de apariencia de Stripe
+- cambiar el estilo de campo propiedad de Stripe más allá del puente de token de diseño compatible y la API de apariencia de Stripe
 - introducir estructuras de diseño, plantillas de página o tipos de bloques de contenido completamente nuevos
 - cambiar el comportamiento del alojamiento de fuentes/CSP más allá de las pilas de fuentes actualmente admitidas
 - cambiar el modelo de autorización de vista previa protegida, la caducidad del enlace del revisor o las reglas de filtrado público de solo vista previa

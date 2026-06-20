@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-June 11, 2026
+June 20, 2026
 
 ## Stack
 
@@ -52,7 +52,7 @@ The config now uses a structured settings model in [`_config.yml`](https://githu
 - `launch_reminders`
 - `cache`
 
-Treat `_config.local.yml` as a thin override file for localhost URLs and other machine-local differences, not as a second place to duplicate the canonical fork settings.
+Treat [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml) as a thin override file for localhost URLs and other machine-local differences, not as a second place to duplicate the canonical fork settings.
 
 The sync target is [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml), and the repo’s supported dev/test entry points keep it aligned automatically.
 
@@ -390,7 +390,7 @@ tiers:
 
 In the admin dashboard, tier IDs are read-only for editors: legacy IDs are preserved, while new tier IDs derive from the name. `shipping_preset` hides for digital tiers. If a physical tier has no preset, explicit package weight/dimension fields are shown.
 
-**Platform add-on products**: Global merch or upsell items now have a separate config path under `add_ons` in [/_config.yml](https://github.com/your-org/your-project/blob/main/_config.yml). That catalog is intended for fixed-price platform-wide products with simple variants, like shirt sizes, and should not be modeled as campaign `support_items`. The Worker mirrors the catalog through [/api/add-ons.json](../api/add-ons.json), exposes a current inventory snapshot through `/add-ons/inventory`, carries bundle-level add-on selections plus an anchor campaign through checkout, persists those anchor-bound add-ons on the pledge without counting them toward campaign-goal totals, and now exposes them separately in pledge and fulfillment exports. Sold counts live in the `add-on-inventory-sold:v1` projection after bootstrap, and cart and Manage Pledge both consume the same inventory-aware product-state logic, including low-stock messaging and sold-out variant filtering.
+**Platform add-on products**: Global merch or upsell items now have a separate config path under `add_ons` in [/_config.yml](https://github.com/your-org/your-project/blob/main/_config.yml). That catalog is intended for fixed-price platform-wide products with simple variants, like shirt sizes, and should not be modeled as campaign `support_items`. The Worker mirrors the catalog through [/api/add-ons.json](https://github.com/your-org/your-project/blob/main/api/add-ons.json), exposes a current inventory snapshot through `/add-ons/inventory`, carries bundle-level add-on selections plus an anchor campaign through checkout, persists those anchor-bound add-ons on the pledge without counting them toward campaign-goal totals, and now exposes them separately in pledge and fulfillment exports. Sold counts live in the `add-on-inventory-sold:v1` projection after bootstrap, and cart and Manage Pledge both consume the same inventory-aware product-state logic, including low-stock messaging and sold-out variant filtering.
 
 - `category: digital` add-ons never contribute to shipping
 - `category: physical` add-ons participate in the same shipping calculator used for physical tiers and physical support items
@@ -1220,7 +1220,7 @@ Use the locale helpers for page routing:
 {% include language-switcher.html position="footer" %}
 ```
 
-Runtime messages for site-owned JS flows are emitted through [`assets/i18n.json`](../assets/i18n.json) and booted into `POOL_CONFIG.i18n.messages`, so the cart, checkout, supporter community, and Manage Pledge flows can use the same locale catalog without a SPA-style translation layer.
+Runtime messages for site-owned JS flows are emitted through [`assets/i18n.json`](https://github.com/your-org/your-project/blob/main/assets/i18n.json) and booted into `POOL_CONFIG.i18n.messages`, so the cart, checkout, supporter community, and Manage Pledge flows can use the same locale catalog without a SPA-style translation layer.
 
 Public campaign templates also pull more shared chrome from the same locale data now, including hero-video play/loading text, supporter-community teaser copy, diary tab labels and empty states, production-phase labels/CTAs, and gallery accessibility labels.
 

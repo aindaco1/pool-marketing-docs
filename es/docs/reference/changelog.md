@@ -10,7 +10,29 @@ lang: es
 
 ## Última actualización
 
-15 de junio de 2026
+20 de junio de 2026
+
+## v1.0.7 - 2026-06-19
+
+Alcance de la versión:
+
+- Se agregó el estado del recordatorio de pago abandonado en el ámbito de la campaña en Marketing con recuentos agregados de colas/resultados, resultados recientes, controles de supresión/borrado del alcance, identificadores de correo electrónico con hash, eventos de auditoría, enlaces de currículum de pago firmado y sin acciones de carrito abandonado específicas de reintento.
+- `npm run setup:deploy` reforzado con reutilización del espacio de nombres Cloudflare KV, reutilización/creación de resultados de ejecución en seco más clara, comprobaciones de preparación del proveedor de solo lectura en vivo, `--skip-readiness` para ejecuciones en seco limitadas y cobertura de unidades basadas en subprocesos para rutas de ejecución en seco, secreto local, KV de producción, preparación y secreto generado.
+- Se agregaron borradores compartidos explícitos de Marketing y Blast con un registro KV con alcance de campaña por superficie, vencimiento de 7 días, protección contra conflictos de revisión y sin escrituras en segundo plano.
+- Se agregaron informes de rendimiento UTM/referencia de Analytics para enlaces de campaña guardados y no guardados, incluidos agregados de fuente/medio/campaña/contenido UTM de índices de compromiso de campaña existentes sin escaneos de espacios de nombres KV.
+- Se agregó un selector de medios de imágenes WYSIWYG compartido para los bloques de imagen de Campaign Content, Diary y Blast. Los usuarios de la campaña ven medios relacionados con la campaña; Los superadministradores también pueden seleccionar imágenes compartidas/predeterminadas. El selector es de solo lectura y no agrega ningún estado KV nuevo.
+
+## v1.0.6 - 2026-06-18
+
+Alcance de la versión:
+
+- **Campañas -> Marketing** ampliadas a un espacio de trabajo de promoción de campañas más completo sin agregar otra vista de panel de nivel superior. Los administradores de campañas pueden crear URL rastreadas, guardar códigos de referencia, obtener una vista previa/descargar códigos QR de campaña como PNG/SVG y utilizar el creador de inserciones de campañas existente desde la misma pestaña.
+- Se agregó **Campañas -> Blast** para envíos masivos de correo electrónico a los seguidores. Los usuarios de campaña asignados y los superadministradores pueden redactar con el editor de contenido WYSIWYG compartido, cargar imágenes alojadas en la campaña a través del canal de medios existente, vincular videos de YouTube/Vimeo de forma segura por correo electrónico, enviarse pruebas a sí mismos, enviar blasts en vivo a los seguidores indexados de la campaña y revisar el historial de envíos de solo lectura.
+- Se agregó validación automática de ejecución en seco de Blast antes de los envíos de prueba o en vivo. Los ensayos validan el contenido y la audiencia del índice de promesas de campaña sin enviar correos electrónicos, escribir registros de auditoría ni enumerar espacios de nombres KV; Los envíos en vivo requieren el hash de prueba coincidente y escriben el evento de auditoría después del envío.
+- Se agregó generación de QR local en el navegador adaptada del enfoque `1612elphi/delphitools` con licencia del MIT, lo que mantiene las vistas previas y descargas de QR libres de lecturas/escrituras de Worker.
+- Se agregaron recordatorios de pago abandonado basados en el consentimiento para la ruta de pago propia. Los seguidores deben optar explícitamente por participar, los recordatorios se ponen en cola solo después de que la creación de la sesión de Stripe sea exitosa, los compromisos completados eliminan los recordatorios en cola, las audiencias enviadas/suprimidas se deduplican y los enlaces para cancelar la suscripción se firman.
+- Se mantuvo la programación de pago abandonado en el nivel gratuito con `abandoned-cart-queue:v1`, lotes limitados, límites de retención, marcadores de envío/supresión y ticks cron inactivos que omiten los escaneos de la lista de espacios de nombres KV.
+- Se agregó el asistente multiplataforma `npm run setup:deploy` para configuración local y de producción. La CLI de Nodo libre de dependencia admite ejecuciones en seco, generación de secretos locales, sincronización de configuración, creación/actualización de Cloudflare KV, escrituras de secretos de trabajadores, escrituras de secretos de repositorio de GitHub, `gh`/`wrangler`/verificaciones de autenticación de CLI de Stripe opcionales y `wrangler deploy` opcional.
 
 ## v1.0.5 - 2026-06-14
 
@@ -18,17 +40,16 @@ Alcance de la versión:
 
 - Se agregaron vistas previas de campañas protegidas para superadministradores, usuarios de campañas asignados y correos electrónicos de revisores invitados explícitamente. Los enlaces de vista previa están firmados, tienen alcance de campaña, son visibles en el panel para el administrador de publicación y caducan después de 24 horas.
 - Se agregó la creación de campañas de superadministrador para campañas de solo vista previa. Los usuarios de la campaña son opcionales en el momento de la creación; Los superadministradores pueden asignar varios usuarios existentes o crear varios usuarios nuevos, y los usuarios asignados reciben el enlace del panel de administración por correo electrónico cuando se configura la entrega.
-- Se agregó el archivado de campañas por superadministradores para campañas no activas. El desarrollo local archiva a través del helper de repositorio montado, mientras que producción despacha el flujo de trabajo validado de GitHub Actions `archive-campaign`.
+- Se agregó el archivo de campañas de superadministrador para campañas no activas. El desarrollo local archiva a través del asistente de repositorio montado, mientras que la producción envía el flujo de trabajo validado de GitHub Actions `archive-campaign`.
 - Visibilidad pública preservada y límites de SEO: las campañas de solo vista previa permanecen ocultas de las rutas de campaña públicas, índices de inicio/comunidad/complementos, `/api/campaigns.json`, incrustaciones, metadatos de tarjetas compartidas, salida de mapas del sitio, intención de robots y captación previa pública hasta su lanzamiento.
 - Se conserva la disciplina presupuestaria de KV: las lecturas del panel, la representación preliminar, la exploración de campos, los borradores locales, los informes, los soportes y los análisis siguen siendo de solo lectura; Las acciones explícitas de creación, vista previa de publicación, guardado de usuario, auditoría de archivo y correo electrónico realizan escrituras limitadas.
 - Se agregaron salvaguardias livianas de edición multiusuario con verificaciones de revisión base de GitHub para contenido de campaña y publicaciones de vista previa, conflictos de publicación obsoleta, preservación de borradores locales y eventos de auditoría para acciones de creación, publicación de vista previa, archivo y publicación de contenido.
 - Mantuvo la nueva interfaz de usuario del panel accesible, localizada, con capacidad de respuesta móvil y SECO al reutilizar etiquetas de administración compartidas/ayuda/botón de información, lista de correo electrónico, patrones modales, de enfoque y de estado.
 - Se mejoró la resiliencia del desarrollo local de Podman con reinicios de servicios supervisados, intentos de recuperación de Podman obsoletos, soporte de ayuda de repositorio local para pruebas de creación/archivo y documentación actualizada de Podman.
-
-- Se agregó publicación de vistas previas protegidas respaldada por GitHub en `/admin/campaign-preview/publish`, lecturas no-store de cargas de vista previa en `/admin/campaign-preview/:slug`, shells genéricos noindex de vista previa en `/campaigns/:slug/preview/` para cada slug de campaña, de modo que los enlaces enviados por correo no dependan de una reconstrucción posterior a la publicación, y allowlists KV de acceso a vista previa por 24 horas en `campaign-preview-reviewers:<slug>`.
+- Se agregó una publicación de vista previa protegida respaldada por GitHub en `/admin/campaign-preview/publish`, lecturas de carga útil de vista previa sin tienda en `/admin/campaign-preview/:slug`, shells de vista previa genéricos sin índice en `/campaigns/:slug/preview/` para cada slug de campaña para que los enlaces enviados por correo electrónico no dependan de una reconstrucción posterior a la publicación y listas permitidas de acceso a vista previa de KV de 24 horas en `campaign-preview-reviewers:<slug>`.
 - Se agregaron enlaces firmados de vista previa del panel de 24 horas para el administrador de publicación, correos electrónicos de vista previa firmados opcionales del revisor y correos electrónicos de asignaciones de campaña a través del tema de correo electrónico compartido Reenviar y el catálogo i18n.
-- Se renderizaron cargas de vista previa protegidas como vistas previas completas de páginas de campaña de solo lectura con CSS/fuentes de campaña cargados, embeds de medios habilitados y controles de promesa deshabilitados.
-- Se alineó el renderizado del diario de vista previa protegida con las pestañas del diario público de campaña, los paneles de fase y las tarjetas de entrada con borde punteado.
+- Se renderizaron cargas útiles de vista previa protegidas como vistas previas completas de páginas de campaña de solo lectura con CSS/fuentes de campaña cargados, incrustaciones de medios habilitadas y controles de compromiso deshabilitados.
+- Representación del diario de vista previa protegida coincidente con las pestañas del diario de campaña público, paneles de fase y tarjetas de entrada con guiones.
 - Se agregaron controles del panel de superadministrador para la creación de nuevas campañas solo de vista previa y la publicación de vista previa protegida.
 - Se agregó archivado de campañas solo para superadministradores para campañas no activas desde Campañas -> Configuración, respaldado localmente por escrituras de repositorio solo para desarrolladores y en producción por un flujo de trabajo manual de GitHub Actions que mueve `_campaigns/<slug>.md` y los medios propiedad de la campaña a `archive/campaigns/<slug>/` sin eliminar los datos archivados.
 - Se agregó filtrado público/de solo vista previa en JSON de campaña, índices de página de inicio/comunidad/complementos, páginas localizadas, mapa del sitio, intención de robots y elegibilidad de captación previa.

@@ -10,13 +10,13 @@ lang: es
 
 ## Última actualización
 
-15 de junio de 2026
+20 de junio de 2026
 
 **The Pool** es una plataforma de financiación colectiva estática de código abierto para películas independientes, medios y otros proyectos impulsados ​​por artistas.
 
 Está diseñado en torno a una promesa simple: los seguidores pueden comprometerse con un proyecto creativo sin crear una cuenta, y sus tarjetas solo se cargan si la campaña alcanza su objetivo. Detrás de esa experiencia liviana para los seguidores, The Pool brinda a los creadores y operadores una infraestructura real para el pago, el cumplimiento, las actualizaciones, los informes, la edición administrativa, la localización y la implementación de las promesas.
 
-Hito de lanzamiento actual: **v1.0.5**. El conjunto de funciones v1.0 y el pase de refuerzo de lanzamiento están completos. v1.0.5 agrega vistas previas de campañas protegidas para superadministradores, usuarios de campaña asignados y revisores invitados explícitamente, creación de nuevas campañas por superadministradores con correos electrónicos de asignación de usuarios de campaña y archivado por superadministradores para campañas no activas.
+Hito de lanzamiento actual: **v1.0.7**. El conjunto de funciones v1.0 y el pase de refuerzo de lanzamiento están completos. La versión 1.0.7 agrega visibilidad de checkout abandonado con alcance de campaña, verificaciones probadas de preparación de configuración/despliegue, borradores compartidos de Marketing y Blast, informes de referencias/UTM y un selector de medios con alcance para bloques de imágenes de contenido enriquecido.
 
 ## Compromiso de todo o nada
 
@@ -34,6 +34,8 @@ A diferencia de otras plataformas, The Pool no requiere que crees una cuenta. Cu
 Si su pago incluye más de una campaña, recibirá correos electrónicos de confirmación por separado y enlaces de administración para cada campaña. Simplemente guarde esos correos electrónicos. Son tus llaves.
 
 Para las campañas que aún no se han lanzado, también puede registrarse para recibir un recordatorio de lanzamiento único sin crear una cuenta ni iniciar una contribución.
+
+Durante el pago, también puede optar por recibir un recordatorio si sale antes de finalizar su compromiso. Ese recordatorio es opcional, independiente de los recordatorios de lanzamiento e incluye un enlace para cancelar la suscripción.
 
 El flujo de compromiso funciona así:
 
@@ -57,9 +59,11 @@ The Pool está diseñado para cineastas y equipos creativos que necesitan una ca
 - **Complementos de plataforma opcionales**: ofrezca productos de la plataforma junto con promesas cuando esté habilitado, con inventario y manejo de envío separados que no cuentan para el objetivo de financiamiento de una campaña.
 - **Complementos de campaña**: vende productos o extras específicos de la campaña en el mismo flujo de compromiso y, al mismo tiempo, mantienes los ingresos, el inventario y los envíos vinculados a esa campaña.
 - **Panel de administración privado**: brinde a los miembros confiables del equipo un espacio de trabajo enfocado en la configuración de la campaña, el contenido de la página, las recompensas, las actualizaciones, las decisiones, los informes, los seguidores, los análisis, los enlaces de marketing, los complementos y los usuarios.
+- **Herramientas de marketing de campaña**: cree enlaces de seguimiento, guarde códigos de referencia, descargue códigos QR de campaña, genere fragmentos insertados en vivo desde la pestaña Marketing del panel y revise el rendimiento de referencias/UTM en Analytics.
+- **Envíos masivos de correos electrónicos a colaboradores**: envíe envíos masivos de correos electrónicos a colaboradores relacionados con la campaña desde Campañas -> Blast, utilizando borradores compartidos, imágenes de campaña alojadas y enlaces de vídeo seguros para correo electrónico.
 - **Vistas previas de campañas protegidas**: comparta borradores o campañas solo de vista previa de forma privada con usuarios de campaña asignados y revisores invitados explícitamente antes de que se lance la página de campaña pública.
 - **Configuración de nueva campaña**: los superadministradores pueden crear un borrador de campaña privado a partir de un título y usuarios de campaña asignados, y luego completar el resto de la campaña desde el panel.
-- **Archivado de campañas**: los superadministradores pueden archivar campañas no activas sin eliminar el origen de la campaña ni los medios cargados, manteniendo un registro revisable fuera de las listas de campañas activas.
+- **Archivo de campañas**: los superadministradores pueden archivar campañas no activas sin eliminar el origen de la campaña ni los medios cargados, manteniendo un registro revisable fuera de las listas de campañas activas.
 - **Zona horaria de plataforma configurable**: los superadministradores pueden elegir la zona horaria de la IANA utilizada para los plazos de campaña, las cuentas regresivas, los informes programados y la automatización del ciclo de vida.
 - **Cargas de medios del panel**: organice imágenes, videos y audio del diario y la campaña con vistas previas, publíquelos en rutas de recursos de la campaña a través del flujo de trabajo revisable normal, active la optimización de imágenes/videos y limpie los medios propiedad del panel a los que ya no se hace referencia.
 - **Informes cuando los necesite**: obtenga una vista previa y descargue archivos CSV de compromiso o cumplimiento desde el panel, con correos electrónicos opcionales de los ejecutores de campaña durante las campañas activas.

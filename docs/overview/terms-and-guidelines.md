@@ -9,9 +9,9 @@ render_with_liquid: false
 
 ## Last Updated
 
-June 15, 2026
+June 20, 2026
 
-These terms reflect The Pool platform release milestone **v1.0.5**.
+These terms reflect The Pool platform release milestone **v1.0.7**.
 
 ## Pledge Terms
 
@@ -22,6 +22,7 @@ These terms reflect The Pool platform release milestone **v1.0.5**.
 - Where this deployment offers additional languages, those emailed pledge links and supporter-community links may use localized routes while still authorizing the same pledge.
 - A single checkout may include more than one campaign, but each campaign is stored and managed as its own pledge after checkout.
 - Upcoming campaign launch reminders are optional and separate from pledging. If you opt in, The Pool sends one reminder when that campaign goes live and includes an unsubscribe link.
+- Abandoned-checkout reminders are optional and separate from pledging. If you explicitly opt in during first-party checkout, The Pool may send one reminder for an unfinished checkout and includes an unsubscribe link.
 - Some campaigns may be shared privately before launch through protected preview links. Reviewer preview links are invitation-only, campaign-scoped, and expire after 24 hours.
 - All campaign deadlines use this deployment's configured platform timezone. This deployment defaults to `America/Denver` unless platform administrators change it.
 - Community votes are limited to the published options on a campaign's supporter page, and closed decisions do not accept new votes.
@@ -74,12 +75,16 @@ This section applies only to campaigns that explicitly solicit creative submissi
 - Full card details are handled and stored by Stripe. The Pool does not store full card numbers or CVC values.
 - Email addresses and any shipping details needed for fulfillment may be stored in our system for pledge management, campaign-specific confirmations, campaign updates, and reward fulfillment.
 - If you sign up for an upcoming campaign launch reminder, your email is stored in campaign-scoped reminder records so The Pool can send that one reminder, avoid duplicate sends, and honor unsubscribes for that campaign. Reminder signups may use Cloudflare Turnstile to reduce abuse.
+- If you opt into an abandoned-checkout reminder, your email and a limited checkout reminder record may be stored briefly so The Pool can send one follow-up, avoid duplicate sends, restore the unfinished checkout context from a signed reminder link, delete the reminder after a completed pledge, and honor unsubscribe requests.
+- Authorized campaign operators may view aggregate abandoned-checkout reminder health for campaigns they manage and may set campaign-scoped suppression records. Those controls use hashed email identifiers and aggregate counters instead of exposing reminder recipient lists.
+- Authorized campaign operators may send campaign-scoped supporter blasts to supporters of campaigns they are allowed to manage. Blast emails use the shared transactional email system, may include hosted campaign images and ordinary campaign links, and should not expose unrelated campaign supporter data.
+- Authorized campaign operators may explicitly save shared Marketing or Blast drafts for campaigns they manage. These drafts are campaign-scoped, expire after a short retention window, and may include draft subject lines, campaign links, CTA text, and campaign-hosted media references.
 - Campaign organizers may receive campaign-scoped reports or fulfillment exports containing supporter/order details needed to run that specific campaign, coordinate delivery, or send production-related updates. Those reports stay limited to the campaign a supporter backed rather than exposing unrelated campaign pledges.
 - Authorized campaign operators may also view campaign-scoped supporter rows, reports, analytics, fulfillment data, and campaign content through The Pool's private admin dashboard. Dashboard access is role-scoped: campaign users see only assigned campaigns, while platform administrators may see platform-wide operational data needed to run The Pool.
 - Authorized campaign operators may use protected previews to review draft campaign pages before launch. Explicit reviewer email allowlists are stored only for the short preview window and are not intended for public campaign pages.
 - If a campaign is archived by an authorized platform administrator, campaign source data and campaign-owned uploaded media may be retained in the repository archive for operational records instead of being deleted.
 - When a pledge includes platform-fulfilled add-on items, platform operators may separately receive platform-only fulfillment exports limited to the items they must deliver.
-- Platform administrators may use the dashboard to manage campaign configuration, platform settings, add-ons, referral links, and authorized dashboard users. Secret values are kept in deployment secret stores or ignored local files, not in campaign content or dashboard drafts.
+- Platform administrators may use the dashboard to manage campaign configuration, platform settings, add-ons, referral links, shared marketing drafts, and authorized dashboard users. Secret values are kept in deployment secret stores or ignored local files, not in campaign content or dashboard drafts.
 - Inventory-limited platform add-ons use saved pledge state, not in-progress cart drafts, to determine remaining stock.
 - Inventory-limited campaign add-ons also use saved pledge state, not in-progress cart drafts, to determine remaining stock.
 - Supporter-community access in the browser may be remembered for the current session as a convenience, but the emailed magic link remains the source of truth for access.
@@ -99,7 +104,7 @@ The Pool is an [open-source crowdfunding platform](https://github.com/your-org/y
 - **[Stripe](https://stripe.com)** — Secure payment fields, saved payment methods, and payment processing
 - **[Cloudflare Workers](https://workers.cloudflare.com)** — Backend API for canonical pledge validation, pledge storage, live stats, and automated campaign settlement
 - **Private admin dashboard** — Role-scoped campaign editing, protected previews, new campaign creation, reports, analytics, supporter views, marketing links, user management, and platform operations
-- **[Resend](https://resend.com)** — Transactional emails (confirmations, launch reminders, updates, charge notifications)
+- **[Resend](https://resend.com)** — Transactional emails (confirmations, launch reminders, checkout reminders, campaign blasts, updates, charge notifications)
 
 Pledge data is stored in Cloudflare KV. This architecture means lower overhead costs and more of your pledge goes directly to the project, with optional platform tips helping cover maintenance of The Pool itself. Production builds also minify generated CSS/JS assets after static site generation, generate responsive image variants for public pages, and let Cloudflare handle transfer compression at the edge. Campaign lifecycle automation uses the configured platform timezone so deadlines, countdowns, reports, and settlement checks stay aligned.
 

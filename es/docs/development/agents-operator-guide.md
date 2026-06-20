@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-15 de junio de 2026
+20 de junio de 2026
 
 Este documento está dirigido a personas y LLM que trabajan en bifurcaciones de **The Pool**. Es una guía práctica para el operador para realizar cambios seguros en este repositorio sin dessincronizar el sitio, el trabajador, las matemáticas de pago o el comportamiento público/localizado.
 
@@ -47,15 +47,15 @@ Si un cambio afecta los precios, los totales de la campaña, la disponibilidad, 
 Cuando necesite comprender o cambiar un comportamiento, comience aquí:
 
 - [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml): configuración canónica orientada hacia la horquilla
-- `_config.local.yml`: solo anulaciones locales
-- [`_campaigns/`](../_campaigns): contenido de la campaña, niveles, objetivos, datos del diario, enlaces comunitarios, productos relacionados con la campaña
-- [`_data/i18n/`](../_data/i18n): UI compartida/tiempo de ejecución/copia de correo electrónico por idioma
-- [`_layouts/`](../_layouts) y [`_includes/`](../_includes): páginas públicas, páginas de campaña, incrustaciones, SEO, ayudas de enrutamiento localizado
-- [`assets/`](../assets): tiempo de ejecución de JS, parciales de Sass compartidos, variables de tema, carga útil i18n generada
+- [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml): solo anulaciones locales
+- [`_campaigns/`](https://github.com/your-org/your-project/tree/main/_campaigns): contenido de la campaña, niveles, objetivos, datos del diario, enlaces comunitarios, productos relacionados con la campaña
+- [`_data/i18n/`](https://github.com/your-org/your-project/tree/main/_data/i18n): UI compartida/tiempo de ejecución/copia de correo electrónico por idioma
+- [`_layouts/`](https://github.com/your-org/your-project/tree/main/_layouts) y [`_includes/`](https://github.com/your-org/your-project/tree/main/_includes): páginas públicas, páginas de campaña, incrustaciones, SEO, ayudas de enrutamiento localizado
+- [`assets/`](https://github.com/your-org/your-project/tree/main/assets): tiempo de ejecución de JS, parciales de Sass compartidos, variables de tema, carga útil i18n generada
 - [`worker/src/`](https://github.com/your-org/your-project/tree/main/worker/src): pago, webhooks, estadísticas en vivo, envío de correo electrónico, vistas previas de acciones, liquidación, lógica de administración/informe
 - [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml): Cableado del entorno del trabajador reflejado desde la configuración del sitio más los valores predeterminados locales/de desarrollo
 - [`tests/`](https://github.com/your-org/your-project/tree/main/tests): unidad, seguridad y expectativas E2E
-- [`scripts/`](../scripts): desarrollo local, puerta de fusión, pruebas de humo, informes y ayudas de sincronización
+- [`scripts/`](https://github.com/your-org/your-project/tree/main/scripts): desarrollo local, puerta de fusión, pruebas de humo, informes y asistentes de sincronización
 - [`docs/DASHBOARD.md`](/es/docs/operations/admin-dashboard/): referencia de operaciones y edición del panel de administración privado
 
 ## Flujo de trabajo seguro
@@ -92,8 +92,8 @@ Comprobaciones útiles y enfocadas:
 Comience con:
 
 - la pestaña **Campañas** del panel de control para realizar ediciones normales del navegador
-- [`_campaigns/<slug>.md`](../_campañas)
-- recursos de campaña en [`assets/images/campaigns/<slug>/`](../assets/images/campaigns)
+- [`_campaigns/<slug>.md`](https://github.com/your-org/your-project/tree/main/_campaigns)
+- activos de campaña en [`assets/images/campaigns/<slug>/`](https://github.com/your-org/your-project/tree/main/assets/images/campaigns)
 - documentos de soporte en [docs/DASHBOARD.md](/es/docs/operations/admin-dashboard/)
 
 Controlar:
@@ -126,8 +126,8 @@ npm run sync:worker-config
 
 Comience con:
 
-- tiempo de ejecución del sitio en [`assets/js/`](../assets/js)
-- campaña/carrito/administrar plantillas en [`_includes/`](../_includes) y [`_layouts/`](../_layouts)
+- tiempo de ejecución del sitio en [`assets/js/`](https://github.com/your-org/your-project/tree/main/assets/js)
+- campaña/carrito/administrar plantillas en [`_includes/`](https://github.com/your-org/your-project/tree/main/_includes) y [`_layouts/`](https://github.com/your-org/your-project/tree/main/_layouts)
 - Lógica de pago del trabajador en [`worker/src/`](https://github.com/your-org/your-project/tree/main/worker/src)
 
 Suponga siempre que hay una pieza del lado del sitio y una pieza del lado del trabajador.
@@ -149,7 +149,7 @@ Si solo cambia un lado, probablemente tengas un error.
 Comience con:
 
 - Lógica de correo del trabajador en [`worker/src/`](https://github.com/your-org/your-project/tree/main/worker/src)
-- copia de traducción en [`_data/i18n/`](../_data/i18n)
+- copia de traducción en [`_data/i18n/`](https://github.com/your-org/your-project/tree/main/_data/i18n)
 - identidad de contacto/remitente en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml)
 
 Si toca el comportamiento sensible a la capacidad de entrega, también verifique la cordura:
@@ -157,18 +157,20 @@ Si toca el comportamiento sensible a la capacidad de entrega, también verifique
 - Alineación del dominio `from`
 - `reply_to`
 - generación de cuerpo de texto plano
-- mezcla de contenido transaccional versus promocional
+- URL de imágenes alojadas y enlaces de vídeo seguros para correo electrónico para contenido Blast
+- mezcla de contenido transaccional y promocional
 
 ### Cambiar incrustaciones o vistas previas enriquecidas
 
 Comience con:
 
-- Panel de control pestaña **Marketing** si la tarea es solo crear un fragmento de inserción de campaña o una URL de referencia guardada
-- incrustar rutas y diseño en [`embed/`](../embed) y [`_layouts/campaign-embed.html`](../_layouts/campaign-embed.html)
-- incrustar cliente/tiempo de ejecución en [`assets/js/campaign-embed.js`](../assets/js/campaign-embed.js)
-- incrustar estilos en [`assets/partials/_embed.scss`](../assets/partials/_embed.scss)
+- Panel de control pestaña **Marketing** si la tarea es solo crear un fragmento de inserción de campaña, una URL de referencia guardada, una descarga de QR o un enlace de campaña rastreado
+- panel **Campañas -> Envíos de prueba** si la tarea cambia redacción masiva de correos electrónicos de soporte, simulacros, envíos de prueba, envíos en vivo o historial de envíos
+- incrustar rutas y diseño en [`embed/`](https://github.com/your-org/your-project/tree/main/embed) y [`_layouts/campaign-embed.html`](https://github.com/your-org/your-project/blob/main/_layouts/campaign-embed.html)
+- incrustar cliente/tiempo de ejecución en [`assets/js/campaign-embed.js`](https://github.com/your-org/your-project/blob/main/assets/js/campaign-embed.js)
+- incrustar estilos en [`assets/partials/_embed.scss`](https://github.com/your-org/your-project/blob/main/assets/partials/_embed.scss)
 - Tarjetas de acciones de trabajadores en [`worker/src/`](https://github.com/your-org/your-project/tree/main/worker/src)
-- Metadatos SEO en [`_includes/seo-meta.html`](../_includes/seo-meta.html)
+- Metadatos SEO en [`_includes/seo-meta.html`](https://github.com/your-org/your-project/blob/main/_includes/seo-meta.html)
 - orientación en [docs/EMBEDS.md](/es/docs/development/campaign-embeds/) y [docs/SEO.md](/es/docs/operations/seo/)
 
 Mantenga alineados conceptualmente el estado de inserción, el estado de vista previa compartida y los metadatos de la página de la campaña incluso cuando las superficies renderizadas difieran.
@@ -178,10 +180,10 @@ Mantenga alineados conceptualmente el estado de inserción, el estado de vista p
 Comience con:
 
 - [Bloque `_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) `i18n`
-- [`_data/i18n/<lang>.yml`](../_data/i18n)
+- [`_data/i18n/<lang>.yml`](https://github.com/your-org/your-project/tree/main/_data/i18n)
 - páginas localizadas de formato largo como [`es/about.md`](/es/docs/overview/about-the-pool/) y [`es/terms.md`](/es/docs/overview/terms-and-guidelines/)
-- ayudantes locales en [`_includes/localized-url.html`](../_includes/localized-url.html)
-- páginas de campaña localizadas generadas en [`_plugins/localized_campaign_pages.rb`](../_plugins/localized_campaign_pages.rb)
+- ayudantes locales en [`_includes/localized-url.html`](https://github.com/your-org/your-project/blob/main/_includes/localized-url.html)
+- páginas de campaña localizadas generadas en [`_plugins/localized_campaign_pages.rb`](https://github.com/your-org/your-project/blob/main/_plugins/localized_campaign_pages.rb)
 
 Las cadenas de sistema compartidas pertenecen a `_data/i18n/{lang}.yml`.
 El contenido de la campaña creado por creadores normalmente debe seguir siendo contenido de la campaña, no trasladarse a YAML traducido.
@@ -225,7 +227,7 @@ Las cuentas regresivas, los controles de promesas y el estado de inserción/comp
 ## Los mejores documentos para trabajos específicos
 
 - Configuración y marca de la bifurcación: [docs/CUSTOMIZATION.md](/es/docs/development/customization-guide/)
-- Desarrollo local y verificación de fusión: [docs/TESTING.md](/es/docs/operations/testing/)
+- Desarrollador local y verificación de fusión: [docs/TESTING.md](/es/docs/operations/testing/)
 - Configuración y límites de Podman: [docs/PODMAN.md](/es/docs/operations/podman-local-dev/)
 - Modelo de localización: [docs/I18N.md](/es/docs/development/internationalization/)
 - SEO y compartir metadatos: [docs/SEO.md](/es/docs/operations/seo/)

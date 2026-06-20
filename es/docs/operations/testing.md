@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-15 de junio de 2026
+20 de junio de 2026
 
 Esta guía cubre los conjuntos de pruebas automatizadas, la infraestructura de pruebas local y las rutas de verificación manual.
 
@@ -78,11 +78,11 @@ Pruebas rápidas y aisladas para funciones JS en `tests/unit/`.
 |`pledge-management`|Cumplimiento de plazos según el horario de verano a través de la zona horaria configurada de la plataforma, cancelación/modificación/validación del método de pago, transiciones de estado de compromiso, independencia de múltiples campañas, envío en registros de compromiso, forma de respuesta API|
 |`settlement`|Agregación de cargos (incluidas tarifas de envío), éxito o fracaso del pago, flujo de reintento, modo de prueba, casos extremos, liquidación por lotes, índice de compromiso de campaña, envío de liquidación, envío en liquidación, latido cron|
 |`email-broadcasts`|Extracción de extractos del diario (con truncamiento de puntos suspensivos), ayudas de seguimiento del diario/hitos, lógica de verificación de hitos, limitación de velocidad|
-|`email-tip`|Desgloses de correos electrónicos de soporte conscientes de las sugerencias en correos electrónicos de confirmación/modificados/cancelados/fallidos/cargados, además del enrutamiento de correos electrónicos de recordatorio de lanzamiento a través del remitente de actualizaciones compartidas|
+|`email-tip`|Desgloses de correos electrónicos de soporte conscientes de sugerencias en correos electrónicos de confirmación/modificados/cancelados/fallidos/cargados, además de recordatorio de lanzamiento y enrutamiento de correos electrónicos de pago abandonado a través del remitente de actualizaciones compartido|
 |`votes`|Almacenamiento/descopia de votos basado en correo electrónico, recuperación del estado de los votos, resultados de campaña, agregación de resultados|
-|`admin-dashboard`|Seguimiento del estado sucio del panel, serialización de configuraciones, normalización de contenido/editor, cargas de medios por etapas, análisis/relleno de tarifas reales de Stripe, ayudas de URL de referencia, utilidades de soporte responsivo/i18n|
+|`admin-dashboard`|Seguimiento del estado sucio del panel, serialización de configuraciones, normalización de contenido/editor, cargas de medios por etapas/selector de medios, análisis/relleno de tarifas reales de Stripe, informes de atribución de análisis, borradores compartidos de marketing, salud/supresión de pagos abandonados, ayudas de URL de referencia, utilidades de soporte responsivas/i18n|
 |`campaign-page`|Construcción de URL de enlaces compartidos, preservación segura de consultas, texto compartido con reconocimiento de estado, envío de formularios de recordatorio de lanzamiento, controles de campañas públicas y comportamiento de la página de campaña sensible a SEO|
-|`page-prefetch`|Listas permitidas de rutas públicas del mismo origen, exclusiones de consultas confidenciales, protecciones de red, manejo de demoras/límites y creación de sugerencias de captación previa de documentos|
+|`page-prefetch`|Listas permitidas de rutas públicas del mismo origen, exclusiones de consultas confidenciales, protecciones de red, manejo de retrasos/límites y creación de sugerencias de captación previa de documentos|
 |`cart-runtime-loader`|Arranque diferido en tiempo de ejecución del carrito, detección de carrito persistente/de recuperación, carga idempotente y activadores de intención del usuario|
 |`site-asset-minification`|Comportamiento de minificación CSS/JS generado `_site` y casos de falla del modo de verificación|
 |`media-optimization-script`|Selección de archivos modificados, decisiones de optimización de imágenes sin pérdidas, denominación de derivados de vídeo y reescritura de referencias de fuente a WebM|
@@ -115,14 +115,16 @@ Esto se ejecuta:
   - `tests/unit/worker-business-logic.test.ts`
   - `tests/unit/worker-ops-integrity.test.ts`
   - `tests/unit/stats-pagination.test.ts`
-Estas Worker suites cubren la validación del registro de recordatorio de lanzamiento, la supresión de cancelación de suscripción, la idempotencia de envío en cola y la ruta de envío de reenvío compartida.
+  - `tests/unit/setup-deploy-script.test.ts`
+- Las suites de trabajo cubren la validación del registro de recordatorio de lanzamiento, la aceptación, el envío y la supresión de pago abandonado, enlaces de currículum de pago firmado, supresión en el ámbito de la campaña, contadores de estado agregados, supresión de cancelación de suscripción, idempotencia de envío en cola y la ruta de envío de reenvío compartida.
+- Las pruebas del asistente de configuración ejecutan la CLI de implementación en copias de repositorio temporales con comandos falsos `npm`, `npx`/Wrangler, `gh`, `stripe` y `ruby`. Cubren ayuda/manejo de errores, comportamiento de ejecución en seco sin escritura, reutilización/creación de espacios de nombres KV, generación de secretos locales no interactivos, secretos de trabajadores de producción generados y sondas de preparación de solo lectura sin mutaciones de proveedores en vivo.
 - Regresiones del filtro de seguridad de contenido en `tests/unit/content-safety-filter.test.ts`, incluidos esquemas de enlaces Markdown inseguros, espaciado de énfasis creado por el panel y validación estricta de URL incrustadas estructuradas
 - Cobertura de auditoría de contenido de campaña en `tests/unit/campaign-content-security.test.ts`, incluido el subconjunto HTML en línea permitido y el rechazo de etiquetas sin procesar no permitidas.
 - Cobertura de serialización de inventario de niveles de objetos duraderos en `tests/unit/tier-inventory-do.test.ts`
 - Guiones de humo locales contra la campaña mutable de solo prueba:
   - `scripts/test-worker.sh` para verificaciones de contrato de sitio/trabajador y verificación de `/checkout-intent/start` con formato incorrecto
   - `scripts/smoke-pledge-management.sh` para una cobertura de modificación/cancelación exitosa en la campaña mutable solo local, utilizando las respuestas de reconstrucción del administrador más verificaciones de deriva de proyección de solo lectura como fuente autorizada de estadísticas/inventario durante el humo.
-El script ahora rota sus IP de solicitud de administrador sintéticas durante esas llamadas de reconstrucción/verificación para que el limitador de velocidad de administrador real no cree un falso negativo en la activación de fusión local.
+El script ahora rota sus IP de solicitud de administrador sintéticas durante esas llamadas de reconstrucción/verificación para que el limitador de velocidad de administrador real no cree un falso negativo en la activación de combinación local.
 - Suite de unidad completa a través de `npm run test:unit`
 - Paquete de seguridad a través de `npm run test:security` contra un trabajador local iniciado automáticamente
 - Suite de seguridad respaldada por Podman a través de `npm run test:security:podman` cuando desea que el sitio/pila de trabajo se inicie y se ejerza en la misma invocación.
@@ -153,9 +155,11 @@ npm run media:optimize:check:podman # use when host-native media tools are missi
 
 Los valores predeterminados del trabajador local en [worker/wrangler.toml](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) ahora coinciden con la configuración propia. `./scripts/dev.sh --podman` ahora genera automáticamente un `CHECKOUT_INTENT_SECRET` local en `worker/.dev.vars` si falta, por lo que los nuevos inicios de pago local no fallan al cerrarse en un secreto de desarrollo no inicializado.
 
+Cuando la puerta de fusión o el paquete de seguridad local utilizan el marcador de posición `STRIPE_SECRET_KEY=sk_test_smoke`, `/test/setup` genera ID de clientes de Stripe sintéticos deterministas en lugar de llamar a Stripe. Utilice una clave de prueba de Stripe real solo cuando necesite específicamente cobertura de humo de actualización de métodos de pago contra la API de Stripe.
+
 Para trabajo local, prefiera `./scripts/dev.sh --podman`. Inicia a Jekyll y al Trabajador en contenedores Podman desarraigados, preservando al mismo tiempo los mismos puertos y el estado local de Wrangler.
 
-`_config.local.yml` ahora es una capa de solo anulación, no una segunda configuración base. Cuando cambie o agregue configuraciones de orientación hacia la bifurcación, prefiera [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) a menos que el valor realmente difiera solo en su máquina local.
+[`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml) ahora es una capa de solo anulación, no una segunda configuración base. Cuando cambie o agregue configuraciones de orientación hacia la bifurcación, prefiera [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) a menos que el valor realmente difiera solo en su máquina local.
 
 Los scripts de ayuda del navegador admiten el mismo modo:
 
@@ -170,7 +174,7 @@ Los scripts de ayuda del navegador admiten el mismo modo:
 
 Esos ayudantes todavía ejecutan Playwright y shell smoke logic en el host por ahora, pero primero inician el sitio y el Worker a través de la pila local compartida respaldada por Podman. Los scripts de informes ahora también se pueden ejecutar directamente a través del contenedor de trabajadores. Esto mantiene las pruebas y exportaciones locales más cerca de los límites del servicio similar a la producción sin forzar la configuración del host Ruby o Wrangler.
 
-Para los comandos del lado del host que necesitan la pila respaldada por Podman pero que no deben depender de la persistencia de la pila separada en shells separados, use [`scripts/podman-stack-run.sh`](../scripts/podman-stack-run.sh). `npm run test:security:podman` usa ese contenedor.
+Para los comandos del lado del host que necesitan la pila respaldada por Podman pero que no deben depender de la persistencia de la pila separada en shells separados, use [`scripts/podman-stack-run.sh`](https://github.com/your-org/your-project/blob/main/scripts/podman-stack-run.sh). `npm run test:security:podman` usa ese contenedor.
 
 Para una ruta de navegador mayoritariamente independiente del host, `npm run test:e2e:headless:podman` ahora ejecuta la suite Playwright automatizada dentro de un contenedor Podman dedicado en la misma red de pod local que el sitio y el Worker.
 
@@ -431,7 +435,7 @@ Pruebas basadas en navegador para flujos de usuarios completos en `tests/e2e/`.
 - Configuración -> Carga automática del uso del plan, texto de ayuda del proveedor, enlaces de proveedores localizados y presupuesto de lectura sin escritura
 - Ingresos brutos de campaña/plataforma, ingresos netos de campaña/plataforma después de las tarifas de procesador asignadas y presentación de análisis de centavos exactos
 - Editor de contenido Edición de bloques WYSIWYG, configuración de enlaces/medios, reutilización del editor de diario, estado de borrador, estado de publicación y vista previa móvil
-- Códigos de referencia de marketing guardados, creador de URL de campaña, exportaciones CSV, clasificación y flujos de lectura sin escritura
+- Códigos de referencia de marketing guardados, creador de URL de campaña, comportamiento de descarga de QR, flujos de ejecución en seco/prueba/envío en vivo de Blast, historial de Blast enviado, exportaciones CSV, clasificación y flujos de lectura sin escritura
 - Capacidad de respuesta de escritorio/tableta/móvil, incluidos menús compactos de tableta en español
 - Ax comprueba el shell del panel autenticado
 
@@ -924,6 +928,7 @@ Esperado: devuelve `{ success: true }` y activa el flujo de trabajo de GitHub.
 - `TURNSTILE_SECRET_KEY`: Secreto compartido de Cloudflare Turnstile cuando el inicio de sesión de administrador o los widgets de recordatorio de inicio están habilitados
 - `LAUNCH_REMINDER_TURNSTILE_SECRET_KEY` — Secreto de torniquete específico de recordatorio opcional si no se utiliza el secreto compartido
 - `LAUNCH_REMINDER_TOKEN_SECRET`: secreto de token de cancelación de suscripción de recordatorio opcional; vuelve a `MAGIC_LINK_SECRET`
+- `ABANDONED_CART_TOKEN_SECRET`: token secreto opcional de recordatorio de pago abandonado para cancelar la suscripción y reanudar los enlaces; vuelve a `MAGIC_LINK_SECRET`
 - `GITHUB_TOKEN`: GitHub PAT con acceso a repositorio/flujo de trabajo para acciones de publicación del panel y activadores de reconstrucción; opcional solo cuando no estás probando la publicación respaldada por GitHub
 - `ADMIN_BOOTSTRAP_EMAILS`: lista de correo electrónico de superadministrador local/de recuperación opcional para iniciar sesión en el panel; El desarrollador local lee esto de `worker/.dev.vars`.
 - `ADMIN_USERS_JSON`: lista de usuarios administradores de inicialización/recuperación opcional reflejada desde `_config.yml`; Panel de control Las ediciones de los usuarios se guardan en KV en `admin-users:v1`.
@@ -947,5 +952,5 @@ Esperado: devuelve `{ success: true }` y activa el flujo de trabajo de GitHub.
 ### Reenviar panel
 - **Dominio**: Verifique la parte del dominio de las direcciones del remitente configuradas en `_config.yml`/Worker env. Para esta implementación, `PLEDGES_EMAIL_FROM` es `The Pool <pledges@site.example.com>`, por lo que Resend debe autorizar `site.example.com`.
 - **Clave API**: Crear clave con permiso de "Acceso de envío"
-- Se utiliza para: todos los correos electrónicos de compromiso dirigidos a los seguidores (confirmación, administración/acceso a la comunidad, recordatorios de lanzamiento, actualizaciones del diario, anuncios, informes, éxito de carga, fracaso de pago, cancelaciones)
+- Se utiliza para: todos los correos electrónicos de compromiso dirigidos a los seguidores (confirmación, acceso a administración/comunidad, recordatorios de lanzamiento, recordatorios de pagos abandonados, actualizaciones del diario, correos electrónicos explosivos/anuncios, informes, éxito de los cargos, errores de pago, cancelaciones)
 - Nota del desarrollador local: incluso cuando `SITE_BASE` apunta a `127.0.0.1`, las imágenes de correo electrónico incrustadas aún usan la base de recursos pública `https://site.example.com`, por lo que las vistas previas de la bandeja de entrada no muestran URL de imágenes de host local rotas.

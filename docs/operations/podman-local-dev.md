@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-June 15, 2026
+June 20, 2026
 
 This repo now includes a rootless Podman-backed local development path for the two services that usually create the most host setup churn:
 
@@ -132,7 +132,7 @@ http://127.0.0.1:4000/admin/
 
 The local Worker serves dashboard APIs at `http://127.0.0.1:8787`, with `CORS_ALLOWED_ORIGIN` derived for the local site. The dashboard can exercise the seeded local test campaigns and local KV. Dashboard user-management saves write to local KV (`admin-users:v1`) rather than committing to GitHub. Dev Worker config also sets `ADMIN_LOCAL_REPO_WRITES_ENABLED=true` and starts a token-protected local repo helper on the Worker container loopback address, so **Create new campaign** and **Archive campaign** can write/move files in the mounted repository instead of depending on GitHub workflow dispatch while testing locally.
 
-Foreground `./scripts/dev.sh --podman` also supervises the dev pod. If Jekyll or Wrangler exits, the launcher prints recent logs, restarts the stopped container, and recreates the pod if a direct restart is not enough. Pod recreation is retried because Podman can occasionally return partial-start errors such as `starting some containers: internal libpod error`; between attempts the launcher removes partial dev containers/pods by name and dev-stack label, verifies the old artifacts are gone, refreshes the Podman connection, and restarts the Podman machine on macOS/Windows if cleanup alone does not clear the stale state. The launcher also starts the empty pod before adding the site and Worker containers, which avoids a flaky Podman path where a created pod can leave `pool-dev-site` created and `pool-dev-worker` missing. Tune the check interval with `PODMAN_SUPERVISE_INTERVAL`, the restart log tail with `PODMAN_SUPERVISE_LOG_LINES`, startup retries with `PODMAN_STACK_START_ATTEMPTS`, and retry delay with `PODMAN_STACK_RETRY_DELAY`. Detached helper flows still get Podman's `unless-stopped` restart policy on the site and Worker containers.
+Foreground `./scripts/dev.sh --podman` also supervises the dev pod. If Jekyll or Wrangler exits, the launcher prints recent logs, restarts the stopped container, and recreates the pod if a direct restart is not enough. Pod recreation is retried because Podman can occasionally return partial-start errors such as `starting some containers: internal libpod error`; between attempts the launcher removes partial dev containers/pods by name and dev-stack label, verifies the old artifacts are gone, waits for Podman's port forwards to release, refreshes the Podman connection, and restarts the Podman machine on macOS/Windows if cleanup alone does not clear the stale state. The launcher also starts the empty pod before adding the site and Worker containers, which avoids a flaky Podman path where a created pod can leave `pool-dev-site` created and `pool-dev-worker` missing. Jekyll readiness checks wait for the real `/admin/` page instead of any HTTP response, so a stale listener or a still-building site does not count as ready. Tune the check interval with `PODMAN_SUPERVISE_INTERVAL`, the restart log tail with `PODMAN_SUPERVISE_LOG_LINES`, startup retries with `PODMAN_STACK_START_ATTEMPTS`, retry delay with `PODMAN_STACK_RETRY_DELAY`, site readiness timeout with `PODMAN_SITE_READY_TIMEOUT`, and Worker readiness timeout with `PODMAN_WORKER_READY_TIMEOUT`. Detached helper flows still get Podman's `unless-stopped` restart policy on the site and Worker containers.
 
 ## Rebuild Images
 
@@ -203,7 +203,7 @@ npm run test:e2e:headless:podman -- tests/e2e/admin-dashboard.spec.ts --project=
 
 That focused suite is the preferred local browser check for admin UI changes such as Create new campaign, protected Preview publishing, shared info-button/help behavior, and responsive Campaigns sidebar layout.
 
-For host-side commands that need a Podman-backed site/Worker without assuming detached stack persistence, use [`scripts/podman-stack-run.sh`](../scripts/podman-stack-run.sh). `npm run test:security:podman` uses that wrapper to boot the stack, run the security suite, and tear the stack down in one invocation.
+For host-side commands that need a Podman-backed site/Worker without assuming detached stack persistence, use [`scripts/podman-stack-run.sh`](https://github.com/your-org/your-project/blob/main/scripts/podman-stack-run.sh). `npm run test:security:podman` uses that wrapper to boot the stack, run the security suite, and tear the stack down in one invocation.
 
 The Worker container defaults to `node:24-bookworm-slim`. If a local Podman image pull stalls but the Playwright image is already cached, the launcher can reuse `mcr.microsoft.com/playwright:v1.57.0-noble` as a Node 24 base so development still matches the GitHub Actions Node 24 runtime.
 

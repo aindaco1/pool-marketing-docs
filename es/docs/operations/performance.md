@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-15 de junio de 2026
+20 de junio de 2026
 
 The Pool es una plataforma de financiación colectiva estática con un trabajador de Cloudflare para mutaciones, lecturas en vivo y operaciones administrativas. El trabajo de rendimiento debe preservar esa forma: las páginas públicas deben ser rápidas desde HTML estático, el código de aplicación pesado debe cargarse sólo cuando un usuario lo necesita y el trabajo especulativo debe ser lo suficientemente conservador como para nunca hacer que los flujos de pago, administración o soporte sean menos confiables.
 
@@ -44,14 +44,14 @@ Jekyll genera el sitio público y lo implementa como salida de GitHub Pages. El 
 
 Superficies de repositorio importantes:
 
-- [`_layouts/default.html`](../_layouts/default.html): diseño público compartido
-- [`_layouts/campaign.html`](../_layouts/campaign.html): diseño de detalle de la campaña
-- [`_includes/cart-runtime-foot.html`](../_includes/cart-runtime-foot.html): incluye cargador de carro liviano
-- [`_includes/page-prefetch.html`](../_includes/page-prefetch.html): inclusión de captación previa de documentos públicos
-- [`assets/js/cart-runtime-loader.js`](../assets/js/cart-runtime-loader.js): arranque de tiempo de ejecución de carrito diferido
-- [`assets/js/page-prefetch.js`](../assets/js/page-prefetch.js): tiempo de ejecución de captación previa de documentos basado en intención
-- [`scripts/minify-site-assets.mjs`](../scripts/minify-site-assets.mjs): minificación CSS/JS generada
-- [`scripts/sync-worker-config.rb`](../scripts/sync-worker-config.rb): duplicación de configuración de sitio a trabajador
+- [`_layouts/default.html`](https://github.com/your-org/your-project/blob/main/_layouts/default.html): diseño público compartido
+- [`_layouts/campaign.html`](https://github.com/your-org/your-project/blob/main/_layouts/campaign.html): diseño de detalle de la campaña
+- [`_includes/cart-runtime-foot.html`](https://github.com/your-org/your-project/blob/main/_includes/cart-runtime-foot.html): cargador de carro liviano incluido
+- [`_includes/page-prefetch.html`](https://github.com/your-org/your-project/blob/main/_includes/page-prefetch.html): inclusión de captación previa de documentos públicos
+- [`assets/js/cart-runtime-loader.js`](https://github.com/your-org/your-project/blob/main/assets/js/cart-runtime-loader.js): arranque del tiempo de ejecución del carrito diferido
+- [`assets/js/page-prefetch.js`](https://github.com/your-org/your-project/blob/main/assets/js/page-prefetch.js): tiempo de ejecución de captación previa de documentos basado en intención
+- [`scripts/minify-site-assets.mjs`](https://github.com/your-org/your-project/blob/main/scripts/minify-site-assets.mjs): minificación CSS/JS generada
+- [`scripts/sync-worker-config.rb`](https://github.com/your-org/your-project/blob/main/scripts/sync-worker-config.rb): duplicación de configuración de sitio a trabajador
 
 ## Representación crítica
 
@@ -85,12 +85,18 @@ El cargador debería activarse en:
 
 Los archivos de carros pesados ​​no deben ser parte de una primera carga pública ordinaria a menos que esté presente uno de esos estados:
 
-- [`assets/js/cart-provider.js`](../assets/js/cart-provider.js)
-- [`assets/js/cart.js`](../assets/js/cart.js)
-- [`assets/js/buy-buttons.js`](../assets/js/buy-buttons.js)
+- [`assets/js/cart-provider.js`](https://github.com/your-org/your-project/blob/main/assets/js/cart-provider.js)
+- [`assets/js/cart.js`](https://github.com/your-org/your-project/blob/main/assets/js/cart.js)
+- [`assets/js/buy-buttons.js`](https://github.com/your-org/your-project/blob/main/assets/js/buy-buttons.js)
 - sidecars de pago y complementos compartidos/ayudantes de envío
 
 Al cambiar el carrito o la carga del carrito, verifique con las herramientas de red del navegador que una vista anónima de la página de la campaña no descargue con entusiasmo la pila completa del carrito.
+
+## Presupuesto de lectura del administrador
+
+El panel de administración debe mantener la navegación normal como de solo lectura y limitada. Los informes, los partidarios, la atribución de análisis, el estado de las compras abandonadas, los simulacros explosivos y las vistas de campañas similares deben utilizar proyecciones `campaign-pledges:<slug>` existentes o estados agregados pequeños en lugar de escaneos de espacios de nombres KV. Las cargas del selector de biblioteca multimedia deben leer los directorios de GitHub y no deben crear un estado KV.
+
+Las escrituras duraderas en el panel deben estar vinculadas a acciones explícitas del usuario. Se permiten mutaciones en los códigos de referencia guardados, los borradores compartidos de Marketing/Blast, las supresiones de pagos abandonados en el ámbito de la campaña, los envíos en vivo de Blast, las publicaciones de contenido, las vistas previas protegidas y las acciones de creación/archivo de campañas; Las cargas de páginas, las ediciones de campos, la generación de vistas previas, la generación/descarga de QR, las cargas de informes y los borradores locales no deben escribir KV. Al agregar una función de administración, documente si es de solo lectura, solo local, respaldada por GitHub o respaldada por KV antes de cablear la interfaz de usuario.
 
 ## Minificación de activos generados
 
@@ -130,17 +136,17 @@ Si Cloudflare Web Analytics está habilitado, las páginas de la campaña deben 
 
 Las hojas de estilo de fuentes se vinculan desde el encabezado del documento en lugar de importarse desde `assets/main.css`. Esto permite al navegador descubrir CSS de fuentes y conexiones de fuentes sin esperar en la hoja de estilo principal y al mismo tiempo preservar el comportamiento intencional de carga de fuentes.
 
-Las variables CSS del token de diseño generadas se incluyen en `assets/main.css`; `assets/theme-vars.css` sigue estando disponible como artefacto de compatibilidad, pero los diseños públicos no deberían solicitarlo como una hoja de estilo de bloqueo de renderizado independiente.
+Las variables CSS del token de diseño generadas se incluyen en `assets/main.css`; `assets/theme-vars.css` sigue estando disponible como artefacto de compatibilidad, pero los diseños públicos no deberían solicitarlo como una hoja de estilo de bloqueo de renderizado separada.
 
 ## Captura previa basada en intención
 
 El grupo incluye un tiempo de ejecución de búsqueda previa de documentos del mismo origen opcional para enlaces de navegación públicos. Está inspirado en el modelo de intención de desplazamiento/toque de instant.page, pero la implementación es local, pequeña y deliberadamente conservadora.
 
-El tiempo de ejecución se encuentra en [`assets/js/page-prefetch.js`](../assets/js/page-prefetch.js). Se carga en superficies de páginas públicas de forma predeterminada y permanece fuera de los diseños de aplicaciones privadas.
+El tiempo de ejecución se encuentra en [`assets/js/page-prefetch.js`](https://github.com/your-org/your-project/blob/main/assets/js/page-prefetch.js). Se carga en superficies de páginas públicas de forma predeterminada y permanece fuera de los diseños de aplicaciones privadas.
 
 ### Configuración
 
-La inclusión compartida es [`_includes/page-prefetch.html`](../_includes/page-prefetch.html). Emite el tiempo de ejecución sólo cuando esta configuración está habilitada:
+La inclusión compartida es [`_includes/page-prefetch.html`](https://github.com/your-org/your-project/blob/main/_includes/page-prefetch.html). Emite el tiempo de ejecución sólo cuando esta configuración está habilitada:
 
 ```yml
 performance:
@@ -151,8 +157,8 @@ performance:
 
 La inclusión está conectada a superficies de páginas públicas:
 
-- [`_layouts/default.html`](../_layouts/default.html)
-- [`_layouts/campaign.html`](../_layouts/campaign.html)
+- [`_layouts/default.html`](https://github.com/your-org/your-project/blob/main/_layouts/default.html)
+- [`_layouts/campaign.html`](https://github.com/your-org/your-project/blob/main/_layouts/campaign.html)
 
 Los diseños de aplicaciones privadas no cargan el tiempo de ejecución de captación previa.
 
@@ -260,14 +266,17 @@ Barandillas actuales:
 - los informes de campaña, la navegación de los seguidores, los acuerdos y las rutas de reparación prefieren los índices `campaign-pledges:{slug}` a los escaneos de espacios de nombres de promesas.
 - Las lecturas de inventario adicionales de la plataforma utilizan `add-on-inventory-sold:v1` después del primer arranque de proyección de recuento de ventas.
 - El envío de recordatorio de lanzamiento utiliza `launch-reminder-dispatch-queue:v1`, por lo que los ticks programados inactivos no aparecen en la lista `launch-reminder-dispatch:*`.
+- los recordatorios de pago abandonado utilizan `abandoned-cart-queue:v1`, por lo que los ticks programados inactivos no incluyen `abandoned-cart:*`; Los enlaces de currículum firmados utilizan registros `abandoned-cart-resume:{orderId}` separados de corta duración creados solo después de que el recordatorio se envía correctamente.
 - El reintento por correo electrónico de confirmación del colaborador utiliza `supporter-email-retry-queue:v1`, por lo que el reintento de sondeo omite los análisis `supporter-email-retry:*` mientras está inactivo o antes de que venza el siguiente intento.
 - Los marcadores de estado de cola inactivo caducan cada hora, lo que mantiene la compatibilidad con los trabajos insertados manualmente sin volver al sondeo del espacio de nombres a nivel de minutos.
 
-En condiciones normales de tráfico sin colas, se esperan aproximadamente `48-75` solicitudes de lista KV durante 24 horas. Los lotes de recordatorios de lanzamiento activos y los reintentos de correo electrónico de los colaboradores aún muestran sus prefijos de cola limitada cuando el trabajo real está pendiente.
+En condiciones normales de tráfico sin colas, se esperan aproximadamente `48-75` solicitudes de lista KV durante 24 horas. Los lotes de recordatorios de lanzamiento activos, los recordatorios de pago abandonado y los reintentos de correo electrónico de soporte aún muestran sus prefijos de cola limitada cuando el trabajo real está pendiente.
 
 ## Optimización de medios
 
 Las cargas del panel preservan el origen. El trabajador valida las cargas y las confirma, luego solicita el flujo de trabajo **Optimizar medios del panel** para cargas de imágenes/videos. Todavía no ejecuta optimizadores de imágenes nativos ni el propio FFmpeg.
+
+El contenido de la campaña, el contenido del diario y las cargas de imágenes de correo electrónico Blast comparten la misma ruta de carga de medios de la campaña. Por lo tanto, las imágenes explosivas no agregan ningún nuevo sistema de optimización del lado del trabajador ni estado KV: se confirman bajo `assets/images/campaigns/<slug>/`, el flujo de trabajo de medios existente se ejecuta con `scope=changed` y la ruta final `/assets/...` alojada en el sitio se utiliza en la carga útil del correo electrónico. Los bloques de video explosivos siguen siendo enlaces/botones de proveedores para YouTube o Vimeo en lugar de reproductores integrados, lo que mantiene el HTML del correo electrónico pequeño y compatible con el cliente.
 
 Utilice la canalización de medios del repositorio para los medios de origen:
 
@@ -343,7 +352,7 @@ npx vitest run tests/unit/page-prefetch.test.ts tests/unit/layout-accessibility.
 npm run test:e2e:headless:podman -- tests/e2e/admin-dashboard.spec.ts --project=chromium
 ```
 
-Validación enfocada del navegador para cambios en la interfaz de usuario pública:
+Validación de navegador enfocada para cambios en la interfaz de usuario pública:
 
 ```bash
 python3 -m http.server 4100 --bind 127.0.0.1 --directory _site

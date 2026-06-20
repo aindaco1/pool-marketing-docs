@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-June 15, 2026
+June 20, 2026
 
 This document covers the security architecture, known risks, applied hardening measures, accepted tradeoffs, and penetration testing procedures for The Pool crowdfunding platform.
 
@@ -48,7 +48,8 @@ This document covers the security architecture, known risks, applied hardening m
 | `admin-login:{hash}` | PLEDGES | One-time admin login nonce and email | **Medium** - ephemeral admin auth |
 | `admin-session:{hash}` | PLEDGES | Admin email, role, campaign scope, CSRF token, expiry | **High** - admin auth |
 | `admin-users:v1` | PLEDGES | Runtime admin users and campaign scopes | **High** - access control |
-| `admin-marketing-referrals:{slug}` | PLEDGES | Saved referral code metadata | **Low** - admin-authored marketing data |
+| `admin-marketing-referrals:{slug}` | PLEDGES | Saved referral code and QR source metadata | **Low** - admin-authored marketing data |
+| `admin-marketing-draft:{slug}:{surface}` | PLEDGES | Explicit shared Marketing/Blast draft with short retention | **Medium** - admin-authored campaign email/link content |
 | `campaign-preview-reviewers:{slug}` | PLEDGES | Normalized reviewer email allowlist for protected campaign previews, with 24-hour TTL | **Medium** - campaign-scoped email access list |
 | `admin-audit:{date}:{action}:{id}` | PLEDGES | Recent admin mutation audit events | **Medium** - admin identity + operational metadata |
 | `launch-reminder:{slug}:{emailHash}` | PLEDGES | Upcoming-campaign reminder email and opt-in metadata | **Medium** - campaign-scoped email |
@@ -56,6 +57,13 @@ This document covers the security architecture, known risks, applied hardening m
 | `launch-reminder-sent:{slug}:{emailHash}` | PLEDGES | Reminder send idempotency marker | **Low** - send state |
 | `launch-reminder-dispatch:{slug}` | PLEDGES | Bounded reminder dispatch job cursor/progress | **Low** - operational state |
 | `launch-reminder-dispatch-queue:v1` | PLEDGES | Reminder dispatch queue idle/pending marker | **Low** - operational state |
+| `abandoned-cart:{orderId}` | PLEDGES | Explicitly opted-in checkout reminder email and campaign snapshot | **Medium** - campaign-scoped email |
+| `abandoned-cart-resume:{orderId}` | PLEDGES | Short-lived signed-link checkout resume snapshot after a reminder sends | **Medium** - campaign-scoped email and sanitized cart snapshot |
+| `abandoned-cart-sent:{emailHash}:{campaignSetHash}` | PLEDGES | Checkout reminder send idempotency marker | **Low** - send state |
+| `abandoned-cart-suppressed:{emailHash}` | PLEDGES | Checkout reminder unsubscribe marker | **Medium** - supporter email hash |
+| `abandoned-cart-suppressed-campaign:{slug}:{emailHash}` | PLEDGES | Admin-managed campaign-scoped checkout reminder suppression marker | **Medium** - supporter email hash |
+| `abandoned-cart-queue:v1` | PLEDGES | Checkout reminder queue idle/pending marker | **Low** - operational state |
+| `abandoned-cart-health:v1` | PLEDGES | Aggregate checkout reminder queue/outcome health counters | **Low** - operational aggregate |
 | `supporter-email-retry:{orderId}` | PLEDGES | Queued supporter confirmation email retry payload | **Medium** - supporter email payload |
 | `supporter-email-retry-queue:v1` | PLEDGES | Supporter email retry idle/pending and next-attempt marker | **Low** - operational state |
 | `add-on-inventory-sold:v1` | PLEDGES | Platform add-on sold-count projection | **Low** - aggregate inventory state |
@@ -152,6 +160,7 @@ Before deploying to production, verify these secrets are set:
 | Checkout Intent Secret | `CHECKOUT_INTENT_SECRET` | 32+ chars |
 | Magic Link Secret | `MAGIC_LINK_SECRET` | 32+ chars |
 | Launch Reminder Token Secret | `LAUNCH_REMINDER_TOKEN_SECRET` or `MAGIC_LINK_SECRET` fallback | 32+ chars |
+| Abandoned Checkout Token Secret | `ABANDONED_CART_TOKEN_SECRET` or `MAGIC_LINK_SECRET` fallback for reminder unsubscribe/resume links | 32+ chars |
 | Admin Session Secret | `ADMIN_SESSION_SECRET` | 32+ chars |
 | Admin Secret | `ADMIN_SECRET` | 32+ chars |
 | Settlement Admin Secret | `ADMIN_SETTLEMENT_SECRET` (optional, scoped) | 32+ chars |
