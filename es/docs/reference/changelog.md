@@ -10,7 +10,22 @@ lang: es
 
 ## Última actualización
 
-20 de junio de 2026
+1 de julio de 2026
+
+## v1.0.8 - 2026-07-01
+
+Alcance de la versión:
+
+- Se portó el hardening de Cloudflare Rocket Loader derivado de Store al marcar los scripts propios de layouts/includes de Pool con `data-cfasync="false"`, cubriendo superficies públicas de campaña, carrito, preview, manage, community, resultados de promesa y admin.
+- Se reforzó la carga de datos de Marketing del administrador para que los códigos de referencia guardados y la salud de checkout abandonado se carguen de forma diferida solo cuando un administrador autenticado abre Marketing, con guardas de estado en vuelo y ya cargado con alcance de campaña.
+- Se recordó la última pestaña del panel de administración, la sección de Settings, la campaña seleccionada de Campaigns y la subpestaña de Campaigns en estado local del navegador para que las recargas devuelvan a los administradores al mismo contexto de trabajo sin escrituras de Worker ni KV.
+- Se agregó un shim explícito para el global de navegador del proveedor QR para que el constructor QR de Marketing del administrador no dependa de globals de scripts clásicos sensibles al optimizador.
+- Se agregó una auditoría de completitud de locales y cobertura de unidad para mantener los catálogos i18n compatibles alineados con inglés.
+- Se agregó cobertura de regresión de plantillas que escanea layouts/includes en busca de scripts propios locales sin la exclusión de Rocket Loader.
+- Se movieron los archivos de configuración de Vitest a módulos ESM `.mts` y se actualizaron scripts/exclusiones de Jekyll para evitar la ruta deprecated de la API Node CJS de Vite.
+- Se agregó una auditoría SEO del sitio generado (`npm run test:seo`) adaptada de Store, se conectó a la puerta de merge y se movió el renderizado de URLs del sitemap a un include compartido que emite alternates localizados `hreflang`.
+- Se agregó pulido móvil de metadatos/CSS desde Store para que las cabeceras de documentos públicos, admin, manage, community, embed, preview y resultados de promesa desactiven la detección automática de teléfono/fecha/dirección/correo, mientras los controles compartidos heredan el tema actual de forma consistente.
+- Se actualizó la solicitud de settings del administrador para enviar el idioma preferido actual, manteniendo la normalización i18n de filas existente del cliente de Pool lista para futura localización de esquema desde el Worker.
 
 ## v1.0.7 - 2026-06-19
 

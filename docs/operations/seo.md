@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-June 20, 2026
+July 1, 2026
 
 This document describes The Pool's current SEO model in 2026. It is intentionally conservative: public pages are made easier to crawl and understand, while supporter-only and tokenized flows stay out of index intent. The implementation is designed around real metadata, real public pages, and honest structured data rather than content padding or rich-result bait.
 
@@ -40,6 +40,8 @@ The current baseline includes:
 - Worker-generated campaign share-card PNGs for public social metadata, with SVG retained for internal preview/debug tooling
 - generated [`robots.txt`](/robots.txt)
 - generated [`sitemap.xml`](/sitemap.xml)
+- shared sitemap URL rendering in [`_includes/seo-sitemap-url.xml`](https://github.com/your-org/your-project/blob/main/_includes/seo-sitemap-url.xml), including localized `xhtml:link` alternates where a page or campaign has localized routes
+- a generated-site SEO audit at [`scripts/audit-seo.mjs`](https://github.com/your-org/your-project/blob/main/scripts/audit-seo.mjs), exposed as `npm run test:seo` and wired into the merge gate
 - explicit `noindex,nofollow` on tokenized or supporter-only layouts
 - explicit `noindex,nofollow,noarchive`, `sitemap: false`, robots disallows, and disabled social metadata on the private admin dashboard
 - protected campaign preview shells with `noindex,nofollow,noarchive`, no social metadata, no JSON-LD, no public sitemap inclusion, and no public prefetch eligibility
@@ -54,6 +56,7 @@ The main implementation files are:
 - [/_includes/seo-json-ld.html](https://github.com/your-org/your-project/blob/main/_includes/seo-json-ld.html)
 - [/_layouts/campaign.html](https://github.com/your-org/your-project/blob/main/_layouts/campaign.html)
 - [/worker/src/index.js](https://github.com/your-org/your-project/blob/main/worker/src/index.js)
+- [/scripts/audit-seo.mjs](https://github.com/your-org/your-project/blob/main/scripts/audit-seo.mjs)
 - [/robots.txt](/robots.txt)
 - [/sitemap.xml](/sitemap.xml)
 
@@ -100,6 +103,8 @@ This is enforced through a mix of:
 - `robots.txt`
 - sitemap inclusion rules
 - sitemap `lastmod` hints for public pages and campaigns
+- sitemap hreflang alternate links for localized page/campaign pairs
+- generated-output validation through `npm run test:seo`
 
 Admin dashboard contract:
 
@@ -208,6 +213,7 @@ When checking a deployment manually:
 - visible campaign share links use the canonical campaign URL and do not replace the metadata-driven social card contract
 - `robots.txt` is reachable and only exposes intended public crawl paths
 - `sitemap.xml` is reachable and only includes intended public URLs
+- `npm run test:seo` passes against a freshly built `_site`
 - private/tokenized pages emit `noindex` where appropriate
 - `/admin/` and `/es/admin/` emit `noindex,nofollow,noarchive`, do not appear in `sitemap.xml`, and do not emit social-preview or JSON-LD metadata
 - `/campaigns/:slug/preview/` emits `noindex,nofollow,noarchive`, does not appear in `sitemap.xml`, and does not emit social-preview or JSON-LD metadata

@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-15 de junio de 2026
+1 de julio de 2026
 
 Este documento rastrea la línea base de accesibilidad actual de The Pool, las superficies de interacción de mayor riesgo que verificamos activamente y el trabajo de seguimiento restante necesario para pasar de una "postura de accesibilidad fuerte" hacia un cumplimiento de accesibilidad más completo.
 
@@ -76,6 +76,7 @@ El reciente pase de refuerzo de accesibilidad agregó:
   - Configuración -> Planificar encabezados de proveedores de uso que reutilizan la etiqueta de administración compartida/patrón de ayuda, el estado de carga gradual, el texto de la barra de progreso accesible y las tarjetas de métricas responsivas
   - Cree una nueva campaña y cuadros de diálogo de vista previa protegidos que reutilicen el patrón de etiqueta de administrador/ayuda/botón de información compartido, campos nativos, entrada de token de lista de correo electrónico, manejo de enfoque de diálogo y mensajes de estado cortés.
   - tablas de datos ordenables que exponen el estado `aria-sort` y los botones de clasificación
+  - restauración al recargar para la última pestaña de nivel superior permitida, la sección de Configuración, la campaña seleccionada y la subpestaña de Campañas, manteniendo sincronizados los roles de pestañas APG, `aria-selected` y `tabindex` móvil
 
 ## Superficies críticas
 

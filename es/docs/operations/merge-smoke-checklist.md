@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-20 de junio de 2026
+1 de julio de 2026
 
 Utilice esta lista de verificación antes de fusionar sucursales que cambien el pago, la persistencia del webhook, la gestión de promesas, el inventario, la liquidación o las transmisiones de seguidores.
 
@@ -66,6 +66,8 @@ Ese guión comienza:
 Utilice el ensayo local para comprobar la integridad del proceso de pago, la entrega de webhooks, la gestión del comportamiento de los enlaces y los puntos finales de administración antes de ejecutar el mismo flujo en la puesta en escena.
 
 Para sucursales con muchos paneles, abra el panel local en `http://127.0.0.1:4000/admin/`. La pila de desarrollo genera los valores predeterminados del administrador de arranque documentados en `README.md` y `worker/README.md`; Los cambios de gestión de usuarios realizados en el panel se guardan en el KV del trabajador local y se restablecen con el estado del KV local.
+
+Para cambios de UI del panel de administración, cambie entre pestañas de nivel superior, seleccione una sección de Configuración no predeterminada, seleccione una campaña y una subpestaña de Campañas no predeterminada, recargue la página y confirme que se restaura el mismo espacio de trabajo permitido. Después inicie sesión como usuario con alcance de campaña, o simúlelo, y confirme que las pestañas exclusivas de superadministradores no se restauran.
 
 Para verificaciones de gestión de promesas solo locales, utilice la campaña `smoke-editable`. Se define como `test_only: true`, por lo que aparece en el desarrollo local cuando `_config.local.yml` habilita `show_test_campaigns`, mientras permanece excluido de la página de inicio de producción y de producción `/api/campaigns.json`.
 

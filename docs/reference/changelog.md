@@ -9,7 +9,22 @@ render_with_liquid: false
 
 ## Last Updated
 
-June 20, 2026
+July 1, 2026
+
+## v1.0.8 - 2026-07-01
+
+Release scope:
+
+- Ported Store-derived Cloudflare Rocket Loader hardening by opting Pool first-party layout/include scripts out with `data-cfasync="false"`, covering public campaign, cart, preview, manage, community, pledge-result, and admin surfaces.
+- Hardened admin Marketing data loading so saved referral codes and abandoned-checkout health load lazily only when an authenticated admin opens Marketing, with campaign-scoped in-flight and loaded-state guards.
+- Remembered the last admin dashboard tab plus Settings section, selected Campaigns campaign, and Campaigns subtab in browser-local state so reloads return admins to the same working context without Worker or KV writes.
+- Added an explicit QR vendor browser-global shim so the admin Marketing QR builder does not rely on optimizer-sensitive classic-script globals.
+- Added a locale completeness audit and unit coverage to keep supported i18n catalogs aligned with English.
+- Added template regression coverage that scans layouts/includes for local first-party scripts missing the Rocket Loader opt-out.
+- Moved Vitest config files to ESM `.mts` modules and updated scripts/Jekyll excludes to avoid Vite's deprecated CJS Node API path.
+- Added a generated-site SEO audit (`npm run test:seo`) adapted from Store, wired it into the merge gate, and moved sitemap URL rendering into a shared include that emits localized hreflang alternates.
+- Added mobile metadata/CSS polish from Store so public, admin, manage, community, embed, preview, and pledge-result document heads opt out of automatic phone/date/address/email detection while shared controls inherit the current theme consistently.
+- Updated the admin settings request to send the current preferred language, keeping Pool's existing client-side i18n row normalization ready for Worker-side schema localization.
 
 ## v1.0.7 - 2026-06-19
 

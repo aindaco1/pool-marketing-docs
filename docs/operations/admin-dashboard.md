@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-June 20, 2026
+July 1, 2026
 
 This document is the operator reference for The Pool's private admin dashboard and should be treated as the source of truth for dashboard-based campaign editing, reporting, analytics, marketing links, add-ons, and user management.
 
@@ -63,6 +63,7 @@ The dashboard intentionally separates read-only browsing, local drafting, KV wri
 | Action | Storage / side effect |
 |--------|------------------------|
 | Dashboard summary, analytics, reports, supporters, table filtering, and content preview | Read-only; should add zero KV writes |
+| Dashboard tab/subtab restoration | Browser-local UI state only; remembers the last allowed top-level tab, Settings section, selected Campaigns campaign, and Campaigns subtab without Worker, KV, or GitHub writes |
 | Content editor **Save draft** | Browser-local draft only |
 | Campaign content/settings publish | Worker validates input, writes to GitHub-backed files, triggers the normal rebuild/deploy path, and records an audit event |
 | Protected preview publish | Worker validates campaign scope and base revision, writes only preview flags to GitHub-backed campaign Markdown, stores the publishing admin plus optional reviewer emails in `PLEDGES` KV at `campaign-preview-reviewers:<slug>` with a 24-hour TTL, returns a dashboard-visible signed link for the publisher, sends signed links to optional reviewers, and records an audit event |
@@ -91,6 +92,8 @@ The top-level dashboard order is:
 6. **Supporters**: role-scoped supporter browsing, filtering, sorting, and CSV export.
 7. **Marketing**: referral URL builder, saved referral codes, downloadable campaign QR codes, and embed-builder controls.
 
+On reload, the dashboard restores the last allowed top-level tab from browser-local state. It also restores the last Settings sidebar section and the last selected Campaigns campaign/subtab when those surfaces are still available to the signed-in admin. Role checks still win: campaign users are never restored into super-admin-only Settings or Add-ons tabs, and missing campaigns or subtabs fall back to the first available option.
+
 ## Settings
 
 Settings are grouped in a left sidebar. Super admins can edit publishable configuration sections and save runtime-only user management separately.
@@ -113,6 +116,8 @@ Use one same-as URL per line. Use canonical public profile URLs, for example:
 https://www.instagram.com/example
 https://www.imdb.com/name/nm0000000/
 ```
+
+The dashboard sends the current preferred language when loading settings. Browser-side row normalization still owns most Pool admin label localization, but the request keeps the Worker settings schema ready for future server-localized field labels and option text.
 
 The local stack can override `SITE_BASE` and `WORKER_BASE` from `_config.local.yml`, but `scripts/sync-worker-config.rb` keeps `CANONICAL_SITE_BASE` and `CANONICAL_WORKER_BASE` pinned to the production values from `_config.yml`. That lets the local dashboard show production publish targets without breaking localhost requests.
 

@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-June 20, 2026
+July 1, 2026
 
 Cloudflare Worker handling first-party checkout canonicalization, Stripe integration, pledge management, order-scoped supporter authentication, upcoming-campaign launch reminders, consent-based abandoned-checkout reminders, campaign supporter blasts, protected campaign previews, and the private browser admin dashboard APIs.
 
@@ -80,6 +80,8 @@ Abandoned-checkout reminders use the same budget pattern. The browser shows an e
 Supporter confirmation email retries use the same free-tier-aware pattern. Failed sends write `supporter-email-retry:{orderId}` plus `supporter-email-retry-queue:v1`, and the scheduled retry pass skips KV list scans while the queue is idle or before the next retry is due.
 
 Public campaign-page media optimization remains a static-site concern rather than a Worker runtime concern. The Worker preserves dashboard uploads as source files and dispatches the repository optimizer for committed image/video uploads; Jekyll templates, the repository media optimizer, and the deploy artifact step handle responsive WebP variants, local YouTube hero poster facades, and generated CSS/JS minification before the public Pages artifact is served. Blast announcement image uploads reuse the campaign content upload kind and directory, so email images are site-hosted under `assets/images/campaigns/<slug>/` and optimized by the same repository workflow instead of adding Worker-side image processing or extra KV state.
+
+Public SEO and crawl validation is also a static-site concern. Build `_site`, minify generated assets, then run `npm run test:seo` from the repo root to validate generated robots, sitemap, canonicals, hreflang alternates, social metadata, and JSON-LD before changing Worker share-card or public campaign URL behavior.
 
 The sampling rate defaults to `0.1` and can be overridden with `OBSERVABILITY_SAMPLE_RATE=0.05` (or any `0-1` value) if a fork wants fewer or more sampled timing writes.
 
@@ -435,6 +437,7 @@ The private `/admin/` and `/es/admin/` shells use cookie-backed Worker routes in
 - `POST /admin/settings/preview` validates settings changes without publishing
 - `POST /admin/settings/logo-upload`, `POST /admin/settings/image-upload`, `POST /admin/settings/audio-upload`, and `POST /admin/settings/video-upload` stage dashboard uploads through the same GitHub-backed publish path as their owning settings/content fields; image/video uploads request the **Optimize dashboard media** workflow with `scope=changed` after commit, while native image optimization and video transcoding still run in the repository media pipeline rather than inside the Worker
 - `POST /admin/settings/publish` validates and publishes platform settings, platform add-ons, campaign variables, and campaign structured data through GitHub-backed commits
+- The browser remembers dashboard tab/subtab context locally across reloads; this restoration does not call a Worker route and does not write KV or GitHub state
 - `POST /admin/users` saves dashboard-managed admin users directly to `admin-users:v1` in Worker KV and emails newly created users sign-in instructions when Resend is configured
 - `POST /admin/campaigns/create` lets super admins create preview-only campaigns through the GitHub-backed campaign source path, assign one or more existing campaign users, optionally create multiple new campaign users in `admin-users:v1`, email assigned users the admin dashboard link, and record an audit event
 - `POST /admin/campaigns/archive` lets super admins archive non-live campaigns locally in dev or by dispatching `.github/workflows/archive-campaign.yml` in production; the Worker validates CSRF, role, slug, campaign existence, and effective state, records an audit event, and moves campaign source/media through the dev repo helper or GitHub Actions

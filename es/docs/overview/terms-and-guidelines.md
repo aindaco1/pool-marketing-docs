@@ -10,9 +10,9 @@ lang: es
 
 ## Última actualización
 
-20 de junio de 2026
+1 de julio de 2026
 
-Estos términos reflejan el hito del lanzamiento de la plataforma The Pool **v1.0.7**.
+Estos términos reflejan el hito del lanzamiento de la plataforma The Pool **v1.0.8**.
 
 ## Términos de compromiso
 
@@ -94,6 +94,7 @@ Esta sección se aplica solo a campañas que solicitan explícitamente envíos c
 - Las páginas de campañas públicas pueden aplazar las incrustaciones de medios de terceros seleccionados, como vídeos destacados de YouTube, hasta que usted decida reproducirlos. Hasta entonces, la página puede mostrar una imagen de póster local en lugar de comunicarse con ese proveedor de inserción externo.
 - Los enlaces para compartir de la campaña pueden preservar la referencia pública segura o los parámetros de consulta UTM para que los responsables de la campaña puedan comprender las fuentes de promoción pública. No conservan tokens, pedidos, correos electrónicos, sesiones ni otros parámetros de consulta confidenciales.
 - Los operadores de plataforma autorizados pueden cargar el estado de uso del plan de Cloudflare y Reenviar en el panel de administración privado. Esas comprobaciones de proveedores utilizan credenciales del lado del servidor y no envían detalles de promesas, correos electrónicos de seguidores, direcciones de envío ni datos de pago a los puntos finales de uso.
+- El panel de administración privado puede recordar el último espacio de trabajo de pestaña/subpestaña de un operador autorizado en ese navegador. Esta preferencia de UI es local del navegador y no se usa para conceder acceso más allá del rol de administrador con sesión iniciada.
 - No vendemos su información. Lo compartimos solo cuando sea necesario para el procesamiento de pagos, la entrega de correos electrónicos transaccionales, la prevención de abusos, el cálculo de cotizaciones de envío y el cumplimiento de recompensas.
 
 ## Plataforma y tecnología

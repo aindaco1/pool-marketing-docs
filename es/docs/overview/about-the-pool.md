@@ -10,13 +10,13 @@ lang: es
 
 ## Última actualización
 
-20 de junio de 2026
+1 de julio de 2026
 
 **The Pool** es una plataforma de financiación colectiva estática de código abierto para películas independientes, medios y otros proyectos impulsados ​​por artistas.
 
 Está diseñado en torno a una promesa simple: los seguidores pueden comprometerse con un proyecto creativo sin crear una cuenta, y sus tarjetas solo se cargan si la campaña alcanza su objetivo. Detrás de esa experiencia liviana para los seguidores, The Pool brinda a los creadores y operadores una infraestructura real para el pago, el cumplimiento, las actualizaciones, los informes, la edición administrativa, la localización y la implementación de las promesas.
 
-Hito de lanzamiento actual: **v1.0.7**. El conjunto de funciones v1.0 y el pase de refuerzo de lanzamiento están completos. La versión 1.0.7 agrega visibilidad de checkout abandonado con alcance de campaña, verificaciones probadas de preparación de configuración/despliegue, borradores compartidos de Marketing y Blast, informes de referencias/UTM y un selector de medios con alcance para bloques de imágenes de contenido enriquecido.
+Hito de lanzamiento actual: **v1.0.8**. El conjunto de funciones v1.0 y el pase de refuerzo de lanzamiento están completos. La versión 1.0.8 agrega hardening de runtime derivado de Store, lecturas de Marketing autenticadas y diferidas, restauración recordada de pestañas/subpestañas del panel de administración, verificaciones más estrictas de completitud de locales y cobertura de auditoría SEO del sitio generado en la puerta de merge.
 
 ## Compromiso de todo o nada
 
@@ -59,6 +59,7 @@ The Pool está diseñado para cineastas y equipos creativos que necesitan una ca
 - **Complementos de plataforma opcionales**: ofrezca productos de la plataforma junto con promesas cuando esté habilitado, con inventario y manejo de envío separados que no cuentan para el objetivo de financiamiento de una campaña.
 - **Complementos de campaña**: vende productos o extras específicos de la campaña en el mismo flujo de compromiso y, al mismo tiempo, mantienes los ingresos, el inventario y los envíos vinculados a esa campaña.
 - **Panel de administración privado**: brinde a los miembros confiables del equipo un espacio de trabajo enfocado en la configuración de la campaña, el contenido de la página, las recompensas, las actualizaciones, las decisiones, los informes, los seguidores, los análisis, los enlaces de marketing, los complementos y los usuarios.
+- **Espacio de trabajo recordado del panel**: cuando un administrador recarga el panel, el navegador puede devolverlo a la última pestaña permitida, sección de Configuración, campaña seleccionada y subpestaña de Campañas sin guardar ese estado de UI en datos del Worker.
 - **Herramientas de marketing de campaña**: cree enlaces de seguimiento, guarde códigos de referencia, descargue códigos QR de campaña, genere fragmentos insertados en vivo desde la pestaña Marketing del panel y revise el rendimiento de referencias/UTM en Analytics.
 - **Envíos masivos de correos electrónicos a colaboradores**: envíe envíos masivos de correos electrónicos a colaboradores relacionados con la campaña desde Campañas -> Blast, utilizando borradores compartidos, imágenes de campaña alojadas y enlaces de vídeo seguros para correo electrónico.
 - **Vistas previas de campañas protegidas**: comparta borradores o campañas solo de vista previa de forma privada con usuarios de campaña asignados y revisores invitados explícitamente antes de que se lance la página de campaña pública.

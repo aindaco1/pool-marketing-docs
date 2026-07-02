@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-20 de junio de 2026
+1 de julio de 2026
 
 Esta guía cubre la superficie de personalización sin código compatible para las bifurcaciones de The Pool tal como existe ahora.
 
@@ -121,7 +121,7 @@ Estos valores alimentan:
 Notas:
 
 - `platform.*` es la superficie de marca principal.
-- `platform.version` debe ser la versión canónica del producto legible por máquina para el sitio, mientras que `platform.release_label` puede seguir siendo más amigable para copias públicas como `v1.0.7`.
+- `platform.version` debe ser la versión canónica del producto legible por máquina para el sitio, mientras que `platform.release_label` puede seguir siendo más amigable para copias públicas como `v1.0.8`.
 - `platform.timezone` debe ser una zona horaria compatible con la IANA. El valor predeterminado es `America/Denver`, por lo que las bifurcaciones existentes mantienen el comportamiento del ciclo de vida anterior hasta que lo cambien.
 - `title` / `author` de nivel superior todavía existen en Jekyll, pero trátelos como metadatos/respaldo generales del sitio en lugar de la interfaz principal de personalización de la bifurcación.
 - `platform.default_social_image_path` es el valor predeterminado admitido para tarjetas OG/Twitter cuando una página o campaña no proporciona una imagen más específica.
@@ -133,8 +133,8 @@ Ejemplo:
 ```yml
 platform:
   name: My Fork
-  version: 1.0.7
-  release_label: v1.0.7
+  version: 1.0.8
+  release_label: v1.0.8
   company_name: Example Studio
   support_email: support@example.com
   pledges_email_from: "My Fork <pledges@pool.example.com>"

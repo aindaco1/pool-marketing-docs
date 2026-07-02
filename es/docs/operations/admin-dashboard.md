@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-20 de junio de 2026
+1 de julio de 2026
 
 Este documento es la referencia del operador para el panel de administración privado de The Pool y debe ser tratado como la fuente de verdad para la edición de campañas, informes, análisis, enlaces de marketing, complementos y administración de usuarios basados ​​en el panel.
 
@@ -64,6 +64,7 @@ El panel separa intencionalmente la navegación de solo lectura, los borradores 
 |acción|Almacenamiento/efecto secundario|
 |--------|------------------------|
 |Resumen del panel, análisis, informes, seguidores, filtrado de tablas y vista previa del contenido|Sólo lectura; debería agregar cero escrituras KV|
+|Restauración de pestaña/subpestaña del panel|Solo estado de UI local del navegador; recuerda la última pestaña de nivel superior permitida, la sección de Configuración, la campaña seleccionada y la subpestaña de Campañas sin escrituras de Worker, KV ni GitHub|
 |Editor de contenido **Guardar borrador**|Solo borrador local del navegador|
 |Publicación del contenido/configuración de la campaña|El trabajador valida la entrada, escribe en archivos respaldados por GitHub, activa la ruta normal de reconstrucción/implementación y registra un evento de auditoría.|
 |Publicación de vista previa protegida|El trabajador valida el alcance de la campaña y la revisión base, escribe solo indicadores de vista previa en Markdown de la campaña respaldada por GitHub, almacena el administrador de publicación más los correos electrónicos del revisor opcional en `PLEDGES` KV en `campaign-preview-reviewers:<slug>` con un TTL de 24 horas, devuelve un enlace firmado visible en el panel para el editor, envía enlaces firmados a revisores opcionales y registra un evento de auditoría|
@@ -92,6 +93,8 @@ El orden del panel de nivel superior es:
 6. **Colaboradores**: navegación, filtrado, clasificación y exportación CSV de los colaboradores según el rol.
 7. **Marketing**: creador de URL de referencia, códigos de referencia guardados, códigos QR de campaña descargables y controles del generador de inserción.
 
+Al recargar, el panel restaura la última pestaña de nivel superior permitida desde el estado local del navegador. También restaura la última sección de la barra lateral de Configuración y la última campaña/subpestaña de Campañas seleccionada cuando esas superficies siguen disponibles para el administrador con sesión iniciada. Las comprobaciones de rol siguen ganando: los usuarios de campaña nunca se restauran en pestañas exclusivas de superadministradores como Configuración o Complementos, y las campañas o subpestañas faltantes vuelven a la primera opción disponible.
+
 ## Ajustes
 
 Las configuraciones están agrupadas en una barra lateral izquierda. Los superadministradores pueden editar secciones de configuración publicables y guardar la administración de usuarios solo en tiempo de ejecución por separado.
@@ -114,6 +117,8 @@ Utilice una URL igual por línea. Utilice URL de perfil público canónico, por 
 https://www.instagram.com/example
 https://www.imdb.com/name/nm0000000/
 ```
+
+El panel envía el idioma preferido actual cuando carga la configuración. La normalización de filas del navegador todavía controla la mayor parte de la localización de etiquetas del panel de Pool, pero la solicitud mantiene el esquema de configuración del Worker listo para futuras etiquetas de campos y textos de opciones localizados del lado del servidor.
 
 La pila local puede anular `SITE_BASE` y `WORKER_BASE` de `_config.local.yml`, pero `scripts/sync-worker-config.rb` mantiene `CANONICAL_SITE_BASE` y `CANONICAL_WORKER_BASE` fijados a los valores de producción de `_config.yml`. Eso permite que el panel local muestre los objetivos de publicación de producción sin interrumpir las solicitudes de localhost.
 

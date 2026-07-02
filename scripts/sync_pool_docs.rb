@@ -217,7 +217,7 @@ ABOUT_REWRITE = <<~MARKDOWN.freeze
 
   It is designed around a simple promise: supporters can pledge toward a creative project without creating an account, and their cards are only charged if the campaign reaches its goal. Behind that lightweight supporter experience, The Pool gives creators and operators real infrastructure for pledge checkout, fulfillment, updates, reporting, admin editing, localization, and deployment.
 
-  Current release milestone: **v1.0.7**. The v1.0 feature set and launch-hardening pass are complete. v1.0.7 adds campaign-scoped abandoned-checkout visibility, tested setup/deploy readiness checks, shared Marketing and Blast drafts, referral/UTM reporting, and a scoped media picker for rich content image blocks.
+  Current release milestone: **v1.0.8**. The v1.0 feature set and launch-hardening pass are complete. v1.0.8 adds Store-derived runtime hardening, lazy authenticated Marketing reads, remembered admin dashboard tab/subtab context, stronger locale completeness checks, and generated-site SEO audit coverage in the merge gate.
 
   ## All-or-Nothing Pledging
 
@@ -260,6 +260,7 @@ ABOUT_REWRITE = <<~MARKDOWN.freeze
   - **Optional platform add-ons** — Offer platform merch alongside pledges when enabled, with separate inventory and shipping handling that does not count toward a campaign's funding goal.
   - **Campaign add-ons** — Sell campaign-specific merch or extras in the same pledge flow while keeping revenue, inventory, and shipping tied to that campaign.
   - **Private admin dashboard** — Give trusted team members a focused workspace for campaign settings, page content, rewards, updates, decisions, reports, supporters, analytics, marketing links, add-ons, and users.
+  - **Remembered dashboard workspace** — When an admin reloads the dashboard, the browser can return them to their last allowed tab, Settings section, selected campaign, and Campaigns subtab without storing that UI state in Worker data.
   - **Campaign marketing tools** — Build tracked links, save referral codes, download campaign QR codes, generate live embed snippets from the dashboard Marketing tab, and review referral/UTM performance in Analytics.
   - **Supporter email blasts** — Send campaign-scoped supporter email blasts from Campaigns -> Blast, using shared drafts, hosted campaign images, and email-safe video links.
   - **Protected campaign previews** — Share draft or preview-only campaigns privately with assigned campaign users and explicitly invited reviewers before the public campaign page launches.
@@ -719,13 +720,14 @@ def rewrite_copy(content, current_src)
     )
     rewritten.sub!(
       /^Current release milestone: \*\*v1\.0\.\d+\*\*\. .+$/,
-      "Current release milestone: **v1.0.7**. The v1.0.6 release shipped richer campaign marketing tools, supporter email blasts, consent-based abandoned-checkout reminders, and the script-first setup/deployment helper. v1.0.7 focuses on abandoned-checkout visibility, setup/deploy hardening, shared Marketing/Blast draft support, referral/UTM reporting, and a campaign-scoped WYSIWYG media picker."
+      "Current release milestone: **v1.0.8**. The v1.0 feature set and launch-hardening pass are complete. v1.0.8 adds Store-derived runtime hardening, lazy authenticated Marketing reads, remembered admin dashboard tab/subtab context, stronger locale completeness checks, and generated-site SEO audit coverage in the merge gate."
     )
-    rewritten.gsub!("the v0.9.5 through v1.0.2 creator-facing changes", "the v0.9.5 through v1.0.7 creator-facing changes")
-    rewritten.gsub!("the v0.9.5 through v1.0.3 creator-facing changes", "the v0.9.5 through v1.0.7 creator-facing changes")
-    rewritten.gsub!("the v0.9.5 through v1.0.4 creator-facing changes", "the v0.9.5 through v1.0.7 creator-facing changes")
-    rewritten.gsub!("the v0.9.5 through v1.0.5 creator-facing changes", "the v0.9.5 through v1.0.7 creator-facing changes")
-    rewritten.gsub!("the v0.9.5 through v1.0.6 creator-facing changes", "the v0.9.5 through v1.0.7 creator-facing changes")
+    rewritten.gsub!("the v0.9.5 through v1.0.2 creator-facing changes", "the v0.9.5 through v1.0.8 creator-facing changes")
+    rewritten.gsub!("the v0.9.5 through v1.0.3 creator-facing changes", "the v0.9.5 through v1.0.8 creator-facing changes")
+    rewritten.gsub!("the v0.9.5 through v1.0.4 creator-facing changes", "the v0.9.5 through v1.0.8 creator-facing changes")
+    rewritten.gsub!("the v0.9.5 through v1.0.5 creator-facing changes", "the v0.9.5 through v1.0.8 creator-facing changes")
+    rewritten.gsub!("the v0.9.5 through v1.0.6 creator-facing changes", "the v0.9.5 through v1.0.8 creator-facing changes")
+    rewritten.gsub!("the v0.9.5 through v1.0.7 creator-facing changes", "the v0.9.5 through v1.0.8 creator-facing changes")
     rewritten.gsub!(/\n\*🄯 Dust Wave\*\n/, "\n")
     rewritten.gsub!("*🄯 Dust Wave*", "")
     rewritten.gsub!(/^\*🄯 Dust Wave\*$/m, "")

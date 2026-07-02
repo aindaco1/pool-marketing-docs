@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-20 de junio de 2026
+1 de julio de 2026
 
 The Pool es una plataforma de financiación colectiva estática con un trabajador de Cloudflare para mutaciones, lecturas en vivo y operaciones administrativas. El trabajo de rendimiento debe preservar esa forma: las páginas públicas deben ser rápidas desde HTML estático, el código de aplicación pesado debe cargarse sólo cuando un usuario lo necesita y el trabajo especulativo debe ser lo suficientemente conservador como para nunca hacer que los flujos de pago, administración o soporte sean menos confiables.
 
@@ -36,6 +36,7 @@ Utilícelos como objetivos prácticos en lugar de afirmar que cada prueba local 
 - no hay una pila de carritos llenos de ganas en una primera carga pública anónima
 - no se realizan precargas de documentos públicos en rutas privadas, tokenizadas, de pago, de administración, de administración o de la comunidad de seguidores
 - Los activos CSS/JS generados pasan `npm run assets:minify:check`
+- la salida generada de rastreo/metadatos pasa `npm run test:seo` después de una compilación de Jekyll
 - Cloudflare ofrece recursos de texto con compresión de transferencia y sin Auto Minify
 
 ## Modelo de plataforma
@@ -63,6 +64,7 @@ Barandillas actuales:
 - Las imágenes principales de la campaña se emiten con precarga y alta prioridad de recuperación donde el diseño conoce el activo LCP probable.
 - Los videos de los héroes de la campaña de YouTube muestran primero un póster local o una fachada de reproducción y cargan el iframe de YouTube solo después de la intención de reproducción.
 - Los scripts comunes usan `defer` o carga dinámica diferida en lugar de etiquetas de script que bloquean el analizador.
+- los layouts completos del documento desactivan la detección móvil automática de teléfono/fecha/dirección/correo para que iOS no rediseñe de forma inesperada la copia operativa o el texto de campaña
 - Las superficies privadas/administradoras permanecen `noindex` y no deben heredar el comportamiento de captación previa pública.
 
 Al cambiar el Chrome de la campaña, verifique:
@@ -96,7 +98,7 @@ Al cambiar el carrito o la carga del carrito, verifique con las herramientas de 
 
 El panel de administración debe mantener la navegación normal como de solo lectura y limitada. Los informes, los partidarios, la atribución de análisis, el estado de las compras abandonadas, los simulacros explosivos y las vistas de campañas similares deben utilizar proyecciones `campaign-pledges:<slug>` existentes o estados agregados pequeños en lugar de escaneos de espacios de nombres KV. Las cargas del selector de biblioteca multimedia deben leer los directorios de GitHub y no deben crear un estado KV.
 
-Las escrituras duraderas en el panel deben estar vinculadas a acciones explícitas del usuario. Se permiten mutaciones en los códigos de referencia guardados, los borradores compartidos de Marketing/Blast, las supresiones de pagos abandonados en el ámbito de la campaña, los envíos en vivo de Blast, las publicaciones de contenido, las vistas previas protegidas y las acciones de creación/archivo de campañas; Las cargas de páginas, las ediciones de campos, la generación de vistas previas, la generación/descarga de QR, las cargas de informes y los borradores locales no deben escribir KV. Al agregar una función de administración, documente si es de solo lectura, solo local, respaldada por GitHub o respaldada por KV antes de cablear la interfaz de usuario.
+Las escrituras duraderas en el panel deben estar vinculadas a acciones explícitas del usuario. Se permiten mutaciones en los códigos de referencia guardados, los borradores compartidos de Marketing/Blast, las supresiones de pagos abandonados en el ámbito de la campaña, los envíos en vivo de Blast, las publicaciones de contenido, las vistas previas protegidas y las acciones de creación/archivo de campañas; Las cargas de páginas, las ediciones de campos, la generación de vistas previas, la generación/descarga de QR, las cargas de informes, el estado recordado de pestañas/subpestañas de UI y los borradores locales no deben escribir KV. Al agregar una función de administración, documente si es de solo lectura, solo local, respaldada por GitHub o respaldada por KV antes de cablear la interfaz de usuario.
 
 ## Minificación de activos generados
 

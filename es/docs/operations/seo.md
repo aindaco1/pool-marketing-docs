@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-20 de junio de 2026
+1 de julio de 2026
 
 Este documento describe el modelo SEO actual de The Pool en 2026. Es intencionalmente conservador: las páginas públicas se hacen más fáciles de rastrear y comprender, mientras que los flujos tokenizados y exclusivos para seguidores permanecen fuera de la intención del índice. La implementación está diseñada en torno a metadatos reales, páginas públicas reales y datos estructurados honestos en lugar de relleno de contenido o cebo de resultados enriquecidos.
 
@@ -41,6 +41,8 @@ La línea de base actual incluye:
 - PNG de tarjetas compartidas de campaña generadas por los trabajadores para metadatos sociales públicos, con SVG retenido para herramientas internas de vista previa/depuración
 - generado [`robots.txt`](/robots.txt)
 - generado [`sitemap.xml`](/sitemap.xml)
+- renderizado compartido de URLs del sitemap en [`_includes/seo-sitemap-url.xml`](https://github.com/your-org/your-project/blob/main/_includes/seo-sitemap-url.xml), incluidos alternates localizados `xhtml:link` cuando una página o campaña tiene rutas localizadas
+- una auditoría SEO del sitio generado en [`scripts/audit-seo.mjs`](https://github.com/your-org/your-project/blob/main/scripts/audit-seo.mjs), expuesta como `npm run test:seo` y conectada a la puerta de merge
 - `noindex,nofollow` explícito en diseños tokenizados o solo para seguidores
 - `noindex,nofollow,noarchive`, `sitemap: false` explícitos, robots no permitidos y metadatos sociales deshabilitados en el panel de administración privado
 - shells de vista previa de campaña protegidos con `noindex,nofollow,noarchive`, sin metadatos sociales, sin JSON-LD, sin inclusión de mapa de sitio público y sin elegibilidad de captación previa pública
@@ -55,6 +57,7 @@ Los principales archivos de implementación son:
 - [/_includes/seo-json-ld.html](https://github.com/your-org/your-project/blob/main/_includes/seo-json-ld.html)
 - [/_layouts/campaign.html](https://github.com/your-org/your-project/blob/main/_layouts/campaign.html)
 - [/worker/src/index.js](https://github.com/your-org/your-project/blob/main/worker/src/index.js)
+- [/scripts/audit-seo.mjs](https://github.com/your-org/your-project/blob/main/scripts/audit-seo.mjs)
 - [/robots.txt](/robots.txt)
 - [/sitemap.xml](/sitemap.xml)
 
@@ -101,6 +104,8 @@ Esto se aplica mediante una combinación de:
 - `robots.txt`
 - reglas de inclusión del mapa del sitio
 - mapa del sitio `lastmod` sugerencias para páginas públicas y campañas
+- enlaces alternativos `hreflang` del sitemap para pares de páginas/campañas localizadas
+- validación de salida generada mediante `npm run test:seo`
 
 Contrato del panel de administración:
 
@@ -209,6 +214,7 @@ Al verificar una implementación manualmente:
 - Los enlaces visibles para compartir de la campaña utilizan la URL canónica de la campaña y no reemplazan el contrato de tarjeta social basado en metadatos.
 - `robots.txt` es accesible y solo expone las rutas de rastreo públicas previstas.
 - `sitemap.xml` es accesible y solo incluye URL públicas previstas.
+- `npm run test:seo` pasa contra un `_site` recién generado
 - las páginas privadas/tokenizadas emiten `noindex` cuando corresponda
 - `/admin/` y `/es/admin/` emiten `noindex,nofollow,noarchive`, no aparecen en `sitemap.xml` y no emiten vista previa social ni metadatos JSON-LD.
 - `/campaigns/:slug/preview/` emite `noindex,nofollow,noarchive`, no aparece en `sitemap.xml` y no emite vista previa social ni metadatos JSON-LD.

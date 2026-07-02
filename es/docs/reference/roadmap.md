@@ -10,13 +10,13 @@ lang: es
 
 ## Última actualización
 
-20 de junio de 2026
+1 de julio de 2026
 
 ## Hito actual
 
-**v1.0.7**
+**v1.0.8**
 
-El hito v1.0.7 refuerza el trabajo de marketing, Blast, pago abandonado y ayuda de configuración v1.0.6 con visibilidad limitada, borradores compartidos, informes de atribución, comprobaciones de preparación del proveedor, comportamiento de configuración idempotente y selección de medios WYSIWYG con alcance de campaña.
+El hito v1.0.8 porta el hardening de runtime derivado de Store que encaja con este proyecto, mantiene las lecturas de Marketing diferidas y autenticadas, recuerda el contexto de pestañas/subpestañas del panel de administración en estado local del navegador, agrega verificaciones de completitud de locales para mantener alineados los catálogos de traducción compatibles y lleva el patrón de auditoría SEO del sitio generado de Store a la puerta de merge de Pool.
 
 ## Terminado
 
@@ -188,6 +188,7 @@ El hito v1.0.7 refuerza el trabajo de marketing, Blast, pago abandonado y ayuda 
   - Los editores de productos físicos exponen ajustes preestablecidos de envío o metadatos explícitos del paquete, mientras que los productos digitales ocultan campos de solo envío.
   - Configuración -> Rendimiento avanzado expone el estado habilitado de captación previa de intención, el retraso y el límite de vista de página para superadministradores, con la configuración del trabajador reflejada a través de `INTENT_PREFETCH_*`
   - El inicio de sesión por correo electrónico del administrador mantiene el desafío Turnstile existente después de un intento de inicio de sesión y utiliza el estilo de mensaje de estado del panel compartido para obtener comentarios de autenticación más destacados.
+  - las recargas del panel restauran la última pestaña de nivel superior permitida, la sección de Configuración, la campaña seleccionada de Campaigns y la subpestaña de Campaigns desde estado local del navegador sin agregar escrituras de Worker ni KV
   - responsive, accesibilidad, seguridad/noindex, español i18n, navegador, unidad y cobertura de presupuesto de escritura KV cubren los flujos del panel
 - [x] Herramientas de marketing de campaña
   - Campañas -> El marketing se mantiene centrado en la generación de enlaces de campaña, códigos de referencia guardados, códigos QR PNG/SVG descargables y el creador de inserciones de campaña sin agregar otra superficie de panel de nivel superior.
@@ -250,6 +251,8 @@ El hito v1.0.7 refuerza el trabajo de marketing, Blast, pago abandonado y ayuda 
   - La configuración de SEO delimitada hacia la bifurcación cubre `seo.x_handle`, `seo.same_as`, `seo.default_social_image_alt`, `seo.og_locale_overrides` y si el centro de la comunidad pública debe permanecer indexable.
   - El navegador estructurado y el registro de depuración de trabajadores se envían como una ayuda para desarrolladores basada en la configuración con marcas de tiempo, etiquetas de gravedad, prefijos de alcance y captura de errores globales del navegador.
   - Los metadatos públicos emiten sugerencias de idioma/nombre de aplicación, etiquetas de imágenes sociales seguras cuando sea posible y raíces de ruta de navegación/idioma JSON-LD con reconocimiento local.
+  - el renderizado de URLs del sitemap se comparte mediante `_includes/seo-sitemap-url.xml`, incluidos alternates localizados `xhtml:link` para páginas públicas y páginas de campaña localizadas
+  - `npm run test:seo` valida archivos de rastreo generados, canónicos, alternates `hreflang`, metadatos sociales y JSON-LD como parte de la puerta de merge
 - [x] Incrustar y compartir vistas previas
   - Las páginas de la campaña se vinculan a un generador de incrustaciones alojado que reconoce la configuración regional y genera código iframe de copiar y pegar con opciones de diseño, tema, medios y CTA.
   - el widget de inserción utiliza un estado de campaña en vivo respaldado por los trabajadores, cambia de tamaño automáticamente después de pegar y admite enlaces de retorno localizados además de copia localizada en tiempo de ejecución/generador
@@ -283,14 +286,12 @@ El hito v1.0.7 refuerza el trabajo de marketing, Blast, pago abandonado y ayuda 
 
 ## Funciones futuras
 
-- [] seguimientos v1.0.8
-  - [] Configuración del contenedor de la aplicación
+- [ ] seguimientos posteriores a v1.0.8
+  - [ ] Configuración del contenedor de la aplicación
     - Cree un contenedor de aplicación simple para Mac/Windows/Linux alrededor del mismo núcleo de configuración después de que el flujo de trabajo del script primero se mantenga estable en más instalaciones de bifurcación.
-  - [] Pulido de biblioteca multimedia
+  - [ ] Pulido de biblioteca multimedia
     - Considere hacer que la URL de origen sea una opción avanzada/de edición de ruta existente después de que el selector de alcance se haya ejercido en producción.
-  - [] Persistencia de la pestaña del panel
-    - Recuerde la pestaña del panel de administración y la subpestaña Campañas que un usuario abrió por última vez para que las actualizaciones los devuelvan al mismo contexto de trabajo.
-- [] Ampliación de la calculadora de impuestos
+- [ ] Ampliación de la calculadora de impuestos
   - Soporte USA e internacional
   - Apunte a tarifas estadounidenses a nivel local o jurisdiccional, no solo a nivel estatal
   - Enfoque a corto plazo: finalizar la cobertura del impuesto local sobre ingresos brutos de Nuevo México para que la calculadora pueda probarse manualmente de principio a fin con mayor confianza.

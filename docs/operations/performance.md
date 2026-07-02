@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-June 20, 2026
+July 1, 2026
 
 The Pool is a static-first crowdfunding platform with a Cloudflare Worker for mutations, live reads, and admin operations. Performance work should preserve that shape: public pages should be fast from static HTML, heavy application code should load only when a user needs it, and speculative work should stay conservative enough that it never makes checkout, admin, or supporter flows less reliable.
 
@@ -35,6 +35,7 @@ Use these as practical targets rather than claims that every local test run will
 - no eager full cart stack on an anonymous public first load
 - no public document prefetches on private, tokenized, checkout, admin, manage, or supporter-community routes
 - generated CSS/JS assets pass `npm run assets:minify:check`
+- generated crawl/metadata output passes `npm run test:seo` after a Jekyll build
 - Cloudflare serves text assets with transfer compression and without Auto Minify
 
 ## Platform Model
@@ -62,6 +63,7 @@ Current guardrails:
 - campaign hero images are emitted with preload and high fetch priority where the layout knows the likely LCP asset
 - YouTube campaign hero videos render a local poster/play facade first and load the YouTube iframe only after play intent
 - common scripts use `defer` or lazy dynamic loading instead of parser-blocking script tags
+- full document layouts opt out of mobile automatic phone/date/address/email detection so iOS does not restyle operational copy or campaign text unexpectedly
 - private/admin surfaces stay `noindex` and should not inherit public prefetch behavior
 
 When changing campaign chrome, verify:
@@ -95,7 +97,7 @@ When changing cart or checkout loading, verify with browser network tools that a
 
 The admin dashboard should keep normal browsing read-only and bounded. Reports, supporters, analytics attribution, abandoned-checkout health, Blast dry runs, and similar campaign views should use existing `campaign-pledges:<slug>` projections or small aggregate state instead of KV namespace scans. Media-library picker loads should read GitHub directories and should not create KV state.
 
-Durable dashboard writes should be tied to explicit user actions. Saved referral codes, shared Marketing/Blast drafts, campaign-scoped abandoned-checkout suppressions, Blast live sends, content publishes, protected previews, and campaign creation/archive actions are allowed mutations; page loads, field edits, preview generation, QR generation/downloads, reporting loads, and local drafts should not write KV. When adding an admin feature, document whether it is read-only, local-only, GitHub-backed, or KV-backed before wiring the UI.
+Durable dashboard writes should be tied to explicit user actions. Saved referral codes, shared Marketing/Blast drafts, campaign-scoped abandoned-checkout suppressions, Blast live sends, content publishes, protected previews, and campaign creation/archive actions are allowed mutations; page loads, field edits, preview generation, QR generation/downloads, reporting loads, remembered tab/subtab UI state, and local drafts should not write KV. When adding an admin feature, document whether it is read-only, local-only, GitHub-backed, or KV-backed before wiring the UI.
 
 ## Generated Asset Minification
 

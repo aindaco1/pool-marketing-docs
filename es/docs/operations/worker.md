@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-20 de junio de 2026
+1 de julio de 2026
 
 Cloudflare Worker se encarga de la canonicalización de pagos propios, la integración de Stripe, la gestión de promesas, la autenticación de seguidores con alcance de pedidos, los recordatorios de lanzamiento de próximas campañas, los recordatorios de checkout abandonado basados en consentimiento, los blasts a seguidores de campaña, las vistas previas protegidas de campañas y las API del panel de administración del navegador privado.
 
@@ -81,6 +81,8 @@ Los recordatorios de checkout abandonado usan el mismo patrón de presupuesto. E
 Los reintentos de correo electrónico de confirmación del colaborador utilizan el mismo patrón de nivel gratuito. Los envíos fallidos escriben `supporter-email-retry:{orderId}` más `supporter-email-retry-queue:v1` y el pase de reintento programado omite los escaneos de la lista KV mientras la cola está inactiva o antes de que venza el siguiente reintento.
 
 La optimización de los medios de las páginas de campañas públicas sigue siendo una preocupación del sitio estático más que una preocupación del tiempo de ejecución de los trabajadores. El trabajador conserva las cargas del panel como archivos fuente y envía el optimizador del repositorio para las cargas de imágenes/videos confirmadas; Las plantillas Jekyll, el optimizador de medios del repositorio y el paso de implementación del artefacto manejan variantes WebP responsivas, fachadas de carteles de héroes locales de YouTube y minificación CSS/JS generada antes de que se publique el artefacto de páginas públicas. Las cargas de imágenes de anuncios Blast reutilizan el tipo y directorio de carga de contenido de campaña, por lo que las imágenes de correo se alojan bajo `assets/images/campaigns/<slug>/` y se optimizan mediante el mismo flujo de trabajo del repositorio en lugar de agregar procesamiento de imágenes del lado del Worker o estado KV extra.
+
+La validación pública de SEO y rastreo también es responsabilidad del sitio estático. Genere `_site`, minifique los recursos generados y luego ejecute `npm run test:seo` desde la raíz del repositorio para validar `robots.txt`, `sitemap.xml`, canónicos, alternates `hreflang`, metadatos sociales y JSON-LD generados antes de cambiar el comportamiento de tarjetas compartidas del Worker o de URLs públicas de campaña.
 
 La frecuencia de muestreo predeterminada es `0.1` y se puede anular con `OBSERVABILITY_SAMPLE_RATE=0.05` (o cualquier valor de `0-1`) si una bifurcación desea menos o más escrituras de tiempo muestreadas.
 
@@ -436,6 +438,7 @@ Los shells privados `/admin/` y `/es/admin/` utilizan rutas de trabajo respaldad
 - `POST /admin/settings/preview` valida los cambios de configuración sin publicar
 - Cargas de paneles de escenario `POST /admin/settings/logo-upload`, `POST /admin/settings/image-upload`, `POST /admin/settings/audio-upload` y `POST /admin/settings/video-upload` a través de la misma ruta de publicación respaldada por GitHub que sus propios campos de configuración/contenido; Las cargas de imágenes/videos solicitan el flujo de trabajo **Optimizar medios del panel** con `scope=changed` después de la confirmación, mientras que la optimización de imágenes nativas y la transcodificación de video aún se ejecutan en la canalización de medios del repositorio en lugar de dentro del Worker.
 - `POST /admin/settings/publish` valida y publica configuraciones de plataforma, complementos de plataforma, variables de campaña y datos estructurados de campaña a través de confirmaciones respaldadas por GitHub.
+- El navegador recuerda localmente el contexto de pestañas/subpestañas del panel entre recargas; esta restauración no llama a una ruta del Worker y no escribe estado en KV ni en GitHub
 - `POST /admin/users` guarda los usuarios administradores administrados por el panel directamente en `admin-users:v1` en Worker KV y envía por correo electrónico las instrucciones de inicio de sesión de los usuarios recién creados cuando se configura Resend
 - `POST /admin/campaigns/create` permite que los superadministradores creen campañas solo de vista previa a través de la ruta de código fuente de campañas respaldada por GitHub, asignen uno o más usuarios de campaña existentes, creen opcionalmente varios usuarios nuevos en `admin-users:v1`, envíen por correo electrónico el enlace del panel de administración a los usuarios asignados y registren un evento de auditoría
 - `POST /admin/campaigns/archive` permite que los superadministradores archiven campañas no activas localmente en desarrollo o mediante el despacho de `.github/workflows/archive-campaign.yml` en producción; el Worker valida CSRF, rol, slug, existencia de campaña y estado efectivo, registra un evento de auditoría y mueve el código fuente/medios de la campaña mediante el helper local del repositorio o GitHub Actions

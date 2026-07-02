@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-20 de junio de 2026
+1 de julio de 2026
 
 Esta guía cubre los conjuntos de pruebas automatizadas, la infraestructura de pruebas local y las rutas de verificación manual.
 
@@ -20,6 +20,8 @@ Esta guía cubre los conjuntos de pruebas automatizadas, la infraestructura de p
 npm run test:unit          # Unit tests (Vitest) — ~700ms
 npm run test:unit:watch    # Watch mode
 npm run test:unit:coverage # With coverage report
+npm run test:i18n          # Supported locale catalog completeness check
+npm run test:seo           # Generated-site SEO/crawl audit; build _site first
 npm run test:secrets       # Secret exposure audit for local env files
 npm run test:premerge      # Merge-readiness checks for changed Worker logic
 npm run test:e2e           # E2E tests (Playwright) — fully automated browser coverage
@@ -81,6 +83,7 @@ Pruebas rápidas y aisladas para funciones JS en `tests/unit/`.
 |`email-tip`|Desgloses de correos electrónicos de soporte conscientes de sugerencias en correos electrónicos de confirmación/modificados/cancelados/fallidos/cargados, además de recordatorio de lanzamiento y enrutamiento de correos electrónicos de pago abandonado a través del remitente de actualizaciones compartido|
 |`votes`|Almacenamiento/descopia de votos basado en correo electrónico, recuperación del estado de los votos, resultados de campaña, agregación de resultados|
 |`admin-dashboard`|Seguimiento del estado sucio del panel, serialización de configuraciones, normalización de contenido/editor, cargas de medios por etapas/selector de medios, análisis/relleno de tarifas reales de Stripe, informes de atribución de análisis, borradores compartidos de marketing, salud/supresión de pagos abandonados, ayudas de URL de referencia, utilidades de soporte responsivas/i18n|
+|`i18n-completeness`|Los catálogos de locales compatibles se mantienen alineados con la superficie de claves anidadas de inglés|
 |`campaign-page`|Construcción de URL de enlaces compartidos, preservación segura de consultas, texto compartido con reconocimiento de estado, envío de formularios de recordatorio de lanzamiento, controles de campañas públicas y comportamiento de la página de campaña sensible a SEO|
 |`page-prefetch`|Listas permitidas de rutas públicas del mismo origen, exclusiones de consultas confidenciales, protecciones de red, manejo de retrasos/límites y creación de sugerencias de captación previa de documentos|
 |`cart-runtime-loader`|Arranque diferido en tiempo de ejecución del carrito, detección de carrito persistente/de recuperación, carga idempotente y activadores de intención del usuario|
@@ -128,7 +131,7 @@ El script ahora rota sus IP de solicitud de administrador sintéticas durante es
 - Suite de unidad completa a través de `npm run test:unit`
 - Paquete de seguridad a través de `npm run test:security` contra un trabajador local iniciado automáticamente
 - Suite de seguridad respaldada por Podman a través de `npm run test:security:podman` cuando desea que el sitio/pila de trabajo se inicie y se ejerza en la misma invocación.
-- Verificaciones de artefactos de compilación propios que ejecutan Jekyll, minimizan los activos CSS/JS `_site` generados y verifican que la salida minimizada no tenga ahorros restantes.
+- Verificaciones de artefactos de compilación propios que ejecutan Jekyll, minimizan los activos CSS/JS `_site` generados, verifican que la salida minimizada no tenga ahorros restantes y ejecutan `npm run test:seo` contra la salida de rastreo/metadatos generada.
 - Rendimiento de páginas públicas y regresiones de uso compartido a través de cobertura de unidades para captación previa de intenciones, carga diferida en tiempo de ejecución del carrito, minificación de activos generados y comportamiento de enlaces compartidos de campañas.
 - Dramaturgo sin cabeza E2E vía `npm run test:e2e:headless`
 
@@ -231,6 +234,16 @@ npx vitest run \
   tests/unit/seo-layouts.test.ts \
   tests/unit/site-asset-minification.test.ts
 ```
+
+Para la salida generada de rastreo y metadatos estructurados, compile y minifique el sitio primero, luego ejecute:
+
+```bash
+SKIP_TESTS=1 bundle exec jekyll build --config _config.yml,_config.local.yml --quiet
+npm run assets:minify
+npm run test:seo
+```
+
+La auditoría SEO revisa las páginas generadas, `robots.txt`, `sitemap.xml`, URLs canónicas, alternates `hreflang`, metadatos Open Graph/Twitter y JSON-LD. Las campañas locales solo de prueba pueden compilarse para cobertura de smoke, pero permanecen intencionalmente ausentes del sitemap.
 
 En GitHub, la misma puerta se ejecuta automáticamente en el flujo de trabajo `Merge Smoke` para solicitudes de extracción dirigidas a `main`.
 

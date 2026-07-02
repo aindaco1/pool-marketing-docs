@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-June 20, 2026
+July 1, 2026
 
 Use this checklist before merging branches that change checkout, webhook persistence, pledge management, inventory, settlement, or supporter broadcasts.
 
@@ -65,6 +65,8 @@ That script starts:
 Use local rehearsal to sanity-check checkout, webhook delivery, manage-link behavior, and admin endpoints before running the same flow against staging.
 
 For dashboard-heavy branches, open the local dashboard at `http://127.0.0.1:4000/admin/`. The dev stack seeds the bootstrap admin defaults documented in `README.md` and `worker/README.md`; user-management changes made in the dashboard save to local Worker KV and are reset with local KV state.
+
+For admin-dashboard UI changes, switch between top-level tabs, select a non-default Settings section, select a Campaigns campaign and non-default Campaigns subtab, reload the page, and confirm the same allowed workspace is restored. Then sign in as or simulate a campaign-scoped user and confirm super-admin-only tabs are not restored.
 
 For local-only pledge management checks, use the `smoke-editable` campaign. It is defined as `test_only: true`, so it shows up in local development when `_config.local.yml` enables `show_test_campaigns`, while staying excluded from the production homepage and production `/api/campaigns.json`.
 

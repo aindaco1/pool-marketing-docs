@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-June 20, 2026
+July 1, 2026
 
 This guide covers the supported no-code customization surface for forks of The Pool as it exists now.
 
@@ -120,7 +120,7 @@ These values feed:
 Notes:
 
 - `platform.*` is the primary branding surface.
-- `platform.version` should be the canonical machine-readable product version for the site, while `platform.release_label` can stay friendlier for public-facing copy such as `v1.0.7`.
+- `platform.version` should be the canonical machine-readable product version for the site, while `platform.release_label` can stay friendlier for public-facing copy such as `v1.0.8`.
 - `platform.timezone` must be a supported IANA timezone. It defaults to `America/Denver` so existing forks keep the old lifecycle behavior until they change it.
 - top-level `title` / `author` still exist in Jekyll, but treat them as general site metadata / fallback rather than the main fork-customization interface.
 - `platform.default_social_image_path` is the supported default for OG/Twitter cards when a page or campaign does not provide a more specific image.
@@ -132,8 +132,8 @@ Example:
 ```yml
 platform:
   name: My Fork
-  version: 1.0.7
-  release_label: v1.0.7
+  version: 1.0.8
+  release_label: v1.0.8
   company_name: Example Studio
   support_email: support@example.com
   pledges_email_from: "My Fork <pledges@pool.example.com>"

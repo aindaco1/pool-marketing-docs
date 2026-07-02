@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-20 de junio de 2026
+1 de julio de 2026
 
 Este documento registra la estructura de localización actual de The Pool y el flujo de trabajo admitido para agregar idiomas en una bifurcación.
 
@@ -255,9 +255,11 @@ El soporte completo de idiomas también necesita:
 4. Agregue páginas de origen localizadas para contenido de formato largo como `/about/`, `/terms/`, `/manage/` o páginas de índice de la comunidad seleccionadas cuando sea necesario.
 5. Verifique las rutas de recopilación generadas, como `/es/campaigns/{slug}/`, y cualquier ruta de inserción con reconocimiento regional que exponga su implementación.
 6. Para cambios en el panel de administración, agregue claves `admin` coincidentes en cada archivo local antes del envío. En particular, los campos generados necesitan las claves deterministas `settings_field_*`, `settings_readonly_*`, `campaign_field_*` o `campaign_readonly_*` descritas anteriormente; Los flujos creados manualmente, como **Crear nueva campaña** y **Vista previa**, necesitan claves de diálogo/acción/ayuda explícitas.
-7. Ejecute la pila local y verifique tanto la copia de la IU compartida como las rutas localizadas, incluidas `/admin/` y `/es/admin/` cuando las cadenas de la IU del administrador cambiaron:
+7. Ejecute `npm run test:i18n` antes del envío para verificar que los catálogos de locales compatibles mantengan la misma cobertura de claves anidadas que inglés.
+8. Ejecute la pila local y verifique tanto la copia de la IU compartida como las rutas localizadas, incluidas `/admin/` y `/es/admin/` cuando las cadenas de la IU del administrador cambiaron:
 
 ```bash
+npm run test:i18n
 npm run podman:doctor
 ./scripts/dev.sh --podman
 ```
