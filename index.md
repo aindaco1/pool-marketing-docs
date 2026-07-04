@@ -1,6 +1,6 @@
 ---
 title: The Pool
-description: Free and forkable crowdfunding starter with multi-campaign checkout, no-account supporter flows, tax-aware totals, and thorough developer docs.
+description: Free open-source crowdfunding software for all-or-nothing creative campaigns, no-account supporter pledges, admin tools, reports, tax, shipping, and campaign marketing.
 layout: homepage
 nav_enabled: false
 nav_exclude: true

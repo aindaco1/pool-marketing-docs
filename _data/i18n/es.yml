@@ -3,7 +3,7 @@ native_name: Español
 pages:
   home:
     title: The Pool
-    description: Starter gratuito y forkeable de crowdfunding con checkout multicampaña, flujos sin cuenta para supporters, totales con cálculo de impuestos y documentación técnica completa.
+    description: Software gratuito y de código abierto para campañas creativas todo o nada, pledges sin cuenta, herramientas de administración, reportes, impuestos, envíos y marketing de campaña.
   support:
     title: Apoya a The Pool
     description: Apoya el desarrollo y mantenimiento continuo de The Pool.
@@ -24,15 +24,15 @@ ui:
   search_docs: Buscar en la documentación
 
 home:
-  eyebrow: Haz tu propia campaña de crowdfunding
-  title: Una plataforma gratuita de crowdfunding para financiar tus proyectos.
-  subtitle: "The Pool es un <strong>starter de código abierto</strong> para <em>campañas todo o nada</em>, <em>checkout multicampaña</em>, <em>reportes para campaign runners</em> y <em>flujos sin cuenta para supporters</em>."
+  eyebrow: Crowdfunding de código abierto para proyectos creativos
+  title: Lanza tu propio sitio de crowdfunding todo o nada.
+  subtitle: "The Pool es <strong>software gratuito y de código abierto para crowdfunding</strong> de películas, álbumes, herramientas, eventos y otros proyectos creativos. Los supporters pledgean sin crear cuentas; Stripe guarda la tarjeta y solo la cobra si la campaña llega a su meta."
   points:
-    free: "<strong>100% gratis</strong> para usar, hacer fork y rebrandear."
-    low_cost: "Diseñado alrededor de <strong>GitHub Pages, Cloudflare y Resend</strong>, con uso dinámico pensado para planes de bajo costo."
+    free: "<strong>Gratis</strong> para usar, copiar y rebrandear."
+    low_cost: "Diseñado alrededor de <strong>GitHub Pages, Cloudflare y Resend</strong>, con uso dinámico pensado para presupuestos pequeños."
     no_account: "Los backers pueden pledgear y gestionar su apoyo <strong>sin crear una cuenta</strong>."
-    paid: "Soporta <strong>carritos multicampaña</strong>, reward tiers, add-ons, propinas de plataforma y <strong>reportes para campaign runners</strong>."
-  download_cta: Descargar el repositorio completo
+    paid: "Soporta <strong>checkout multicampaña</strong>, rewards, add-ons, propinas y <strong>reportes de pledges y fulfillment</strong>."
+  download_cta: Descargar el código
   docs_cta: Explorar la documentación
   demo_cta: Demo
   stats:
@@ -41,7 +41,7 @@ home:
     hosting_label: Operación de bajo costo
     hosting_value: Hosting estático primero, con llamadas dinámicas enfocadas en checkout, estado en vivo y reportes
     supporter_label: Flujo del backer
-    supporter_value: Checkout propio, magic links y carritos multicampaña
+    supporter_value: Checkout propio, links por email y carritos multicampaña
     license_label: Costo
     license_value: Gratis para hacer fork, optimizado para los free tiers de los servicios
   demo:
@@ -51,43 +51,43 @@ home:
     placeholder: Walkthrough de campaña
     caption: Espacio reservado para un recorrido corto del producto.
     fallback: Tu navegador no soporta este video.
-  positioning_heading: Hecho para creativos que hacen crowdfunding.
-  positioning_intro: "Para <em>películas, álbumes, herramientas financiadas por la comunidad y convocatorias pagadas</em>... lo que quieras."
+  positioning_heading: Qué hace The Pool
+  positioning_intro: "Te da páginas de campaña, checkout, administración, emails y reportes sin entregar tu proyecto a una plataforma cerrada de crowdfunding."
   positioning_cards:
-    free_title: 100% gratis y forkeable
-    free_body: "No hay <strong>licencia paga ni SaaS obligatorio,</strong> y no existe una dependencia cerrada <em>entre tu fork y tus campañas.</em>"
+    free_title: Gratis y bajo tu control
+    free_body: "No hay <strong>licencia paga</strong>. Cópialo, rebrandéalo y mantén el sitio de tu campaña bajo tu control."
     free_link: Ver superficie de fork
-    low_cost_title: Bajo costo por diseño
+    low_cost_title: Hecho para hosting de bajo costo
     low_cost_body_mid_1: sirve el sitio estático,
-    low_cost_body_mid_2: resuelve las pocas rutas dinámicas y
+    low_cost_body_mid_2: resuelve checkout, admin y estado en vivo, y
     low_cost_body_end: se encarga del correo.
     low_cost_link: Revisar el modelo de hosting
-    no_account_title: Apoyo sin cuenta
-    no_account_body: "Los supporters pueden apoyar una campaña y gestionar su pledge mediante <strong>magic links por email</strong>. <em>¡No hacen falta cuentas!</em>"
+    no_account_title: Sin cuentas para supporters
+    no_account_body: "Los backers pledgean, actualizan tarjetas, cambian pledges y abren páginas privadas mediante <strong>links seguros por email</strong>."
     no_account_link: Inspeccionar gestión de pledges
-    crowd_title: Listo para crowdsourcing
-    crowd_body: "Usa <strong>tiers, montos personalizados, add-ons de campaña, diary updates</strong> y <strong>community decisions</strong> para mantener a tu audiencia involucrada."
+    crowd_title: Preparado para campañas reales
+    crowd_body: "Usa <strong>rewards, pledges personalizados, add-ons, recordatorios de lanzamiento, updates, votaciones, blasts a supporters</strong> y reportes de fulfillment."
     crowd_link: Explorar workflows de creadores
-  platform_heading: Lo que ya trae el starter
+  platform_heading: Lo que incluye hoy
   platform_intro: ""
   platform_cards:
-    checkout_title: Checkout con totales del servidor
-    checkout_body: "Los supporters arman un carrito en el navegador. El Worker recalcula precios desde datos confiables de campaña y Stripe guarda el método de pago dentro del sitio para cobrar solo si la campaña llega a la meta. <strong>Los carritos multicampaña están soportados.</strong>"
+    checkout_title: Checkout que protege la meta
+    checkout_body: "Los supporters arman un carrito en tu sitio. Un backend pequeño en Cloudflare recalcula los totales desde datos confiables de campaña y Stripe guarda el método de pago. <strong>Un checkout puede incluir varias campañas, y cada campaña se cobra solo si tiene éxito.</strong>"
     checkout_link: Revisar el worker de pledges
-    funding_title: Estados de campaña y momento de cobro
-    funding_body: "El starter maneja <strong>estados upcoming, live y post-campaign</strong>, deadlines en el timezone configurado, registros para recordatorios de lanzamiento, stretch goals y settlement por lotes cuando la campaña cierra."
+    funding_title: Tiempos y resultados de campaña
+    funding_body: "The Pool maneja <strong>campañas próximas, activas y finalizadas</strong>, deadlines en tu timezone, registros para recordatorios de lanzamiento, stretch goals y cobros por lotes después de una campaña exitosa."
     funding_link: Leer sobre The Pool
     merch_title: Rewards, add-ons, impuestos y envíos
-    merch_body: "Incluye reward tiers, add-ons de campaña, merch de plataforma, controles de inventario, proveedores de impuestos configurables, cotizaciones USPS, tarifas fallback de envío y <strong>totales con propina alineados</strong> entre checkout, email y reportes."
+    merch_body: "Ofrece reward tiers, add-ons de campaña, merch de plataforma, límites de inventario, propinas opcionales, proveedores de impuestos configurables, cotizaciones USPS y tarifas fallback de envío."
     merch_link: Ver merch y add-ons
-    community_title: Herramientas para supporters después del checkout
-    community_body: "Los backers gestionan pledges desde <strong>magic links por email</strong>. Las campañas pueden publicar diary updates, announcements, community decisions, links para compartir y reportes de pledges y fulfillment listos para runners."
+    community_title: Seguimiento para supporters
+    community_body: "Los backers gestionan pledges desde <strong>links por email</strong>. Las campañas pueden publicar diary updates, announcements, votaciones de supporters, links para compartir y blasts por email."
     community_link: Explorar workflows de campaña
-    customization_title: Admin para un sitio forkeado
-    customization_body: "Un <strong>admin con roles</strong> permite editar settings, campañas, add-ons, contenido, usuarios, reportes y media, mientras la config estructurada y los design tokens cubren el rebranding normal."
+    customization_title: Admin para el equipo
+    customization_body: "El dashboard privado cubre setup de campañas, previews protegidos, contenido, media, usuarios, reportes, analytics, links de referral guardados, códigos QR y snippets de embed."
     customization_link: Abrir documentación de personalización
-    operations_title: Bases de lanzamiento y mantenimiento
-    operations_body: "El starter incluye carga lazy del carrito, media responsiva, embeds de video diferidos, minificación de assets, metadata SEO, baselines de accesibilidad, hardening de seguridad, <strong>cobertura con Playwright</strong> y docs operativas."
+    operations_title: Bases listas para lanzar
+    operations_body: "El proyecto está preparado para lanzar: páginas estáticas rápidas, media responsiva, video diferido, checks SEO, cobertura de accesibilidad, hardening de seguridad, auditorías de locales y tests automáticos de navegador."
     operations_link: Revisar documentación de operaciones
 support:
   title: Apoya a The Pool
