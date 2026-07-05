@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-20 de junio de 2026
+5 de julio de 2026
 
 **Objetivo:**
 Habilite el crowdfunding creativo con una verdadera lógica de *todo o nada* utilizando alojamiento estático.
@@ -40,6 +40,8 @@ Todo el código está versionado y auditable. La edición de la campaña ahora f
 Los superadministradores pueden crear campañas de solo vista previa a través de la misma ruta; esas campañas permanecen ocultas de las rutas de campaña públicas hasta su lanzamiento. Los superadministradores también pueden archivar campañas no activas a través de un movimiento validado de GitHub Actions en `archive/campaigns/<slug>/`, manteniendo las fuentes y los medios archivados en el repositorio en lugar de eliminar datos. Las listas de correo electrónico de revisores de vista previa protegidas permitidas se encuentran en registros KV de trabajador de corta duración en lugar de Markdown de campaña.
 Las cargas de medios del panel conservan el origen en el límite del trabajador: las cargas de imágenes/videos solicitan el flujo de trabajo de optimización del repositorio después de la confirmación, las publicaciones de contenido/diario/Blast eliminan o reutilizan los medios propiedad del panel de la misma campaña a través de las reglas de medios de la campaña compartida, y los bloques de imágenes pueden seleccionar medios de campaña existentes a través de un selector de directorio de GitHub de solo lectura en lugar de agregar un segundo índice de medios.
 
+Para una configuración y operaciones más detalladas, consulte [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md) para el modelo Stripe/settlement y [EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md) para el sistema de correo electrónico Resend.
+
 ## Planificar notas de eficiencia para bifurcaciones
 
 La arquitectura actual está optimizada deliberadamente para que las implementaciones de Cloudflare gasten su presupuesto en mutaciones de promesas en lugar de navegación informal:
@@ -53,7 +55,7 @@ La arquitectura actual está optimizada deliberadamente para que las implementac
 - Las rutas de escritura de nivel limitado ahora solicitan al coordinador de cada campaña la disponibilidad según la reserva, mientras que el inventario público permanece en KV como proyección.
 - El inventario de complementos de la plataforma utiliza una proyección de recuento de ventas después del arranque en lugar de reconstruirse a partir de escaneos del espacio de nombres de compromiso en lecturas normales.
 - El envío de recordatorios de lanzamiento, los recordatorios de pagos abandonados y el sondeo de reintento de confirmación de los seguidores utilizan marcadores de estado de cola, por lo que los ticks programados inactivos omiten los escaneos de la lista KV y recurren a las verificaciones de compatibilidad cada hora.
-- Los recordatorios de pago abandonado enviados pueden crear una instantánea de currículum de corta duración, lo que permite que los enlaces de correo electrónico firmados restablezcan el mismo borrador de carrito/contacto desinfectado e inicien una nueva sesión de Stripe sin poner secretos de Stripe en las URL.
+- Los recordatorios de pago abandonado enviados pueden crear una instantánea de reanudación de corta duración, lo que permite que los enlaces de correo electrónico firmados restablezcan el mismo borrador de carrito/contacto desinfectado e inicien una nueva sesión de Stripe sin poner secretos de Stripe en las URL.
 - La limitación de velocidad aún falla al cerrarse, pero las solicitudes bloqueadas repetidas dentro de la misma ventana ya no reescriben el mismo contador KV en cada visita.
 
 Eso significa que el límite real para la mayoría de las bifurcaciones suele ser **KV escribe a partir de una actividad de compromiso exitosa**, no el tráfico de lectura pública ni el sondeo de listas inactivas. `RATELIMIT` es ahora un requisito estricto para las implementaciones admitidas, pero eso por sí solo no hace que el plan gratuito no sea viable para la forma de financiación colectiva a pequeña escala prevista para el proyecto.
@@ -89,6 +91,8 @@ Para conocer los límites actuales de Cloudflare, consulte:
 
 ## Flujo de financiación
 
+Consulte [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md) para conocer la configuración completa de Stripe, la canonicalización del pago, el webhook, la liquidación y el runbook de conciliación. El siguiente resumen es el flujo a nivel de producto.
+
 1. **El visitante se compromete** a través del carrito propio → El trabajador crea una sesión de pago de Stripe en modo de configuración y el segundo sidecar de pago existente monta la interfaz de usuario de pago segura de Stripe en el sitio. Un pago puede incluir artículos de varias campañas. El carrito y el proceso de pago muestran el subtotal, el envío, el impuesto sobre las ventas y la propina de plataforma opcional de un modelo de precios compartido.
 2. **Stripe** guarda una tarjeta a través de ese paso de pago en el sitio y devuelve las identificaciones al Trabajador.
 3. El trabajador almacena los datos de las promesas en **Cloudflare KV** (niveles, artículos de soporte, montos personalizados, dirección de envío, porcentaje/cantidad de propina, ID de Stripe), ampliando un pago combinado en una promesa con alcance de campaña por campaña. El cliente no considera el pago como exitoso hasta que se confirme la persistencia.
@@ -96,7 +100,7 @@ Para conocer los límites actuales de Cloudflare, consulte:
    - Registra un latido cada hora (`cron:lastRun` en KV) para monitorear sin convertir el programador de nivel de minutos en una rotación constante de escritura en KV.
    - Activa la reconstrucción del sitio cuando pasa `goal_deadline` (`live` → `post`).
    - Si se financia, envía la liquidación por lotes a través del autoencadenamiento `/admin/settle-dispatch`.
-   - Cada lote (6 promesas) se ejecuta en una invocación de Trabajador separada para mantenerse dentro de los límites de las subrequests.
+   - Cada lote (6 promesas) se ejecuta en una invocación de Trabajador separada para permanecer dentro de los límites de las subrequests.
    - Los cargos se agregan por correo electrónico dentro de cada campaña: un cargo por seguidor por campaña.
    - Actualiza el estado del compromiso a `charged` o `payment_failed` en KV.
    - Activa la reconstrucción de páginas de GitHub y la purga de caché de Cloudflare en transiciones de estado.
@@ -166,9 +170,9 @@ Para conocer los límites actuales de Cloudflare, consulte:
 
 1. ✅ Dominio: `site.example.com` (CNAME para páginas de GitHub).
 2. ✅ Tiempo de ejecución del carrito propio habilitado en la configuración del sitio y en la compilación local.
-3. ✅ Cloudflare Worker implementado (`worker.example.com`) con secretos de firma de Stripe + Worker.
+3. ✅ Cloudflare Worker implementado (`worker.example.com`) con secretos de firma de Stripe + Worker; consulte [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md).
 4. ✅ Webhook de banda configurado → Trabajador `/webhooks/stripe`.
-5. ✅ Conjunto de secretos de repositorio: `STRIPE_SECRET_KEY`, `CHECKOUT_INTENT_SECRET` y secretos de administrador/correo electrónico.
+5. ✅ Conjunto de secretos de repositorio: `STRIPE_SECRET_KEY`, `CHECKOUT_INTENT_SECRET`, secretos de administrador y secretos Resend; consulte [EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md).
 6. ✅ Programador de trabajadores a nivel de minutos habilitado con puertas diarias de zona horaria de plataforma: verifique a través de `GET /admin/cron/status`.
 7. ✅ Purga de caché de Cloudflare configurada (preferido: token de API/ID de cuenta; correo electrónico heredado/autenticación de clave aún funciona si se configura explícitamente).
 8. ✅ La campaña de prueba se ejecuta de un extremo a otro en el modo de prueba de Stripe.

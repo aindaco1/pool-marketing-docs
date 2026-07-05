@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-20 de junio de 2026
+5 de julio de 2026
 
 Este documento está dirigido a personas y LLM que trabajan en bifurcaciones de **The Pool**. Es una guía práctica para el operador para realizar cambios seguros en este repositorio sin dessincronizar el sitio, el trabajador, las matemáticas de pago o el comportamiento público/localizado.
 
@@ -18,6 +18,8 @@ Utilice esto junto con:
 
 - [README.md](/es/docs/overview/about-the-pool/) para ver la descripción general actual del producto y la arquitectura
 - [docs/CUSTOMIZATION.md](/es/docs/development/customization-guide/) para la superficie de configuración compatible orientada hacia la bifurcación
+- [docs/PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md) para configuración de Stripe, canonicalización de pago, webhooks, liquidación y conciliación
+- [docs/EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md) para configuración de Resend, identidad del remitente, plantillas de correo electrónico, localización y comportamiento de entrega
 - [docs/TESTING.md](/es/docs/operations/testing/) para verificación local y expectativas de fusión
 - [docs/I18N.md](/es/docs/development/internationalization/) para reglas de traducción y enrutamiento local
 - [docs/SEO.md](/es/docs/operations/seo/) para metadatos, tarjetas compartidas y comportamiento de indexación
@@ -57,6 +59,8 @@ Cuando necesite comprender o cambiar un comportamiento, comience aquí:
 - [`tests/`](https://github.com/your-org/your-project/tree/main/tests): unidad, seguridad y expectativas E2E
 - [`scripts/`](https://github.com/your-org/your-project/tree/main/scripts): desarrollo local, puerta de fusión, pruebas de humo, informes y asistentes de sincronización
 - [`docs/DASHBOARD.md`](/es/docs/operations/admin-dashboard/): referencia de operaciones y edición del panel de administración privado
+- [`docs/PAYMENT_PROCESSOR.md`](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md): referencia de configuración, flujo y operaciones del procesador de pagos
+- [`docs/EMAIL.md`](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md): referencia de integración y configuración de correo electrónico
 
 ## Flujo de trabajo seguro
 
@@ -104,7 +108,7 @@ Controlar:
 - enrutamiento localizado/público si la página de la campaña debe funcionar limpiamente en `/es/`
 - Comportamiento de vista previa de inserción/compartición si se cambia la imagen principal, la propaganda, el título o el estado en vivo
 
-### Cambiar la configuración de marca o producto
+### Cambiar la configuración de la marca o del producto
 
 Comience con:
 
@@ -129,6 +133,7 @@ Comience con:
 - tiempo de ejecución del sitio en [`assets/js/`](https://github.com/your-org/your-project/tree/main/assets/js)
 - campaña/carrito/administrar plantillas en [`_includes/`](https://github.com/your-org/your-project/tree/main/_includes) y [`_layouts/`](https://github.com/your-org/your-project/tree/main/_layouts)
 - Lógica de pago del trabajador en [`worker/src/`](https://github.com/your-org/your-project/tree/main/worker/src)
+- orientación sobre el procesador de pagos en [docs/PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md)
 
 Suponga siempre que hay una pieza del lado del sitio y una pieza del lado del trabajador.
 
@@ -151,6 +156,7 @@ Comience con:
 - Lógica de correo del trabajador en [`worker/src/`](https://github.com/your-org/your-project/tree/main/worker/src)
 - copia de traducción en [`_data/i18n/`](https://github.com/your-org/your-project/tree/main/_data/i18n)
 - identidad de contacto/remitente en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml)
+- configuración de correo electrónico y cobertura de tipos en [docs/EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md)
 
 Si toca el comportamiento sensible a la capacidad de entrega, también verifique la cordura:
 
@@ -227,7 +233,9 @@ Las cuentas regresivas, los controles de promesas y el estado de inserción/comp
 ## Los mejores documentos para trabajos específicos
 
 - Configuración y marca de la bifurcación: [docs/CUSTOMIZATION.md](/es/docs/development/customization-guide/)
-- Desarrollador local y verificación de fusión: [docs/TESTING.md](/es/docs/operations/testing/)
+- Configuración y liquidación del procesador de pagos: [docs/PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md)
+- Configuración y plantillas de correo electrónico: [docs/EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md)
+- Desarrollo local y verificación de fusión: [docs/TESTING.md](/es/docs/operations/testing/)
 - Configuración y límites de Podman: [docs/PODMAN.md](/es/docs/operations/podman-local-dev/)
 - Modelo de localización: [docs/I18N.md](/es/docs/development/internationalization/)
 - SEO y compartir metadatos: [docs/SEO.md](/es/docs/operations/seo/)

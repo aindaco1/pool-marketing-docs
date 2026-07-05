@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-July 1, 2026
+July 5, 2026
 
 This guide covers the automated test suites, local test infrastructure, and manual verification paths.
 
@@ -23,6 +23,12 @@ npm run test:i18n          # Supported locale catalog completeness check
 npm run test:seo           # Generated-site SEO/crawl audit; build _site first
 npm run test:secrets       # Secret exposure audit for local env files
 npm run test:premerge      # Merge-readiness checks for changed Worker logic
+npm run release:smoke -- --evidence-file /tmp/pool-release-smoke.md  # Release sign-off wrapper
+npm run release:a11y-evidence   # Focused campaign/cart accessibility evidence
+npm run release:i18n-seo-evidence  # Rendered i18n/SEO evidence over built _site
+npm run release:pledge-evidence # Worker-backed pledge/report evidence
+npm run release:providers -- --no-dev-vars  # Read-only external provider readiness
+npm run release:payment-smoke -- --no-dev-vars  # Payment contract and no-send smoke evidence
 npm run test:e2e           # E2E tests (Playwright) — fully automated browser coverage
 npm run test:e2e:headless  # CI mode
 npm run test:e2e:headless:podman  # Automated browser suite with Playwright in Podman
@@ -63,6 +69,30 @@ If you want just the public accessibility regression sweep and do not want to de
 ```bash
 npm run test:e2e:headless:podman -- tests/e2e/accessibility-public-pages.spec.ts --project=chromium
 ```
+
+## Release Evidence
+
+Use the release wrapper before production sign-off:
+
+```bash
+npm run release:smoke -- --evidence-file /tmp/pool-release-smoke.md
+```
+
+The wrapper runs the merge gate, setup/deploy production readiness dry run, Podman headless E2E when Podman is available, focused accessibility evidence, rendered i18n/SEO evidence, Worker-backed pledge/report evidence, read-only provider checks, and payment smoke readiness. Optional screen-reader transcript evidence is available with `--screen-reader-evidence` when local VoiceOver/Whisper capture is prepared.
+
+The focused commands are useful when one slice needs to be rerun:
+
+```bash
+npm run release:a11y-evidence
+npm run release:i18n-seo-evidence
+npm run release:pledge-evidence
+npm run release:providers -- --no-dev-vars
+npm run release:payment-smoke -- --no-dev-vars
+```
+
+Provider checks are read-only and use shell credentials first. In CI, the Release Provider Evidence workflow runs `npm run release:providers -- --cloudflare-dns-only --strict --no-dev-vars` with `CLOUDFLARE_DNS_API_TOKEN`, `CLOUDFLARE_ZONE_ID`, and `CLOUDFLARE_ZONE`.
+
+Set `POOL_EMAIL_DRY_RUN=true` or `RESEND_EMAIL_DRY_RUN=true` for no-send email evidence during local mutation smoke. The payment smoke keeps pledge mutation evidence opt-in through `--local-mutation` / `PAYMENT_SMOKE_ALLOW_MUTATION=1` and refuses production hosts unless explicitly overridden.
 
 ---
 
@@ -113,6 +143,7 @@ This runs:
 
 - `npm run test:secrets` to verify local env files stay ignored and their secret values do not appear in tracked files or git history
 - `node --check` for the changed Worker entrypoints
+- Release evidence command sanity checks: release script syntax, `release:smoke -- --help`, `release:providers -- --help`, and `release:payment-smoke -- --no-dev-vars`
 - Focused regression suites:
   - `tests/unit/worker-business-logic.test.ts`
   - `tests/unit/worker-ops-integrity.test.ts`
@@ -575,6 +606,8 @@ npx wrangler dev --env dev --port 8787
 
 ## 2. Resend Setup
 
+Use [EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md) as the full email setup and integration reference. This section is the short manual testing path.
+
 ### Create Account & API Key
 
 1. Sign up at [resend.com](https://resend.com)
@@ -613,6 +646,8 @@ curl -X POST 'https://api.resend.com/emails' \
 ---
 
 ## 3. Stripe Setup (Test Mode)
+
+Use [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md) as the full Stripe setup, webhook, settlement, and reconciliation reference. This section is the short local test-mode path.
 
 ### Get Test Keys
 
@@ -909,7 +944,8 @@ Expected: Returns `{ success: true }` and triggers GitHub workflow.
 ## 8. Production Checklist
 
 - [ ] Switch Stripe to live keys
-- [ ] Verify the Resend sender domain used by `PLEDGES_EMAIL_FROM` and `UPDATES_EMAIL_FROM` (for this deployment, `site.example.com`)
+- [ ] Review [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md) for Stripe live keys, webhook secrets, settlement credentials, and reconciliation checks
+- [ ] Verify the Resend sender domain used by `PLEDGES_EMAIL_FROM` and `UPDATES_EMAIL_FROM` (for this deployment, `site.example.com`); see [EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md)
 - [ ] If launch reminders or admin Turnstile widgets are enabled, verify the public site keys and matching Worker Turnstile secrets are set
 - [ ] Deploy Worker: `wrangler deploy`
 - [ ] Set up Stripe webhook in dashboard → `https://worker.example.com/webhooks/stripe`

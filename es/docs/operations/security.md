@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-20 de junio de 2026
+5 de julio de 2026
 
 Este documento cubre la arquitectura de seguridad, los riesgos conocidos, las medidas de refuerzo aplicadas, las compensaciones aceptadas y los procedimientos de prueba de penetración para la plataforma de financiación colectiva The Pool.
 
@@ -22,7 +22,7 @@ Este documento cubre la arquitectura de seguridad, los riesgos conocidos, las me
 |-----------|-----------|-------------|
 |**Fichas de enlace mágico**|`/pledge*`, `/pledges`, `/votes`|Tokens firmados HMAC-SHA256 con vencimiento de 90 días|
 |**Tokens de cancelación de suscripción de recordatorio de lanzamiento**|`GET /launch-reminders/unsubscribe`|Token HMAC con alcance que suprime un registro de recordatorio de campaña/correo electrónico|
-|**Firma de webhook de rayas**|`/webhooks/stripe`|Verificación HMAC-SHA256 según las especificaciones de Stripe|
+|**Firma de webhook de Stripe**|`/webhooks/stripe`|Verificación HMAC-SHA256 según las especificaciones de Stripe|
 |**Sesiones del panel de administración**|API del panel del navegador `/admin/*`|Inicio de sesión mediante enlace mágico por correo electrónico, cookie de sesión firmada, encabezado CSRF sobre mutaciones, alcance de función/campaña|
 |**Fichas de revisor de vista previa de campaña**|`/campaigns/:slug/preview/` vía `/admin/campaign-preview/:slug`|Tokens de revisor firmados de corta duración destinados al slug de campaña y al correo electrónico del revisor, respaldados por una lista de permitidos de KV de 24 horas|
 |**Desafío de inicio de sesión de administrador**|`POST /admin/auth/start`|Verificación opcional de Cloudflare Turnstile antes de la emisión del enlace mágico del administrador|
@@ -35,7 +35,7 @@ Este documento cubre la arquitectura de seguridad, los riesgos conocidos, las me
 
 |Patrón clave|Espacio de nombres|Datos|Sensibilidad|
 |-------------|-----------|------|-------------|
-|`pledge:{orderId}`|PROMESAS|Correo electrónico, importe, ID de Stripe, estado|**Alta** - PII + datos de pago|
+|`pledge:{orderId}`|PROMESAS|Correo electrónico, monto, ID de Stripe, estado|**Alta** - PII + datos de pago|
 |`email:{email}`|PROMESAS|Matriz de ID de pedido|**Medio**: vincula el correo electrónico a las promesas|
 |`stats:{slug}`|PROMESAS|Totales agregados|**Bajo** - público|
 |`tier-inventory:{slug}`|PROMESAS|Recuentos de reclamos de nivel|**Bajo** - público|
@@ -50,7 +50,7 @@ Este documento cubre la arquitectura de seguridad, los riesgos conocidos, las me
 |`admin-session:{hash}`|PROMESAS|Correo electrónico de administrador, función, alcance de la campaña, token CSRF, vencimiento|**Alta** - autenticación de administrador|
 |`admin-users:v1`|PROMESAS|Usuarios administradores de tiempo de ejecución y alcances de campaña|**Alto** - control de acceso|
 |`admin-marketing-referrals:{slug}`|PROMESAS|Código de referencia guardado y metadatos de origen QR|**Bajo**: datos de marketing escritos por el administrador|
-|`admin-marketing-draft:{slug}:{surface}`|PROMESAS|Borrador explícito compartido de Marketing/Blast con retención breve|**Medio**: contenido de enlace/correo electrónico de campaña creado por un administrador|
+|`admin-marketing-draft:{slug}:{surface}`|PROMESAS|Borrador explícito compartido de marketing/Blast con retención breve|**Medio**: contenido de enlace/correo electrónico de campaña creado por un administrador|
 |`campaign-preview-reviewers:{slug}`|PROMESAS|Lista de correo electrónico permitido para revisores normalizada para vistas previas de campañas protegidas, con TTL de 24 horas|**Mediano**: lista de acceso a correo electrónico específica de la campaña|
 |`admin-audit:{date}:{action}:{id}`|PROMESAS|Eventos recientes de auditoría de mutación de administrador|**Medio**: identidad del administrador + metadatos operativos|
 |`launch-reminder:{slug}:{emailHash}`|PROMESAS|Correo electrónico de recordatorio de próxima campaña y metadatos de suscripción|**Medio**: correo electrónico relacionado con la campaña|
@@ -59,7 +59,7 @@ Este documento cubre la arquitectura de seguridad, los riesgos conocidos, las me
 |`launch-reminder-dispatch:{slug}`|PROMESAS|Cursor/progreso del trabajo de envío de recordatorio acotado|**Bajo** - estado operativo|
 |`launch-reminder-dispatch-queue:v1`|PROMESAS|Cola de envío de recordatorio inactiva/marcador pendiente|**Bajo** - estado operativo|
 |`abandoned-cart:{orderId}`|PROMESAS|Instantánea de la campaña y correo electrónico de recordatorio de pago explícitamente aceptado|**Medio**: correo electrónico relacionado con la campaña|
-|`abandoned-cart-resume:{orderId}`|PROMESAS|Instantánea de breve duración del currículum de pago con enlace firmado después de enviar un recordatorio|**Medio**: correo electrónico de la campaña y resumen del carrito desinfectado|
+|`abandoned-cart-resume:{orderId}`|PROMESAS|Instantánea de breve duración de reanudación de pago con enlace firmado después de enviar un recordatorio|**Medio**: correo electrónico de la campaña y resumen del carrito desinfectado|
 |`abandoned-cart-sent:{emailHash}:{campaignSetHash}`|PROMESAS|Recordatorio de pago enviar marcador de idempotencia|**Bajo** - estado de envío|
 |`abandoned-cart-suppressed:{emailHash}`|PROMESAS|Marcador de cancelación de suscripción de recordatorio de pago|**Medio**: hash de correo electrónico del colaborador|
 |`abandoned-cart-suppressed-campaign:{slug}:{emailHash}`|PROMESAS|Marcador de supresión de recordatorio de pago con alcance de campaña administrado por el administrador|**Medio**: hash de correo electrónico del colaborador|
@@ -154,10 +154,12 @@ Si una implementación necesita una postura más estricta que la predeterminada,
 
 Antes de implementar en producción, verifique que estos secretos estén configurados:
 
-|secreto|Variable de entorno|Longitud mínima|
+La configuración específica del pago está documentada en [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md). La configuración específica del correo electrónico está documentada en [EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md).
+
+|Secreto|Variable de entorno|Longitud mínima|
 |--------|---------------------|------------|
 |Clave API de banda|`STRIPE_SECRET_KEY_LIVE`|N/A|
-|Secreto del webhook de rayas|`STRIPE_WEBHOOK_SECRET_LIVE`|32+ caracteres|
+|Secreto del webhook de Stripe|`STRIPE_WEBHOOK_SECRET_LIVE`|32+ caracteres|
 |Secreto de intención de pago|`CHECKOUT_INTENT_SECRET`|32+ caracteres|
 |Secreto del enlace mágico|`MAGIC_LINK_SECRET`|32+ caracteres|
 |Secreto del token de recordatorio de lanzamiento|Reserva `LAUNCH_REMINDER_TOKEN_SECRET` o `MAGIC_LINK_SECRET`|32+ caracteres|
@@ -167,7 +169,7 @@ Antes de implementar en producción, verifique que estos secretos estén configu
 |Secreto de administración de liquidación|`ADMIN_SETTLEMENT_SECRET` (opcional, con alcance)|32+ caracteres|
 |Secreto de administrador de transmisión|`ADMIN_BROADCAST_SECRET` (opcional, con alcance)|32+ caracteres|
 |Secreto del torniquete|`TURNSTILE_SECRET_KEY`, `ADMIN_TURNSTILE_SECRET_KEY` o `LAUNCH_REMINDER_TURNSTILE_SECRET_KEY`|N/A|
-|Reenviar clave API|`RESEND_API_KEY`|N/A|
+|Clave API Resend|`RESEND_API_KEY`|N/A|
 |Token de análisis de uso de Cloudflare|`CLOUDFLARE_USAGE_API_TOKEN` o `CLOUDFLARE_ANALYTICS_API_TOKEN`|Lectura de análisis GraphQL; Lectura de facturación opcional para detección de planes|
 
 Cuando GitHub Actions o un script de operador llaman a puntos finales de administración protegidos, agregue solo el secreto coincidente necesario a los secretos del repositorio de GitHub. El flujo de trabajo de implementación predeterminado utiliza `ADMIN_BROADCAST_SECRET` para la verificación del diario posterior a la implementación cuando está configurado; La futura automatización de liquidaciones debería utilizar `ADMIN_SETTLEMENT_SECRET` en lugar del secreto alternativo más amplio.
@@ -232,6 +234,8 @@ Si el paso de pago en el sitio se completa pero el compromiso aún no aparece (c
      -d '{"sessionId": "cs_test_..."}'
    ```
 3. El punto final obtiene la sesión de pago de Stripe y crea el compromiso si no existe.
+
+Consulte [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md) para obtener el runbook de reconciliación y recuperación de webhooks más completo.
 
 **Prevención:**
 - Utilice `scripts/dev.sh` que ejecuta el trabajador con simulación KV local

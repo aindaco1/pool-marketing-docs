@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-June 20, 2026
+July 5, 2026
 
 This document is for people and LLMs working on forks of **The Pool**. It is a practical operator guide for making safe changes in this repo without drifting the site, the Worker, checkout math, or localized/public behavior out of sync.
 
@@ -17,6 +17,8 @@ Use this alongside:
 
 - [README.md](/docs/overview/about-the-pool/) for the current product and architecture overview
 - [docs/CUSTOMIZATION.md](/docs/development/customization-guide/) for the supported fork-facing config surface
+- [docs/PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md) for Stripe setup, checkout canonicalization, webhooks, settlement, and reconciliation
+- [docs/EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md) for Resend setup, sender identity, email templates, localization, and delivery behavior
 - [docs/TESTING.md](/docs/operations/testing/) for local verification and merge-gate expectations
 - [docs/I18N.md](/docs/development/internationalization/) for locale routing and translation rules
 - [docs/SEO.md](/docs/operations/seo/) for metadata, share cards, and indexing behavior
@@ -56,6 +58,8 @@ When you need to understand or change behavior, start here:
 - [`tests/`](https://github.com/your-org/your-project/tree/main/tests): unit, security, and E2E expectations
 - [`scripts/`](https://github.com/your-org/your-project/tree/main/scripts): local dev, merge gate, smoke tests, reports, and sync helpers
 - [`docs/DASHBOARD.md`](/docs/operations/admin-dashboard/): private admin dashboard editing and operations reference
+- [`docs/PAYMENT_PROCESSOR.md`](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md): payment processor setup, flow, and operations reference
+- [`docs/EMAIL.md`](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md): email setup and integration reference
 
 ## Safe Workflow
 
@@ -128,6 +132,7 @@ Start with:
 - site runtime in [`assets/js/`](https://github.com/your-org/your-project/tree/main/assets/js)
 - campaign/cart/manage templates in [`_includes/`](https://github.com/your-org/your-project/tree/main/_includes) and [`_layouts/`](https://github.com/your-org/your-project/tree/main/_layouts)
 - Worker checkout logic in [`worker/src/`](https://github.com/your-org/your-project/tree/main/worker/src)
+- payment processor guidance in [docs/PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md)
 
 Always assume there is a site-side piece and a Worker-side piece.
 
@@ -150,6 +155,7 @@ Start with:
 - Worker mail logic in [`worker/src/`](https://github.com/your-org/your-project/tree/main/worker/src)
 - translation copy in [`_data/i18n/`](https://github.com/your-org/your-project/tree/main/_data/i18n)
 - contact/sender identity in [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml)
+- email setup and type coverage in [docs/EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md)
 
 If you touch deliverability-sensitive behavior, also sanity-check:
 
@@ -226,6 +232,8 @@ Countdowns, pledge controls, and embed/share-preview state should respect the ef
 ## Best Docs For Specific Work
 
 - Fork config and branding: [docs/CUSTOMIZATION.md](/docs/development/customization-guide/)
+- Payment processor setup and settlement: [docs/PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md)
+- Email setup and templates: [docs/EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md)
 - Local dev and merge verification: [docs/TESTING.md](/docs/operations/testing/)
 - Podman setup and limits: [docs/PODMAN.md](/docs/operations/podman-local-dev/)
 - Localization model: [docs/I18N.md](/docs/development/internationalization/)

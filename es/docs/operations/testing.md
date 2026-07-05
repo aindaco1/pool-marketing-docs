@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-1 de julio de 2026
+5 de julio de 2026
 
 Esta guía cubre los conjuntos de pruebas automatizadas, la infraestructura de pruebas local y las rutas de verificación manual.
 
@@ -24,6 +24,12 @@ npm run test:i18n          # Supported locale catalog completeness check
 npm run test:seo           # Generated-site SEO/crawl audit; build _site first
 npm run test:secrets       # Secret exposure audit for local env files
 npm run test:premerge      # Merge-readiness checks for changed Worker logic
+npm run release:smoke -- --evidence-file /tmp/pool-release-smoke.md  # Release sign-off wrapper
+npm run release:a11y-evidence   # Focused campaign/cart accessibility evidence
+npm run release:i18n-seo-evidence  # Rendered i18n/SEO evidence over built _site
+npm run release:pledge-evidence # Worker-backed pledge/report evidence
+npm run release:providers -- --no-dev-vars  # Read-only external provider readiness
+npm run release:payment-smoke -- --no-dev-vars  # Payment contract and no-send smoke evidence
 npm run test:e2e           # E2E tests (Playwright) — fully automated browser coverage
 npm run test:e2e:headless  # CI mode
 npm run test:e2e:headless:podman  # Automated browser suite with Playwright in Podman
@@ -65,6 +71,30 @@ Si desea solo el barrido de regresión de accesibilidad pública y no desea depe
 npm run test:e2e:headless:podman -- tests/e2e/accessibility-public-pages.spec.ts --project=chromium
 ```
 
+## Liberar evidencia
+
+Utilice el envoltorio de lanzamiento antes de la aprobación de producción:
+
+```bash
+npm run release:smoke -- --evidence-file /tmp/pool-release-smoke.md
+```
+
+El contenedor ejecuta la puerta de fusión, el ensayo de preparación para la producción de configuración/implementación, E2E sin cabeza de Podman cuando Podman está disponible, evidencia de accesibilidad enfocada, evidencia i18n/SEO renderizada, evidencia de informes/promesas respaldadas por los trabajadores, verificaciones de proveedores de solo lectura y preparación para el humo de pagos. La evidencia de transcripción del lector de pantalla opcional está disponible con `--screen-reader-evidence` cuando se prepara la captura local de VoiceOver/Whisper.
+
+Los comandos enfocados son útiles cuando es necesario volver a ejecutar un segmento:
+
+```bash
+npm run release:a11y-evidence
+npm run release:i18n-seo-evidence
+npm run release:pledge-evidence
+npm run release:providers -- --no-dev-vars
+npm run release:payment-smoke -- --no-dev-vars
+```
+
+Las comprobaciones del proveedor son de solo lectura y utilizan primero las credenciales del shell. En CI, el flujo de trabajo de publicación de pruebas del proveedor ejecuta `npm run release:providers -- --cloudflare-dns-only --strict --no-dev-vars` con `CLOUDFLARE_DNS_API_TOKEN`, `CLOUDFLARE_ZONE_ID` y `CLOUDFLARE_ZONE`.
+
+Configure `POOL_EMAIL_DRY_RUN=true` o `RESEND_EMAIL_DRY_RUN=true` para evidencia de no envío de correo electrónico durante el humo de mutación local. El humo de pago mantiene la aceptación de evidencia de mutación de compromiso a través de `--local-mutation` / `PAYMENT_SMOKE_ALLOW_MUTATION=1` y rechaza los hosts de producción a menos que se anule explícitamente.
+
 ---
 
 ## Pruebas unitarias (Vitest)
@@ -83,9 +113,9 @@ Pruebas rápidas y aisladas para funciones JS en `tests/unit/`.
 |`email-tip`|Desgloses de correos electrónicos de soporte conscientes de sugerencias en correos electrónicos de confirmación/modificados/cancelados/fallidos/cargados, además de recordatorio de lanzamiento y enrutamiento de correos electrónicos de pago abandonado a través del remitente de actualizaciones compartido|
 |`votes`|Almacenamiento/descopia de votos basado en correo electrónico, recuperación del estado de los votos, resultados de campaña, agregación de resultados|
 |`admin-dashboard`|Seguimiento del estado sucio del panel, serialización de configuraciones, normalización de contenido/editor, cargas de medios por etapas/selector de medios, análisis/relleno de tarifas reales de Stripe, informes de atribución de análisis, borradores compartidos de marketing, salud/supresión de pagos abandonados, ayudas de URL de referencia, utilidades de soporte responsivas/i18n|
-|`i18n-completeness`|Los catálogos de locales compatibles se mantienen alineados con la superficie de claves anidadas de inglés|
+|`i18n-completeness`|Los catálogos locales admitidos permanecen alineados con la superficie de claves anidadas en inglés|
 |`campaign-page`|Construcción de URL de enlaces compartidos, preservación segura de consultas, texto compartido con reconocimiento de estado, envío de formularios de recordatorio de lanzamiento, controles de campañas públicas y comportamiento de la página de campaña sensible a SEO|
-|`page-prefetch`|Listas permitidas de rutas públicas del mismo origen, exclusiones de consultas confidenciales, protecciones de red, manejo de retrasos/límites y creación de sugerencias de captación previa de documentos|
+|`page-prefetch`|Listas permitidas de rutas públicas del mismo origen, exclusiones de consultas confidenciales, protecciones de red, manejo de demoras/límites y creación de sugerencias de captación previa de documentos|
 |`cart-runtime-loader`|Arranque diferido en tiempo de ejecución del carrito, detección de carrito persistente/de recuperación, carga idempotente y activadores de intención del usuario|
 |`site-asset-minification`|Comportamiento de minificación CSS/JS generado `_site` y casos de falla del modo de verificación|
 |`media-optimization-script`|Selección de archivos modificados, decisiones de optimización de imágenes sin pérdidas, denominación de derivados de vídeo y reescritura de referencias de fuente a WebM|
@@ -114,12 +144,13 @@ Esto se ejecuta:
 
 - `npm run test:secrets` para verificar que los archivos env locales permanezcan ignorados y sus valores secretos no aparezcan en los archivos rastreados o en el historial de git
 - `node --check` para los puntos de entrada de los trabajadores modificados
+- Comprobaciones de idoneidad del comando de evidencia de publicación: sintaxis del script de publicación, `release:smoke -- --help`, `release:providers -- --help` y `release:payment-smoke -- --no-dev-vars`
 - Suites de regresión enfocadas:
   - `tests/unit/worker-business-logic.test.ts`
   - `tests/unit/worker-ops-integrity.test.ts`
   - `tests/unit/stats-pagination.test.ts`
   - `tests/unit/setup-deploy-script.test.ts`
-- Las suites de trabajo cubren la validación del registro de recordatorio de lanzamiento, la aceptación, el envío y la supresión de pago abandonado, enlaces de currículum de pago firmado, supresión en el ámbito de la campaña, contadores de estado agregados, supresión de cancelación de suscripción, idempotencia de envío en cola y la ruta de envío de reenvío compartida.
+- Las suites de trabajo cubren la validación del registro de recordatorio de lanzamiento, la aceptación, el envío y la supresión de pago abandonado, enlaces de reanudación de pago firmado, supresión en el ámbito de la campaña, contadores de estado agregados, supresión de cancelación de suscripción, idempotencia de envío en cola y la ruta de envío compartida Resend.
 - Las pruebas del asistente de configuración ejecutan la CLI de implementación en copias de repositorio temporales con comandos falsos `npm`, `npx`/Wrangler, `gh`, `stripe` y `ruby`. Cubren ayuda/manejo de errores, comportamiento de ejecución en seco sin escritura, reutilización/creación de espacios de nombres KV, generación de secretos locales no interactivos, secretos de trabajadores de producción generados y sondas de preparación de solo lectura sin mutaciones de proveedores en vivo.
 - Regresiones del filtro de seguridad de contenido en `tests/unit/content-safety-filter.test.ts`, incluidos esquemas de enlaces Markdown inseguros, espaciado de énfasis creado por el panel y validación estricta de URL incrustadas estructuradas
 - Cobertura de auditoría de contenido de campaña en `tests/unit/campaign-content-security.test.ts`, incluido el subconjunto HTML en línea permitido y el rechazo de etiquetas sin procesar no permitidas.
@@ -131,7 +162,7 @@ El script ahora rota sus IP de solicitud de administrador sintéticas durante es
 - Suite de unidad completa a través de `npm run test:unit`
 - Paquete de seguridad a través de `npm run test:security` contra un trabajador local iniciado automáticamente
 - Suite de seguridad respaldada por Podman a través de `npm run test:security:podman` cuando desea que el sitio/pila de trabajo se inicie y se ejerza en la misma invocación.
-- Verificaciones de artefactos de compilación propios que ejecutan Jekyll, minimizan los activos CSS/JS `_site` generados, verifican que la salida minimizada no tenga ahorros restantes y ejecutan `npm run test:seo` contra la salida de rastreo/metadatos generada.
+- Verificaciones de artefactos de compilación propios que ejecutan Jekyll, minimizan los activos CSS/JS `_site` generados, verifican que la salida minimizada no tiene ahorros restantes y ejecutan `npm run test:seo` contra la salida de rastreo/metadatos generada.
 - Rendimiento de páginas públicas y regresiones de uso compartido a través de cobertura de unidades para captación previa de intenciones, carga diferida en tiempo de ejecución del carrito, minificación de activos generados y comportamiento de enlaces compartidos de campañas.
 - Dramaturgo sin cabeza E2E vía `npm run test:e2e:headless`
 
@@ -235,7 +266,7 @@ npx vitest run \
   tests/unit/site-asset-minification.test.ts
 ```
 
-Para la salida generada de rastreo y metadatos estructurados, compile y minifique el sitio primero, luego ejecute:
+Para el rastreo generado y la salida de metadatos estructurados, primero cree y minimice el sitio y luego ejecute:
 
 ```bash
 SKIP_TESTS=1 bundle exec jekyll build --config _config.yml,_config.local.yml --quiet
@@ -243,7 +274,7 @@ npm run assets:minify
 npm run test:seo
 ```
 
-La auditoría SEO revisa las páginas generadas, `robots.txt`, `sitemap.xml`, URLs canónicas, alternates `hreflang`, metadatos Open Graph/Twitter y JSON-LD. Las campañas locales solo de prueba pueden compilarse para cobertura de smoke, pero permanecen intencionalmente ausentes del sitemap.
+La auditoría SEO comprueba las páginas creadas, `robots.txt`, `sitemap.xml`, URL canónicas, alternativas de hreflang, metadatos de Open Graph/Twitter y JSON-LD. Se pueden crear campañas locales de prueba únicamente para la cobertura del humo, pero permanecen intencionalmente ausentes del mapa del sitio.
 
 En GitHub, la misma puerta se ejecuta automáticamente en el flujo de trabajo `Merge Smoke` para solicitudes de extracción dirigidas a `main`.
 
@@ -484,7 +515,7 @@ Pruebas de penetración para la API Worker. Ubicado en `tests/security/`.
 
 ### Cobertura
 
-|categoría|Pruebas|
+|Categoría|Pruebas|
 |----------|-------|
 |Omisión de autenticación|Omisión de token de desarrollo, validación de token, caducidad, manipulación|
 |Seguridad del webhook|Verificación de firma de franja, manejo de eventos duplicados, inyección de dirección de envío, manejo de webhooks heredados eliminados|
@@ -528,7 +559,7 @@ Consulte [tests/security/README.md](/es/docs/operations/security-test-suite/) pa
 - [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/install-and-update/) (`npm install -g wrangler`)
 - [Stripe CLI](https://stripe.com/docs/stripe-cli) para pruebas de webhook
 - Cuenta Stripe (modo de prueba)
-- Reenviar cuenta (nivel gratuito: 3000 correos electrónicos/mes)
+- Cuenta Resend (nivel gratuito: 3000 correos electrónicos/mes)
 
 ---
 
@@ -574,7 +605,9 @@ cd worker
 npx wrangler dev --env dev --port 8787
 ```
 
-## 2. Reenviar configuración
+## 2. Configuración de Resend
+
+Utilice [EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md) como referencia completa de configuración e integración del correo electrónico. Esta sección es la ruta corta de prueba manual.
 
 ### Crear cuenta y clave API
 
@@ -588,13 +621,13 @@ npx wrangler dev --env dev --port 8787
 
 1. Vaya a **Dominios** → **Agregar dominio**
 2. Agregue el dominio de remitente exacto utilizado por `PLEDGES_EMAIL_FROM`/`UPDATES_EMAIL_FROM` (para esta implementación, `site.example.com`)
-3. Agregue los registros DNS que proporciona Reenviar
+3. Agregue los registros DNS que proporciona Resend
 4. Esperar verificación
 
 ### Modo de prueba (no se necesita dominio)
 
 Para realizar pruebas, puede enviar a su propio correo electrónico sin verificación de dominio:
-- Reenviar permite enviar desde `onboarding@resend.dev` en modo de prueba
+- Resend permite enviar desde `onboarding@resend.dev` en modo de prueba
 - O utilice su correo electrónico personal verificado
 
 ### Envío de correo electrónico de prueba
@@ -613,7 +646,9 @@ curl -X POST 'https://api.resend.com/emails' \
 
 ---
 
-## 3. Configuración de franjas (modo de prueba)
+## 3. Configuración de Stripe (modo de prueba)
+
+Utilice [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md) como referencia completa de configuración, webhook, liquidación y conciliación de Stripe. Esta sección es la ruta corta del modo de prueba local.
 
 ### Obtener claves de prueba
 
@@ -715,7 +750,7 @@ stripe listen --forward-to 127.0.0.1:8787/webhooks/stripe
    - Votar sobre una decisión
    - Actualizar página: tu voto debe persistir
 
-### Tarjetas de prueba de rayas
+### Tarjetas de prueba de Stripe
 
 |Número de tarjeta|Escenario|
 |-------------|----------|
@@ -774,7 +809,7 @@ wrangler kv:key get "results:hand-relations:poster" --binding VOTES --preview
 - Verificar que el secreto del webhook esté configurado
 
 ### Correo electrónico no enviado
-- Verifique Reenviar panel para ver si hay errores
+- Verifique el panel de Resend para ver si hay errores
 - Verifique que la clave API sea correcta
 - Verifique que la dirección "de" esté verificada o use `onboarding@resend.dev`
 
@@ -909,11 +944,12 @@ Esperado: devuelve `{ success: true }` y activa el flujo de trabajo de GitHub.
 
 ## 8. Lista de verificación de producción
 
-- [] Cambiar Stripe a claves en vivo
-- [] Verifique el dominio del remitente de reenvío utilizado por `PLEDGES_EMAIL_FROM` y `UPDATES_EMAIL_FROM` (para esta implementación, `site.example.com`)
-- [] Si los recordatorios de inicio o los widgets de administración de Turnstile están habilitados, verifique que las claves públicas del sitio y los secretos coincidentes de Worker Turnstile estén configurados.
-- [] Implementar trabajador: `wrangler deploy`
-- [] Configurar el webhook de Stripe en el panel → `https://worker.example.com/webhooks/stripe`
+- [ ] Cambiar Stripe a claves en vivo
+- [ ] Revise [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md) para obtener claves activas de Stripe, secretos de webhooks, credenciales de liquidación y comprobaciones de conciliación.
+- [ ] Verifique el dominio del remitente Resend utilizado por `PLEDGES_EMAIL_FROM` y `UPDATES_EMAIL_FROM` (para esta implementación, `site.example.com`); ver [EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md)
+- [ ] Si los recordatorios de inicio o los widgets de administración de Turnstile están habilitados, verifique que las claves públicas del sitio y los secretos coincidentes de Worker Turnstile estén configurados.
+- [ ] Implementar trabajador: `wrangler deploy`
+- [ ] Configurar el webhook de Stripe en el panel → `https://worker.example.com/webhooks/stripe`
 - [ ] Pruebe con una contribución real de $1
 
 ## 9. Referencia de secretos
@@ -931,7 +967,7 @@ Esperado: devuelve `{ success: true }` y activa el flujo de trabajo de GitHub.
 - `CHECKOUT_INTENT_SECRET`: cadena aleatoria de más de 32 caracteres para firmar el pago
 - `MAGIC_LINK_SECRET`: cadena aleatoria de más de 32 caracteres para la firma de tokens HMAC
 - `CAMPAIGN_PREVIEW_SECRET`: secreto de firma de enlace de revisor de vista previa dedicado opcional; si se omite, el Trabajador recurre a los secretos de firma existentes
-- `RESEND_API_KEY` — Reenviar clave API para correos electrónicos de soporte (re_...)
+- `RESEND_API_KEY` — Clave API Resend para correos electrónicos de soporte (re_...)
 - `ADMIN_SECRET`: cadena aleatoria para puntos finales de API de administración
 - `ADMIN_SETTLEMENT_SECRET`: secreto de administración de ámbito opcional para puntos finales de liquidación; use un valor solo local separado en `worker/.dev.vars`
 - `ADMIN_BROADCAST_SECRET`: secreto de administración de ámbito opcional para puntos finales de diario, hitos y anuncios; también agréguelo a los secretos del repositorio de GitHub para la verificación del diario posterior a la implementación cuando esté habilitado
@@ -957,13 +993,13 @@ Esperado: devuelve `{ success: true }` y activa el flujo de trabajo de GitHub.
   - Claves: `vote:{campaignSlug}:{decisionId}:{orderId}` → cadena de opción
   - Claves: `results:{campaignSlug}:{decisionId}` → JSON `{optionA: count, ...}`
 
-### Panel de control de rayas
+### Panel de control de Stripe
 - Punto final del webhook = `https://worker.example.com/webhooks/stripe`
   - Eventos: `checkout.session.completed`
 - No se requiere catálogo de productos; los montos provienen de artículos del carrito propios canonizados por los trabajadores
 
-### Reenviar panel
-- **Dominio**: Verifique la parte del dominio de las direcciones del remitente configuradas en `_config.yml`/Worker env. Para esta implementación, `PLEDGES_EMAIL_FROM` es `The Pool <pledges@site.example.com>`, por lo que Resend debe autorizar `site.example.com`.
+### Panel de control Resend
+- **Dominio**: Verifique la parte del dominio de las direcciones del remitente configuradas en `_config.yml`/Worker env. Para esta implementación, `PLEDGES_EMAIL_FROM` es `The Pool <pledges@site.example.com>`, por lo que Resend debe autorizar a `site.example.com`.
 - **Clave API**: Crear clave con permiso de "Acceso de envío"
-- Se utiliza para: todos los correos electrónicos de compromiso dirigidos a los seguidores (confirmación, acceso a administración/comunidad, recordatorios de lanzamiento, recordatorios de pagos abandonados, actualizaciones del diario, correos electrónicos explosivos/anuncios, informes, éxito de los cargos, errores de pago, cancelaciones)
+- Se utiliza para: todos los correos electrónicos de compromiso dirigidos a los seguidores (confirmación, acceso a administración/comunidad, recordatorios de lanzamiento, recordatorios de pagos abandonados, actualizaciones del diario, correos electrónicos de Blast/anuncios, informes, éxito de los cargos, errores de pago, cancelaciones)
 - Nota del desarrollador local: incluso cuando `SITE_BASE` apunta a `127.0.0.1`, las imágenes de correo electrónico incrustadas aún usan la base de recursos pública `https://site.example.com`, por lo que las vistas previas de la bandeja de entrada no muestran URL de imágenes de host local rotas.

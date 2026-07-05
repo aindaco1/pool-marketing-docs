@@ -10,9 +10,11 @@ lang: es
 
 ## Última actualización
 
-20 de junio de 2026
+5 de julio de 2026
 
 The Pool utiliza un **sistema de gestión de promesas basado en correo electrónico y sin cuenta**. Los patrocinadores guardan un método de pago a través de Stripe en el paso de pago en el sitio de The Pool, administran las promesas a través de enlaces mágicos con alcance de pedido y solo se les cobra si la campaña está financiada.
+
+Para la configuración, las operaciones del procesador y la conciliación, utilice [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md). Para la configuración del remitente, los tipos de correo electrónico, la localización y el comportamiento de entrega, utilice [EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md).
 
 ## Diferenciadores clave
 
@@ -71,7 +73,7 @@ upcoming → live → post
 
 Las promesas se almacenan en Cloudflare KV. Patrones clave:
 
-|clave|Contenidos|
+|Llave|Contenido|
 |-----|----------|
 |`pledge:{orderId}`|Datos completos del compromiso (correo electrónico, monto, nivel, ID de Stripe, estado, historial)|
 |`email:{email}`|Conjunto de ID de pedido para ese correo electrónico|
@@ -86,19 +88,19 @@ Las promesas se almacenan en Cloudflare KV. Patrones clave:
 |`launch-reminder-sent:{campaignSlug}:{emailHash}`|Recordatorio de lanzamiento enviar marcador de idempotencia|
 |`launch-reminder-dispatch:{campaignSlug}`|Cursor de trabajo de envío limitado para una campaña que acaba de publicarse|
 |`launch-reminder-dispatch-queue:v1`|Marcador de estado de cola que permite que los ticks programados del recordatorio de inicio inactivo omitan los análisis de la lista de envío|
-|`abandoned-cart:{orderId}`|Registro de recordatorio de checkout abandonado con suscripción explícita|
-|`abandoned-cart-resume:{orderId}`|Snapshot de reanudación de checkout de corta duración para enlaces firmados, creado solo después de enviar un recordatorio|
-|`abandoned-cart-queue:v1`|Marcador de estado de cola que permite que los ticks programados de checkout abandonado omitan escaneos de espacio de nombres cuando están inactivos|
-|`abandoned-cart-sent:{emailHash}:{campaignSetHash}`|Marcador de idempotencia de envío para recordatorios de checkout abandonado|
-|`abandoned-cart-suppressed:{emailHash}`|Marcador de cancelación de suscripción de checkout abandonado|
-|`abandoned-cart-suppressed-campaign:{campaignSlug}:{emailHash}`|Marcador de supresión de recordatorio con alcance de campaña administrado por admins|
-|`abandoned-cart-health:v1`|Contadores agregados de cola/resultados de checkout abandonado para vistas de salud con alcance de campaña|
+|`abandoned-cart:{orderId}`|Registro de recordatorio de pago abandonado explícitamente aceptado|
+|`abandoned-cart-resume:{orderId}`|Instantánea de reanudación de pago con enlace firmado de corta duración creada solo después de enviar un recordatorio|
+|`abandoned-cart-queue:v1`|Marcador de estado de cola que permite que los ticks programados de pago abandonado e inactivo omitan análisis de espacios de nombres|
+|`abandoned-cart-sent:{emailHash}:{campaignSetHash}`|Marcador de idempotencia de envío de pago abandonado|
+|`abandoned-cart-suppressed:{emailHash}`|Marcador de cancelación de suscripción de pago abandonado|
+|`abandoned-cart-suppressed-campaign:{campaignSlug}:{emailHash}`|Marcador de supresión de recordatorios con ámbito de campaña administrado por el administrador|
+|`abandoned-cart-health:v1`|Agregue contadores de resultados/colas de pago abandonado para vistas de estado del ámbito de la campaña|
 |`supporter-email-retry:{orderId}`|Carga útil de reintento de correo electrónico de confirmación de colaborador en cola|
 |`supporter-email-retry-queue:v1`|Marcador de estado de cola con el siguiente tiempo de reintento de correo electrónico del colaborador|
 |`add-on-inventory-sold:v1`|Proyección de recuento de ventas para el inventario complementario de la plataforma|
 |`admin-users:v1`|Usuarios del panel de ejecución guardados desde **Configuración -> Usuarios**|
-|`admin-marketing-referrals:{campaignSlug}`|Metadatos de códigos de referencia guardados y fuente QR para la pestaña Marketing del panel|
-|`admin-marketing-draft:{campaignSlug}:{surface}`|Borrador compartido explícito de Marketing/Blast con TTL de 7 días y protección contra conflictos de revisión|
+|`admin-marketing-referrals:{campaignSlug}`|Código de referencia guardado y metadatos de origen QR para la pestaña Marketing del panel|
+|`admin-marketing-draft:{campaignSlug}:{surface}`|Borrador explícito compartido de Marketing/Blast con TTL de 7 días y protección contra conflictos de revisión|
 
 Las reservas de nivel escaso y el estado de reclamo comprometido ahora se encuentran en el coordinador de objetos duraderos por campaña en lugar de en KV. `tier-inventory:{campaignSlug}` sigue siendo la proyección pública utilizada por `/inventory/:slug` y `/live/:slug`.
 
@@ -196,6 +198,8 @@ Cada token sólo autoriza su propio pedido. Un enlace válido ya no otorga acces
 
 ### `POST /checkout-intent/start`
 Cree una sesión de pago de Stripe en modo de configuración desde el estado del carrito propio para el paso de pago en el sitio.
+
+La integración completa del procesador de pagos, incluido el pago en modo de configuración, la persistencia del webhook, la recuperación, la liquidación y el reabastecimiento financiero de Stripe, está documentada en [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md).
 
 **Pedido:**
 ```json
@@ -363,11 +367,11 @@ Activar una reconstrucción de páginas de GitHub (para transiciones de estado).
 **Solicitud:** `{ "reason": "campaign-state-change" }` (opcional)
 
 ### `POST /admin/marketing/announcement`
-Ejecute una prueba, un envío de prueba o un envío real de un correo de seguidores de Campaigns -> Blast desde el panel del navegador.
+Realice una ejecución en seco, un envío de prueba o un envío en vivo de campañas -> Envío masivo de correos electrónicos de apoyo desde el panel del navegador.
 
-La ruta del navegador requiere sesión del panel, comprobaciones CSRF/origen, alcance de campaña y una audiencia indexada en `campaign-pledges:{slug}`. Las pruebas validan el asunto/contenido/CTA/audiencia exactos y devuelven un `dryRunHash` sin enviar correo, escribir auditorías ni listar espacios de nombres KV. Los envíos de prueba van solo al admin con sesión iniciada. Los envíos reales requieren el hash de prueba correspondiente y escriben un evento de auditoría administrativa después del despacho.
+La ruta del navegador requiere una sesión de panel, comprobaciones de origen/CSRF, alcance de la campaña y una audiencia `campaign-pledges:{slug}` indexada. Los ensayos validan el tema/contenido/CTA/audiencia exactos y devuelven un `dryRunHash` sin enviar correos electrónicos, escribir auditorías ni enumerar espacios de nombres KV. Los envíos de prueba van únicamente al administrador que ha iniciado sesión. Los envíos en vivo requieren el hash de prueba coincidente y escriben un evento de auditoría administrativa después del envío.
 
-**Solicitud:**
+**Pedido:**
 ```json
 {
   "campaignSlug": "worst-movie-ever",
@@ -381,18 +385,18 @@ La ruta del navegador requiere sesión del panel, comprobaciones CSRF/origen, al
 }
 ```
 
-### Helpers del panel de Marketing
+### Ayudantes del panel de marketing
 
-El rendimiento de referencias y UTM vive en `GET /admin/analytics`, que lee los índices de promesas de campaña y devuelve desgloses de referencia más UTM source/medium/campaign/content sin listar la verdad de promesas. Los índices de campaña faltantes producen un aviso no bloqueante en Analytics en lugar de un fallo de la pestaña Marketing.
+El rendimiento de referencias y UTM se encuentra en `GET /admin/analytics`, que lee los índices de promesas de campaña y devuelve referencias más desgloses de fuente/medio/campaña/contenido UTM sin enumerar la verdad de las promesas. Los índices de campaña que faltan generan un aviso de Analytics sin bloqueo en lugar de un error en la pestaña Marketing.
 
-`GET /admin/marketing/draft?campaignSlug=...&surface=marketing|blast`, `POST /admin/marketing/draft` y `DELETE /admin/marketing/draft` cargan, guardan y borran borradores compartidos explícitos. Las escrituras de borrador tienen alcance de campaña, expiran después de 7 días y llevan un token de revisión para que los guardados obsoletos devuelvan conflicto.
+`GET /admin/marketing/draft?campaignSlug=...&surface=marketing|blast`, `POST /admin/marketing/draft` y `DELETE /admin/marketing/draft` cargan, guardan y borran borradores compartidos explícitos. Los borradores escritos tienen un alcance de campaña, caducan después de 7 días y llevan un token de revisión, por lo que los guardados obsoletos devuelven un conflicto.
 
-`GET /admin/media/library?campaignSlug=...` lista imágenes de campaña existentes para bloques de imagen WYSIWYG. Los usuarios de campaña ven solo medios asignados a su campaña; los superadministradores también pueden elegir imágenes compartidas/predeterminadas. El selector lee directorios de GitHub y no crea estado KV.
+`GET /admin/media/library?campaignSlug=...` enumera las imágenes de campaña existentes para bloques de imágenes WYSIWYG. Los usuarios de la campaña solo ven los medios de la campaña asignados; Los superadministradores también pueden elegir imágenes compartidas/predeterminadas. El selector lee los directorios de GitHub y no crea el estado KV.
 
-`GET /admin/abandoned-checkout/health?campaignSlug=...` lee salud agregada de recordatorios de checkout abandonado sin operaciones de lista KV. Los resultados de supresión creados por admins incluyen el correo suprimido para que el panel pueda mostrar y borrar esas filas. `POST` y `DELETE /admin/abandoned-checkout/suppression` establecen o borran explícitamente supresiones de recordatorio con alcance de campaña con CSRF, identificadores de correo hasheados, eventos de auditoría y escrituras KV acotadas. Los enlaces firmados de reanudación de recordatorio leen `abandoned-cart-resume:{orderId}` y restauran un snapshot sanitizado del checkout del navegador para que los seguidores puedan iniciar una sesión nueva de Stripe desde el mismo contexto de campaña/carrito.
+`GET /admin/abandoned-checkout/health?campaignSlug=...` lee el estado agregado del recordatorio de pago abandonado sin operaciones de lista KV. Los resultados de la supresión creados por el administrador incluyen el correo electrónico suprimido para que el panel pueda mostrar y borrar esas filas. `POST` y `DELETE /admin/abandoned-checkout/suppression` establecen o borran explícitamente supresiones de recordatorios en el ámbito de la campaña con CSRF, identificadores de correo electrónico con hash, eventos de auditoría y escrituras KV limitadas. Los enlaces de reanudación de recordatorio firmados leen `abandoned-cart-resume:{orderId}` y restauran una instantánea de pago del navegador desinfectada para que los seguidores puedan iniciar una nueva sesión de Stripe desde el mismo contexto de campaña/carrito.
 
 ### `POST /admin/broadcast/announcement`
-Endpoint legacy de operador con secreto compartido para un correo de anuncio personalizado con enlace CTA opcional a todos los seguidores de la campaña.
+Punto final de operador secreto compartido heredado para un correo electrónico de anuncio personalizado con un enlace CTA opcional para todos los partidarios de la campaña.
 
 **Encabezados:** `Authorization: Bearer ADMIN_BROADCAST_SECRET` cuando está configurado, de lo contrario `Authorization: Bearer ADMIN_SECRET`
 **Pedido:**
@@ -425,14 +429,14 @@ Flujos primarios:
 - El resumen del panel, los análisis, los informes, los soportes, las cargas de contenido y las vistas previas de contenido son flujos de navegación de solo lectura.
 - El contenido/configuración de la campaña y la configuración/complementos de la plataforma se publican a través de la validación del trabajador y las confirmaciones respaldadas por GitHub.
 - El superadministrador **Crear nueva campaña** escribe un archivo Markdown de campaña de solo vista previa localmente en desarrollo o a través de la ruta respaldada por GitHub en producción, opcionalmente guarda varios usuarios de campaña nuevos en `admin-users:v1`, envía correos electrónicos a los usuarios asignados con el enlace del panel de administración y mantiene la campaña oculta de las rutas públicas hasta el lanzamiento.
-- La campaña **Vista previa** publica indicadores de vista previa protegidos a través de GitHub, almacena el administrador publicador más los correos electrónicos de revisores opcionales solo en una allowlist KV de 24 horas `campaign-preview-reviewers:{slug}`, devuelve un enlace de 24 horas visible en el panel para el administrador publicador, envía enlaces firmados de 24 horas a revisores opcionales y sirve cargas de vista previa privadas/no-store a través de `/admin/campaign-preview/:slug`.
-- El superadministrador **Archivar campaña** está disponible solo para campañas no activas. El Worker valida el rol, CSRF, slug de campaña y estado efectivo, luego archiva directamente en el repositorio montado para desarrollo local o despacha `.github/workflows/archive-campaign.yml` en producción; el movimiento de archivado escribe `archive-manifest.json` y mantiene el código fuente/medios de la campaña en `archive/campaigns/<slug>/`.
+- La campaña **Vista previa** publica indicadores de vista previa protegidos a través de GitHub, almacena el administrador de publicación más los correos electrónicos de revisores opcionales solo en una lista permitida de `campaign-preview-reviewers:{slug}` KV de 24 horas, devuelve un enlace de 24 horas visible en el panel para el administrador de publicación, envía enlaces firmados de 24 horas a revisores opcionales y ofrece cargas útiles de vista previa privadas/no-store a través de `/admin/campaign-preview/:slug`.
+- El superadministrador **Campaña de archivo** está disponible solo para campañas no activas. El trabajador valida el rol, CSRF, slug de campaña y estado efectivo, luego archiva directamente en el repositorio montado para desarrollo local o envía `.github/workflows/archive-campaign.yml` en producción; el movimiento del archivo escribe `archive-manifest.json` y mantiene la fuente/medios de la campaña en `archive/campaigns/<slug>/`.
 - **Configuración -> Usuarios** guarda directamente en Worker KV en `admin-users:v1`.
 - Los códigos de referencia guardados y los borradores compartidos de Marketing/Blast se guardan en KV con alcance de campaña solo cuando se guardan o borran explícitamente.
-- Los informes de atribución de **Analytics** y la salud de checkout abandonado de **Marketing** leen datos indexados/agregados sin escaneos de espacios de nombres KV.
+- **Análisis** informes de atribución y **Marketing** estado de pago abandonado leen datos indexados/agregados sin escaneos de espacios de nombres KV.
 - **Informes** muestra una vista previa de las filas de promesas/cumplimiento y descarga archivos CSV; no envía correos electrónicos y no marca informes como enviados.
 - **Analytics** utiliza datos netos y de tarifas de Stripe reales almacenados cuando están disponibles y expone un reabastecimiento de superadministrador para promesas cobradas más antiguas.
-- Los medios del editor de contenido cargan archivos provisionales localmente, los cargan al publicar o enviar un Blast y confirman activos conservados en el origen a través de la ruta respaldada por GitHub; las cargas de imágenes/videos luego solicitan el flujo de trabajo `Optimize dashboard media` con `scope=changed` para compresión de imágenes, variantes WebP responsivas (`320w`, `480w`, `640w`, `960w`, `1600w`) y derivados de video. Los bloques de imagen también pueden elegir imágenes de campaña existentes desde un selector de medios acotado y de solo lectura. Publicar también elimina los medios propiedad del panel de la misma campaña que desaparecieron de los bloques de contenido o eliminaron las entradas del diario y no se hace referencia a ellos en ninguna otra parte de la campaña.
+- Los medios del editor de contenido cargan archivos provisionales localmente, los cargan en publicación o envío masivo y confirman activos conservados en origen a través de la ruta respaldada por GitHub; Las cargas de imágenes/videos luego solicitan el flujo de trabajo `Optimize dashboard media` con `scope=changed` para compresión de imágenes, variantes WebP responsivas (`320w`, `480w`, `640w`, `960w`, `1600w`) y derivados de video. Los bloques de imágenes también pueden elegir imágenes de campaña existentes desde un selector de medios de solo lectura con alcance. Publicar también elimina los medios propiedad del panel de la misma campaña que desaparecieron de los bloques de contenido o eliminaron las entradas del diario y no se hace referencia a ellos en ninguna otra parte de la campaña.
 - **Secretos y credenciales** informes configurados/estado faltante únicamente; no expone ni almacena valores secretos.
 
 Informe de puntos finales de vista previa/descarga utilizados por el panel:
@@ -606,15 +610,17 @@ Esto permite a los seguidores reparar tarjetas vencidas/rechazadas sin la interv
 
 ## Arquitectura de correo electrónico
 
+Esta sección resume el comportamiento del correo electrónico relacionado con las promesas. La configuración completa de Resend y la referencia de tipo de correo electrónico se encuentran en [EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md).
+
 |Proveedor|Propósito|
 |----------|---------|
-|**Reenviar**|Todos los correos electrónicos de los seguidores (confirmación, hitos, actualizaciones del diario, anuncios, carga exitosa, pago fallido)|
+|**Resend**|Todos los correos electrónicos de los seguidores (confirmación, hitos, actualizaciones del diario, anuncios, carga exitosa, pago fallido)|
 
-El Trabajador maneja todos los correos electrónicos relacionados con el compromiso a través de Resend.
+El Trabajador maneja todos los correos electrónicos relacionados con promesas a través de Resend.
 
-### Reenviar Integración (Trabajador)
+### Integración Resend (Trabajador)
 
-El trabajador envía correos electrónicos a sus seguidores después de que el webhook de Stripe confirma la sesión en modo de configuración. El dominio del remitente debe estar autorizado para la clave API de reenvío configurada; Para esta implementación, las confirmaciones de compromiso utilizan `The Pool <pledges@site.example.com>` porque `site.example.com` es el dominio de envío autorizado.
+El trabajador envía correos electrónicos a sus seguidores después de que el webhook de Stripe confirma la sesión en modo de configuración. El dominio del remitente debe estar autorizado para la clave API Resend configurada; Para esta implementación, las confirmaciones de compromiso utilizan `The Pool <pledges@site.example.com>` porque `site.example.com` es el dominio de envío autorizado.
 
 ```js
 // In Worker: POST /webhooks/stripe handler
@@ -653,7 +659,7 @@ async function sendSupporterEmail(env, { email, campaignSlug, campaignTitle, amo
 
 Todos los correos electrónicos muestran cantidades exactas con 2 decimales (sin redondeo).
 
-**Confirmación de compromiso** (enviada después de que la sesión de Stripe en el modo de configuración se complete exitosamente)
+**Confirmación de compromiso** (enviada después de que la sesión de Stripe en el modo de configuración se complete con éxito)
 - Asunto: "Compromiso confirmado | {Título de la campaña}"
 - Contiene: desglose completo (subtotal, propina opcional de The Pool, impuestos, envío si es físico, total), artículos prometidos, enlace de administración, enlace comunitario
 - Incluye: CTA de Instagram (si la campaña tiene URL de Instagram)
@@ -687,16 +693,16 @@ Todos los correos electrónicos muestran cantidades exactas con 2 decimales (sin
 - Incluye: enlaces de acceso de seguidores (comunidad + administración), CTA de Instagram (si la campaña tiene URL de Instagram)
 - Nota: Los extractos eliminan el formato de rebajas; el contenido completo está en la página de la campaña
 
-**Blast / Anuncio** (enviado a través de Campaigns -> Blast o transmisión administrativa legacy con enlace CTA opcional)
+**Blast/Anuncio** (enviado a través de Campañas -> Blast o transmisión de administrador heredada con enlace CTA opcional)
 - Asunto: "{Asunto} | {Título de la campaña}"
-- Contiene: contenido de actualización con alcance de campaña, imágenes de campaña alojadas, enlaces YouTube/Vimeo seguros para correo y botón CTA resaltado opcional (etiqueta personalizada + URL)
+- Contiene: contenido de actualización específico de la campaña, imágenes de campaña alojadas opcionales, enlaces de YouTube/Vimeo seguros para correo electrónico y un botón CTA resaltado opcional (etiqueta personalizada + URL)
 - Incluye: enlaces de acceso de seguidores (comunidad + administración), CTA de Instagram (si la campaña tiene URL de Instagram)
-- Puntos finales: `POST /admin/marketing/announcement` para Blast del navegador, `POST /admin/broadcast/announcement` para envíos legacy de operador
+- Puntos finales: `POST /admin/marketing/announcement` para navegador Blast, `POST /admin/broadcast/announcement` para envíos de operadores heredados
 
 **Recordatorio de lanzamiento** (se envía una vez cuando se activa una próxima campaña)
 - Asunto: "Ya disponible | {Título de la campaña}"
 - Contiene: título de la campaña, texto de lanzamiento localizado, CTA de la campaña y enlace para cancelar la suscripción.
-- Usos: Registro `preferredLang`, configuración de remitente de reenvío existente, marcadores de supresión y marcadores de enviado
+- Usos: Registro `preferredLang`, configuración de remitente Resend existente, marcadores de supresión y marcadores de envío
 - Nota: El registro de recordatorio es independiente de la promesa y se puede cancelar desde el correo electrónico de recordatorio.
 
 ---

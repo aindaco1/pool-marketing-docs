@@ -9,9 +9,11 @@ render_with_liquid: false
 
 ## Last Updated
 
-June 20, 2026
+July 5, 2026
 
 The Pool uses a **no-account, email-based pledge management system**. Backers save a payment method through Stripe in The Pool's on-site payment step, manage pledges via order-scoped magic links, and are only charged if the campaign is funded.
+
+For setup, processor operations, and reconciliation, use [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md). For sender setup, email types, localization, and delivery behavior, use [EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md).
 
 ## Key Differentiators
 
@@ -195,6 +197,8 @@ Each token only authorizes its own order. A valid link no longer grants email-wi
 
 ### `POST /checkout-intent/start`
 Create a setup-mode Stripe Checkout Session from the first-party cart state for the on-site payment step.
+
+The complete payment processor integration, including setup-mode checkout, webhook persistence, recovery, settlement, and Stripe financial backfill, is documented in [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md).
 
 **Request:**
 ```json
@@ -604,6 +608,8 @@ This allows supporters to fix expired/declined cards without manual admin interv
 ---
 
 ## Email Architecture
+
+This section summarizes pledge-related email behavior. The complete Resend setup and email-type reference lives in [EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md).
 
 | Provider | Purpose |
 |----------|---------|

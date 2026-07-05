@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-June 20, 2026
+July 5, 2026
 
 This document covers the security architecture, known risks, applied hardening measures, accepted tradeoffs, and penetration testing procedures for The Pool crowdfunding platform.
 
@@ -153,6 +153,8 @@ If a deployment needs a stricter posture than that default, the most likely next
 
 Before deploying to production, verify these secrets are set:
 
+Payment-specific setup is documented in [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md). Email-specific setup is documented in [EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md).
+
 | Secret | Environment Variable | Min Length |
 |--------|---------------------|------------|
 | Stripe API Key | `STRIPE_SECRET_KEY_LIVE` | N/A |
@@ -231,6 +233,8 @@ If the on-site payment step completes but the pledge doesn't appear yet (common 
      -d '{"sessionId": "cs_test_..."}'
    ```
 3. The endpoint fetches the checkout session from Stripe and creates the pledge if it doesn't exist
+
+See [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md) for the fuller webhook recovery and reconciliation runbook.
 
 **Prevention:**
 - Use `scripts/dev.sh` which runs the Worker with local KV simulation

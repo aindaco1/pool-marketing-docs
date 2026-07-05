@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-June 20, 2026
+July 5, 2026
 
 ## Stack
 
@@ -57,6 +57,8 @@ Treat [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_
 The sync target is [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml), and the repo’s supported dev/test entry points keep it aligned automatically.
 
 See [CUSTOMIZATION.md](/docs/development/customization-guide/) for the supported no-code fork surface, including which settings are site-only and which are auto-mirrored to the Worker.
+See [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md) for Stripe checkout, webhook, settlement, and reconciliation details.
+See [EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md) for Resend sender setup, email types, localization, and delivery behavior.
 
 Current mirrored Worker values worth treating as part of the supported customization surface:
 

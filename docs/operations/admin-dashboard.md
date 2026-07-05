@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-July 1, 2026
+July 5, 2026
 
 This document is the operator reference for The Pool's private admin dashboard and should be treated as the source of truth for dashboard-based campaign editing, reporting, analytics, marketing links, add-ons, and user management.
 
@@ -102,7 +102,7 @@ Settings are grouped in a left sidebar. Super admins can edit publishable config
 
 Platform identity fields include site title, platform name, company, author, default creator name, support email, site description, canonical site/Worker URLs, email sender names, app mode, and the default platform timezone. The canonical URL fields sit below Site Description in the Platform section, one per column on wide viewports.
 
-The pledge and update sender fields must use domains authorized for the configured Resend API key. For this deployment, pledge confirmations use `The Pool <pledges@site.example.com>` so the sender domain matches the authorized `site.example.com` Resend domain.
+The pledge and update sender fields must use domains authorized for the configured Resend API key. For this deployment, pledge confirmations use `The Pool <pledges@site.example.com>` so the sender domain matches the authorized `site.example.com` Resend domain. See [EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md) for the complete sender and delivery setup.
 
 The default timezone field is a select menu backed by supported IANA timezone values. It controls campaign start/deadline boundaries, countdowns, scheduled campaign-runner reports, lifecycle automation, and settlement checks. The default remains `America/Denver` until a super admin changes it.
 
@@ -123,7 +123,7 @@ The local stack can override `SITE_BASE` and `WORKER_BASE` from `_config.local.y
 
 ### Checkout
 
-Checkout exposes the Stripe publishable key used by browser payment UI. This is not a secret, but it must match the current Stripe mode. Secret keys and webhook signing secrets stay in Worker secrets or ignored local env files.
+Checkout exposes the Stripe publishable key used by browser payment UI. This is not a secret, but it must match the current Stripe mode. Secret keys and webhook signing secrets stay in Worker secrets or ignored local env files. See [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md) for Stripe setup and settlement operations.
 
 ### Pricing, Tax, And Shipping
 

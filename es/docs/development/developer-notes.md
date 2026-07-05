@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-20 de junio de 2026
+5 de julio de 2026
 
 ## Pila
 
@@ -18,7 +18,7 @@ lang: es
 - **Tiempo de ejecución del carrito propio**: carrito propiedad del navegador, revisión del pago y flujo de pago de Stripe en el sitio
 - **Cloudflare Worker**: API de backend, almacenamiento de promesas (KV), envío de correo electrónico
 - **Stripe** — Sesiones de pago en modo de configuración para el paso de pago en el sitio, además de PaymentIntents para cargos posteriores
-- **Reenviar**: correos electrónicos transaccionales (confirmación del colaborador, recordatorios de lanzamiento, hitos, fallas)
+- **Resend** — Correos electrónicos transaccionales (confirmación de soporte, recordatorios de lanzamiento, hitos, fallas)
 - **Panel de administración privado**: edición, configuración, complementos, informes, análisis, seguidores y herramientas de marketing de campañas basadas en roles
 
 ### Perillas de plano libre aptas para horquillas
@@ -53,13 +53,15 @@ La configuración ahora utiliza un modelo de configuración estructurado en [`_c
 - `launch_reminders`
 - `cache`
 
-Trate [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml) como un archivo de anulación fino para las URL de host local y otras diferencias locales de la máquina, no como un segundo lugar para duplicar la configuración de bifurcación canónica.
+Trate [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml) como un archivo de anulación ligero para las URL de host local y otras diferencias locales de la máquina, no como un segundo lugar para duplicar la configuración de bifurcación canónica.
 
 El objetivo de sincronización es [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) y los puntos de entrada de desarrollo/pruebas admitidos por el repositorio lo mantienen alineado automáticamente.
 
 Consulte [CUSTOMIZATION.md](/es/docs/development/customization-guide/) para conocer la superficie de bifurcación sin código admitida, incluidas las configuraciones que son solo para el sitio y las que se reflejan automáticamente en el trabajador.
+Consulte [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md) para conocer los detalles de pago, webhook, liquidación y conciliación de Stripe.
+Consulte [EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md) para conocer la configuración del remitente, los tipos de correo electrónico, la localización y el comportamiento de entrega de Resend.
 
-Valores actuales reflejados de los trabajadores que vale la pena tratar como parte de la superficie de personalización admitida:
+Valores de trabajador reflejados actuales que vale la pena tratar como parte de la superficie de personalización admitida:
 
 - identidad, URL, zona horaria y variables SEO: `SITE_TITLE`, `SITE_DESCRIPTION`, `PLATFORM_NAME`, `PLATFORM_COMPANY_NAME`, `PLATFORM_AUTHOR`, `PLATFORM_DEFAULT_CREATOR_NAME`, `PLATFORM_TIMEZONE`, `SITE_BASE`, `WORKER_BASE`, `CANONICAL_SITE_BASE`, `CANONICAL_WORKER_BASE`, `CORS_ALLOWED_ORIGIN`, `SEO_*`
 - vars de administración: producción `ADMIN_USERS_JSON`, `ADMIN_TEST_CAMPAIGNS` solo para desarrolladores y `ADMIN_BOOTSTRAP_EMAILS` solo local en `worker/.dev.vars`
@@ -391,7 +393,7 @@ tiers:
 
 En el panel de administración, los ID de nivel son de solo lectura para los editores: los ID heredados se conservan, mientras que los ID de nivel nuevos se derivan del nombre. `shipping_preset` se oculta para niveles digitales. Si un nivel físico no tiene un valor preestablecido, se muestran campos explícitos de peso/dimensión del paquete.
 
-**Productos complementarios de plataforma**: los productos globales o los artículos de venta adicional ahora tienen una ruta de configuración separada en `add_ons` en [/_config.yml](https://github.com/your-org/your-project/blob/main/_config.yml). Ese catálogo está destinado a productos de precio fijo en toda la plataforma con variantes simples, como tallas de camisa, y no debe modelarse como la campaña `support_items`. El trabajador refleja el catálogo a través de [/api/add-ons.json](https://github.com/your-org/your-project/blob/main/api/add-ons.json), expone una instantánea del inventario actual a través de `/add-ons/inventory`, incluye selecciones de complementos a nivel de paquete más una campaña ancla durante el proceso de pago, conserva esos complementos vinculados al ancla en el compromiso sin contarlos para los totales de los objetivos de la campaña y ahora los expone por separado en las exportaciones de compromiso y cumplimiento. Los recuentos vendidos se encuentran en la proyección `add-on-inventory-sold:v1` después del arranque, y el carrito y Manage Pledge consumen la misma lógica de estado del producto que tiene en cuenta el inventario, incluidos mensajes de stock bajo y filtrado de variantes agotadas.
+**Productos complementarios de plataforma**: los productos globales o los artículos de venta adicional ahora tienen una ruta de configuración separada en `add_ons` en [/_config.yml](https://github.com/your-org/your-project/blob/main/_config.yml). Ese catálogo está destinado a productos de precio fijo en toda la plataforma con variantes simples, como tallas de camisa, y no debe modelarse como la campaña `support_items`. The Worker refleja el catálogo a través de [/api/add-ons.json](https://github.com/your-org/your-project/blob/main/api/add-ons.json), expone una instantánea del inventario actual a través de `/add-ons/inventory`, incluye selecciones de complementos a nivel de paquete más una campaña ancla durante el proceso de pago, conserva esos complementos vinculados al ancla en el compromiso sin contarlos para los totales de objetivos de campaña y ahora los expone por separado en las exportaciones de compromiso y cumplimiento. Los recuentos vendidos se encuentran en la proyección `add-on-inventory-sold:v1` después del arranque, y el carrito y Manage Pledge consumen la misma lógica de estado del producto que tiene en cuenta el inventario, incluidos mensajes de stock bajo y filtrado de variantes agotadas.
 
 - Los complementos `category: digital` nunca contribuyen al envío
 - Los complementos `category: physical` participan en la misma calculadora de envío que se utiliza para los niveles físicos y los artículos de soporte físico.
@@ -582,7 +584,7 @@ Cree o actualice `worker/.dev.vars` para desarrollo local:
 npm run secrets:dev
 ```
 
-El asistente copia `worker/.dev.vars.example` cuando es necesario, genera secretos de sesión/firma local, mantiene las variables agrupadas por propósito y solicita credenciales de proveedor opcionales. Para Configuración -> Uso del plan, los cheques de reenvío locales usan `RESEND_API_KEY`; Las comprobaciones locales de Cloudflare utilizan `CLOUDFLARE_USAGE_API_TOKEN` más `CLOUDFLARE_ACCOUNT_ID`, con anulaciones de planes/límites opcionales cuando las API del proveedor no exponen un valor.
+El asistente copia `worker/.dev.vars.example` cuando es necesario, genera secretos de sesión/firma local, mantiene las variables agrupadas por propósito y solicita credenciales de proveedor opcionales. Para Configuración -> Uso del plan, las comprobaciones locales de Resend utilizan `RESEND_API_KEY`; Las comprobaciones locales de Cloudflare utilizan `CLOUDFLARE_USAGE_API_TOKEN` más `CLOUDFLARE_ACCOUNT_ID`, con anulaciones de planes/límites opcionales cuando las API del proveedor no exponen un valor.
 
 Utilice valores locales separados únicamente en `worker/.dev.vars`; no utilice ese archivo como copia de seguridad secreta de producción. Los secretos del tiempo de ejecución de producción pertenecen a los secretos de Cloudflare Worker, mientras que los secretos del repositorio de GitHub son solo para acciones o automatización de operadores que necesitan llamar a rutas protegidas.
 
@@ -670,11 +672,11 @@ Si Stripe muestra fallas de webhook ("otros errores") para el punto final de pro
 3. Revise la vista previa del pago propio → Haga clic en "Pagar"
 4. Complete el paso de pago de Stripe en el sitio con la tarjeta de prueba: `4242 4242 4242 4242`
 5. Consulte los registros de trabajadores para confirmar el compromiso
-6. Comprobar correo electrónico (si está configurado Reenviar)
+6. Comprobar correo electrónico (si está configurado Resend)
 
-### Tarjetas de prueba de rayas
+### Tarjetas de prueba de Stripe
 
-|Tarjeta|Escenario|
+|tarjeta|Escenario|
 |------|----------|
 |`4242 4242 4242 4242`|Éxito|
 |`4000 0000 0000 3220`|Se requiere 3D Secure|
@@ -948,7 +950,7 @@ const payload = await verifyToken(env.MAGIC_LINK_SECRET, token);
 
 Los secretos viven en las variables de entorno de Cloudflare Worker. Nunca te comprometas:
 
-|secreto|Propósito|
+|Secreto|Propósito|
 |--------|---------|
 |`STRIPE_SECRET_KEY`|API Stripe (o variantes `_TEST`/`_LIVE`)|
 |`STRIPE_WEBHOOK_SECRET`|Verificar las firmas del webhook de Stripe|
@@ -1009,7 +1011,7 @@ El menú de hamburguesas móvil para alternar necesita un manejo cuidadoso del �
 ## Preguntas frecuentes
 
 **¿Por qué necesitamos un Trabajador si el sitio es estático?**
-Los webhooks Stripe SetupIntents + requieren secretos del lado del servidor y un punto final HTTPS. El trabajador también almacena datos de compromiso en Cloudflare KV y envía correos electrónicos mediante Resend.
+Los webhooks Stripe SetupIntents + requieren secretos del lado del servidor y un punto final HTTPS. El Trabajador también almacena datos de compromiso en Cloudflare KV y envía correos electrónicos a través de Resend.
 
 **¿Podemos saltarnos al Trabajador?**
 No. El trabajador maneja las sesiones de pago de Stripe, el procesamiento de webhooks, el almacenamiento de promesas (KV), las estadísticas en vivo, el inventario de niveles, los correos electrónicos de hitos y la liquidación de campañas. Es el backend central.
@@ -1221,13 +1223,13 @@ Utilice los ayudantes locales para el enrutamiento de páginas:
 {% include language-switcher.html position="footer" %}
 ```
 
-Los mensajes en tiempo de ejecución para los flujos JS propiedad del sitio se emiten a través de [`assets/i18n.json`](https://github.com/your-org/your-project/blob/main/assets/i18n.json) y se inician en `POOL_CONFIG.i18n.messages`, por lo que los flujos de carrito, pago, comunidad de seguidores y Administrar promesa pueden usar el mismo catálogo local sin una capa de traducción estilo SPA.
+Los mensajes en tiempo de ejecución para los flujos JS propiedad del sitio se emiten a través de [`assets/i18n.json`](https://github.com/your-org/your-project/blob/main/assets/i18n.json) y se inician en `POOL_CONFIG.i18n.messages`, por lo que los flujos de carrito, pago, comunidad de seguidores y Administrar compromiso pueden usar el mismo catálogo local sin una capa de traducción estilo SPA.
 
 Las plantillas de campañas públicas ahora también obtienen más Chrome compartido de los mismos datos locales, incluido el texto de carga/reproducción de videos de héroes, texto de adelanto de la comunidad de seguidores, etiquetas de pestañas del diario y estados vacíos, etiquetas/CTA de la fase de producción y etiquetas de accesibilidad de la galería.
 
 Los correos electrónicos de soporte de los trabajadores también consumen el catálogo de configuración regional compartido y el `preferredLang` persistente adjunto para pagar y administrar los flujos, por lo que los correos electrónicos de soporte localizados y los enlaces `/manage/` / `/community/:slug/` localizados permanecen alineados con el modelo de configuración regional del sitio.
 
-El selector de idioma de pie de página compartido también conserva la cadena de consulta y el hash actuales, lo cual es importante para rutas tokenizadas como `/manage/?t=...` y enlaces de comunidad de seguidores.
+El conmutador de idioma de pie de página compartido también conserva la cadena de consulta y el hash actuales, lo cual es importante para rutas tokenizadas como `/manage/?t=...` y enlaces de comunidad de seguidores.
 
 Límite importante:
 

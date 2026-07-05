@@ -103,6 +103,31 @@ def protect_text(text: str) -> tuple[str, list[str]]:
     working = protect(r"`[^`]+`", working)
     working = protect(r"\{\{.*?\}\}", working)
     working = protect(r"\{%.*?%\}", working)
+    protected_terms = [
+        "Cloudflare Workers",
+        "ZIP.TAX",
+        "WYSIWYG",
+        "Cloudflare",
+        "Turnstile",
+        "Wrangler",
+        "GitHub",
+        "Jekyll",
+        "Podman",
+        "Resend",
+        "Stripe",
+        "Worker",
+        "Workers",
+        "Blast",
+        "Store",
+        "USPS",
+        "CSV",
+        "KV",
+        "QR",
+        "SEO",
+        "UTM",
+    ]
+    for term in protected_terms:
+        working = protect(rf"\b{re.escape(term)}\b", working)
     working = protect(r"\]\((?:https?://|/)[^)]+\)", working)
     working = protect(r"https?://\S+", working)
     return working, placeholders

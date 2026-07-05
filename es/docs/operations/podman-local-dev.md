@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-20 de junio de 2026
+5 de julio de 2026
 
 Este repositorio ahora incluye una ruta de desarrollo local sin raíz respaldada por Podman para los dos servicios que generalmente crean la mayor rotación de configuración de host:
 
@@ -176,6 +176,7 @@ Los scripts de ayuda del navegador ahora pueden iniciarse en la pila respaldada 
 ./scripts/fulfillment-report.sh --podman --local
 npm run test:security:podman
 npm run test:e2e:headless:podman
+npm run release:smoke -- --evidence-file /tmp/pool-release-smoke.md
 ```
 
 Las exportaciones de informes de producción remota también pueden ejecutarse a través del contenedor de trabajadores. Cree un token API de usuario de Cloudflare con acceso **Cuenta/Almacenamiento KV de trabajadores/Lectura** a la cuenta propietaria del espacio de nombres KV `PLEDGES`, luego guárdelo con la identificación de la cuenta en un archivo env local ignorado, como `worker/.dev.vars`:
@@ -185,7 +186,7 @@ CLOUDFLARE_API_TOKEN=your-token
 CLOUDFLARE_ACCOUNT_ID=your-account-id
 ```
 
-Correr:
+Ejecutar:
 
 ```bash
 ./scripts/pledge-report.sh --podman --env production --remote > ~/Desktop/pool-pledge-report.csv
@@ -195,6 +196,8 @@ Correr:
 Los contenedores de informes cargan la autenticación de Cloudflare desde `.env`, `.env.local`, `.env.cloudflare` y `worker/.dev.vars`, la pasan a `podman exec` e imprimen el progreso en stderr para que los archivos CSV redirigidos permanezcan limpios.
 
 `./scripts/test-e2e.sh --podman` ahora es una cobertura de navegador totalmente automatizada. El asistente dedicado `./scripts/test-checkout.sh --podman` sigue siendo la ruta interactiva manual cuando específicamente desea realizar un pago real en su propio navegador. El conjunto de navegador automatizado sin cabeza se ejecuta en su propio contenedor Playwright y reutiliza el sitio/trabajador que ya se está ejecutando en lugar de intentar iniciar Jekyll dentro del contenedor de prueba.
+
+El contenedor de humo de liberación utiliza la misma ruta E2E respaldada por Podman cuando Podman está disponible. Pase `--podman-e2e` para requerir esa fase para la evidencia de publicación, o `--skip-podman-e2e` solo cuando otra ejecución registrada ya cubra la misma superficie del navegador.
 
 Para una cobertura del navegador de panel enfocada en la pila respaldada por Podman, use:
 
@@ -290,7 +293,7 @@ npm run podman:doctor
 
 - El modo Podman no tiene raíces por diseño.
 - El Trabajador todavía lee secretos de `worker/.dev.vars`; No se copia nada secreto en una imagen.
-- El reenvío de franjas sigue siendo un proceso del lado del host, por lo que el flujo de autenticación del navegador sigue siendo familiar y explícito.
+- El reenvío de Stripe sigue siendo un proceso del lado del host, por lo que el flujo de autenticación del navegador sigue siendo familiar y explícito.
 
 ## Notas de paridad de producción
 

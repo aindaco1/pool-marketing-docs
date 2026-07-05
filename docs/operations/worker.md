@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-July 1, 2026
+July 5, 2026
 
 Cloudflare Worker handling first-party checkout canonicalization, Stripe integration, pledge management, order-scoped supporter authentication, upcoming-campaign launch reminders, consent-based abandoned-checkout reminders, campaign supporter blasts, protected campaign previews, and the private browser admin dashboard APIs.
 
@@ -27,6 +27,8 @@ The repo-root Podman path runs the Worker with Node 24, matching GitHub Actions.
 If you specifically work from the `worker/` directory, the Worker npm scripts now auto-run the config mirror first so `worker/wrangler.toml` stays aligned with the repo-root `_config.yml` / `_config.local.yml`.
 
 Treat `_config.local.yml` as an override-only file for localhost-specific values. The canonical fork-facing settings should live in the repo-root `_config.yml`, and the Worker mirror will follow from there.
+
+Use [`docs/PAYMENT_PROCESSOR.md`](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md) for Stripe setup, checkout, webhook, settlement, and reconciliation details. Use [`docs/EMAIL.md`](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md) for Resend sender setup, email types, localization, and delivery behavior.
 
 Campaign-runner report delivery follows that same pattern:
 
@@ -203,6 +205,8 @@ wrangler secret put ZIP_TAX_API_KEY
 If a GitHub Actions workflow or operator job calls scoped admin endpoints, set the same scoped value as a GitHub repository secret for that workflow as well. Repository secrets authenticate GitHub Actions; they do not create or update Cloudflare Worker runtime secrets. Do not store secret values in `_config.yml`, campaign YAML, KV, admin setting drafts, or committed documentation. Stripe publishable keys are public browser keys and may be stored in dashboard Settings or deployment vars. The admin dashboard only reports whether runtime credentials appear configured; it does not read or persist secret values.
 
 The Resend API key must be allowed to send from the domain configured in `PLEDGES_EMAIL_FROM` and `UPDATES_EMAIL_FROM`. For the live Dust Wave deployment, those sender addresses use `site.example.com`; authorizing only a root domain does not authorize subdomain senders, and authorizing only a subdomain does not authorize root-domain senders.
+
+See [`../docs/EMAIL.md`](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md) before adding new email workflows so sender identity, localization, branding, and retry behavior stay on the shared path.
 
 For Settings -> Plan usage, Resend normally needs only `RESEND_API_KEY`. Optional `PLAN_USAGE_RESEND_PLAN`, `RESEND_EMAILS_MONTHLY_LIMIT`, and `RESEND_EMAILS_DAILY_LIMIT` values are display overrides for deployments where Resend returns rate-limit headers but does not expose the monthly sent-usage header through a safe read endpoint.
 
@@ -617,6 +621,8 @@ curl -X POST https://worker.example.com/test/email \
 | `SUPPORT_EMAIL` | Support contact mirrored from site config |
 | `PLEDGES_EMAIL_FROM` | Sender identity for pledge-related emails; its domain must be authorized in Resend |
 | `UPDATES_EMAIL_FROM` | Sender identity for update / milestone / Blast / announcement emails; its domain must be authorized in Resend |
+| `POOL_EMAIL_DRY_RUN` | Optional no-send release evidence mode for supporter/update emails; truthy values skip the Resend request and return a dry-run id |
+| `RESEND_EMAIL_DRY_RUN` | Compatibility alias for no-send Resend evidence mode |
 | `EMAIL_LOGO_PATH` | Supporter-email logo path mirrored from `platform.logo_path` |
 | `EMAIL_FONT_FAMILY` | Supporter-email body font stack mirrored from `design.font_body` |
 | `EMAIL_HEADING_FONT_FAMILY` | Supporter-email heading font stack mirrored from `design.font_display` |
@@ -688,6 +694,8 @@ Localization note: the Worker now localizes supporter-facing email subjects/body
 The Worker also serves localized campaign share-card previews at `GET /share/campaign/:slug.png` with an optional `?lang=es` query. The generated PNG mirrors the campaign embed's state/progress language and uses the square campaign `hero_image` inside the card. The SVG route remains available at `GET /share/campaign/:slug.svg` for internal preview/debug tooling, but public `og:image` metadata should use PNG or another static raster image because not every external crawler accepts SVG images.
 
 ## Data Flow
+
+The full payment runbook is in [`../docs/PAYMENT_PROCESSOR.md`](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md). This section is the compact Worker data-flow summary.
 
 1. **User pledges on campaign page**
    - first-party cart created with tier item

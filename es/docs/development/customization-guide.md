@@ -10,13 +10,15 @@ lang: es
 
 ## Última actualización
 
-1 de julio de 2026
+5 de julio de 2026
 
 Esta guía cubre la superficie de personalización sin código compatible para las bifurcaciones de The Pool tal como existe ahora.
 
 El objetivo es permitir que las bifurcaciones cambien el nombre, el estilo y la reconfiguración de la plataforma a través de la configuración, manteniendo alineados el pago, los informes, los correos electrónicos y el trabajador.
 
 El modelo de configuración estructurado en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) es ahora la superficie canónica orientada a la horquilla.
+
+La configuración específica del proveedor se encuentra en runbooks separados: use [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md) para Stripe y liquidación, y [EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md) para remitentes Resend y entrega de correo electrónico.
 
 ## Comience aquí
 
@@ -126,7 +128,7 @@ Notas:
 - `title` / `author` de nivel superior todavía existen en Jekyll, pero trátelos como metadatos/respaldo generales del sitio en lugar de la interfaz principal de personalización de la bifurcación.
 - `platform.default_social_image_path` es el valor predeterminado admitido para tarjetas OG/Twitter cuando una página o campaña no proporciona una imagen más específica.
 - `platform.logo_path` es también la marca reflejada que se utiliza en los correos electrónicos de los seguidores.
-- El dominio en `platform.pledges_email_from` y `platform.updates_email_from` debe estar autorizado por el proveedor de correo electrónico configurado. Con Resend, autorizar `pool.example.com` no autoriza a `example.com` y viceversa.
+- El dominio en `platform.pledges_email_from` y `platform.updates_email_from` debe estar autorizado por el proveedor de correo electrónico configurado. Con Resend, autorizar `pool.example.com` no autoriza a `example.com` y viceversa. Consulte [EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md) para ver la lista de verificación de configuración del remitente.
 
 Ejemplo:
 
@@ -697,6 +699,8 @@ Clave admitida hoy:
 
 El tiempo de ejecución del carrito propio y el flujo de pago personalizado en el sitio se tratan como un comportamiento integrado en la plataforma, no como cambios de modo orientados hacia la bifurcación.
 
+Utilice [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md) para la configuración secreta de Stripe, la configuración del webhook, el pago en modo de prueba local, el comportamiento de liquidación y las operaciones de conciliación.
+
 ### `cache`
 
 Utilice `cache` para ajustar el almacenamiento en caché público del navegador de lectura en vivo.
@@ -734,7 +738,7 @@ Comportamiento actual:
 - el formulario solo se muestra para campañas cuyo estado efectivo es `upcoming`
 - la clave pública del sitio se puede borrar en `_config.local.yml` para ocultar el widget localmente
 - el secreto correspondiente pertenece a los secretos del trabajador como `TURNSTILE_SECRET_KEY` o `LAUNCH_REMINDER_TURNSTILE_SECRET_KEY`
-- La lógica de registro, cancelación de suscripción y envío de recordatorios reside en el trabajador y reutiliza el módulo de correo electrónico de reenvío existente.
+- La lógica de registro, cancelación de suscripción y envío de recordatorios reside en el trabajador y reutiliza el módulo de correo electrónico Resend existente.
 
 Ejemplo:
 
@@ -860,7 +864,7 @@ npm run sync:worker-config
 
 Ese comando sincroniza los valores reflejados por el trabajador en [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) de `_config.yml` y `_config.local.yml`.
 
-No escribe secretos de trabajador, archivos multimedia ni resultados de optimización generados. Los secretos de USPS OAuth, las claves secretas de Stripe, las claves de reenvío, las claves ZIP.TAX, los secretos de Turnstile, los tokens de GitHub y las credenciales de implementación de Cloudflare aún pertenecen a los secretos de Worker, los secretos del repositorio de GitHub o los archivos env locales ignorados.
+No escribe secretos de trabajador, archivos multimedia ni resultados de optimización generados. Los secretos de USPS OAuth, las claves secretas de Stripe, las claves Resend, las claves ZIP.TAX, los secretos de Turnstile, los tokens de GitHub y las credenciales de implementación de Cloudflare aún pertenecen a los secretos de Worker, los secretos del repositorio de GitHub o los archivos env locales ignorados. Los runbooks Stripe y Resend son [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md) y [EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md).
 
 Los recordatorios de lanzamiento tienen una configuración pública y un límite secreto:
 
@@ -868,7 +872,7 @@ Los recordatorios de lanzamiento tienen una configuración pública y un límite
 - `_config.yml` `launch_reminders.turnstile_site_key` es la clave pública del sitio Cloudflare Turnstile utilizada por ese formulario.
 - `_config.local.yml` puede anular `launch_reminders.turnstile_site_key` con una cadena vacía para ocultar el widget en el desarrollo local, coincidiendo con la anulación del torniquete de inicio de sesión del administrador local.
 - El secreto Turnstile correspondiente pertenece a los secretos de los trabajadores como `TURNSTILE_SECRET_KEY` o `LAUNCH_REMINDER_TURNSTILE_SECRET_KEY`.
-- Los correos electrónicos de recordatorio utilizan el módulo de correo electrónico de trabajador respaldado por reenvío existente y el remitente `platform.updates_email_from` configurado.
+- Los correos electrónicos de recordatorio utilizan el módulo de correo electrónico de trabajador existente respaldado por Resend y el remitente `platform.updates_email_from` configurado.
 
 Los medios cargados en el panel tampoco agregan una nueva configuración de script de sincronización. Carga archivos fuente de confirmación en los directorios de activos existentes; Las cargas de imágenes/vídeos solicitan el flujo de trabajo **Optimizar medios del panel** después de que la confirmación se realice correctamente. `npm run media:optimize` / `npm run media:optimize:check`, las variantes respaldadas por Podman para máquinas sin optimizadores nativos y el mismo flujo de trabajo manejan la compresión de imágenes, variantes WebP responsivas en `320w`, `480w`, `640w`, `960w` y `1600w`, y derivados de WebM fuera del Worker.
 
@@ -890,10 +894,10 @@ La plataforma ahora admite una gran personalización sin código personalizado, 
 
 Todavía a nivel de código hoy:
 
-- agregar nuevos proveedores de pago o modos de pago
+- agregar nuevos proveedores de pago o modos de pago más allá del modelo Stripe documentado en [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md)
 - cambiar proveedores de inserción compatibles
 - ampliar las listas permitidas de CSP para hosts externos arbitrarios
-- cambiar el estilo de campo propiedad de Stripe más allá del puente de token de diseño compatible y la API de apariencia de Stripe
+- cambiar el estilo de campo propiedad de Stripe más allá del puente de token de diseño admitido y la API de apariencia de Stripe
 - introducir estructuras de diseño, plantillas de página o tipos de bloques de contenido completamente nuevos
 - cambiar el comportamiento del alojamiento de fuentes/CSP más allá de las pilas de fuentes actualmente admitidas
 - cambiar el modelo de autorización de vista previa protegida, la caducidad del enlace del revisor o las reglas de filtrado público de solo vista previa
@@ -924,7 +928,7 @@ npm run podman:doctor
 - respaldo del creador de campañas
 - Las páginas sensibles a CSP aún se cargan sin infracciones de CSP de la consola
 - totales del carrito/pago
-- Estilo de interfaz de usuario de pago de franjas
+- Estilo de interfaz de usuario de pago de Stripe
 - Gestionar compromiso
 - correos electrónicos de seguidores
 - Estado de publicación/vista previa del panel de administración, estado de secretos de solo lectura, correos electrónicos de acceso a vista previa protegidos, correos electrónicos de asignación de nuevas campañas y visibilidad de la campaña con alcance de función cuando los campos del panel cambiaron

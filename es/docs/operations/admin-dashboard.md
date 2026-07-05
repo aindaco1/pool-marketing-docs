@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-1 de julio de 2026
+5 de julio de 2026
 
 Este documento es la referencia del operador para el panel de administración privado de The Pool y debe ser tratado como la fuente de verdad para la edición de campañas, informes, análisis, enlaces de marketing, complementos y administración de usuarios basados ​​en el panel.
 
@@ -64,12 +64,12 @@ El panel separa intencionalmente la navegación de solo lectura, los borradores 
 |acción|Almacenamiento/efecto secundario|
 |--------|------------------------|
 |Resumen del panel, análisis, informes, seguidores, filtrado de tablas y vista previa del contenido|Sólo lectura; debería agregar cero escrituras KV|
-|Restauración de pestaña/subpestaña del panel|Solo estado de UI local del navegador; recuerda la última pestaña de nivel superior permitida, la sección de Configuración, la campaña seleccionada y la subpestaña de Campañas sin escrituras de Worker, KV ni GitHub|
+|Restauración de pestaña/subpestaña del panel|Solo estado de la interfaz de usuario local del navegador; recuerda la última pestaña de nivel superior permitida, la sección Configuración, la campaña Campañas seleccionada y la subpestaña Campañas sin escrituras de Worker, KV o GitHub|
 |Editor de contenido **Guardar borrador**|Solo borrador local del navegador|
 |Publicación del contenido/configuración de la campaña|El trabajador valida la entrada, escribe en archivos respaldados por GitHub, activa la ruta normal de reconstrucción/implementación y registra un evento de auditoría.|
 |Publicación de vista previa protegida|El trabajador valida el alcance de la campaña y la revisión base, escribe solo indicadores de vista previa en Markdown de la campaña respaldada por GitHub, almacena el administrador de publicación más los correos electrónicos del revisor opcional en `PLEDGES` KV en `campaign-preview-reviewers:<slug>` con un TTL de 24 horas, devuelve un enlace firmado visible en el panel para el editor, envía enlaces firmados a revisores opcionales y registra un evento de auditoría|
 |Creación de campaña de superadministrador|El trabajador crea un archivo `_campaigns/<slug>.md` de solo vista previa localmente en desarrollo o a través de GitHub en producción, opcionalmente guarda usuarios de campaña asignados/nuevos en `admin-users:v1`, envía correos electrónicos a los usuarios de campaña asignados cuando están presentes, activa la reconstrucción cuando está respaldado por GitHub y registra un evento de auditoría.|
-|Archivado de campaña por superadministrador|El Worker valida el rol de superadministrador, CSRF, la existencia de la campaña y el estado no activo, luego archiva localmente en desarrollo o despacha `.github/workflows/archive-campaign.yml` en producción; el movimiento de archivado mantiene el código fuente de la campaña y los medios propiedad de la campaña bajo `archive/campaigns/<slug>/`|
+|Archivo de campaña de superadministrador|El trabajador valida la función de superadministrador, CSRF, la existencia de la campaña y el estado no activo, luego archiva localmente en desarrollo o envía `.github/workflows/archive-campaign.yml` en producción; la medida de archivo mantiene la fuente de la campaña y los medios propiedad de la campaña bajo `archive/campaigns/<slug>/`|
 |Publicación de configuración de plataforma y complementos de plataforma|El trabajador valida la entrada, escribe en la configuración/activos respaldados por GitHub, activa la ruta normal de reconstrucción/implementación y muestra el resultado como un mensaje de la plataforma del panel|
 |Cargas de imágenes/vídeo/audio|El trabajador valida los medios, confirma la ruta del activo a través de GitHub y actualiza el campo relevante localmente hasta su publicación.|
 |Guardar/editar/eliminar referencias de marketing|Mutación KV en el ámbito de la campaña para códigos de referencia guardados|
@@ -87,13 +87,13 @@ El orden del panel de nivel superior es:
 
 1. **Configuración**: configuración de plataforma, marca/SEO, precios, impuestos, envío, informes de ejecución, diseño, usuarios, rendimiento, uso del plan, depuración, estado de credenciales y diagnóstico de tiempo de ejecución.
 2. **Complementos**: disponibilidad de complementos de la plataforma y detalles del producto, visibles solo para superadministradores.
-3. **Campañas**: configuración de campaña con alcance de función, contenido de la página, recompensas, complementos de campaña, objetivos ambiciosos, elementos en curso, entradas del diario, decisiones y blasts de correo para seguidores.
+3. **Campañas**: configuración de campaña basada en roles, contenido de la página, recompensas, complementos de campaña, objetivos ambiciosos, elementos en curso, entradas del diario, decisiones y envíos masivos de correos electrónicos a los seguidores.
 4. **Análisis**: análisis de cartera y campañas derivadas de promesas.
 5. **Informes**: vista previa/descarga CSV para informes de compromiso y cumplimiento.
 6. **Colaboradores**: navegación, filtrado, clasificación y exportación CSV de los colaboradores según el rol.
-7. **Marketing**: creador de URL de referencia, códigos de referencia guardados, códigos QR de campaña descargables y controles del generador de inserción.
+7. **Marketing**: creador de URL de referencia, códigos de referencia guardados, códigos QR de campaña descargables y controles del creador de incrustaciones.
 
-Al recargar, el panel restaura la última pestaña de nivel superior permitida desde el estado local del navegador. También restaura la última sección de la barra lateral de Configuración y la última campaña/subpestaña de Campañas seleccionada cuando esas superficies siguen disponibles para el administrador con sesión iniciada. Las comprobaciones de rol siguen ganando: los usuarios de campaña nunca se restauran en pestañas exclusivas de superadministradores como Configuración o Complementos, y las campañas o subpestañas faltantes vuelven a la primera opción disponible.
+Al recargar, el panel restaura la última pestaña de nivel superior permitida desde el estado local del navegador. También restaura la última sección de la barra lateral de Configuración y la última campaña/subpestaña Campañas seleccionada cuando esas superficies todavía están disponibles para el administrador que ha iniciado sesión. Las comprobaciones de roles aún ganan: los usuarios de la campaña nunca regresan a las pestañas Configuración o Complementos exclusivas para superadministradores, y las campañas o subpestañas faltantes recurren a la primera opción disponible.
 
 ## Ajustes
 
@@ -103,7 +103,7 @@ Las configuraciones están agrupadas en una barra lateral izquierda. Los superad
 
 Los campos de identidad de la plataforma incluyen título del sitio, nombre de la plataforma, empresa, autor, nombre del creador predeterminado, correo electrónico de soporte, descripción del sitio, URL canónicas del sitio/trabajador, nombres de los remitentes de correo electrónico, modo de aplicación y zona horaria predeterminada de la plataforma. Los campos de URL canónicos se encuentran debajo de Descripción del sitio en la sección Plataforma, uno por columna en ventanas gráficas amplias.
 
-Los campos de remitente de compromiso y actualización deben utilizar dominios autorizados para la clave API de reenvío configurada. Para esta implementación, las confirmaciones de compromiso utilizan `The Pool <pledges@site.example.com>` para que el dominio del remitente coincida con el dominio de reenvío autorizado `site.example.com`.
+Los campos de remitente de compromiso y actualización deben utilizar dominios autorizados para la clave API Resend configurada. Para esta implementación, las confirmaciones de compromiso utilizan `The Pool <pledges@site.example.com>` para que el dominio del remitente coincida con el dominio autorizado `site.example.com` Resend. Consulte [EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md) para conocer la configuración completa del remitente y la entrega.
 
 El campo de zona horaria predeterminado es un menú de selección respaldado por valores de zona horaria admitidos por IANA. Controla los límites de inicio/fecha límite de la campaña, las cuentas regresivas, los informes programados de los ejecutores de la campaña, la automatización del ciclo de vida y las comprobaciones de liquidación. El valor predeterminado sigue siendo `America/Denver` hasta que un superadministrador lo cambia.
 
@@ -118,13 +118,13 @@ https://www.instagram.com/example
 https://www.imdb.com/name/nm0000000/
 ```
 
-El panel envía el idioma preferido actual cuando carga la configuración. La normalización de filas del navegador todavía controla la mayor parte de la localización de etiquetas del panel de Pool, pero la solicitud mantiene el esquema de configuración del Worker listo para futuras etiquetas de campos y textos de opciones localizados del lado del servidor.
+El panel envía el idioma preferido actual al cargar la configuración. La normalización de filas del lado del navegador aún posee la mayor parte de la localización de etiquetas de administrador del grupo, pero la solicitud mantiene el esquema de configuración del trabajador listo para futuras etiquetas de campo y texto de opción localizados en el servidor.
 
 La pila local puede anular `SITE_BASE` y `WORKER_BASE` de `_config.local.yml`, pero `scripts/sync-worker-config.rb` mantiene `CANONICAL_SITE_BASE` y `CANONICAL_WORKER_BASE` fijados a los valores de producción de `_config.yml`. Eso permite que el panel local muestre los objetivos de publicación de producción sin interrumpir las solicitudes de localhost.
 
 ### Verificar
 
-El proceso de pago expone la clave publicable de Stripe utilizada por la interfaz de usuario de pago del navegador. Esto no es un secreto, pero debe coincidir con el modo Stripe actual. Las claves secretas y los secretos de firma de webhooks permanecen en secretos de trabajador o en archivos env locales ignorados.
+El proceso de pago expone la clave publicable de Stripe utilizada por la interfaz de usuario de pago del navegador. Esto no es un secreto, pero debe coincidir con el modo Stripe actual. Las claves secretas y los secretos de firma de webhooks permanecen en secretos de trabajador o en archivos env locales ignorados. Consulte [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md) para conocer las operaciones de configuración y liquidación de Stripe.
 
 ### Precios, impuestos y envío
 
@@ -154,11 +154,11 @@ El uso del plan es una sección de solo lectura exclusiva para superadministrado
 
 El trabajador llama a Cloudflare y Resend con credenciales del lado del servidor y devuelve nombres de planes, números de uso, límites, gravedad y enlaces de proveedores desinfectados. Los tokens del proveedor nunca llegan al navegador y el punto final no escribe KV ni enumera los espacios de nombres de KV.
 
-El uso de Cloudflare utiliza `CLOUDFLARE_USAGE_API_TOKEN` o `CLOUDFLARE_ANALYTICS_API_TOKEN` más `CLOUDFLARE_ACCOUNT_ID`. Agregue lectura de facturación al token de uso si la detección automática del plan de trabajadores debería funcionar; de lo contrario, establezca `PLAN_USAGE_CLOUDFLARE_PLAN`. El uso de reenvío utiliza `RESEND_API_KEY`; Existen anulaciones de planes/límites opcionales porque las sondas de reenvío seguras pueden exponer encabezados de límite de velocidad sin encabezados de uso de envío mensual.
+El uso de Cloudflare utiliza `CLOUDFLARE_USAGE_API_TOKEN` o `CLOUDFLARE_ANALYTICS_API_TOKEN` más `CLOUDFLARE_ACCOUNT_ID`. Agregue lectura de facturación al token de uso si la detección automática del plan de trabajadores debería funcionar; de lo contrario, establezca `PLAN_USAGE_CLOUDFLARE_PLAN`. El uso de Resend utiliza `RESEND_API_KEY`; Existen anulaciones de límites/plan opcionales porque las sondas Resend seguras pueden exponer encabezados de límite de velocidad sin encabezados de uso enviado mensualmente.
 
 ### Diseño
 
-La configuración de diseño expone variables seleccionadas del tema, como la fuente del cuerpo, la fuente del título, los colores del texto, los colores de superficie/borde/primarios y el radio del botón.
+La configuración de diseño expone variables seleccionadas del tema, como la fuente del cuerpo, la fuente del encabezado, los colores del texto, los colores de superficie/borde/primarios y el radio del botón.
 
 Los campos de fuentes deben hacer referencia a fuentes ya cargadas por el CSS del sitio. El panel no importa fuentes remotas arbitrarias.
 
@@ -173,7 +173,7 @@ Normas:
 - Puede degradar o eliminar a otros superadministradores.
 - Los usuarios de la campaña deben tener al menos una campaña asignada.
 - Los cambios del usuario se guardan en KV inmediatamente a través del botón Guardar usuarios; no utilizan el botón de publicación de Configuración.
-- Los usuarios recién creados reciben instrucciones de inicio de sesión por correo electrónico cuando se configura Reenviar. Las ediciones a usuarios existentes no reenvían el correo electrónico.
+- Los usuarios recién creados reciben instrucciones de inicio de sesión por correo electrónico cuando se configura Resend. Las ediciones a usuarios existentes no reenvían el correo electrónico.
 
 ### Secretos y credenciales
 
@@ -226,7 +226,7 @@ Campos obligatorios:
 - título de la campaña
 - uno o más usuarios de la campaña
 
-Los superadministradores pueden crear una campaña sin usuarios de campaña asignados, seleccionar varios usuarios de campaña existentes, elegir **Crear nuevo usuario de campaña** y agregar uno o más usuarios de campaña nuevos con los nombres y correos electrónicos requeridos en el mismo cuadro de diálogo. Los nuevos usuarios se guardan en `admin-users:v1`; Los usuarios de campaña asignados reciben un correo electrónico con reenvío con el enlace del panel de administración cuando se configura la entrega de correo electrónico.
+Los superadministradores pueden crear una campaña sin usuarios de campaña asignados, seleccionar varios usuarios de campaña existentes, elegir **Crear nuevo usuario de campaña** y agregar uno o más usuarios de campaña nuevos con los nombres y correos electrónicos requeridos en el mismo cuadro de diálogo. Los nuevos usuarios se guardan en `admin-users:v1`; Los usuarios de campaña asignados reciben un correo electrónico con tecnología Resend con el enlace del panel de administración cuando se configura la entrega de correo electrónico.
 
 El trabajador deriva el slug del título, escribe `_campaigns/<slug>.md` a través de la ruta de publicación existente de GitHub, establece valores predeterminados de solo vista previa/ocultos para el público, activa la reconstrucción normal y registra un evento de auditoría. El flujo no requiere fechas de lanzamiento, monto objetivo, recompensas, imágenes ni contenido de la página.
 
@@ -252,7 +252,7 @@ La configuración de la campaña incluye identidad, fechas, monto objetivo, esta
 
 Slug y URL son campos derivados de sólo lectura. Se conservan las babosas de campaña existentes. Para nuevas campañas creadas con repositorios, mantenga la URL del slug segura y estable porque el pago, los informes, los enlaces mágicos y los registros de compromiso dependen de ello.
 
-Los superadministradores ven **Archivar campaña** en la parte inferior de la subpestaña Configuración después de **Fondo de campaña** y **Fondo de progreso** cuando la campaña no está activa actualmente. Los usuarios de la campaña nunca ven este control y las campañas activas lo ocultan por completo. Al archivar se solicita confirmación y luego se saca la campaña del código fuente activo sin eliminar datos. En el desarrollo local, `ADMIN_LOCAL_REPO_WRITES_ENABLED=true` enruta al Worker a través de un helper de repositorio local protegido por token que mueve los archivos del repositorio montado. En producción, el Worker inicia la GitHub Action del repositorio **Archivar campaña**. Ambas rutas mueven `_campaigns/<slug>.md`, los archivos de imagen/video/audio propiedad de la campaña y los medios de add-ons de campaña referenciados a `archive/campaigns/<slug>/`, escriben un `archive-manifest.json` y dejan en su lugar, y enumerados en el manifiesto, los medios todavía referenciados por otras campañas activas.
+Los superadministradores ven **Archivar campaña** en la parte inferior de la subpestaña Configuración después de **Fondo de campaña** y **Fondo de progreso** cuando la campaña no está activa actualmente. Los usuarios de la campaña nunca ven este control y las campañas activas lo ocultan por completo. Al archivar se solicita confirmación y luego se saca la campaña de la fuente activa sin eliminar datos. En el desarrollo local, `ADMIN_LOCAL_REPO_WRITES_ENABLED=true` enruta al trabajador a través de un asistente de repositorio local protegido por token que mueve los archivos de repositorio montados. En producción, el trabajador inicia el repositorio **Campaña de archivo** Acción de GitHub. Ambas rutas mueven `_campaigns/<slug>.md`, los archivos de imagen/video/audio propiedad de la campaña y los medios complementarios de la campaña a los que se hace referencia a `archive/campaigns/<slug>/`, escriben un `archive-manifest.json` y dejan los medios todavía referenciados por otras campañas activas en su lugar y enumerados en el manifiesto.
 
 ### Contenido
 
@@ -334,41 +334,41 @@ La pestaña Partidarios muestra filas de seguidores con alcance de rol con filtr
 
 Los análisis se derivan de índices de compromisos y resúmenes de campañas existentes. No debería crear escrituras KV específicas de análisis en la vista.
 
-El panel muestra tarjetas con los totales de promesas, categorías de ingresos, ingresos netos después de las tarifas de procesador asignadas, impuestos, envío, tarifas de Stripe, estado de la promesa, patrocinadores, promesa promedio, complementos de campaña, atribución de referencia, UTM source/medium/campaign/content, tipo de cumplimiento, idioma y otros desgloses derivados de la promesa. Los valores monetarios muestran centavos exactos.
+El panel muestra tarjetas para los totales de promesas, categorías de ingresos, ingresos netos después de las tarifas de procesador asignadas, impuestos, envío, tarifas de Stripe, estado de la promesa, seguidores, promesa promedio, complementos de campaña, atribución de referencia, fuente/medio/campaña/contenido UTM, tipo de cumplimiento, idioma y otros desgloses derivados de la promesa. Los valores monetarios muestran centavos exactos.
 
-Si a una campaña le falta su proyección `campaign-pledges:<slug>`, Analytics permanece en modo de solo lectura, devuelve una fila de campaña en cero y muestra un aviso no bloqueante de índice faltante en lugar de listar la verdad de promesas o fallar la pestaña Marketing.
+Si a una campaña le falta su proyección `campaign-pledges:<slug>`, Analytics permanece como de solo lectura, devuelve una fila de campaña puesta a cero y muestra un aviso de índice faltante sin bloqueo en lugar de enumerar la verdad del compromiso o fallar en la pestaña Marketing.
 
 Los ingresos brutos de la campaña y los ingresos de la plataforma permanecen visibles para la conciliación. Los ingresos netos de la campaña y los ingresos netos de la plataforma restan la parte asignada a cada categoría de las tarifas reales del procesador de Stripe cuando existen datos de transacciones de saldo almacenados. Las promesas activas y las filas de promesas cargadas más antiguas sin datos reales del saldo de Stripe continúan utilizando la estimación de planificación estándar. Los reabastecimientos exclusivos de superadministradores pueden recuperar de forma segura datos históricos de transacciones de saldo de Stripe sin escaneos de listas KV a través de `POST /admin/analytics/stripe-financials/backfill`.
 
 ## Marketing
 
-La pestaña Marketing crea URL de campaña con parámetros UTM y de referencia, muestra los controles de vista previa/descarga de QR junto a la salida de URL, guarda códigos de referencia, expone la interfaz de usuario del generador de inserción, carga/guarda un borrador compartido de campaña y muestra la salud de recordatorios de checkout abandonado para la campaña seleccionada. El rendimiento de referencias y UTM vive en Analytics para que los informes de campaña permanezcan en un solo lugar.
+La pestaña Marketing crea URL de campaña con parámetros de referencia y UTM, muestra los controles de vista previa/descarga de QR de la campaña junto a la salida de la URL, guarda códigos de referencia, expone la interfaz de usuario del generador de inserción de campaña, carga/guarda un borrador de campaña compartido y muestra el estado del recordatorio de pago abandonado para la campaña seleccionada. El rendimiento de referencias y UTM se encuentra en Analytics, por lo que los informes de rendimiento de la campaña permanecen en un solo lugar.
 
 Tienda de códigos de referencia guardados:
 
 - nombre de referencia
 - código de referencia
 - URL generada
-- metadatos de fuente QR para la URL generada
+- Metadatos de origen del código QR para la URL generada
 - marca de tiempo de creación
 
 El creador de URL se borra después de guardar y actualizar. Los guardados, ediciones y eliminaciones de referencias son mutaciones KV explícitas.
 
-Los códigos QR se generan en el navegador a partir de la salida actual del creador de URL de campaña o de una URL de referencia guardada, incluidos parámetros de referencia y UTM. La vista previa actual del creador se actualiza sin llamadas al Worker, y las descargas PNG/SVG son descargas locales del navegador. Las acciones de vista previa y descarga de QR no leen ni escriben KV.
+Los códigos QR se generan en el navegador a partir del resultado del generador de URL de la campaña actual o de una URL de referencia guardada, incluidos los parámetros UTM y de referencia. Las actualizaciones de vista previa del constructor actual sin llamadas de trabajador y las descargas PNG/SVG son descargas de archivos locales del navegador. Las acciones de vista previa y descarga de QR no leen ni escriben KV.
 
-Los borradores compartidos de Marketing son explícitos: los usuarios hacen clic en **Cargar borrador compartido**, **Guardar borrador compartido** o **Borrar borrador compartido**. Un borrador es un registro KV con alcance de campaña, TTL de 7 días y token de revisión para que los guardados obsoletos fallen con conflicto en lugar de sobrescribir el trabajo de otro admin. Cargar es de solo lectura; guardar o borrar son las únicas escrituras de borrador.
+Los borradores de marketing compartido son explícitos: los usuarios hacen clic en **Cargar borrador compartido**, **Guardar borrador compartido** o **Borrar borrador compartido**. Un borrador es un registro KV con alcance de campaña con un TTL de 7 días y un token de revisión, por lo que los guardados obsoletos fallan y generan un conflicto en lugar de sobrescribir el trabajo de otro administrador. La carga es de sólo lectura; guardar o borrar es el único borrador que se escribe.
 
-El panel de checkout abandonado muestra salud de recordatorios con alcance de campaña desde contadores agregados de cola/resultados y resultados recientes sin listar KV. Los resultados de supresión creados por admins incluyen el correo suprimido para que los admins puedan borrar esa supresión desde la tabla de resultados recientes; las mutaciones de supresión siguen ocurriendo solo mediante acción explícita y no incluyen una acción de reintentar este carrito específico.
+El panel de pago abandonado muestra el estado de los recordatorios de campaña de los contadores agregados de colas/resultados y resultados recientes sin listado de KV. Los resultados de la supresión creados por el administrador incluyen la dirección de correo electrónico suprimida para que los administradores puedan borrar esa supresión de la tabla de resultados recientes; Las mutaciones de supresión todavía ocurren solo con una acción explícita y no incluyen una acción de volver a intentar este carrito específico.
 
-## Blast
+## Explosión
 
-Campaigns -> Blast envía correos a seguidores para la campaña seleccionada sin agregar otra vista de nivel superior del panel. Los usuarios de campaña pueden enviar blasts para campañas asignadas, y los superadministradores pueden enviar para cualquier campaña. Los borradores de Blast permanecen locales en el navegador salvo que un admin use explícitamente los botones de borrador compartido; los borradores compartidos de Blast usan el mismo modelo KV de 7 días, protegido por revisión y con alcance de campaña que los borradores de Marketing. Blast reutiliza el editor WYSIWYG de campaña para encabezados, texto, citas, listas, enlaces, imágenes de campaña alojadas subidas, imágenes de campaña existentes del selector de medios y enlaces de video YouTube/Vimeo listos para correo. El panel sube automáticamente las imágenes provisionales de Blast por la misma ruta de carga de medios de campaña que usan Content y diary antes de la prueba, de modo que los archivos quedan confirmados bajo `assets/images/campaigns/<slug>/` y en cola para optimización de medios del repositorio antes de construir la carga del correo. El panel ejecuta automáticamente la validación de prueba antes de Enviar prueba o Enviar blast; los fallos de carga o audiencia explican el motivo antes de intentar enviar correo.
+Campañas -> Blast envía mensajes masivos de correo electrónico a los seguidores para la campaña seleccionada sin agregar otra vista del panel de nivel superior. Los usuarios de campañas pueden enviar mensajes masivos para las campañas que se les hayan asignado, y los superadministradores pueden enviar mensajes masivos para cualquier campaña. Los borradores de Blast permanecen locales en el navegador a menos que un administrador use explícitamente los botones de borrador compartido; Los borradores Blast compartidos utilizan el mismo modelo KV de 7 días con alcance de campaña protegido contra revisiones que los borradores de Marketing. Blast reutiliza el editor de contenido WYSIWYG de la campaña para encabezados, textos, citas, listas, enlaces, imágenes cargadas alojadas en la campaña, imágenes de campaña existentes del selector de medios y enlaces de videos de YouTube/Vimeo listos para enviar por correo electrónico. El panel carga automáticamente imágenes Blast preparadas a través de la misma ruta de carga de medios de la campaña utilizada por los bloques de contenido y diario antes del ensayo, por lo que los archivos de imágenes se confirman en `assets/images/campaigns/<slug>/` y se ponen en cola para la optimización de medios del repositorio antes de que se cree la carga útil del correo electrónico. El tablero ejecuta automáticamente la validación de prueba antes de Enviar prueba o Enviar Blast; La carga fallida o las verificaciones de audiencia explican el motivo antes de intentar enviar cualquier correo electrónico.
 
-Las pruebas validan el mensaje, calculan el conteo de audiencia indexada y devuelven un hash de prueba sin escrituras de rate limit, auditoría, envíos de correo ni listas KV. Los envíos de prueba van solo al admin con sesión iniciada. Los envíos reales requieren el hash de prueba correspondiente para el mensaje y la audiencia exactos, envían mediante el remitente compartido de actualizaciones de Resend y escriben un evento de auditoría después del despacho. La pestaña Blast muestra historial de envíos de solo lectura desde eventos recientes de auditoría, incluido asunto, contenido, CTA Button Label y CTA Button URL.
+Los ensayos validan el mensaje, calculan el recuento de audiencia indexada y devuelven un hash de ensayo sin escrituras con límite de velocidad, escrituras de auditoría, envíos de correo electrónico ni listas KV. Los envíos de prueba van únicamente al administrador que ha iniciado sesión. Los envíos en vivo requieren el hash de prueba correspondiente para el mensaje y la audiencia exactos, enviarse a través del remitente de actualizaciones compartido Resend y escribir un evento de auditoría después del envío. La pestaña Blast muestra el historial de envíos de solo lectura de registros de auditoría recientes, incluido el asunto, el contenido, la etiqueta del botón CTA y la URL del botón CTA.
 
-El renderizado de correo de Blast solo incluye imágenes alojadas del sitio desde `/assets/images/...`; las URL arbitrarias de imágenes remotas se omiten del lado del servidor. Los bloques de YouTube y Vimeo se renderizan como enlaces/botones seguros para correo en lugar de iframes o embeds de video, porque la mayoría de clientes de correo bloquean reproductores embebidos.
+La representación masiva de correo electrónico solo incluye imágenes del sitio alojado de `/assets/images/...`; Las URL de imágenes remotas arbitrarias se omiten en el lado del servidor. Los bloques de YouTube y Vimeo se muestran como enlaces/botones seguros para el correo electrónico en lugar de iframe o incrustaciones de vídeo porque la mayoría de los clientes de correo electrónico bloquean los reproductores integrados.
 
-Si falta `campaign-pledges:<slug>`, las pruebas y envíos de Blast fallan cerrados con `campaign_index_required`; reconstruya el índice de campaña antes de enviar. Esto evita recurrir a escaneos de espacios de nombres de promesas en una ruta de operador que puede ejecutarse en producción.
+Si falta `campaign-pledges:<slug>`, los ensayos de Blast y los envíos fallan y se cierran con `campaign_index_required`; reconstruir el índice de la campaña antes de enviarla. Esto evita recurrir a escaneos de espacios de nombres en una ruta de operador que puede ejecutarse en producción.
 
 ## Medios de comunicación
 
@@ -390,9 +390,9 @@ Medios de campaña recomendados:
 - Imagen social predeterminada: imagen grande 16:9 o compatible con Open Graph
 - Vídeo heroico: carga directa MP4/WebM/MOV de hasta 100 MB, o una URL de YouTube/Vimeo
 
-El editor de contenido de la campaña, los editores de contenido de entrada del diario y los bloques de imagen de Blast colocan primero los medios seleccionados en el navegador. El bloque muestra la imagen, el vídeo o la selección de audio seleccionados inmediatamente, pero el archivo no se carga hasta que el usuario publica contenido o envía/prueba un Blast. Durante la publicación o el envío de Blast, el panel carga medios preparados en el directorio de activos de la campaña, reemplaza la vista previa temporal del navegador con la ruta final `/assets/...` y luego confirma el YAML de la campaña o construye la carga del correo Blast.
+El editor de contenido de la campaña, los editores de contenido de entrada del diario y los bloques de imágenes Blast presentan primero los medios seleccionados en el navegador. El bloque muestra la imagen, el vídeo o la selección de audio seleccionados inmediatamente, pero el archivo no se carga hasta que el usuario publica el contenido o envía/prueba un Blast. Durante la publicación o el envío Blast, el panel carga medios preparados en el directorio de activos de la campaña, reemplaza la vista previa temporal del navegador con la ruta final `/assets/...` y luego confirma el YAML de la campaña o crea la carga útil de correo electrónico Blast.
 
-Los bloques de imagen en Campaign Content, Diary y Blast también pueden elegir una imagen existente desde un diálogo de biblioteca de medios con alcance. El selector lista archivos de imagen existentes respaldados por GitHub bajo `assets/images/campaigns/<slug>/`; los superadministradores también pueden elegir archivos compartidos/predeterminados bajo `assets/images/defaults/`. El selector es de solo lectura, no agrega estado KV y establece directamente la ruta del bloque de imagen. El campo Source URL sigue disponible para reparación o edición avanzada de rutas.
+Los bloques de imágenes en Contenido de campaña, Diario y Explosión también pueden elegir una imagen existente desde un cuadro de diálogo de biblioteca multimedia con alcance. El selector enumera los archivos de imágenes existentes respaldados por GitHub en `assets/images/campaigns/<slug>/`; Los superadministradores también pueden elegir archivos compartidos/predeterminados en `assets/images/defaults/`. El selector es de solo lectura, no agrega ningún estado KV y establece la ruta del bloque de imagen directamente. El campo URL de origen permanece disponible para reparación o edición avanzada de ruta.
 
 Las cargas de medios relacionadas con la campaña requieren acceso a esa campaña. Los superadministradores pueden cargar cualquier medio de campaña y plataforma/medio predeterminado; Los administradores de campañas solo pueden cargar medios para las campañas que administran. Las cargas de complementos de plataforma y marcas de plataforma siguen siendo solo para superadministradores.
 
@@ -400,7 +400,7 @@ Cuando se elimina un bloque de medios de contenido publicado, o se elimina una e
 
 El punto final de carga del trabajador preserva el origen. Valida el tipo, tamaño, alcance de la campaña, directorio y nombre de archivo, pero no ejecuta optimizadores de imágenes nativos ni FFmpeg. Para cargas de imágenes y videos, el trabajador envía el flujo de trabajo **Optimizar medios del panel** de acciones de GitHub con `scope=changed` después de que la confirmación de GitHub se realice correctamente. La compresión de imágenes sin pérdidas y la transcodificación de vídeo aún se ejecutan fuera del Worker a través del canal de medios del repositorio.
 
-Los movimientos de archivado de campaña se realizan del lado del repositorio por el mismo motivo. En desarrollo local, el Worker llama al helper de repositorio local cuando `ADMIN_LOCAL_REPO_WRITES_ENABLED=true`; en producción, el panel despacha el flujo de trabajo **Archivar campaña** después de la autorización del superadministrador, y el flujo de trabajo valida el slug antes de mover el código fuente de la campaña y los medios propiedad de la campaña a `archive/campaigns/<slug>/`.
+Los movimientos de archivos de campaña se realizan en el lado del repositorio por el mismo motivo. En desarrollo local, el trabajador llama al asistente de repositorio local cuando `ADMIN_LOCAL_REPO_WRITES_ENABLED=true`; En producción, el panel envía el flujo de trabajo **Archivar campaña** después de la autorización del superadministrador, y el flujo de trabajo valida el slug antes de mover la fuente de la campaña y los medios propiedad de la campaña a `archive/campaigns/<slug>/`.
 
 Utilice `npm run media:optimize` localmente o envíe manualmente el flujo de trabajo cuando vuelva a intentar la optimización, revise los cambios de medios del repositorio o procese archivos fuera de la ruta de carga del panel. Si la máquina host no tiene instalados los optimizadores nativos, use `npm run media:optimize:podman` para ejecutar el mismo script dentro de la imagen del sitio Podman con `optipng`, `gifsicle`, `libjpeg-turbo-progs`, `webp` y `ffmpeg`. Utilice `npm run media:optimize:check` o `npm run media:optimize:check:podman` cuando revise una rama con muchos medios y desee fallar en optimizaciones de imágenes pendientes, variantes WebP responsivas o derivados de video faltantes. La canalización optimiza las imágenes en su lugar cuando el resultado optimizado es más pequeño, genera variantes de imagen `.webp` responsivas para plantillas públicas en `320w`, `480w`, `640w`, `960w` y `1600w`, genera derivados de `.webm` de alta calidad junto a los archivos MP4/MOV cargados y reescribe `_campaigns` literal. / `_config.yml` hace referencia del vídeo fuente subido al derivado WebM generado. Las imágenes y los vídeos originales permanecen en el repositorio para revertirlos y volver a codificarlos en el futuro. Utilice la opción manual `scope=all` del flujo de trabajo cuando los medios existentes implementados necesiten un reprocesamiento completo.
 

@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-15 de junio de 2026
+5 de julio de 2026
 
 ## Empezando
 
@@ -65,10 +65,12 @@ bundle exec jekyll clean
 1. Root `README.md`: propósito y arquitectura de alto nivel
 2. `docs/PROJECT_OVERVIEW.md` — Cómo encajan todas las piezas
 3. `docs/WORKFLOWS.md`: ciclo de vida de la promesa, enlaces mágicos y flujo de carga
-4. `docs/DEV_NOTES.md`: notas de integración, modelo de contenido y errores
-5. `docs/TESTING.md`: guía de prueba completa (incluye configuración de secretos)
-6. `docs/ROADMAP.md` — Funciones planificadas
-7. `docs/DASHBOARD.md` — Operaciones y edición del panel de administración
+4. `docs/PAYMENT_PROCESSOR.md`: configuración, pago, webhooks, liquidación y conciliación de Stripe
+5. `docs/EMAIL.md`: configuración de Resend, tipos de correo electrónico, localización y comportamiento de entrega
+6. `docs/DEV_NOTES.md`: notas de integración, modelo de contenido y errores
+7. `docs/TESTING.md`: guía de prueba completa (incluye configuración de secretos)
+8. `docs/ROADMAP.md` — Funciones planificadas
+9. `docs/DASHBOARD.md` — Operaciones y edición del panel de administración
 
 Para cambios en la interfaz de usuario del tablero, lea también `docs/ACCESSIBILITY.md`, `docs/I18N.md`, `docs/SECURITY.md` y `docs/SEO.md`; el shell de administración tiene requisitos explícitos para el acceso al teclado, cadenas en español, normalización de entrada y `noindex`.
 
@@ -117,7 +119,7 @@ Para cambios en la interfaz de usuario del tablero, lea también `docs/ACCESSIBI
 - Panel de administración privado para edición de campañas, configuraciones, complementos, análisis, informes, seguidores, enlaces de marketing y administración de usuarios según los roles.
 - Rediseño completo de tipografía, elementos y diseños en páginas públicas, superficies de campaña, pago y gestión de compromiso.
 - Zona horaria de plataforma configurable para plazos de campaña, cuentas regresivas, informes, automatización del ciclo de vida y verificaciones de liquidación.
-- Recordatorios del lanzamiento de próximas campañas con Turnstile, deduplicación, cancelación de suscripción y entrega de reenvío compartido
+- Recordatorios del lanzamiento de próximas campañas con Turnstile, deduplicación, cancelación de suscripción y entrega compartida de Resend
 - Mejora del rendimiento de las páginas públicas, minificación de activos generados, captación previa conservadora del mismo origen y derivados de medios responsivos
 - Fortalecimiento del flujo de trabajo de medios del panel para el envío de optimización de imágenes/videos, limpieza de medios en el momento de la publicación y correcciones de anclaje/renderizado del diario
 
@@ -149,15 +151,15 @@ Para cambios en la interfaz de usuario del tablero, lea también `docs/ACCESSIBI
 
 ## Lista de verificación de la primera contribución
 
-- [] Clonar repositorio, ejecutar `npm run podman:doctor`
-- [] Inicie el desarrollo local con `./scripts/dev.sh --podman`
-- [] Confirme que el desarrollo local del trabajador se esté ejecutando en el nodo 24 a través de la ruta Podman
-- [] Utilice únicamente la ruta Jekyll/Wrangler de host exclusivo si la necesita intencionalmente
-- [] Hojee `_layouts/` y `_includes/` para ver la integración del carrito propio
-- [] Revisar los scripts de carrito y compromiso de `assets/js/`
-- [] Lea `worker/src/` para comprender el backend (almacenamiento de promesas, estadísticas, carga)
-- [] Abra `/admin/` localmente con la ruta de correo electrónico predeterminada del administrador de desarrollo y comprenda la división de publicación del panel versus KV-save
-- [] Verifique que `CNAME` esté configurado en el dominio de su sitio público
+- [ ] Clonar repositorio, ejecutar `npm run podman:doctor`
+- [ ] Inicie el desarrollo local con `./scripts/dev.sh --podman`
+- [ ] Confirme que el desarrollo local del trabajador se esté ejecutando en el nodo 24 a través de la ruta Podman
+- [ ] Utilice únicamente la ruta Jekyll/Wrangler de host exclusivo si la necesita intencionalmente
+- [ ] Hojee `_layouts/` y `_includes/` para ver la integración del carrito propio
+- [ ] Revisar los scripts de carrito y compromiso de `assets/js/`
+- [ ] Lea `worker/src/` para comprender el backend (almacenamiento de promesas, estadísticas, carga)
+- [ ] Abra `/admin/` localmente con la ruta de correo electrónico predeterminada del administrador de desarrollo y comprenda la división de publicación del panel versus KV-save
+- [ ] Verifique que `CNAME` esté configurado en el dominio de su sitio público
 
 ---
 
@@ -169,7 +171,7 @@ Para cambios en la interfaz de usuario del tablero, lea también `docs/ACCESSIBI
 - **Pago personalizado local**: agregue `STRIPE_PUBLISHABLE_KEY_TEST` a `worker/.dev.vars`
 - **Panel de administración**: el desarrollador local otorga acceso de superadministrador de arranque a través de `ADMIN_BOOTSTRAP_EMAILS` en `worker/.dev.vars` ignorado; Los administradores de la bifurcación deben colocar el acceso de producción en `_config.yml` `admin.users`, `ADMIN_USERS_JSON` o en la pantalla de usuarios del panel. La pantalla de Usuarios se guarda en KV, no en GitHub.
 
-Consulte [TESTING.md](/es/docs/operations/testing/) para obtener una referencia completa de los secretos.
+Consulte [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md), [EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md) y [TESTING.md](/es/docs/operations/testing/) para obtener las referencias completas sobre pagos, correos electrónicos y secretos.
 
 ---
 
@@ -178,6 +180,7 @@ Consulte [TESTING.md](/es/docs/operations/testing/) para obtener una referencia 
 - Los secretos solo se encuentran en GitHub Actions + Cloudflare vars; nunca en repositorio
 - La sección **Secretos y credenciales** del panel de control tiene un estado de solo lectura. No agregue edición secreta ni persistencia secreta a `_config.yml`, campaña YAML, registros de usuarios de KV o borradores del panel.
 - Validar firmas de webhooks de Stripe
+- Mantenga los dominios de remitente Resend alineados con `PLEDGES_EMAIL_FROM` y `UPDATES_EMAIL_FROM`
 - Nunca confirmes claves o tokens API
 
 ---
