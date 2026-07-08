@@ -6,6 +6,16 @@ repository: aindaco1/pool-marketing-docs
 theme: just-the-docs
 lang: en
 logo: "/assets/images/defaults/dust-wave-square.png"
+image: "/assets/images/defaults/dust-wave-square.png"
+social:
+  name: The Pool
+  links:
+    - https://github.com/aindaco1/pool
+seo:
+  default_social_image_alt: "The Pool logo with the Dust Wave square mark."
+  og_locale_overrides:
+    en: en_US
+    es: es_ES
 permalink: pretty
 demo_video_alpha_url: "/assets/videos/hero-demo-alpha.mov"
 demo_video_url: "/assets/videos/hero-demo.webm"
@@ -18,6 +28,9 @@ support_publishable_key: "pk_live_51N48NKK9nUOzi4tvVuw9UdqVYGLyre50ex4s4giogLQDg
 support_one_off_payment_link_url: ""
 support_one_off_payment_link_id: ""
 support_one_off_buy_button_id: "buy_btn_1TNGf8K9nUOzi4tvJ2pAnMx7"
+
+include:
+  - .well-known
 
 defaults:
   - scope:

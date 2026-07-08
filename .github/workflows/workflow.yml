@@ -38,6 +38,9 @@ jobs:
       - name: Build site
         run: bundle exec jekyll build --trace
 
+      - name: Audit SEO output
+        run: python3 scripts/audit_seo.py
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
