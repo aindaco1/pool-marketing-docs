@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-July 16, 2026
+June 9, 2026
 
 This directory contains security-focused tests for the Worker API. Run these before deploying to production.
 

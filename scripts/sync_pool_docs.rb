@@ -138,6 +138,25 @@ def remove_last_updated(content)
   content.gsub(/\n## Last Updated\n\n[^\n]+(?:\n{2,}|\z)/, "\n")
 end
 
+def normalized_content(content)
+  remove_last_updated(content)
+    .lines
+    .map(&:rstrip)
+    .join("\n")
+    .strip
+end
+
+def existing_last_updated_for(target_path)
+  return nil unless target_path.file?
+
+  date_string = strip_front_matter(target_path.read)[/^## Last Updated\s*\n\s*([^\n]+)\s*$/m, 1]
+  return nil unless date_string
+
+  Date.strptime(date_string.strip, "%B %d, %Y")
+rescue Date::Error
+  nil
+end
+
 def last_changed_date_for(target_path)
   relative_path = target_path.relative_path_from(ROOT).to_s
   log = Dir.chdir(ROOT) do
@@ -157,27 +176,14 @@ end
 def content_changed?(target_path, generated_content)
   return true unless target_path.file?
 
-  existing_content = strip_front_matter(target_path.read).strip
-  remove_last_updated(existing_content).strip != remove_last_updated(generated_content).strip
-end
-
-def target_has_uncommitted_content_changes?(target_path)
-  relative_path = target_path.relative_path_from(ROOT).to_s
-  return true unless target_path.file?
-
-  committed_content = Dir.chdir(ROOT) do
-    `git show HEAD:#{relative_path.shellescape} 2>/dev/null`
-  end
-
-  return true if committed_content.empty?
-
-  remove_last_updated(strip_front_matter(committed_content)).strip !=
-    remove_last_updated(strip_front_matter(target_path.read)).strip
+  existing_content = strip_front_matter(target_path.read)
+  normalized_content(existing_content) != normalized_content(generated_content)
 end
 
 def last_updated_for(target_path, generated_content)
   return Date.today if content_changed?(target_path, generated_content)
-  return Date.today if target_has_uncommitted_content_changes?(target_path)
+  existing_last_updated = existing_last_updated_for(target_path)
+  return existing_last_updated if existing_last_updated
 
   last_changed_date_for(target_path)
 end
