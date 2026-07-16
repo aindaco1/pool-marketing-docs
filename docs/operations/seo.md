@@ -1,7 +1,7 @@
 ---
 title: "SEO"
 parent: "Operations"
-nav_order: 10
+nav_order: 13
 render_with_liquid: false
 ---
 
@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-July 1, 2026
+July 16, 2026
 
 This document describes The Pool's current SEO model in 2026. It is intentionally conservative: public pages are made easier to crawl and understand, while supporter-only and tokenized flows stay out of index intent. The implementation is designed around real metadata, real public pages, and honest structured data rather than content padding or rich-result bait.
 
@@ -19,6 +19,7 @@ This document describes The Pool's current SEO model in 2026. It is intentionall
 - keep the fork-facing SEO surface small and trustworthy
 - preserve accessibility, privacy, and security boundaries
 - avoid SEO tactics that create thin, misleading, or junk content
+- apply the [Ethical Risk review](/docs/development/ethical-risk-review/) before changing metadata, share cards, public indexing, or social distribution in ways that could misstate campaign status, scarcity, deadlines, or private access
 
 ## Current Implementation
 
@@ -40,25 +41,36 @@ The current baseline includes:
 - Worker-generated campaign share-card PNGs for public social metadata, with SVG retained for internal preview/debug tooling
 - generated [`robots.txt`](/robots.txt)
 - generated [`sitemap.xml`](/sitemap.xml)
-- shared sitemap URL rendering in [`_includes/seo-sitemap-url.xml`](https://github.com/your-org/your-project/blob/main/_includes/seo-sitemap-url.xml), including localized `xhtml:link` alternates where a page or campaign has localized routes
+- generated diagnostic [`sitemap.txt`](https://github.com/your-org/your-project/blob/main/sitemap.txt), intentionally not advertised as a second canonical sitemap in `robots.txt`
+- shared public sitemap selection in [`_includes/seo-sitemap-items.liquid`](https://github.com/your-org/your-project/blob/main/_includes/seo-sitemap-items.liquid), with XML rendering and localized `xhtml:link` alternates in [`_includes/seo-sitemap-url.xml`](https://github.com/your-org/your-project/blob/main/_includes/seo-sitemap-url.xml)
+- authored sitemap `lastmod` values only through `last_modified_at`; Jekyll's implicit collection `date` and build time are never treated as content changes
+- campaign article publication and modification metadata derived from explicit `published_at`, `last_modified_at`, or the campaign start date rather than Jekyll's deployment-time collection date
 - a generated-site SEO audit at [`scripts/audit-seo.mjs`](https://github.com/your-org/your-project/blob/main/scripts/audit-seo.mjs), exposed as `npm run test:seo` and wired into the merge gate
+- a live crawl-endpoint audit at [`scripts/audit-crawl-endpoints.mjs`](https://github.com/your-org/your-project/blob/main/scripts/audit-crawl-endpoints.mjs) that compares ordinary and Google Inspection responses for both sitemap formats, requires identical XML/text URL lists, validates sitemap/robots status and content types, and fetches every submitted public URL after production deploys
 - explicit `noindex,nofollow` on tokenized or supporter-only layouts
 - explicit `noindex,nofollow,noarchive`, `sitemap: false`, robots disallows, and disabled social metadata on the private admin dashboard
 - protected campaign preview shells with `noindex,nofollow,noarchive`, no social metadata, no JSON-LD, no public sitemap inclusion, and no public prefetch eligibility
 - conservative `Organization` / `WebSite` JSON-LD
+- organization contact and `MerchantReturnNotPermitted` policy data linked to the visible Terms policy
 - conservative campaign `CreativeWork` plus breadcrumb JSON-LD, both aligned with the active page language where supported
 - campaign `CreativeWork` JSON-LD now also includes `headline`, `mainEntityOfPage`, `isPartOf`, and published/modified timestamps so public campaign pages read more like real editorial landing pages than anonymous blobs
 - a public community hub that links back to public campaign pages instead of pushing crawlers into supporter-only routes
+- opt-in, localized product pages for one campaign's featured physical reward, with visible preorder, availability, shipping, and final-sale disclosures plus matching `Product` / `Offer` data
 
 The main implementation files are:
 
 - [/_includes/seo-meta.html](https://github.com/your-org/your-project/blob/main/_includes/seo-meta.html)
 - [/_includes/seo-json-ld.html](https://github.com/your-org/your-project/blob/main/_includes/seo-json-ld.html)
+- [/_includes/seo-sitemap-items.liquid](https://github.com/your-org/your-project/blob/main/_includes/seo-sitemap-items.liquid)
 - [/_layouts/campaign.html](https://github.com/your-org/your-project/blob/main/_layouts/campaign.html)
+- [/_plugins/campaign_shopping_product_pages.rb](https://github.com/your-org/your-project/blob/main/_plugins/campaign_shopping_product_pages.rb)
+- [/_includes/campaign-shopping-product.html](https://github.com/your-org/your-project/blob/main/_includes/campaign-shopping-product.html)
 - [/worker/src/index.js](https://github.com/your-org/your-project/blob/main/worker/src/index.js)
 - [/scripts/audit-seo.mjs](https://github.com/your-org/your-project/blob/main/scripts/audit-seo.mjs)
+- [/scripts/audit-crawl-endpoints.mjs](https://github.com/your-org/your-project/blob/main/scripts/audit-crawl-endpoints.mjs)
 - [/robots.txt](/robots.txt)
 - [/sitemap.xml](/sitemap.xml)
+- [/sitemap.txt](https://github.com/your-org/your-project/blob/main/sitemap.txt)
 
 Campaign social previews default to a Worker-generated, crawler-friendly PNG that uses live campaign progress. A campaign can still override that with `social_image` when it needs a fixed static raster image, ideally JPEG or PNG at `1200 x 630`.
 
@@ -85,6 +97,7 @@ Indexable by default:
 - public campaign pages
 - public post-campaign pages that still have discovery value
 - the public community hub when `seo.index_public_community_hub` is enabled
+- a focused featured-reward page when its campaign explicitly enables a complete Shopping product configuration
 
 Non-indexable by default:
 
@@ -105,6 +118,7 @@ This is enforced through a mix of:
 - sitemap `lastmod` hints for public pages and campaigns
 - sitemap hreflang alternate links for localized page/campaign pairs
 - generated-output validation through `npm run test:seo`
+- post-deploy origin validation through `npm run test:crawl-endpoints -- --base=https://site.example.com`
 
 Admin dashboard contract:
 
@@ -130,12 +144,33 @@ The site only emits schema types that map cleanly to visible content and real da
 - `WebSite`
 - `BreadcrumbList`
 - campaign-level `CreativeWork`
+- `MerchantReturnPolicy` with a visible final-sale policy
+- `Product` and `Offer` only on an explicitly enabled, focused physical-reward page
 
 The implementation intentionally does not emit:
 
 - fake FAQ schema
 - fake reviews or star ratings
-- product/offer schema that overstates what the page actually represents
+- product/offer schema on campaign landing pages, digital rewards, services, creative participation, or incomplete preorder records
+
+## Featured Reward Shopping Pages
+
+Shopping support deliberately reuses a campaign's existing `featured_tier_id`. The generated product page derives its name, description, image, price, category, cart behavior, campaign, seller identity, and stable SKU from existing sources rather than creating a parallel catalog.
+
+To become eligible, the selected featured tier must be physical and have a positive price, image, and description. The campaign must also opt in with an exact expected availability date:
+
+```yml
+featured_tier_id: physical-poster
+shopping:
+  enabled: true
+  availability_date: 2027-01-31
+```
+
+The generator fails the build if the date is invalid, precedes the campaign deadline, or is more than one year after the build date. While the campaign is live, the offer is marked `PreOrder`; outside the live campaign window it remains a useful product page but changes to `OutOfStock`. The product page visibly explains all-or-nothing charging, expected availability, shipping treatment, and the no-returns policy.
+
+The campaign dashboard exposes the enable switch and availability date alongside the featured tier. Keep the switch off until the creator confirms the exact date and the visible campaign timeline agrees.
+
+Product structured data can make a page eligible for Google product experiences, but it does not by itself guarantee placement on Google's Shopping tab. A Merchant Center account, verified website, product data source, shipping settings, return-policy settings, destination eligibility, and Google review are separate launch requirements. When a feed is added, it must use the same page, SKU, price, availability, image, and policy facts; do not create a second product catalog in the feed generator.
 
 ## Supported SEO Config Surface
 
@@ -151,8 +186,11 @@ The fork-facing SEO surface is intentionally bounded. Current supported settings
 - `seo.index_public_community_hub`
 - `seo.default_social_image_alt`
 - `seo.og_locale_overrides`
+- `seo.merchant_return_policy.applicable_country`
+- `seo.merchant_return_policy.return_policy_category`
 - public-page front matter `title` / `description`
 - campaign content fields such as `title`, `short_blurb`, `creator_name`, `category`, and hero imagery
+- campaign `featured_tier_id` plus `shopping.enabled` / `shopping.availability_date`
 
 This keeps the SEO model variable-first without opening up a huge matrix of fragile or unsupported knobs.
 
@@ -213,6 +251,7 @@ When checking a deployment manually:
 - visible campaign share links use the canonical campaign URL and do not replace the metadata-driven social card contract
 - `robots.txt` is reachable and only exposes intended public crawl paths
 - `sitemap.xml` is reachable and only includes intended public URLs
+- `sitemap.txt` is reachable, contains one absolute URL per line, and exactly matches the XML sitemap URL list
 - `npm run test:seo` passes against a freshly built `_site`
 - private/tokenized pages emit `noindex` where appropriate
 - `/admin/` and `/es/admin/` emit `noindex,nofollow,noarchive`, do not appear in `sitemap.xml`, and do not emit social-preview or JSON-LD metadata
@@ -221,6 +260,8 @@ When checking a deployment manually:
 - localized pages keep coherent canonical and alternate links
 - localized campaign pages keep coherent canonical and alternate links
 - localized pages keep coherent JSON-LD language and breadcrumb roots
+- an enabled Shopping product generates coherent English/Spanish routes, visible preorder facts, `og:type=product`, `Product` / `Offer` / breadcrumb data, and sitemap alternates
+- `npm run test:crawl-endpoints -- --base=https://site.example.com` confirms both deployed sitemap formats and every submitted URL are directly fetchable without an HTML interstitial
 - metadata additions do not create accessibility or performance regressions
 
 ## Notes

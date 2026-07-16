@@ -8,7 +8,7 @@ has_children: true
 
 ## Last Updated
 
-May 31, 2026
+July 16, 2026
 
 This section covers the admin dashboard, pledge Worker, local runtime options, quality gates, and the operational rules that protect checkout and fulfillment behavior.
 
@@ -16,6 +16,8 @@ This section covers the admin dashboard, pledge Worker, local runtime options, q
 
 - [Admin Dashboard](/docs/operations/admin-dashboard/) for browser-based campaign editing, reports, analytics, marketing tools, media uploads, and user management.
 - [Pledge Worker](/docs/operations/worker/) for secrets, KV namespaces, webhooks, environment variables, and API endpoints.
+- [Payment Processor](/docs/operations/payment-processor/) for Stripe setup, canonical checkout, webhooks, settlement, and reconciliation.
+- [Email System](/docs/operations/email-system/) for sender setup, transactional and campaign email behavior, localization, delivery, and retries.
 - [Podman Local Dev](/docs/operations/podman-local-dev/) for the containerized local stack, support matrix, and troubleshooting flow.
 
 ## Quality, Security, And Release Checks
@@ -28,6 +30,7 @@ This section covers the admin dashboard, pledge Worker, local runtime options, q
 
 ## Commerce And Platform Guardrails
 
+- [Backup, Restore, and Recovery](/docs/operations/backup-restore/) for snapshot readiness, retention, restore order, Stripe reconciliation, and recovery evidence.
 - [Shipping](/docs/operations/shipping/) for the Worker-first shipping model, USPS integration boundary, and fallback policy.
 - [Tax Calculator](/docs/operations/tax-calculator/) for provider modes, mirrored config, provisional browser behavior, and checkout-tax verification.
 - [Accessibility](/docs/operations/accessibility/) for current priorities, critical surfaces, coverage, and manual checks.

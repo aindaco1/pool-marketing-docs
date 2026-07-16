@@ -1,7 +1,7 @@
 ---
 title: Envíos
 parent: Operaciones
-nav_order: 8
+nav_order: 11
 render_with_liquid: false
 lang: es
 ---
@@ -10,11 +10,11 @@ lang: es
 
 ## Última actualización
 
-20 de junio de 2026
+16 de julio de 2026
 
-Este documento describe el modelo de envío actual en The Pool, incluido su flujo de precios centrado en el trabajador, la superficie de configuración orientada a la bifurcación, el límite de integración de USPS y el árbol de reglas que ahora siguen el carrito, el pago, la gestión de promesas, los informes y los correos electrónicos.
+Este documento describe el modelo de envío actual en The Pool, incluido su flujo de precios centrado en el trabajador, la superficie de configuración orientada a la bifurcación, el límite de integración de USPS y el árbol de reglas que ahora siguen el carrito, el pago, la gestión de aportes, los informes y los correos electrónicos.
 
-La verificación en vivo de credenciales de USPS ahora está conectada al flujo de trabajo local. El repositorio incluye un asistente de humo de USPS dedicado además de regresiones automatizadas para los flujos de envío del carrito, el pago y la gestión de compromisos.
+La verificación en vivo de credenciales de USPS ahora está conectada al flujo de trabajo local. El repositorio incluye un asistente de humo de USPS dedicado además de regresiones automatizadas para los flujos de envío del carrito, el pago y la gestión de aportes.
 
 ## Alcance recomendado
 
@@ -50,7 +50,7 @@ La función de envío debe preservar la línea base de accesibilidad actual:
 
 - La dirección relacionada con el envío, la cotización y los estados alternativos deben ser comprensibles mediante la interacción únicamente con el teclado.
 - Cualquier nuevo error o aviso debe vincularse a los campos relevantes y a las regiones en vivo de manera adecuada.
-- Las actualizaciones del resumen de envío en el proceso de pago y en Administrar compromiso deben seguir siendo comprensibles para el lector de pantalla.
+- Las actualizaciones del resumen de envío en el proceso de pago y en Administrar aporte deben seguir siendo comprensibles para el lector de pantalla.
 - no hay regresiones a la semántica de diálogo/enfoque/error existente en checkout o `Update Card`
 - La cobertura de accesibilidad a nivel del navegador debe ampliarse si se introducen nuevos estados de la interfaz de usuario de envío.
 
@@ -60,7 +60,7 @@ La característica de envío debe ajustarse al modelo i18n actual:
 
 - Las etiquetas de envío propiedad del sitio, los mensajes alternativos y el texto de resumen deben provenir de catálogos locales.
 - Los correos electrónicos de apoyo a los trabajadores deben utilizar etiquetas/desgloses de envío localizados donde ya incluyan los totales de envío.
-- no se debe introducir ninguna copia codificada únicamente en inglés en el proceso de pago, en la gestión de compromisos, en las páginas de resultados o en los correos electrónicos.
+- no se debe introducir ninguna copia codificada únicamente en inglés en el proceso de pago, en la gestión de aportes, en las páginas de resultados o en los correos electrónicos.
 - la característica debería funcionar correctamente en rutas localizadas como `/es/manage/` y rutas de entrada de pago localizadas
 
 ## Por qué encaja este alcance
@@ -82,7 +82,7 @@ no obviamente:
 El flujo de pago actual ya utiliza Trabajador/KV para:
 
 - manifiestos del paquete de pago
-- persistencia del compromiso
+- persistencia del aporte
 - actualizaciones de estadísticas
 - reservas de nivel limitado
 
@@ -90,7 +90,7 @@ El envío no debería agregar una huella KV nueva y grande. El diseño seguro es
 
 - cotizar el envío solo en puntos de alta intención
 - Evite escrituras KV por cotización
-- persistir solo el monto de envío final en el compromiso
+- persistir solo el monto de envío final en el aporte
 
 ## Diseño de alto nivel
 
@@ -102,7 +102,7 @@ Eso significa:
 
 - `/checkout-intent/start` calcula el envío a partir de los datos canónicos del artículo más el destino
 - `/pledge/modify` recalcula el envío solo cuando cambian las entradas relevantes para el envío
-- El monto final del envío se almacena en el registro de compromiso y se incluye en todos los cálculos posteriores.
+- El monto final del envío se almacena en el registro de aporte y se incluye en todos los cálculos posteriores.
 
 ### 2. Comportamiento alternativo
 
@@ -133,7 +133,7 @@ Mantenga la opción establecida intencionalmente limitada:
   - solo nacional
   - Solo se muestra cuando la campaña lo habilita explícitamente.
 
-No exponga opciones de servicios basados ​​en la velocidad en v1. Las recompensas de crowdfunding a menudo se envían mucho después de la fecha de compromiso, por lo que la velocidad de entrega no es la opción más importante para el cliente en este caso; la confirmación de entrega es.
+No exponga opciones de servicios basados ​​en la velocidad en v1. Las recompensas de crowdfunding a menudo se envían mucho después de la fecha de aporte, por lo que la velocidad de entrega no es la opción más importante para el cliente en este caso; la confirmación de entrega es.
 
 Por lo tanto, el carrito actual y la interfaz de usuario de Manage Pledge exponen un selector de opciones de entrega limitado en lugar de un selector de clase de correo completo. El Trabajador aún elige la clase de envío válida subyacente más barata para `Standard`.
 
@@ -452,7 +452,7 @@ Esto mantiene la plataforma alineada con el modelo de cuotas de USPS sin convert
 Llame únicamente a USPS en momentos de alta intención:
 
 - inicio de pago
-- Modificación del compromiso cuando cambian las selecciones físicas o el destino.
+- Modificación del aporte cuando cambian las selecciones físicas o el destino.
 
 No llame a USPS:
 
@@ -518,7 +518,7 @@ La cobertura automatizada actual incluye:
   - Tiempo de espera de USPS/retroceso de falla
 - Cobertura E2E para:
   - ruta de cotización de pago físico
-  - recálculo de envío de promesa de modificación
+  - recálculo de envío de aporte de modificación
 - Cobertura de regresión de accesibilidad para cualquier nuevo estado de UI de solo envío
 - Cobertura de ruta localizada para garantizar que los resúmenes de envío y los errores permanezcan traducidos en las configuraciones regionales iniciales.
 
@@ -526,7 +526,7 @@ La cobertura automatizada actual incluye:
 
 Documentos actuales que deberían mantenerse alineados con el comportamiento de envío:
 
-- [README.md](/es/docs/overview/about-the-pool/)
+- [README.md](/es/docs/development/platform-readme/)
 - [docs/PERSONALIZACIÓN.md](/es/docs/development/customization-guide/)
 - [docs/DEV_NOTES.md](/es/docs/development/developer-notes/)
 - [docs/TESTING.md](/es/docs/operations/testing/)
@@ -603,7 +603,7 @@ Normas:
 - `Standard` utiliza de forma predeterminada la opción de envío elegible más barata
 - las opciones de firma son solo nacionales
 - el selector solo se muestra cuando el envío aún necesita una cotización de USPS activa y el envío subyacente admite esas opciones
-- la opción de entrega seleccionada se mantiene y se reutiliza en Manage Pledge, los totales guardados, los informes y los correos electrónicos de los seguidores.
+- la opción de entrega seleccionada se mantiene y se reutiliza en Manage Pledge, los totales guardados, los informes y los correos electrónicos de los patrocinadores.
 
 ### 5. El respaldo solo se aplica cuando la ruta de cotización realmente falla
 
@@ -667,15 +667,15 @@ La interfaz debe distinguir entre estos estados:
 
 La implementación del envío está en buen estado cuando:
 
-- Las promesas físicas nacionales e internacionales pueden usar la calificación en vivo de USPS a través del Trabajador
+- los aportes físicas nacionales e internacionales pueden usar la calificación en vivo de USPS a través del Trabajador
 - La tarifa plana de campaña anula el cortocircuito de USPS para esos envíos de campaña.
 - Los artículos calificados con tarifa manual como `sticker` y `signed_script` omiten USPS y utilizan la tabla plana documentada.
 - Los complementos de campaña heredan las reglas de envío y las anulaciones de la campaña propietaria.
 - Los complementos globales físicos se combinan en un envío de plataforma separado en lugar de tomar prestado el envío de la campaña.
 - Los editores de productos del panel de administración ocultan el envío de artículos digitales y muestran campos preestablecidos/paquetes solo para artículos físicos.
 - Los cambios de cantidad afectan las matemáticas del envío correctamente.
-- el pago, la gestión de promesas, los totales de promesas guardadas, los correos electrónicos, los informes y las exportaciones de cumplimiento permanecen alineados con el monto de envío almacenado
+- el pago, la gestión de aportes, los totales de aportes guardados, los correos electrónicos, los informes y las exportaciones de cumplimiento permanecen alineados con el monto de envío almacenado
 - Los carritos que requieren código postal permanecen en modo de estimación hasta que se completa el código postal
-- no se introducen regresiones de seguridad en el proceso de pago ni en la modificación del compromiso
+- no se introducen regresiones de seguridad en el proceso de pago ni en la modificación del aporte
 - no se introducen regresiones de accesibilidad en los estados de pago/administración relacionados con el envío
 - no se introduce ninguna nueva copia de envío propiedad del sitio únicamente en inglés en rutas localizadas

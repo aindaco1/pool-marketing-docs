@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-29 de mayo de 2026
+16 de julio de 2026
 
 ## Propósito
 <!-- ¿Qué problema resuelve este PR? -->
@@ -34,10 +34,10 @@ lang: es
 - [] `node --check assets/js/admin-dashboard.js` pasa cuando el JavaScript del panel cambió
 - [] Se abre el carrito propio, no hay errores de consola
 - [] El trabajador `/checkout-intent/start` devuelve el arranque de sesión personalizada en el sitio esperado o la respuesta alternativa alojada (modo de prueba)
-- [] La persistencia de promesas almacena niveles, elementos de soporte, monto personalizado y totales activos que se actualizan correctamente
-- [] El flujo de actualización de la tarjeta aún se realiza correctamente para las promesas activas y `payment_failed` cuando se tocan
+- [] La persistencia de aportes almacena niveles, elementos de soporte, monto personalizado y totales activos que se actualizan correctamente
+- [] El flujo de actualización de la tarjeta aún se realiza correctamente para los aportes activos y `payment_failed` cuando se tocan
 - [] Los temporizadores de cuenta regresiva muestran los valores correctos al cargar la página (sin flash "00 00 00 00")
-- [] Cron `workflow_dispatch` carga promesas de prueba fuera de sesión
+- [] Cron `workflow_dispatch` carga aportes de prueba fuera de sesión
 - [] Documentos actualizados (si el comportamiento o la configuración cambiaron)
 
 ## Seguridad / Secretos
@@ -45,6 +45,13 @@ lang: es
 - [] Utiliza únicamente secretos de repositorio/trabajador
 - [] Los cambios en el panel de administración no exponen ni editan valores secretos; **Secretos y credenciales** sigue siendo solo estado
 - [] Las mutaciones del administrador conservan la ruta de almacenamiento prevista: publicación respaldada por GitHub, guardado de usuarios solo de KV, códigos de referencia guardados solo de KV o exploración/exportación de solo lectura
+
+## Revisión de riesgos éticos
+- [] Revisado `docs/ETHICAL_RISK.md` si esto cambia el dinero, los datos de los patrocinadores, los mensajes, los análisis, la automatización, el intercambio público o el poder administrativo.
+- [] No hay nueva recopilación de datos ocultos, seguimiento, indexación pública ni comportamiento de captación previa privada/tokenizada
+- [ ] El comportamiento de consentimiento, exclusión voluntaria, supresión, ejecución en seco o recurso se conserva cuando el cambio afecta al correo electrónico, recordatorios, vistas previas, marketing o gestión de aportes.
+- [] Se consideraron casos de abuso o uso indebido para páginas públicas, incrustaciones, QR/enlaces de referencia, Blast, funciones de administrador, pago e informes cuando se tocaron.
+- [] Las afirmaciones de los usuarios sobre el estado de la campaña, la escasez, los impuestos, el envío, las tarifas, las propinas o los totales aún coinciden con la verdad canónica de Worker.
 
 ## Compatibilidad con versiones anteriores
 - [] Sin cambios importantes en el modelo de contenido

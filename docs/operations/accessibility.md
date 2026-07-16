@@ -1,7 +1,7 @@
 ---
 title: "Accessibility"
 parent: "Operations"
-nav_order: 9
+nav_order: 12
 render_with_liquid: false
 ---
 
@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-July 1, 2026
+July 16, 2026
 
 This document tracks The Pool's current accessibility baseline, the higher-risk interaction surfaces we actively verify, and the remaining follow-up work needed to move from "strong accessibility posture" toward fuller accessibility compliance.
 
@@ -21,6 +21,7 @@ The current accessibility priorities are:
 - improve ARIA semantics and keyboard behavior on interactive surfaces
 - avoid introducing security regressions, especially around the on-site Stripe checkout flow
 - add automated checks for critical journeys instead of relying only on manual review
+- review how changes affect different user groups, including localized users, keyboard-only users, screen-reader users, mobile users, and supporters under time or money pressure
 
 ## Current Baseline
 
@@ -72,6 +73,8 @@ The recent accessibility hardening pass added:
   - WYSIWYG content-editor chrome that is only keyboard-reachable when the relevant block is active
   - content-editor media upload controls with labeled native file inputs, visible focus on the styled upload button, upload status regions, and browser-local previews before publish
   - gallery image caption settings that reuse the shared label/help pattern and expose the hover-caption editor as a labeled rich-text textbox
+  - media-library search plus image/video/audio filters implemented as an accessible tablist, with selected state, keyboard-reachable metadata/reference details, and named repair/replace actions
+  - required alt text for meaningful content images and an explicit decorative-image control that disables and clears alt text instead of treating a blank field as an authoring shortcut
   - Settings -> Plan usage provider headings that reuse the shared admin label/help pattern, polite loading status, accessible progressbar text, and responsive metric cards
   - Create new campaign and protected Preview dialogs that reuse the shared admin label/help/info-button pattern, native fields, email-list token input, dialog focus handling, and polite status messaging
   - sortable data tables that expose `aria-sort` state and sort buttons
@@ -100,6 +103,7 @@ Accessibility changes should preserve these constraints:
 - do not add long-lived browser persistence for accessibility state
 - do not weaken CSP or checkout hardening to support convenience behavior
 - prefer native elements and low-risk semantic improvements over custom widgets
+- avoid interaction patterns that pressure users into pledging, tipping, accepting reminders, or sharing before they understand cost, consent, and state
 
 ## Admin Dashboard Model
 
@@ -114,6 +118,7 @@ The admin dashboard has enough custom UI that it needs its own accessibility rul
 - Media settings panels should expose expanded/collapsed state from the gear button and a labeled group for the revealed settings.
 - Content-editor media uploads should use the shared upload control pattern so the native file input has an accessible name, an upload-status description, and the same focus treatment as other dashboard upload buttons.
 - Gallery block settings and individual gallery-image settings should stay visually and semantically distinct, but both should reuse the shared admin field label/help components.
+- Generated derivatives should not appear as duplicate picker choices; source cards expose derivative status in text so assistive-technology users receive the same optimization context as thumbnail users.
 - Sortable admin tables should use real buttons in column headers, maintain `aria-sort`, and keep export buttons outside horizontally scrollable table regions.
 - Save/Publish status messages should use polite status regions; validation or blocking errors should remain near the relevant field or workflow.
 - Create/Preview modal fields should use the same shared admin info-button/help implementation as Settings and Campaign fields; avoid one-off inline help that can clip against modal edges.
@@ -227,7 +232,7 @@ npm run podman:doctor
 
 ## Manual Checks
 
-Automated checks help, but these manual accessibility checks are still important before merge for meaningful UI changes:
+Automated checks help. For this release, the manual VoiceOver/NVDA pass is optional evidence rather than a blocking gate; when performed, use these checks for meaningful UI changes:
 
 - cart drawer can be opened, navigated, and closed with keyboard only
 - cart trigger announces a useful label and expanded/collapsed state to assistive technology

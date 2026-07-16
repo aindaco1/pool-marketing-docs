@@ -1,7 +1,7 @@
 ---
 title: Suite de pruebas de seguridad
 parent: Operaciones
-nav_order: 7
+nav_order: 9
 render_with_liquid: false
 lang: es
 ---
@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-9 de junio de 2026
+16 de julio de 2026
 
 Este directorio contiene pruebas centradas en la seguridad para la API de trabajador. Ejecútelos antes de implementarlos en producción.
 
@@ -87,7 +87,7 @@ preview_id = "YOUR_RATELIMIT_PREVIEW_ID"
 - La superficie del webhook de Stripe requiere firmas válidas
 
 ### 3. Autorización (`authorization.test.ts`)
-- Intentos de acceso a promesas de usuarios cruzados
+- Intentos de acceso a aportes de usuarios cruzados
 - Acceso al punto final del administrador sin secreto
 - Pruebe el acceso al punto final en modo de producción
 
@@ -150,7 +150,7 @@ describe('My Security Test', () => {
       method: 'POST',
       body: JSON.stringify({ malicious: '<script>alert(1)</script>' })
     });
-    
+
     // Test should pass if properly rejected
     expect(res.status).toBe(400);
   });

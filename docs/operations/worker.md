@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-July 5, 2026
+July 16, 2026
 
 Cloudflare Worker handling first-party checkout canonicalization, Stripe integration, pledge management, order-scoped supporter authentication, upcoming-campaign launch reminders, consent-based abandoned-checkout reminders, campaign supporter blasts, protected campaign previews, and the private browser admin dashboard APIs.
 
@@ -28,7 +28,7 @@ If you specifically work from the `worker/` directory, the Worker npm scripts no
 
 Treat `_config.local.yml` as an override-only file for localhost-specific values. The canonical fork-facing settings should live in the repo-root `_config.yml`, and the Worker mirror will follow from there.
 
-Use [`docs/PAYMENT_PROCESSOR.md`](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md) for Stripe setup, checkout, webhook, settlement, and reconciliation details. Use [`docs/EMAIL.md`](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md) for Resend sender setup, email types, localization, and delivery behavior.
+Use [`docs/PAYMENT_PROCESSOR.md`](/docs/operations/payment-processor/) for Stripe setup, checkout, webhook, settlement, and reconciliation details. Use [`docs/BACKUP_RESTORE.md`](/docs/operations/backup-restore/) for classified snapshots, preview restore, retention, and disaster recovery. Use [`docs/EMAIL.md`](/docs/operations/email-system/) for Resend sender setup, email types, localization, and delivery behavior. Use [`docs/ETHICAL_RISK.md`](/docs/development/ethical-risk-review/) before adding Worker behavior that changes money, data collection, messaging, automation, public sharing, analytics, or admin power.
 
 Campaign-runner report delivery follows that same pattern:
 
@@ -149,6 +149,9 @@ STRIPE_PUBLISHABLE_KEY_TEST=pk_test_...
 wrangler secret put STRIPE_WEBHOOK_SECRET_LIVE
 wrangler secret put STRIPE_WEBHOOK_SECRET_TEST
 
+# Optional: Film summary-only aggregate adapter
+wrangler secret put FILM_STRIPE_SUMMARY_ADAPTER_SECRET
+
 # First-party checkout intent signing secret
 wrangler secret put CHECKOUT_INTENT_SECRET
 
@@ -161,6 +164,9 @@ wrangler secret put CAMPAIGN_PREVIEW_SECRET
 
 # Email delivery
 wrangler secret put RESEND_API_KEY
+# Optional but recommended for delivery/suppression evidence after creating
+# https://worker.example.com/webhooks/resend in Resend.
+wrangler secret put RESEND_WEBHOOK_SECRET
 
 # Admin endpoints
 wrangler secret put ADMIN_SECRET
@@ -206,7 +212,7 @@ If a GitHub Actions workflow or operator job calls scoped admin endpoints, set t
 
 The Resend API key must be allowed to send from the domain configured in `PLEDGES_EMAIL_FROM` and `UPDATES_EMAIL_FROM`. For the live Dust Wave deployment, those sender addresses use `site.example.com`; authorizing only a root domain does not authorize subdomain senders, and authorizing only a subdomain does not authorize root-domain senders.
 
-See [`../docs/EMAIL.md`](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md) before adding new email workflows so sender identity, localization, branding, and retry behavior stay on the shared path.
+See [`../docs/EMAIL.md`](/docs/operations/email-system/) before adding new email workflows so sender identity, localization, branding, and retry behavior stay on the shared path.
 
 For Settings -> Plan usage, Resend normally needs only `RESEND_API_KEY`. Optional `PLAN_USAGE_RESEND_PLAN`, `RESEND_EMAILS_MONTHLY_LIMIT`, and `RESEND_EMAILS_DAILY_LIMIT` values are display overrides for deployments where Resend returns rate-limit headers but does not expose the monthly sent-usage header through a safe read endpoint.
 
@@ -377,6 +383,15 @@ Return the same campaign share-card concept as SVG for internal preview/debug to
 ### POST /webhooks/stripe
 Stripe webhook endpoint (signature verified).
 
+### POST /webhooks/resend
+Resend/Svix webhook endpoint for delivered, bounced, complained, failed, and suppressed events. Requires `RESEND_WEBHOOK_SECRET`, verifies the raw request body and timestamp, deduplicates `svix-id`, updates privacy-minimized delivery state, and hashes recipients before local permanent-bounce/complaint suppression.
+
+### GET or POST /campaign-email/unsubscribe?t={token}
+Signed campaign-scoped unsubscribe for diary, milestone, and live announcement mail. RFC 8058 POST returns a blank success response; browser GET returns a no-store confirmation page. The stored preference is an email hash and does not suppress transactional pledge/payment email.
+
+### POST /film/stripe-summary
+Server-to-server Film adapter for summary-only Stripe aggregates. Requires `Authorization: Bearer <FILM_STRIPE_SUMMARY_ADAPTER_SECRET>`, `dataBoundary: "summary_only"`, `source: "pool"`, and mapped campaign slugs in `mappedRefs`. The response is limited to aggregate money/count fields, mapped-ref counts, status, generated timestamp, and currency. It does not return supporter emails, payment intent IDs, charge IDs, balance transaction IDs, or card/payment-method data, and it writes a metadata-only admin audit event.
+
 ### POST /tax/quote
 Return a Worker-calculated tax preview for cart / checkout UI.
 
@@ -450,6 +465,8 @@ The private `/admin/` and `/es/admin/` shells use cookie-backed Worker routes in
 - `GET /admin/analytics` reads role-scoped pledge-derived revenue, status, language, referral, UTM source/medium/campaign/content, and campaign/platform split metrics without writing analytics state; dashboard currency presentation keeps exact cents
 - `GET /admin/plan-usage` lets super admins load Cloudflare and Resend plan usage from provider APIs without exposing provider tokens to the browser or writing KV state; the dashboard loads it automatically when Settings -> Plan usage is opened
 - `POST /admin/analytics/stripe-financials/backfill` lets super admins backfill actual Stripe fee/net values from Stripe balance transactions for charged pledges, using campaign pledge indexes instead of KV list scans
+- `GET /admin/reconciliation/:slug` reads stored campaign payment breaks; CSRF-protected super-admin `POST` runs bounded pledge/Stripe/settlement reconciliation without KV namespace scans
+- `POST /film/stripe-summary` exposes Film-facing Pool aggregates only after bearer adapter auth; mapped refs are campaign slugs, and the response stays summary-only
 - `GET /admin/content/campaign?campaignSlug=...` loads role-scoped campaign content into the browser editor without persisting a draft
 - `POST /admin/content/preview` validates and renders role-scoped campaign content drafts without publishing, auditing, or writing KV
 - `POST /admin/content/publish` validates the same draft, updates the campaign Markdown file through GitHub, triggers the normal rebuild workflow, and writes one audit event
@@ -623,6 +640,9 @@ curl -X POST https://worker.example.com/test/email \
 | `UPDATES_EMAIL_FROM` | Sender identity for update / milestone / Blast / announcement emails; its domain must be authorized in Resend |
 | `POOL_EMAIL_DRY_RUN` | Optional no-send release evidence mode for supporter/update emails; truthy values skip the Resend request and return a dry-run id |
 | `RESEND_EMAIL_DRY_RUN` | Compatibility alias for no-send Resend evidence mode |
+| `RESEND_WEBHOOK_SECRET` | Resend/Svix signing secret for `POST /webhooks/resend` |
+| `EMAIL_OUTBOX_ENABLED` | Production durable email outbox flag; defaults on unless explicitly `false` |
+| `PAYMENT_RECONCILIATION_ENABLED` | Enables daily indexed Stripe reconciliation; defaults on in live mode and off in test mode |
 | `EMAIL_LOGO_PATH` | Supporter-email logo path mirrored from `platform.logo_path` |
 | `EMAIL_FONT_FAMILY` | Supporter-email body font stack mirrored from `design.font_body` |
 | `EMAIL_HEADING_FONT_FAMILY` | Supporter-email heading font stack mirrored from `design.font_display` |
@@ -683,7 +703,7 @@ curl -X POST https://worker.example.com/test/email \
 
 When `SITE_BASE` points at local dev (`localhost` / `127.0.0.1`), embedded email images still fall back to the public `https://site.example.com` asset base so inbox clients do not receive broken localhost image URLs.
 
-Resend pacing is centralized as `RESEND_RATE_LIMIT_DELAY_MS` in `worker/src/email.js` and reused by supporter broadcasts, reports, launch reminders, abandoned-checkout reminders, and Campaigns -> Blast sends. Keep new email workflows on the shared `sendResendEmail` / payload-builder path so sender identity, localization, branding, and rate-limit behavior do not drift.
+Production email uses the durable shared outbox in `worker/src/email-outbox.js`: it freezes the rendered payload, sends with a deterministic Resend idempotency key, retries bounded provider failures, and checks local suppression immediately before delivery. Keep new workflows on `queuePoolEmail` / `enqueueEmailOutbox` plus the shared `worker/src/email.js` templates so sender identity, localization, branding, consent, and provider behavior do not drift. Admin login and explicit test sends remain immediate.
 
 Fork note: treat those identity, email-branding, pricing, and shipping vars as mirrors of the structured site config in [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml), especially the `platform`, `design`, `pricing`, and `shipping` sections. The first-party cart/runtime and the custom on-site checkout UI are built-in platform behavior now, not Worker env toggles you should normally customize directly.
 
@@ -695,7 +715,7 @@ The Worker also serves localized campaign share-card previews at `GET /share/cam
 
 ## Data Flow
 
-The full payment runbook is in [`../docs/PAYMENT_PROCESSOR.md`](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md). This section is the compact Worker data-flow summary.
+The full payment runbook is in [`../docs/PAYMENT_PROCESSOR.md`](/docs/operations/payment-processor/). This section is the compact Worker data-flow summary.
 
 1. **User pledges on campaign page**
    - first-party cart created with tier item

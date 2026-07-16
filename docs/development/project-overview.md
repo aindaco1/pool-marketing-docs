@@ -9,13 +9,13 @@ render_with_liquid: false
 
 ## Last Updated
 
-July 5, 2026
+July 16, 2026
 
-**Goal:**  
-Enable creative crowdfunding with true *all-or-nothing* logic using static hosting.  
+**Goal:**
+Enable creative crowdfunding with true *all-or-nothing* logic using static hosting.
 Creators define campaigns in Markdown; backers pledge through The Pool’s first-party cart and an on-site Stripe setup-mode payment step; cards are charged automatically only if the campaign is funded. Backers can optionally add a 0% to 15% platform tip (default 5%) that is included in the final charge but excluded from campaign progress.
 
-**Branding:**  
+**Branding:**
 - Platform name: **The Pool**
 - Company name: set this to your organization or studio name
 - Default theme: Dust Wave's calmer editorial styling
@@ -39,7 +39,7 @@ All code is versioned and auditable. Campaign editing now flows through the priv
 Super admins can create preview-only campaigns through that same path; those campaigns stay hidden from public campaign routes until launched. Super admins can also archive non-live campaigns through a validated GitHub Actions move into `archive/campaigns/<slug>/`, keeping archived source and media in the repository instead of deleting data. Protected preview reviewer email allowlists live in short-lived Worker KV records instead of campaign Markdown.
 Dashboard media uploads stay source-preserving at the Worker boundary: image/video uploads request the repository optimization workflow after commit, content/diary/Blast publishes remove or reuse same-campaign dashboard-owned media through the shared campaign media rules, and image blocks can select existing campaign media through a read-only GitHub directory picker instead of adding a second media index.
 
-For deeper setup and operations, see [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md) for the Stripe/settlement model and [EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md) for the Resend email system.
+For deeper setup and operations, see [PAYMENT_PROCESSOR.md](/docs/operations/payment-processor/) for the Stripe/settlement model and [EMAIL.md](/docs/operations/email-system/) for the Resend email system.
 
 ## Plan Efficiency Notes For Forks
 
@@ -90,7 +90,7 @@ For current Cloudflare limits, see:
 
 ## Funding Flow
 
-See [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md) for the full Stripe setup, checkout canonicalization, webhook, settlement, and reconciliation runbook. The summary below is the product-level flow.
+See [PAYMENT_PROCESSOR.md](/docs/operations/payment-processor/) for the full Stripe setup, checkout canonicalization, webhook, settlement, and reconciliation runbook. The summary below is the product-level flow.
 
 1. **Visitor pledges** through the first-party cart → Worker creates a setup-mode Stripe Checkout Session, and the existing second checkout sidecar mounts secure Stripe payment UI on-site. One checkout can include items from multiple campaigns. Cart and checkout show subtotal, shipping, sales tax, and optional platform tip from a shared pricing model.
 2. **Stripe** saves a card through that on-site payment step, returning IDs to the Worker.
@@ -136,8 +136,8 @@ See [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/do
 
 ## Stretch Goals
 
-- Declared directly in each campaign’s front matter.  
-- Automatically marked *achieved* when `pledged_amount >= threshold`.  
+- Declared directly in each campaign’s front matter.
+- Automatically marked *achieved* when `pledged_amount >= threshold`.
 - Optional `requires_threshold` attribute on tiers to reveal new perks once unlocked.
 
 ---
@@ -167,13 +167,13 @@ See [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/do
 
 ## Deployment Checklist
 
-1. ✅ Domain: `site.example.com` (CNAME to GitHub Pages).  
-2. ✅ First-party cart runtime enabled in site config and local build.  
-3. ✅ Cloudflare Worker deployed (`worker.example.com`) with Stripe + Worker signing secrets; see [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md).
-4. ✅ Stripe webhook configured → Worker `/webhooks/stripe`.  
-5. ✅ Repo secrets set: `STRIPE_SECRET_KEY`, `CHECKOUT_INTENT_SECRET`, admin secrets, and Resend secrets; see [EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md).
+1. ✅ Domain: `site.example.com` (CNAME to GitHub Pages).
+2. ✅ First-party cart runtime enabled in site config and local build.
+3. ✅ Cloudflare Worker deployed (`worker.example.com`) with Stripe + Worker signing secrets; see [PAYMENT_PROCESSOR.md](/docs/operations/payment-processor/).
+4. ✅ Stripe webhook configured → Worker `/webhooks/stripe`.
+5. ✅ Repo secrets set: `STRIPE_SECRET_KEY`, `CHECKOUT_INTENT_SECRET`, admin secrets, and Resend secrets; see [EMAIL.md](/docs/operations/email-system/).
 6. ✅ Minute-level Worker scheduler enabled with platform-timezone daily gates — check via `GET /admin/cron/status`.
-7. ✅ Cloudflare cache purge configured (preferred: API token/account ID; legacy email/key auth still works if explicitly configured).  
+7. ✅ Cloudflare cache purge configured (preferred: API token/account ID; legacy email/key auth still works if explicitly configured).
 8. ✅ Test campaign runs end-to-end in Stripe test mode.
 9. ✅ Long-form content sanitizes Markdown link schemes and only renders structured embeds from exact approved origins.
 10. ✅ Missing-pledge magic-link reads fail closed with `404`.
@@ -183,11 +183,12 @@ See [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/do
 
 ## Philosophy
 
-- **Static first:** GitHub Pages provides transparency and version control for every campaign state.  
-- **Minimal backend:** Cloudflare Worker replaces a full app server.  
-- **Automation over ops:** GitHub Actions perform all time-based events.  
+- **Static first:** GitHub Pages provides transparency and version control for every campaign state.
+- **Minimal backend:** Cloudflare Worker replaces a full app server.
+- **Automation over ops:** GitHub Actions perform all time-based events.
 - **Open handoff:** Campaign and platform state remains reviewable as Markdown/YAML, even when routine edits happen through the dashboard.
 - **Design consistency:** Uses the same visual language as dust-wave-shop for brand coherence.
+- **Risk-aware stewardship:** Product changes that affect money, data, messaging, automation, public visibility, or admin power should include the [Ethical Risk review](/docs/development/ethical-risk-review/) while tradeoffs are still easy to change.
 
 ## Critical Learnings
 

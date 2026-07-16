@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-May 29, 2026
+July 16, 2026
 
 This document describes The Pool's hosted campaign embed feature and how it relates to the newer campaign rich-preview/share-card work.
 
@@ -115,3 +115,4 @@ When validating the embed manually:
 - the widget CTA and close `X` point back to the correct localized campaign page
 - compact/full and media-hidden states still render cleanly on mobile
 - the widget reflects live campaign totals and state changes
+- the widget does not expose preview-only, protected, tokenized, or private campaign state and does not imply a different campaign status than the public campaign page

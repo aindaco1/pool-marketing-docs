@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-July 5, 2026
+July 16, 2026
 
 This guide covers the supported no-code customization surface for forks of The Pool as it exists now.
 
@@ -17,7 +17,7 @@ The goal is to let forks rebrand, restyle, and reconfigure the platform through 
 
 The structured config model in [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) is now the canonical fork-facing surface.
 
-Provider-specific setup lives in separate runbooks: use [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md) for Stripe and settlement, and [EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md) for Resend senders and email delivery.
+Provider-specific setup lives in separate runbooks: use [PAYMENT_PROCESSOR.md](/docs/operations/payment-processor/) for Stripe and settlement, and [EMAIL.md](/docs/operations/email-system/) for Resend senders and email delivery.
 
 ## Start Here
 
@@ -127,7 +127,7 @@ Notes:
 - top-level `title` / `author` still exist in Jekyll, but treat them as general site metadata / fallback rather than the main fork-customization interface.
 - `platform.default_social_image_path` is the supported default for OG/Twitter cards when a page or campaign does not provide a more specific image.
 - `platform.logo_path` is also the mirrored brand mark used in supporter emails.
-- The domain in `platform.pledges_email_from` and `platform.updates_email_from` must be authorized by the configured email provider. With Resend, authorizing `pool.example.com` does not authorize `example.com`, and vice versa. See [EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md) for the sender setup checklist.
+- The domain in `platform.pledges_email_from` and `platform.updates_email_from` must be authorized by the configured email provider. With Resend, authorizing `pool.example.com` does not authorize `example.com`, and vice versa. See [EMAIL.md](/docs/operations/email-system/) for the sender setup checklist.
 
 Example:
 
@@ -294,13 +294,14 @@ Current SEO fundamentals are intentionally bounded. Forks should treat these as 
 - `platform.default_social_image_path`
 - localized page `title` / `description` front matter on public pages
 - campaign `title`, `short_blurb`, and hero images
+- optional authored `published_at` and `last_modified_at` front matter for campaign article dates, plus `last_modified_at` on any sitemap entry that should publish a freshness hint
 
 That surface currently controls:
 
 - canonical URLs
 - meta descriptions
 - Open Graph and Twitter previews
-- sitemap URL generation
+- shared XML/text sitemap URL generation; `robots.txt` advertises only the canonical XML sitemap
 - site-wide `Organization` / `WebSite` JSON-LD
 - campaign `CreativeWork` / breadcrumb JSON-LD
 - fallback social-image alt text
@@ -309,7 +310,7 @@ That surface currently controls:
 The implementation is deliberately narrow:
 
 - private/tokenized/supporter-only flows are marked `noindex`
-- `robots.txt` and `sitemap.xml` only advertise the public surface
+- `robots.txt`, `sitemap.xml`, and its generated `sitemap.txt` diagnostic only expose the same public surface
 - there is no giant per-page SEO settings matrix beyond the content fields the site already supports
 
 Example:
@@ -698,7 +699,7 @@ Supported key today:
 
 The first-party cart runtime and on-site custom checkout flow are treated as built-in platform behavior, not as fork-facing mode switches.
 
-Use [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md) for Stripe secret setup, webhook configuration, local test-mode checkout, settlement behavior, and reconciliation operations.
+Use [PAYMENT_PROCESSOR.md](/docs/operations/payment-processor/) for Stripe secret setup, webhook configuration, local test-mode checkout, settlement behavior, and reconciliation operations.
 
 ### `cache`
 
@@ -863,7 +864,7 @@ npm run sync:worker-config
 
 That command syncs the Worker-mirrored values in [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) from `_config.yml` and `_config.local.yml`.
 
-It does not write Worker secrets, media files, or generated optimization outputs. USPS OAuth secrets, Stripe secret keys, Resend keys, ZIP.TAX keys, Turnstile secrets, GitHub tokens, and Cloudflare deploy credentials still belong in Worker secrets, GitHub repository secrets, or ignored local env files. The Stripe and Resend runbooks are [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md) and [EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md).
+It does not write Worker secrets, media files, or generated optimization outputs. USPS OAuth secrets, Stripe secret keys, Resend keys, ZIP.TAX keys, Turnstile secrets, GitHub tokens, and Cloudflare deploy credentials still belong in Worker secrets, GitHub repository secrets, or ignored local env files. The Stripe and Resend runbooks are [PAYMENT_PROCESSOR.md](/docs/operations/payment-processor/) and [EMAIL.md](/docs/operations/email-system/).
 
 Launch reminders have one public setting and one secret boundary:
 
@@ -893,7 +894,7 @@ The platform now supports major customization without custom code, but not every
 
 Still code-level today:
 
-- adding new payment providers or checkout modes beyond the Stripe model documented in [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md)
+- adding new payment providers or checkout modes beyond the Stripe model documented in [PAYMENT_PROCESSOR.md](/docs/operations/payment-processor/)
 - changing supported embed providers
 - expanding CSP allowlists for arbitrary external hosts
 - changing Stripe-owned field styling beyond the supported design-token bridge and Stripe’s appearance API

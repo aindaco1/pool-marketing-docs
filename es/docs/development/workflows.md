@@ -10,11 +10,11 @@ lang: es
 
 ## Última actualización
 
-5 de julio de 2026
+16 de julio de 2026
 
-The Pool utiliza un **sistema de gestión de promesas basado en correo electrónico y sin cuenta**. Los patrocinadores guardan un método de pago a través de Stripe en el paso de pago en el sitio de The Pool, administran las promesas a través de enlaces mágicos con alcance de pedido y solo se les cobra si la campaña está financiada.
+The Pool utiliza un **sistema de gestión de aportes basado en correo electrónico y sin cuenta**. Los patrocinadores guardan un método de pago a través de Stripe en el paso de pago en el sitio de The Pool, administran los aportes a través de enlaces mágicos con alcance de pedido y solo se les cobra si la campaña está financiada.
 
-Para la configuración, las operaciones del procesador y la conciliación, utilice [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md). Para la configuración del remitente, los tipos de correo electrónico, la localización y el comportamiento de entrega, utilice [EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md).
+Para la configuración, las operaciones del procesador y la conciliación, utilice [PAYMENT_PROCESSOR.md](/es/docs/operations/payment-processor/). Para instantáneas clasificadas, pedidos de recuperación y puertas de restauración, utilice [BACKUP_RESTORE.md](/es/docs/operations/backup-restore/). Para la configuración del remitente, los tipos de correo electrónico, la localización y el comportamiento de entrega, utilice [EMAIL.md](/es/docs/operations/email-system/).
 
 ## Diferenciadores clave
 
@@ -36,7 +36,7 @@ upcoming → live → post
 |Estado|experiencia de usuario|Acciones|
 |-------|-----|---------|
 |`upcoming`|Botones deshabilitados, "Próximamente"|Cuenta regresiva para el lanzamiento, registro de recordatorio de lanzamiento único opcional|
-|`live`|Botones de compromiso activos|Tarjetas guardadas a través del paso de pago Stripe en el sitio de The Pool|
+|`live`|Botones de aporte activos|Tarjetas guardadas a través del paso de pago Stripe en el sitio de The Pool|
 |`post`|Campaña cerrada|Cargos procesados (si están financiados)|
 
 ---
@@ -47,13 +47,13 @@ upcoming → live → post
 |-----------|------|
 |**Carrito propio**|Interfaz de usuario del carrito propiedad del navegador y estado de revisión del pago|
 |**Raya**|Sesiones de pago en modo de configuración (paso de pago personalizado en el sitio) + PaymentIntents (cobrar más tarde)|
-|**Trabajador de Cloudflare**|Backend: pago, webhooks, almacenamiento de promesas (KV), lecturas en vivo combinadas, estadísticas, programador de liquidación automática|
+|**Trabajador de Cloudflare**|Backend: pago, webhooks, almacenamiento de aportes (KV), lecturas en vivo combinadas, estadísticas, programador de liquidación automática|
 |**Jekyll**|Páginas estáticas + rebajas de campaña|
-|**Panel de administración**|Espacio de trabajo privado del navegador para configuraciones, campañas, complementos, informes, análisis, seguidores, enlaces de marketing y usuarios.|
+|**Panel de administración**|Espacio de trabajo privado del navegador para configuraciones, campañas, complementos, informes, análisis, patrocinadores, enlaces de marketing y usuarios.|
 
 ---
 
-## Ciclo de vida de la promesa
+## Ciclo de vida del aporte
 
 ```
 1. BROWSE     → Visitor views campaign, adds tier to the first-party cart, adjusts optional tip
@@ -69,20 +69,20 @@ upcoming → live → post
 
 ---
 
-## Almacenamiento de promesas (Cloudflare KV)
+## Almacenamiento de aportes (Cloudflare KV)
 
-Las promesas se almacenan en Cloudflare KV. Patrones clave:
+los aportes se almacenan en Cloudflare KV. Patrones clave:
 
 |Llave|Contenido|
 |-----|----------|
-|`pledge:{orderId}`|Datos completos del compromiso (correo electrónico, monto, nivel, ID de Stripe, estado, historial)|
+|`pledge:{orderId}`|Datos completos del aporte (correo electrónico, monto, nivel, ID de Stripe, estado, historial)|
 |`email:{email}`|Conjunto de ID de pedido para ese correo electrónico|
-|`stats:{campaignSlug}`|Totales agregados (monto prometido, recuento de promesas, recuentos de niveles, artículos de soporte)|
+|`stats:{campaignSlug}`|Totales agregados (monto prometido, recuento de aportes, recuentos de niveles, artículos de soporte)|
 |`tier-inventory:{campaignSlug}`|Recuento de reclamaciones para niveles limitados|
-|`campaign-pledges:{campaignSlug}`|Índice de promesas de campaña para informes, acuerdos, reconstrucciones y lecturas administrativas|
+|`campaign-pledges:{campaignSlug}`|Índice de aportes de campaña para informes, acuerdos, reconstrucciones y lecturas administrativas|
 |`pending-extras:{orderId}`|Almacenamiento temporal de artículos de soporte/cantidad personalizada durante el pago|
 |`pending-tiers:{orderId}`|Almacenamiento temporal para niveles adicionales cuando los metadatos de Stripe sean demasiado grandes|
-|`checkout-intent:{orderId}`|Carga útil de pago canonicalizada utilizada para promover el pago combinado en promesas de campaña|
+|`checkout-intent:{orderId}`|Carga útil de pago canonicalizada utilizada para promover el pago combinado en aportes de campaña|
 |`launch-reminder:{campaignSlug}:{emailHash}`|Registro de recordatorio de próxima campaña y metadatos de suscripción|
 |`launch-reminder-suppressed:{campaignSlug}:{emailHash}`|Marcador de cancelación de suscripción de recordatorio relacionado con la campaña|
 |`launch-reminder-sent:{campaignSlug}:{emailHash}`|Recordatorio de lanzamiento enviar marcador de idempotencia|
@@ -104,7 +104,7 @@ Las promesas se almacenan en Cloudflare KV. Patrones clave:
 
 Las reservas de nivel escaso y el estado de reclamo comprometido ahora se encuentran en el coordinador de objetos duraderos por campaña en lugar de en KV. `tier-inventory:{campaignSlug}` sigue siendo la proyección pública utilizada por `/inventory/:slug` y `/live/:slug`.
 
-**Registro de compromiso:**
+**Registro de aporte:**
 ```json
 {
   "orderId": "pledge-1234567890-abc123",
@@ -135,12 +135,13 @@ Las reservas de nivel escaso y el estado de reclamo comprometido ahora se encuen
 **Artículos de soporte y montos personalizados:**
 - `supportItems` — Matriz de `{ id, amount }` para contribuciones de la fase de producción
 - `customAmount` — Monto en dólares para adiciones de soporte personalizado "sin recompensa"
-- `additionalTiers`: conjunto de `{ id, qty }` para promesas de varios niveles (cuando `single_tier_only: false`)
+- `additionalTiers`: conjunto de `{ id, qty }` para aportes de varios niveles (cuando `single_tier_only: false`)
 - `tipPercent` / `tipAmount`: la sugerencia opcional de la plataforma Pool se almacena por separado del subtotal de la campaña
-- Los pagos agrupados de varias campañas se conservan como registros de compromiso separados, uno por campaña.
+- Los pagos agrupados de varias campañas se conservan como registros de aporte separados, uno por campaña.
+- Las variantes complementarias pueden anular el precio base del producto. Worker resuelve los precios del catálogo actual para selecciones nuevas o modificadas, mientras que un producto/variante persistente sin cambios conserva su `bundleAddOns.unitPrice` guardado a través de ediciones de solo cantidad; Los informes y correos electrónicos utilizan ese valor histórico guardado.
 
 **Entradas del historial:**
-Cada entrada del historial rastrea un evento de compromiso con contexto completo:
+Cada entrada del historial rastrea un evento de aporte con contexto completo:
 - `type` — `created`, `modified` o `cancelled`
 - `subtotal` / `subtotalDelta`: importe antes de impuestos (o delta para modificaciones)
 - `tipAmount` / `tipAmountDelta` — Cantidad de propina de la plataforma (o delta)
@@ -154,7 +155,7 @@ Cada entrada del historial rastrea un evento de compromiso con contexto completo
 
 **Valores de estado:** `active`, `cancelled`, `charged`, `payment_failed`
 
-Las promesas cobradas también pueden contener metadatos financieros de Stripe:
+los aportes cobradas también pueden contener metadatos financieros de Stripe:
 
 - `stripePaymentIntentId`
 - `stripeChargeId`
@@ -164,7 +165,7 @@ Las promesas cobradas también pueden contener metadatos financieros de Stripe:
 - `stripeFinancials.feeAmount`
 - `stripeFinancials.netAmount`
 
-Dashboard Analytics prefiere esos valores reales/netos para las promesas cobradas y recurre a estimaciones solo para las promesas activas o filas cobradas más antiguas que no se han completado.
+Dashboard Analytics prefiere esos valores reales/netos para los aportes cobradas y recurre a estimaciones solo para los aportes activos o filas cobradas más antiguas que no se han completado.
 
 ---
 
@@ -188,9 +189,21 @@ Tokens sin estado firmados por HMAC (no se necesita base de datos):
 1. Decodificar y verificar firma
 2. Verificar vencimiento
 3. Resolver el `orderId` autorizado
-4. Obtenga el compromiso de KV y verifique el correo electrónico + la campaña
+4. Obtenga el aporte de KV y verifique el correo electrónico + la campaña
 
-Cada token sólo autoriza su propio pedido. Un enlace válido ya no otorga acceso a todo el correo electrónico a cada compromiso en la misma dirección, y un token válido sin un compromiso de respaldo real ahora falla al cerrarse en lugar de devolver un marcador de posición sintético.
+Cada token sólo autoriza su propio pedido. Un enlace válido ya no otorga acceso a todo el correo electrónico a cada aporte en la misma dirección, y un token válido sin un aporte de respaldo real ahora falla al cerrarse en lugar de devolver un marcador de posición sintético.
+
+## Límites de confianza de los patrocinadores
+
+El ciclo de vida del aporte debe seguir siendo comprensible para un patrocinador que nunca lee el código. Utilice [ETHICAL_RISK.md](/es/docs/development/ethical-risk-review/) cuando un cambio en el flujo de trabajo afecte la recopilación de datos, el dinero, los recordatorios, la visibilidad de la campaña, el poder administrativo o el intercambio público.
+
+Reglas de flujo de trabajo sensibles a la confianza:
+
+- La interfaz de usuario del navegador puede obtener una vista previa y explicar el estado, pero Worker debe canonicalizar el dinero, el inventario, los permisos y la persistencia.
+- Los patrocinadores deberían poder distinguir los impuestos/envíos estimados de los finales, el borrador del aporte comprometido, las campañas activas de las cerradas y los recordatorios de registro de los pasos de pago requeridos.
+- Los recordatorios por correo electrónico y las actualizaciones de campañas deben tener un alcance voluntario o comprometido, desduplicados, suprimibles cuando corresponda y enviados a través de rutas de prueba.
+- Las rutas privadas, tokenizadas, de vista previa, de administrador y solo para patrocinadores no deben convertirse en objetivos indexables, captados previamente o de tarjeta compartida.
+- Los flujos de trabajo masivos o automatizados deben tener lotes delimitados, registros de auditoría, idempotencia y evidencia del operador antes de envíos en vivo o mutaciones.
 
 ---
 
@@ -199,7 +212,7 @@ Cada token sólo autoriza su propio pedido. Un enlace válido ya no otorga acces
 ### `POST /checkout-intent/start`
 Cree una sesión de pago de Stripe en modo de configuración desde el estado del carrito propio para el paso de pago en el sitio.
 
-La integración completa del procesador de pagos, incluido el pago en modo de configuración, la persistencia del webhook, la recuperación, la liquidación y el reabastecimiento financiero de Stripe, está documentada en [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md).
+La integración completa del procesador de pagos, incluido el pago en modo de configuración, la persistencia del webhook, la recuperación, la liquidación y el reabastecimiento financiero Stripe, está documentada en [PAYMENT_PROCESSOR.md](/es/docs/operations/payment-processor/).
 
 **Pedido:**
 ```json
@@ -223,13 +236,13 @@ Si se selecciona el pago personalizado pero el entorno actual no tiene una clave
 3. El trabajador valida el estado de la campaña, las reglas de un solo nivel, los umbrales y la disponibilidad de los niveles escasos.
 4. Para niveles limitados, el trabajador reserva un inventario escaso a través del coordinador por campaña, luego almacena cualquier metadato de nivel desbordado/elemento de soporte en KV temporal (`pending-tiers:*`, `pending-extras:*`) y crea una sesión de pago de Stripe en modo de configuración.
 5. En el modo de interfaz de usuario personalizado, el segundo sidecar de pago existente monta una interfaz de usuario de pago segura de Stripe en el sitio; Los pagos físicos también capturan los detalles de envío durante ese paso.
-6. El trabajador trata la persistencia del webhook como la fuente de la verdad, con una ruta de recuperación propia disponible para casos locales o de finalización retrasada, de modo que el sidecar no afirme haber tenido éxito antes de que el compromiso realmente persista.
-7. En caso de persistencia, el trabajador recupera los metadatos temporales, extrae los detalles de envío de Stripe, calcula `subtotal + tax + shipping + tip`, persiste un compromiso por campaña y confirma cualquier reserva de nivel limitado retenida a través del coordinador de objetos duraderos por campaña.
+6. El trabajador trata la persistencia del webhook como la fuente de la verdad, con una ruta de recuperación propia disponible para casos locales o de finalización retrasada, de modo que el sidecar no afirme haber tenido éxito antes de que el aporte realmente persista.
+7. En caso de persistencia, el trabajador recupera los metadatos temporales, extrae los detalles de envío de Stripe, calcula `subtotal + tax + shipping + tip`, persiste un aporte por campaña y confirma cualquier reserva de nivel limitado retenida a través del coordinador de objetos duraderos por campaña.
 8. Una vez que la persistencia tiene éxito, el cliente invalida los cachés de estadísticas en vivo de la campaña y escribe un marcador de actualización de corta duración para que las pestañas restauradas y las cargas de páginas de seguimiento obtengan totales nuevos.
 
 Las decisiones de disponibilidad de nivel limitado ahora provienen del estado consciente de la reserva del coordinador en las rutas de escritura, mientras que `/inventory/:slug` y `/live/:slug` continúan leyendo solo la proyección KV pública.
 
-El Trabajador no confía en los nombres de niveles, cantidades, cantidades de artículos de soporte enviados por el cliente o `amountCents`. `/checkout-intent/start` ahora reserva un inventario escaso antes de que se complete el paso de pago, y la persistencia confirma esas reservas. Las campañas más antiguas no necesitan un trabajo de migración porque el inventario reclamado puede reconstruirse a partir de la verdad del compromiso, y la persistencia exitosa aún puede recurrir a un nuevo reclamo de coordinador si no existe una reserva preexistente.
+El Trabajador no confía en los nombres de niveles, cantidades, cantidades de artículos de soporte enviados por el cliente o `amountCents`. `/checkout-intent/start` ahora reserva un inventario escaso antes de que se complete el paso de pago, y la persistencia confirma esas reservas. Las campañas más antiguas no necesitan un trabajo de migración porque el inventario reclamado puede reconstruirse a partir de la verdad del aporte, y la persistencia exitosa aún puede recurrir a un nuevo reclamo de coordinador si no existe una reserva preexistente.
 
 ## Seguridad en la representación de contenidos
 
@@ -241,23 +254,23 @@ El Trabajador no confía en los nombres de niveles, cantidades, cantidades de ar
 Manejar `checkout.session.completed`:
 - Extraiga `payment_method` y `customer` de SetupIntent
 - Obtenga `supportItems`, `customAmount` y niveles adicionales de KV temporal cuando sea necesario
-- Almacene un compromiso por campaña en KV con estado `active` (incluye artículos de soporte, monto personalizado, tarifa de envío, propina y dirección de envío)
+- Almacene un aporte por campaña en KV con estado `active` (incluye artículos de soporte, monto personalizado, tarifa de envío, propina y dirección de envío)
 - Actualizar estadísticas en vivo (monto prometido, tierCounts, artículos de soporte)
-- Confirme las reservas retenidas de nivel limitado o reclame a través del coordinador serializado si el compromiso es anterior al inicio del pago con conocimiento de la reserva.
+- Confirme las reservas retenidas de nivel limitado o reclame a través del coordinador serializado si el aporte es anterior al inicio del pago con conocimiento de la reserva.
 - Generar token de enlace mágico
-- Enviar correos electrónicos de confirmación de seguidores específicos de la campaña
+- Enviar correos electrónicos de confirmación de patrocinadores específicos de la campaña
 
-La idempotencia del webhook se confirma solo después de una persistencia exitosa del compromiso, de modo que las fallas transitorias puedan volver a intentarlo de manera segura.
+La idempotencia del webhook se confirma solo después de una persistencia exitosa del aporte, de modo que las fallas transitorias puedan volver a intentarlo de manera segura.
 
 ### `GET /pledges?token=...`
-Lea la colección de compromisos disponible para una sesión de enlace mágico.
+Lea la colección de aportes disponible para una sesión de enlace mágico.
 
 **Comportamiento actual:** un token devuelve solo su propio pedido autorizado.
 
 ### `GET /pledge?token=...`
-Lea los detalles del compromiso para la página de administración de enlaces mágicos.
+Lea los detalles del aporte para la página de administración de enlaces mágicos.
 
-Si el token es válido pero su registro de compromiso ya no existe, esta ruta devuelve `404` en lugar de sintetizar un compromiso de marcador de posición.
+Si el token es válido pero su registro de aporte ya no existe, esta ruta devuelve `404` en lugar de sintetizar un aporte de marcador de posición.
 
 **Respuesta:**
 ```json
@@ -283,7 +296,7 @@ Si el token es válido pero su registro de compromiso ya no existe, esta ruta de
 - `deadlinePassed`: `true` si la fecha límite de la campaña ha pasado en la zona horaria de la plataforma
 
 ### `POST /pledge/cancel`
-Cancelar un compromiso activo.
+Cancelar un aporte activo.
 
 **Solicitud:** `{ token }`
 **Validación:**
@@ -291,9 +304,9 @@ Cancelar un compromiso activo.
 - Rechaza si ha pasado el plazo de campaña
 
 **Acciones:**
-1. Marcar compromiso como cancelado en KV, actualizar estadísticas, lanzar inventario de nivel
+1. Marcar aporte como cancelado en KV, actualizar estadísticas, lanzar inventario de nivel
 2. Enviar correo electrónico de confirmación de cancelación
-3. Si no quedan compromisos activos para este correo electrónico/campaña → borre el mapeo `email:{email}` de KV (revoca el acceso a la comunidad)
+3. Si no quedan aportes activos para este correo electrónico/campaña → borre el mapeo `email:{email}` de KV (revoca el acceso a la comunidad)
 
 ### `POST /pledge/modify`
 Cambiar nivel o cantidad.
@@ -303,9 +316,9 @@ Cambiar nivel o cantidad.
 - Rechaza si se cobra prenda
 - Rechazo si la fecha límite de la campaña ha pasado (mediante verificación `isCampaignLive`)
 - Se rechaza si `orderId` no coincide con el pedido autorizado del token.
-- Reconstruye los totales a partir del estado de compromiso almacenado más las definiciones de campaña en lugar de confiar en los campos de dinero del cliente.
+- Reconstruye los totales a partir del estado de aporte almacenado más las definiciones de campaña en lugar de confiar en los campos de dinero del cliente.
 
-**Acción:** Actualizar el compromiso en KV, ajustar el delta de estadísticas, intercambiar niveles de inventario
+**Acción:** Actualizar el aporte en KV, ajustar el delta de estadísticas, intercambiar niveles de inventario
 
 ### `POST /pledge/payment-method/start`
 Actualizar el método de pago guardado.
@@ -316,14 +329,14 @@ Actualizar el método de pago guardado.
 - reserva alojada: `{ checkoutUiMode: "hosted", url }`
 
 **Flujo de datos:**
-1. Manage Pledge valida el token de enlace mágico y el estado de compromiso activo
+1. Manage Pledge valida el token de enlace mágico y el estado de aporte activo
 2. El trabajador crea una sesión de pago de Stripe en modo de configuración para actualizar el método de pago
 3. En el modo personalizado, el modo Tarjeta de actualización existente monta la interfaz de usuario de pago seguro de Stripe en el sitio
 4. El trabajador mantiene la persistencia del webhook como fuente de verdad, con la misma ruta protegida de finalización y recuperación disponible para la entrega retrasada del webhook local.
-5. Si tiene éxito, el registro de compromiso se actualiza al método de pago recién guardado y los reintentos de `payment_failed` pueden cobrar nuevamente inmediatamente.
+5. Si tiene éxito, el registro de aporte se actualiza al método de pago recién guardado y los reintentos de `payment_failed` pueden cobrar nuevamente inmediatamente.
 
 ### `GET /stats/:campaignSlug`
-Obtenga estadísticas de compromisos en vivo para una campaña.
+Obtenga estadísticas de aportes en vivo para una campaña.
 
 ### `GET /live/:campaignSlug`
 Obtenga la instantánea pública combinada en vivo de una campaña.
@@ -356,7 +369,7 @@ Las páginas de campaña y la interfaz de usuario de Manage Pledge prefieren est
 ```
 
 ### `POST /stats/:campaignSlug/recalculate`
-Vuelva a calcular las estadísticas de todas las promesas en KV (solo administrador).
+Vuelva a calcular las estadísticas de todas los aportes en KV (solo administrador).
 
 **Encabezados:** `Authorization: Bearer ADMIN_SECRET`
 
@@ -387,16 +400,16 @@ La ruta del navegador requiere una sesión de panel, comprobaciones de origen/CS
 
 ### Ayudantes del panel de marketing
 
-El rendimiento de referencias y UTM se encuentra en `GET /admin/analytics`, que lee los índices de promesas de campaña y devuelve referencias más desgloses de fuente/medio/campaña/contenido UTM sin enumerar la verdad de las promesas. Los índices de campaña que faltan generan un aviso de Analytics sin bloqueo en lugar de un error en la pestaña Marketing.
+El rendimiento de referencias y UTM se encuentra en `GET /admin/analytics`, que lee los índices de aportes de campaña y devuelve referencias más desgloses de fuente/medio/campaña/contenido UTM sin enumerar la verdad de los aportes. Los índices de campaña que faltan generan un aviso de Analytics sin bloqueo en lugar de un error en la pestaña Marketing.
 
 `GET /admin/marketing/draft?campaignSlug=...&surface=marketing|blast`, `POST /admin/marketing/draft` y `DELETE /admin/marketing/draft` cargan, guardan y borran borradores compartidos explícitos. Los borradores escritos tienen un alcance de campaña, caducan después de 7 días y llevan un token de revisión, por lo que los guardados obsoletos devuelven un conflicto.
 
 `GET /admin/media/library?campaignSlug=...` enumera las imágenes de campaña existentes para bloques de imágenes WYSIWYG. Los usuarios de la campaña solo ven los medios de la campaña asignados; Los superadministradores también pueden elegir imágenes compartidas/predeterminadas. El selector lee los directorios de GitHub y no crea el estado KV.
 
-`GET /admin/abandoned-checkout/health?campaignSlug=...` lee el estado agregado del recordatorio de pago abandonado sin operaciones de lista KV. Los resultados de la supresión creados por el administrador incluyen el correo electrónico suprimido para que el panel pueda mostrar y borrar esas filas. `POST` y `DELETE /admin/abandoned-checkout/suppression` establecen o borran explícitamente supresiones de recordatorios en el ámbito de la campaña con CSRF, identificadores de correo electrónico con hash, eventos de auditoría y escrituras KV limitadas. Los enlaces de reanudación de recordatorio firmados leen `abandoned-cart-resume:{orderId}` y restauran una instantánea de pago del navegador desinfectada para que los seguidores puedan iniciar una nueva sesión de Stripe desde el mismo contexto de campaña/carrito.
+`GET /admin/abandoned-checkout/health?campaignSlug=...` lee el estado agregado del recordatorio de pago abandonado sin operaciones de lista KV. Los resultados de la supresión creados por el administrador incluyen el correo electrónico suprimido para que el panel pueda mostrar y borrar esas filas. `POST` y `DELETE /admin/abandoned-checkout/suppression` establecen o borran explícitamente supresiones de recordatorios en el ámbito de la campaña con CSRF, identificadores de correo electrónico con hash, eventos de auditoría y escrituras KV limitadas. Los enlaces de reanudación de recordatorio firmados leen `abandoned-cart-resume:{orderId}` y restauran una instantánea de pago del navegador desinfectada para que los patrocinadores puedan iniciar una nueva sesión de Stripe desde el mismo contexto de campaña/carrito.
 
 ### `POST /admin/broadcast/announcement`
-Punto final de operador secreto compartido heredado para un correo electrónico de anuncio personalizado con un enlace CTA opcional para todos los partidarios de la campaña.
+Punto final de operador secreto compartido heredado para un correo electrónico de anuncio personalizado con un enlace CTA opcional para todos los patrocinadores de la campaña.
 
 **Encabezados:** `Authorization: Bearer ADMIN_BROADCAST_SECRET` cuando está configurado, de lo contrario `Authorization: Bearer ADMIN_SECRET`
 **Pedido:**
@@ -434,8 +447,8 @@ Flujos primarios:
 - **Configuración -> Usuarios** guarda directamente en Worker KV en `admin-users:v1`.
 - Los códigos de referencia guardados y los borradores compartidos de Marketing/Blast se guardan en KV con alcance de campaña solo cuando se guardan o borran explícitamente.
 - **Análisis** informes de atribución y **Marketing** estado de pago abandonado leen datos indexados/agregados sin escaneos de espacios de nombres KV.
-- **Informes** muestra una vista previa de las filas de promesas/cumplimiento y descarga archivos CSV; no envía correos electrónicos y no marca informes como enviados.
-- **Analytics** utiliza datos netos y de tarifas de Stripe reales almacenados cuando están disponibles y expone un reabastecimiento de superadministrador para promesas cobradas más antiguas.
+- **Informes** muestra una vista previa de las filas de aportes/cumplimiento y descarga archivos CSV; no envía correos electrónicos y no marca informes como enviados.
+- **Analytics** utiliza datos netos y de tarifas de Stripe reales almacenados cuando están disponibles y expone un reabastecimiento de superadministrador para aportes cobradas más antiguas.
 - Los medios del editor de contenido cargan archivos provisionales localmente, los cargan en publicación o envío masivo y confirman activos conservados en origen a través de la ruta respaldada por GitHub; Las cargas de imágenes/videos luego solicitan el flujo de trabajo `Optimize dashboard media` con `scope=changed` para compresión de imágenes, variantes WebP responsivas (`320w`, `480w`, `640w`, `960w`, `1600w`) y derivados de video. Los bloques de imágenes también pueden elegir imágenes de campaña existentes desde un selector de medios de solo lectura con alcance. Publicar también elimina los medios propiedad del panel de la misma campaña que desaparecieron de los bloques de contenido o eliminaron las entradas del diario y no se hace referencia a ellos en ninguna otra parte de la campaña.
 - **Secretos y credenciales** informes configurados/estado faltante únicamente; no expone ni almacena valores secretos.
 
@@ -497,19 +510,19 @@ Detalle de campaña con botones de nivel → cajón del carrito propio
 Página de éxito posterior a la persistencia con confirmación + enlace de administración
 
 ### `/campaigns/:slug/pledge-cancel/`
-El usuario abandonó el paso de pago antes de completarlo (no el compromiso en sí)
+El usuario abandonó el paso de pago antes de completarlo (no el aporte en sí)
 
 ### `/manage/`
-Página de inicio del enlace mágico para la gestión de promesas:
+Página de inicio del enlace mágico para la gestión de aportes:
 - Lee el token `?t=...`
-- Obtiene detalles del compromiso del trabajador
-- Muestra tarjetas de compromiso con interfaz de usuario dependiente del estado.
+- Obtiene detalles del aporte del trabajador
+- Muestra tarjetas de aporte con interfaz de usuario dependiente del estado.
 - Agrupa proyectos en secciones **Activo** y **Cerrado**
 - Ordena las tarjetas activas primero con las campañas más recientes
-- Muestra el desglose completo: subtotal, propina opcional de The Pool, impuesto sobre las ventas configurado y monto de envío almacenado para la promesa, más el total.
+- Muestra el desglose completo: subtotal, propina opcional de The Pool, impuesto sobre las ventas configurado y monto de envío almacenado para el aporte, más el total.
 - Lee etiquetas de precios y tarifas de la configuración compartida para que la interfaz de usuario del carrito, los totales de trabajadores, los correos electrónicos y los informes permanezcan alineados para las bifurcaciones.
 
-**Estados de la tarjeta de compromiso:**
+**Estados de la tarjeta de aporte:**
 
 |Estado|Tratamiento de la IU|
 |--------|-------------|
@@ -517,24 +530,24 @@ Página de inicio del enlace mágico para la gestión de promesas:
 |`active` + fecha límite pasada|Insignia bloqueada + aviso bloqueado, controles de contribución de solo lectura, solo "Tarjeta de actualización"|
 |`charged`|Tarjeta silenciada, aviso " ✓ Cargado exitosamente el {fecha}"|
 |`payment_failed`|Aviso de advertencia con el botón "Actualizar método de pago"|
-|`cancelled`|Aviso "Este compromiso ha sido cancelado"|
+|`cancelled`|Aviso "Este aporte ha sido cancelado"|
 
 **Envío en flujo de modificación:** Cuando un colaborador cambia niveles o artículos de soporte físico, la página de administración recalcula dinámicamente el envío. Las selecciones físicas pueden utilizar cotizaciones en vivo respaldadas por USPS, tarifas alternativas configuradas, anulaciones de envío gratuito y actualizaciones limitadas de opciones de firma nacionales. El modal de confirmación muestra el envío actualizado y el total antes de que el usuario confirme.
 
-**Sugerencia para modificar el flujo:** La página de administración muestra el mismo control deslizante de propina del 0% al 15%. Durante las campañas en vivo, los seguidores pueden ajustarlo y ver la actualización del subtotal/propina/impuestos/envío/total inmediatamente. Una vez que pasa la fecha límite, el control deslizante de propinas pasa a ser de solo lectura junto con el resto de los controles de contribución.
+**Sugerencia para modificar el flujo:** La página de administración muestra el mismo control deslizante de propina del 0% al 15%. Durante las campañas en vivo, los patrocinadores pueden ajustarlo y ver la actualización del subtotal/propina/impuestos/envío/total inmediatamente. Una vez que pasa la fecha límite, el control deslizante de propinas pasa a ser de solo lectura junto con el resto de los controles de contribución.
 
-**Modo de desarrollo:** Agregue `?dev` a la URL para realizar pruebas simuladas de datos de compromiso
+**Modo de desarrollo:** Agregue `?dev` a la URL para realizar pruebas simuladas de datos de aporte
 
 ### `/community/:slug/`
-Página de la comunidad exclusiva para seguidores:
+Página de la comunidad exclusiva para patrocinadores:
 - Siempre verifica con Worker API (no confía únicamente en las cookies)
 - En caso de éxito: establece una cookie `supporter_{slug}` no confidencial para la optimización de UX y almacena el token de portador sin formato solo en `sessionStorage`.
-- En caso de error (compromiso cancelado, token caducado): borra el estado del token de sesión, muestra acceso denegado CTA
+- En caso de error (aporte cancelado, token caducado): borra el estado del token de sesión, muestra acceso denegado CTA
 - Muestra decisiones de votación/encuesta exclusivas de los patrocinadores.
-- La API `/votes` devuelve 403 para promesas canceladas (acceso de doble verificación)
+- La API `/votes` devuelve 403 para aportes cancelados (acceso de doble verificación)
 - `/votes` solo acepta ID de decisión definidos por la campaña y valores de opciones definidos por la campaña.
 - Las decisiones cerradas siguen siendo legibles pero rechazan nuevos votos
-- Los votos se ingresan por **correo electrónico** (no por ID de pedido): los partidarios con múltiples promesas aún obtienen un voto por decisión.
+- Los votos se ingresan por **correo electrónico** (no por ID de pedido): los patrocinadores con múltiples aportes aún obtienen un voto por decisión.
 
 ---
 
@@ -565,30 +578,30 @@ El programador tiene en cuenta intencionadamente los niveles gratuitos. Las cola
 El punto final `settle-dispatch` maneja el cobro real en lotes para permanecer dentro del límite de 50 subsolicitudes de CF Worker:
 
 1. Reclama el bloqueo de objetos duraderos `SETTLEMENT_COORDINATOR` de la campaña.
-2. Lee el índice de compromiso de campaña (`campaign-pledges:{slug}` en KV)
+2. Lee el índice de aporte de campaña (`campaign-pledges:{slug}` en KV)
 3. Inicializa un trabajo de liquidación (`settlement-job:{slug}`) que sigue el progreso.
-4. Procesa 6 promesas de la misma campaña por lote a través de `POST /admin/settle-batch`
-5. Se autoinvoca para el siguiente lote hasta que se procesen todos los compromisos, reenviando al mismo propietario del bloqueo
+4. Procesa 6 aportes de la misma campaña por lote a través de `POST /admin/settle-batch`
+5. Se autoinvoca para el siguiente lote hasta que se procesen todos los aportes, reenviando al mismo propietario del bloqueo
 6. Cada lote es una invocación de trabajador separada con su propio presupuesto de subsolicitud
-7. **Agrega promesas por correo electrónico**: cada partidario recibe UN cargo por campaña
-8. Utiliza una clave de idempotencia determinista de Stripe por grupo de carga de campaña/partidario
-9. Al finalizar, establece `campaign-charged:{slug}` solo cuando ningún compromiso activo todavía necesita atención.
+7. **Agrega aportes por correo electrónico**: cada patrocinador recibe UN cargo por campaña
+8. Utiliza una clave de idempotencia determinista de Stripe por grupo de carga de campaña/patrocinador
+9. Al finalizar, establece `campaign-charged:{slug}` solo cuando ningún aporte activo todavía necesita atención.
 
-**Índice de compromiso de campaña:**
+**Índice de aporte de campaña:**
 
 Se mantiene automáticamente una serie de ID de pedido por campaña (`campaign-pledges:{slug}`):
-- Agregado en la creación de promesas (webhook) y recuperación (`/admin/recover-checkout`)
-- Eliminado al cancelar el compromiso
+- Agregado en la creación de aportes (webhook) y recuperación (`/admin/recover-checkout`)
+- Eliminado al cancelar el aporte
 - Se puede reconstruir: `POST /admin/campaign-index/rebuild/:slug`
-- Las estadísticas y el recálculo de inventario ahora también reparan índices obsoletos si la matriz almacenada ya no coincide con los registros de compromiso activos.
+- Las estadísticas y el recálculo de inventario ahora también reparan índices obsoletos si la matriz almacenada ya no coincide con los registros de aporte activos.
 - La deriva ahora se puede verificar sin mutación a través de `POST /stats/:slug/check` o `POST /admin/projections/check`
 
 **Comportamientos clave:**
-- Los compromisos cancelados nunca se cobran
-- Varias promesas del mismo correo electrónico = un cargo agregado (subtotales + envío + impuestos + propina sumada)
-- Los carritos de múltiples campañas siguen siendo compatibles porque la persistencia del pago crea un registro de compromiso por campaña; los bloqueos y lotes de liquidación tienen un alcance de campaña y rechazan lotes de campaña mixta
-- Utiliza el método de pago actualizado más recientemente para cada partidario
-- Las promesas ya cobradas se omiten de forma segura (idempotentes)
+- Los aportes cancelados nunca se cobran
+- Varias aportes del mismo correo electrónico = un cargo agregado (subtotales + envío + impuestos + propina sumada)
+- Los carritos de múltiples campañas siguen siendo compatibles porque la persistencia del pago crea un registro de aporte por campaña; los bloqueos y lotes de liquidación tienen un alcance de campaña y rechazan lotes de campaña mixta
+- Utiliza el método de pago actualizado más recientemente para cada patrocinador
+- los aportes ya cobradas se omiten de forma segura (idempotentes)
 - Se puede activar manualmente a través de `POST /admin/settle-dispatch/:slug` con `ADMIN_SETTLEMENT_SECRET` cuando está configurado; de lo contrario, `ADMIN_SECRET`
 - El asentamiento monolítico heredado todavía está disponible: `POST /admin/settle/:slug`; Utiliza el mismo bloqueo de campaña y la misma ruta de clave de idempotencia de Stripe, pero se prefiere `settle-dispatch` para campañas grandes.
 - Latido del cron: verificar a través de `GET /admin/cron/status`
@@ -597,60 +610,43 @@ Se mantiene automáticamente una serie de ID de pedido por campaña (`campaign-p
 
 Cuando un cargo falla durante la liquidación:
 
-1. **Compromiso marcado como `payment_failed`** con mensaje de error almacenado
+1. **Aporte marcado como `payment_failed`** con mensaje de error almacenado
 2. **Correo electrónico enviado** con el botón "Actualizar método de pago" vinculado a la página de administración
 3. **Tarjeta de actualizaciones de soporte** vía `/pledge/payment-method/start`
 4. **El cargo por reintento automático** ocurre inmediatamente después de la actualización exitosa del método de pago
-5. Si el reintento tiene éxito: compromiso marcado `charged`, correo electrónico de éxito enviado
-6. Si el reintento falla nuevamente: el compromiso permanece `payment_failed`, puede volver a intentarlo
+5. Si el reintento tiene éxito: aporte marcado `charged`, correo electrónico de éxito enviado
+6. Si el reintento falla nuevamente: el aporte permanece `payment_failed`, puede volver a intentarlo
 
-Esto permite a los seguidores reparar tarjetas vencidas/rechazadas sin la intervención manual del administrador.
+Esto permite a los patrocinadores reparar tarjetas vencidas/rechazadas sin la intervención manual del administrador.
 
 ---
 
 ## Arquitectura de correo electrónico
 
-Esta sección resume el comportamiento del correo electrónico relacionado con las promesas. La configuración completa de Resend y la referencia de tipo de correo electrónico se encuentran en [EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md).
+Esta sección resume el comportamiento del correo electrónico relacionado con los aportes. La configuración completa de Resend y la referencia de tipo de correo electrónico se encuentran en [EMAIL.md](/es/docs/operations/email-system/).
 
 |Proveedor|Propósito|
 |----------|---------|
-|**Resend**|Todos los correos electrónicos de los seguidores (confirmación, hitos, actualizaciones del diario, anuncios, carga exitosa, pago fallido)|
+|**Resend**|Todos los correos electrónicos de los patrocinadores (confirmación, hitos, actualizaciones del diario, anuncios, carga exitosa, pago fallido)|
 
-El Trabajador maneja todos los correos electrónicos relacionados con promesas a través de Resend.
+El Trabajador maneja todos los correos electrónicos relacionados con aportes a través de Resend.
+
+En producción, las personas que llaman ponen en cola un registro `email-outbox:v1:*` duradero en lugar de esperar Resend. El programador congela la carga útil renderizada en el primer intento, la envía con una clave determinista de idempotencia del proveedor y mantiene la verdad del aporte independiente del reintento de notificación. Los envíos de prueba, el renderizado de prueba y los enlaces de inicio de sesión de administrador siguen siendo inmediatos. Los eventos Resend firmados en `POST /webhooks/resend` actualizan el estado de entrega mínimo y la supresión de hash; The Pool no sincroniza las audiencias comprometidas con los contactos o transmisiones de Resend.
+
+El correo de diario, hito y anuncios en vivo incluye una URL para cancelar la suscripción con un solo clic RFC 8058 con alcance de campaña. La supresión se comprueba inmediatamente antes de la entrega del proveedor. El correo del ciclo de vida de pagos y aportes sigue siendo transaccional.
 
 ### Integración Resend (Trabajador)
 
-El trabajador envía correos electrónicos a sus seguidores después de que el webhook de Stripe confirma la sesión en modo de configuración. El dominio del remitente debe estar autorizado para la clave API Resend configurada; Para esta implementación, las confirmaciones de compromiso utilizan `The Pool <pledges@site.example.com>` porque `site.example.com` es el dominio de envío autorizado.
+El trabajador envía correos electrónicos a sus patrocinadores después de que el webhook de Stripe confirma la sesión en modo de configuración. El dominio del remitente debe estar autorizado para la clave API Resend configurada; Para esta implementación, las confirmaciones de aporte utilizan `The Pool <pledges@site.example.com>` porque `site.example.com` es el dominio de envío autorizado.
 
 ```js
 // In Worker: POST /webhooks/stripe handler
-async function sendSupporterEmail(env, { email, campaignSlug, campaignTitle, amount, token }) {
-  const manageUrl = `${env.SITE_BASE}/manage/?t=${token}`;
-  const communityUrl = `${env.SITE_BASE}/community/${campaignSlug}/?t=${token}`;
-  
-  await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${env.RESEND_API_KEY}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      from: env.PLEDGES_EMAIL_FROM,
-      to: email,
-      subject: `Pledge confirmed | ${campaignTitle}`,
-      html: `
-        <h1>Thanks for backing ${campaignTitle}!</h1>
-        <p><strong>Pledge amount:</strong> $${(amount / 100).toFixed(2)}</p>
-        <p><strong>Remember:</strong> Your card is saved but won't be charged unless this campaign reaches its goal.</p>
-        <hr>
-        <h2>Your Supporter Access</h2>
-        <p>No account needed — these links are your keys:</p>
-        <p><a href="${manageUrl}">Manage Your Pledge</a> — Cancel, modify, or update payment method</p>
-        <p><a href="${communityUrl}">Supporter Community</a> — Vote on creative decisions</p>
-        <hr>
-        <p style="color:#666;font-size:12px;">Save this email! You'll need these links to manage your pledge.</p>
-      `
-    })
+async function sendSupporterEmail(env, { orderId, email, campaignSlug, campaignTitle, amount, token }) {
+  return enqueueEmailOutbox(env, {
+    kind: 'supporter',
+    campaignSlug,
+    dedupeKey: `supporter-confirmation:${orderId}`,
+    payload: { email, campaignSlug, campaignTitle, amount, token }
   });
 }
 ```
@@ -659,19 +655,19 @@ async function sendSupporterEmail(env, { email, campaignSlug, campaignTitle, amo
 
 Todos los correos electrónicos muestran cantidades exactas con 2 decimales (sin redondeo).
 
-**Confirmación de compromiso** (enviada después de que la sesión de Stripe en el modo de configuración se complete con éxito)
-- Asunto: "Compromiso confirmado | {Título de la campaña}"
+**Confirmación de aporte** (enviada después de que la sesión de Stripe en el modo de configuración se complete con éxito)
+- Asunto: "Aporte confirmado | {Título de la campaña}"
 - Contiene: desglose completo (subtotal, propina opcional de The Pool, impuestos, envío si es físico, total), artículos prometidos, enlace de administración, enlace comunitario
 - Incluye: CTA de Instagram (si la campaña tiene URL de Instagram)
 - El enlace de la comunidad se muestra solo si la campaña tiene decisiones activas.
 
-**Compromiso modificado** (se envía cuando el colaborador cambia su compromiso)
-- Asunto: "Compromiso actualizado | {Título de la campaña}"
-- Contiene: subtotal anterior, subtotal nuevo, monto modificado (+/-), propina opcional de The Pool, impuestos, envío (si es físico), total nuevo, artículos de compromiso actualizados
+**Aporte modificado** (se envía cuando el colaborador cambia su aporte)
+- Asunto: "Aporte actualizado | {Título de la campaña}"
+- Contiene: subtotal anterior, subtotal nuevo, monto modificado (+/-), propina opcional de The Pool, impuestos, envío (si es físico), total nuevo, artículos de aporte actualizados
 - Incluye: CTA de Instagram (si la campaña tiene URL de Instagram)
 - El enlace de la comunidad se muestra solo si la campaña tiene decisiones activas.
 
-**Cargo exitoso** (se envía cuando la promesa se cobra en el momento de la liquidación)
+**Cargo exitoso** (se envía cuando el aporte se cobra en el momento de la liquidación)
 - Asunto: "Pago confirmado | {Título de la campaña}"
 - Contiene: desglose completo (subtotal + propina + impuestos + envío + total cobrado), artículos prometidos
 - El enlace de la comunidad se muestra solo si la campaña tiene decisiones activas.
@@ -682,36 +678,36 @@ Todos los correos electrónicos muestran cantidades exactas con 2 decimales (sin
 - Contiene: desglose completo (subtotal + propina + impuestos + envío + monto adeudado), artículos prometidos, enlace de administración para actualizar la tarjeta
 - Nota: No hay CTA de Instagram (la campaña ha finalizado)
 
-**Compromiso cancelado** (se envía cuando el colaborador cancela su compromiso)
-- Asunto: "Compromiso cancelado | {Título de la campaña}"
-- Contiene: desglose que incluye propina opcional, no se cobró a la tarjeta de confirmación, enlace para ver la campaña (se puede volver a realizar la promesa)
+**Aporte cancelado** (se envía cuando el colaborador cancela su aporte)
+- Asunto: "Aporte cancelado | {Título de la campaña}"
+- Contiene: desglose que incluye propina opcional, no se cobró a la tarjeta de confirmación, enlace para ver la campaña (se puede volver a realizar el aporte)
 - Nota: El colaborador se elimina de futuras actualizaciones por correo electrónico de la campaña.
 
 **Actualización del diario** (se envía cuando se agrega una nueva entrada del diario a la campaña)
 - Asunto: "{Título del diario} | {Título de la campaña}"
 - Contiene: título del diario, extracto en texto plano (200 caracteres + puntos suspensivos), botón "Leer actualización completa" que enlaza con el diario de la campaña.
-- Incluye: enlaces de acceso de seguidores (comunidad + administración), CTA de Instagram (si la campaña tiene URL de Instagram)
+- Incluye: enlaces de acceso de patrocinadores (comunidad + administración), CTA de Instagram (si la campaña tiene URL de Instagram)
 - Nota: Los extractos eliminan el formato de rebajas; el contenido completo está en la página de la campaña
 
 **Blast/Anuncio** (enviado a través de Campañas -> Blast o transmisión de administrador heredada con enlace CTA opcional)
 - Asunto: "{Asunto} | {Título de la campaña}"
 - Contiene: contenido de actualización específico de la campaña, imágenes de campaña alojadas opcionales, enlaces de YouTube/Vimeo seguros para correo electrónico y un botón CTA resaltado opcional (etiqueta personalizada + URL)
-- Incluye: enlaces de acceso de seguidores (comunidad + administración), CTA de Instagram (si la campaña tiene URL de Instagram)
+- Incluye: enlaces de acceso de patrocinadores (comunidad + administración), CTA de Instagram (si la campaña tiene URL de Instagram)
 - Puntos finales: `POST /admin/marketing/announcement` para navegador Blast, `POST /admin/broadcast/announcement` para envíos de operadores heredados
 
 **Recordatorio de lanzamiento** (se envía una vez cuando se activa una próxima campaña)
 - Asunto: "Ya disponible | {Título de la campaña}"
 - Contiene: título de la campaña, texto de lanzamiento localizado, CTA de la campaña y enlace para cancelar la suscripción.
 - Usos: Registro `preferredLang`, configuración de remitente Resend existente, marcadores de supresión y marcadores de envío
-- Nota: El registro de recordatorio es independiente de la promesa y se puede cancelar desde el correo electrónico de recordatorio.
+- Nota: El registro de recordatorio es independiente del aporte y se puede cancelar desde el correo electrónico de recordatorio.
 
 ---
 
 ## Consideraciones de seguridad
 
 - Los enlaces mágicos caducan (90 días)
-- Tokens verificados con respecto al registro de compromiso de KV (correo electrónico + coincidencia de campaña)
-- Las mutaciones del compromiso se bloquean una vez que se cobra el compromiso
+- Tokens verificados con respecto al registro de aporte de KV (correo electrónico + coincidencia de campaña)
+- Las mutaciones del aporte se bloquean una vez que se cobra el aporte
 - Todos los secretos de las variables de entorno de Cloudflare Worker
 - Firmas de webhook de Stripe verificadas
 - Las respuestas confidenciales de arranque del método de pago y de pago son `private, no-store`
@@ -720,19 +716,19 @@ Todos los correos electrónicos muestran cantidades exactas con 2 decimales (sin
 - Todos los plazos evaluados en la zona horaria de la plataforma.
 - Los registros de recordatorio de lanzamiento requieren suscripción explícita de campaña/correo electrónico, limitación de velocidad y verificación de torniquete cuando se configuran
 - Los enlaces para cancelar la suscripción del recordatorio de lanzamiento utilizan tokens firmados con alcance y suprimen solo ese recordatorio de campaña/correo electrónico
-- El acceso a la comunidad/voto se revoca inmediatamente cuando se cancela el compromiso
-- La API `/votes` verifica el estado del compromiso en cada solicitud (no solo la validez del token)
+- El acceso a la comunidad/voto se revoca inmediatamente cuando se cancela el aporte
+- La API `/votes` verifica el estado del aporte en cada solicitud (no solo la validez del token)
 
 ---
 
 ## Manejo de condiciones de carrera
 
-- `/pledge/cancel` y `/pledge/modify` rechazan el compromiso `charged: true`
+- `/pledge/cancel` y `/pledge/modify` rechazan el aporte `charged: true`
 - `/pledge/cancel` y `/pledge/modify` rechazan si la fecha límite de la campaña ha pasado en la zona horaria de la plataforma
 - Cron comprueba `pledgeStatus === 'active'` y `!charged` antes de cargar
 - Los indicadores `pledgeStatus` y `charged` evitan la doble carga
-- La agregación por correo electrónico garantiza un cargo por partidario por campaña, incluso con varias filas de promesas.
-- La página de administración muestra un aviso de fecha límite superada, una insignia bloqueada y controles de compromiso de solo lectura una vez que pasa la fecha límite.
+- La agregación por correo electrónico garantiza un cargo por patrocinador por campaña, incluso con varias filas de aportes.
+- La página de administración muestra un aviso de fecha límite superada, una insignia bloqueada y controles de aporte de solo lectura una vez que pasa la fecha límite.
 - Las actualizaciones de los métodos de pago permanecen disponibles después de la fecha límite (para recuperación de pago fallida)
 
 ---

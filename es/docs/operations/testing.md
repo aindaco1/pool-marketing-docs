@@ -1,7 +1,7 @@
 ---
 title: Guía de pruebas
 parent: Operaciones
-nav_order: 4
+nav_order: 6
 render_with_liquid: false
 lang: es
 ---
@@ -10,9 +10,9 @@ lang: es
 
 ## Última actualización
 
-5 de julio de 2026
+16 de julio de 2026
 
-Esta guía cubre los conjuntos de pruebas automatizadas, la infraestructura de pruebas local y las rutas de verificación manual.
+Esta guía cubre los conjuntos de pruebas automatizadas, la infraestructura de pruebas local y las rutas de verificación manual. La recuperación sintética semanal, los simulacros de vista previa protegida y la verificación posterior a la restauración están documentados en [BACKUP_RESTORE.md](/es/docs/operations/backup-restore/).
 
 ## Referencia rápida
 
@@ -22,6 +22,11 @@ npm run test:unit:watch    # Watch mode
 npm run test:unit:coverage # With coverage report
 npm run test:i18n          # Supported locale catalog completeness check
 npm run test:seo           # Generated-site SEO/crawl audit; build _site first
+npm run test:crawl-endpoints -- --base=https://site.example.com  # Live sitemap/robots/URL fetch audit
+npm run test:performance:budgets  # Generated JS/CSS release ceilings
+npm run test:performance:lighthouse # Core-route Lighthouse evidence in Podman
+npm run test:performance:runtime # Authenticated/redacted Worker p95 evidence; requires input or token
+npm run test:cache-policy  # Deployed public/private cache-header evidence
 npm run test:secrets       # Secret exposure audit for local env files
 npm run test:premerge      # Merge-readiness checks for changed Worker logic
 npm run release:smoke -- --evidence-file /tmp/pool-release-smoke.md  # Release sign-off wrapper
@@ -79,7 +84,7 @@ Utilice el envoltorio de lanzamiento antes de la aprobación de producción:
 npm run release:smoke -- --evidence-file /tmp/pool-release-smoke.md
 ```
 
-El contenedor ejecuta la puerta de fusión, el ensayo de preparación para la producción de configuración/implementación, E2E sin cabeza de Podman cuando Podman está disponible, evidencia de accesibilidad enfocada, evidencia i18n/SEO renderizada, evidencia de informes/promesas respaldadas por los trabajadores, verificaciones de proveedores de solo lectura y preparación para el humo de pagos. La evidencia de transcripción del lector de pantalla opcional está disponible con `--screen-reader-evidence` cuando se prepara la captura local de VoiceOver/Whisper.
+El contenedor ejecuta la puerta de fusión, el ensayo de preparación para la producción de configuración/implementación, E2E sin cabeza de Podman cuando Podman está disponible, evidencia de accesibilidad enfocada, evidencia i18n/SEO renderizada, evidencia de informes/aportes respaldadas por los trabajadores, verificaciones de proveedores de solo lectura y preparación para el humo de pagos. La evidencia de transcripción del lector de pantalla opcional está disponible con `--screen-reader-evidence` cuando se prepara la captura local de VoiceOver/Whisper.
 
 Los comandos enfocados son útiles cuando es necesario volver a ejecutar un segmento:
 
@@ -89,11 +94,32 @@ npm run release:i18n-seo-evidence
 npm run release:pledge-evidence
 npm run release:providers -- --no-dev-vars
 npm run release:payment-smoke -- --no-dev-vars
+npm run test:performance:budgets
+npm run test:performance:lighthouse
+npm run test:performance:runtime -- --input=/path/to/redacted-performance-observability.json
+npm run test:cache-policy
 ```
+
+Las comprobaciones de tiempo de Lighthouse, de política de caché implementada y de Worker autenticadas siguen el modelo de evidencia de lanzamiento de Store y no son necesarias en todas las solicitudes de extracción. Sus evaluadores puros permanecen cubiertos por el conjunto de unidades, mientras que los límites de preparación, pestañas y tablas del panel los ejerce el conjunto de navegadores de administración. Human VoiceOver, NVDA y revisiones en español nativo son pruebas de divulgación opcionales; La accesibilidad automatizada, la integridad de i18n y las comprobaciones SEO renderizadas siguen siendo necesarias.
 
 Las comprobaciones del proveedor son de solo lectura y utilizan primero las credenciales del shell. En CI, el flujo de trabajo de publicación de pruebas del proveedor ejecuta `npm run release:providers -- --cloudflare-dns-only --strict --no-dev-vars` con `CLOUDFLARE_DNS_API_TOKEN`, `CLOUDFLARE_ZONE_ID` y `CLOUDFLARE_ZONE`.
 
-Configure `POOL_EMAIL_DRY_RUN=true` o `RESEND_EMAIL_DRY_RUN=true` para evidencia de no envío de correo electrónico durante el humo de mutación local. El humo de pago mantiene la aceptación de evidencia de mutación de compromiso a través de `--local-mutation` / `PAYMENT_SMOKE_ALLOW_MUTATION=1` y rechaza los hosts de producción a menos que se anule explícitamente.
+Configure `POOL_EMAIL_DRY_RUN=true` o `RESEND_EMAIL_DRY_RUN=true` para evidencia de no envío de correo electrónico durante el humo de mutación local. El humo de pago mantiene la aceptación de evidencia de mutación de aporte a través de `--local-mutation` / `PAYMENT_SMOKE_ALLOW_MUTATION=1` y rechaza los hosts de producción a menos que se anule explícitamente.
+
+## Revisión de riesgos éticos
+
+Las pruebas automatizadas no pueden demostrar que un cambio de producto sea éticamente seguro. Para funciones relacionadas con dinero, datos de patrocinadores, mensajes, análisis, automatización, uso compartido público o poder administrativo, incluya una breve [revisión de riesgos éticos](/es/docs/development/ethical-risk-review/) en las notas de publicación o de relaciones públicas.
+
+La evidencia útil incluye:
+
+- Comportamiento de consentimiento y exclusión voluntaria para recordatorios, Blast, vistas previas y comunicaciones con los patrocinadores.
+- prueba de prueba/no envío antes de enviar correos electrónicos masivos o informes
+- comprobaciones de noindex, mapa del sitio, vista previa social y captación previa para superficies privadas/tokenizadas
+- Worker: comprobaciones totales canónicas del progreso de la campaña, complementos, propinas, impuestos, envío, inventario y liquidación
+- Comprobaciones de accesibilidad y i18n para flujos de cara al usuario afectados.
+- una nota sobre la ruta de abuso sobre cómo la función podría usarse para spam, acoso, fraude, doxxing, afirmaciones engañosas o presión de participación excesiva
+
+Trate el nuevo seguimiento oculto, las notificaciones ilimitadas, los metadatos públicos engañosos, la lógica monetaria confiable del navegador o la exposición pública del estado privado/tokenizado como bloqueadores de liberación hasta que se mitiguen.
 
 ---
 
@@ -107,10 +133,11 @@ Pruebas rápidas y aisladas para funciones JS en `tests/unit/`.
 |--------|-----------------|
 |`live-stats.js`|`formatMoney`, `updateProgressBar`, `updateMarkerState`, `checkTierUnlocks`, `checkLateSupport`, `updateSupportItems`, `updateTierInventory`|
 |`platform-tip`|Desinfección de propinas, derivación del porcentaje de propinas, cálculo del monto de la propina|
-|`pledge-management`|Cumplimiento de plazos según el horario de verano a través de la zona horaria configurada de la plataforma, cancelación/modificación/validación del método de pago, transiciones de estado de compromiso, independencia de múltiples campañas, envío en registros de compromiso, forma de respuesta API|
-|`settlement`|Agregación de cargos (incluidas tarifas de envío), éxito o fracaso del pago, flujo de reintento, modo de prueba, casos extremos, liquidación por lotes, índice de compromiso de campaña, envío de liquidación, envío en liquidación, latido cron|
+|`pledge-management`|Cumplimiento de plazos según el horario de verano a través de la zona horaria configurada de la plataforma, cancelación/modificación/validación del método de pago, transiciones de estado de aporte, independencia de múltiples campañas, envío en registros de aporte, forma de respuesta API|
+|`settlement` / `stripe-client`|Agregación de cargos, liquidación determinista, versión de API Stripe/idempotencia/normalización de errores, éxito/fracaso de pago, flujo de reintento, envío por lotes, estado obsoleto/reanudado, índice de aporte de campaña y latido cron|
 |`email-broadcasts`|Extracción de extractos del diario (con truncamiento de puntos suspensivos), ayudas de seguimiento del diario/hitos, lógica de verificación de hitos, limitación de velocidad|
 |`email-tip`|Desgloses de correos electrónicos de soporte conscientes de sugerencias en correos electrónicos de confirmación/modificados/cancelados/fallidos/cargados, además de recordatorio de lanzamiento y enrutamiento de correos electrónicos de pago abandonado a través del remitente de actualizaciones compartido|
+|`email-outbox`|Deduplicación duradera en cola, carga útil congelada/idempotencia, tiempo de reintento del proveedor, supresión global/de campaña, verificación de firma de webhook Resend y evidencia de entrega|
 |`votes`|Almacenamiento/descopia de votos basado en correo electrónico, recuperación del estado de los votos, resultados de campaña, agregación de resultados|
 |`admin-dashboard`|Seguimiento del estado sucio del panel, serialización de configuraciones, normalización de contenido/editor, cargas de medios por etapas/selector de medios, análisis/relleno de tarifas reales de Stripe, informes de atribución de análisis, borradores compartidos de marketing, salud/supresión de pagos abandonados, ayudas de URL de referencia, utilidades de soporte responsivas/i18n|
 |`i18n-completeness`|Los catálogos locales admitidos permanecen alineados con la superficie de claves anidadas en inglés|
@@ -118,7 +145,7 @@ Pruebas rápidas y aisladas para funciones JS en `tests/unit/`.
 |`page-prefetch`|Listas permitidas de rutas públicas del mismo origen, exclusiones de consultas confidenciales, protecciones de red, manejo de demoras/límites y creación de sugerencias de captación previa de documentos|
 |`cart-runtime-loader`|Arranque diferido en tiempo de ejecución del carrito, detección de carrito persistente/de recuperación, carga idempotente y activadores de intención del usuario|
 |`site-asset-minification`|Comportamiento de minificación CSS/JS generado `_site` y casos de falla del modo de verificación|
-|`media-optimization-script`|Selección de archivos modificados, decisiones de optimización de imágenes sin pérdidas, denominación de derivados de vídeo y reescritura de referencias de fuente a WebM|
+|`media-optimization-script`|Selección de archivos modificados, clasificación de origen/derivado, manifiestos deterministas, presupuestos de ubicación, decisiones de optimización de imágenes sin pérdidas, denominación de derivados de vídeo y reescrituras de referencias de origen a WebM|
 
 ### Correr
 
@@ -167,14 +194,15 @@ El script ahora rota sus IP de solicitud de administrador sintéticas durante es
 - Dramaturgo sin cabeza E2E vía `npm run test:e2e:headless`
 
 El script previo a la fusión ahora inicia automáticamente Jekyll con `_config.yml,_config.local.yml` cuando es necesario, de modo que la campaña `smoke-editable` solo local esté disponible durante la activación de la fusión y el arnés Playwright use la misma configuración combinada localmente.
-Esa puerta ahora intenta primero la ruta del host Bundler/Jekyll, incluido un intento único de `bundle install` cuando Bundler está presente pero faltan gemas. Mantiene el humo del trabajador del host más ligero, pero ejecuta el humo de compromiso mutable a través de la pila respaldada por Podman para que la ruta de modificación/cancelación con estado utilice un estado de servicio local aislado incluso cuando la ruta de compilación del host tiene éxito. Si la ruta Ruby del host aún no puede compilarse limpiamente, recurre a una compilación Jekyll respaldada por Podman más los asistentes de navegador/humo compatibles con Podman restantes en lugar de fallar solo en la configuración del host.
+Esa puerta ahora intenta primero la ruta del host Bundler/Jekyll, incluido un intento único de `bundle install` cuando Bundler está presente pero faltan gemas. Mantiene el humo del trabajador del host más ligero, pero ejecuta el humo de aporte mutable a través de la pila respaldada por Podman para que la ruta de modificación/cancelación con estado utilice un estado de servicio local aislado incluso cuando la ruta de compilación del host tiene éxito. Si la ruta Ruby del host aún no puede compilarse limpiamente, recurre a una compilación Jekyll respaldada por Podman más los asistentes de navegador/humo compatibles con Podman restantes en lugar de fallar solo en la configuración del host.
+Ambos ayudantes de Jekyll fallan inmediatamente cuando falla su comando de compilación, por lo que la minificación y la validación de artefactos no pueden reutilizar accidentalmente la salida obsoleta de `_site`.
 Para ejecuciones de navegadores sin cabeza, Playwright ahora construye un `_site` estático y sirve esa salida con un servidor HTTP liviano en lugar de usar `jekyll serve`, lo que mantiene las comprobaciones automatizadas del navegador más cercanas al diseño real de los activos publicados.
 
 Esta rama ahora tiene como valor predeterminado la ruta de tiempo de ejecución/carro propio tanto en `_config.yml` como en `_config.local.yml`, y la ruta del navegador ya no admite el antiguo tiempo de ejecución del carro alojado.
 
 El reciente refuerzo de seguridad que ahora cubre la puerta incluye:
 
-- comportamiento de cierre fallido de `GET /pledge` cuando existe un token de enlace mágico pero la fila de compromiso no
+- comportamiento de cierre fallido de `GET /pledge` cuando existe un token de enlace mágico pero la fila de aporte no
 - Neutralización del esquema de enlaces de Markdown en contenido de formato largo
 - Validación de origen exacto para incrustaciones estructuradas (`spotify`, `youtube`, `vimeo`)
 - reservas serializadas de inventario de nivel limitado al inicio del pago y confirmación en el momento de persistencia exitosa
@@ -216,13 +244,13 @@ La cobertura reciente del navegador también incluye aserciones de ventanas grá
 
 - páginas de campaña y controles públicos secundarios
 - Cajones de carrito/caja en tamaños de teléfono pequeños
-- Administre la accesibilidad de la tarjeta de promesa y actualización en ventanas gráficas móviles cortas
-- controles sin desbordamiento horizontal en las principales vías públicas y de gestión de promesas
+- Administre la accesibilidad de la tarjeta de aporte y actualización en ventanas gráficas móviles cortas
+- controles sin desbordamiento horizontal en las principales vías públicas y de gestión de aportes
 
 La cobertura reciente de páginas públicas ahora también protege el Chrome de campaña más localizado, que incluye:
 
 - Estados de carga/reproducción de vídeo heroico
-- copia teaser de la comunidad de seguidores
+- copia teaser de la comunidad de patrocinadores
 - etiquetas de pestañas del diario y estados vacíos
 - etiquetas de la fase de producción y copia de CTA
 - etiquetas de accesibilidad de la galería
@@ -274,7 +302,15 @@ npm run assets:minify
 npm run test:seo
 ```
 
-La auditoría SEO comprueba las páginas creadas, `robots.txt`, `sitemap.xml`, URL canónicas, alternativas de hreflang, metadatos de Open Graph/Twitter y JSON-LD. Se pueden crear campañas locales de prueba únicamente para la cobertura del humo, pero permanecen intencionalmente ausentes del mapa del sitio.
+La auditoría SEO verifica las páginas creadas, `robots.txt`, `sitemap.xml`, el diagnóstico coincidente de una URL por línea `sitemap.txt`, las URL canónicas, las sugerencias de actualización escritas, las alternativas de hreflang, los metadatos de Open Graph/Twitter y JSON-LD. Se pueden crear campañas locales de prueba únicamente para la cobertura del humo, pero permanecen intencionalmente ausentes de cualquiera de los formatos de mapa del sitio.
+
+Después de una implementación de producción, verifique la superficie de rastreo real orientada al origen:
+
+```bash
+npm run test:crawl-endpoints -- --base=https://site.example.com --attempts=6 --retry-delay-ms=5000
+```
+
+Es seguro ejecutar esta auditoría libre de dependencias en el trabajo de implementación una vez que desaparezcan las dependencias de compilación raíz. Compara los organismos de inspección ordinarios y de Google para los mapas de sitio XML y de texto, requiere que sus listas de URL públicas ordenadas coincidan, aplica los tipos MIME XML/texto/robots, verifica el anuncio canónico del mapa de sitio XML y recupera cada página enviada. Se permite una inyección normal de detección de JavaScript Cloudflare en una página HTML completa; un intersticial sin el enlace canónico de la página y el contenido principal falla. Los reintentos limitados cubren la propagación normal sin convertir un defecto de rastreo persistente en una advertencia.
 
 En GitHub, la misma puerta se ejecuta automáticamente en el flujo de trabajo `Merge Smoke` para solicitudes de extracción dirigidas a `main`.
 
@@ -319,10 +355,10 @@ git worktree remove ../pool-main-check
 Ejecútelos contra la preparación antes de fusionarlos cuando exista un entorno de preparación. Si no existe un entorno de prueba para The Pool, ejecute la misma lista de verificación localmente con `./scripts/dev.sh --podman` y registre esa excepción en las notas de la versión/PR.
 
 1. Inicie un nuevo pago en una campaña de prueba en vivo y confirme que `/checkout-intent/start` devuelve un arranque de sesión personalizado cuando se configura la clave publicable de Stripe coincidente, o una URL alojada cuando se utiliza intencionalmente el respaldo alojado.
-2. Complete una promesa y verifique que el webhook almacene la promesa, la actualización de estadísticas y la ruta del correo electrónico de confirmación se mantenga en buen estado.
-3. Modifique una promesa con cambios de nivel/soporte/cantidad personalizada y verifique los totales, el historial y la actualización del inventario correctamente.
-4. Cancele una promesa no cargada y verifique que las estadísticas y el inventario se publiquen correctamente.
-5. Realice ensayos de liquidación y ejecución real de las promesas iniciales, confirmando que las campañas solo marcan el acuerdo cuando nada necesita atención.
+2. Complete un aporte y verifique que el webhook almacene el aporte, la actualización de estadísticas y la ruta del correo electrónico de confirmación se mantenga en buen estado.
+3. Modifique un aporte con cambios de nivel/soporte/cantidad personalizada y verifique los totales, el historial y la actualización del inventario correctamente.
+4. Cancele un aporte no cargada y verifique que las estadísticas y el inventario se publiquen correctamente.
+5. Realice ensayos de liquidación y ejecución real de los aportes iniciales, confirmando que las campañas solo marcan el acuerdo cuando nada necesita atención.
 6. Active transmisiones de diarios, anuncios e hitos en una campaña lo suficientemente grande como para cruzar los límites de paginación.
 7. Active un informe de cumplimiento en una campaña con elementos de campaña y de plataforma, confirmando que los destinatarios del corredor reciben solo filas de campaña y `support_email` recibe el archivo adjunto solo de plataforma.
 
@@ -337,7 +373,7 @@ Para cambios en la lógica empresarial de pago o de trabajador, aún se requiere
 
 Para obtener una versión lista para el operador con comandos exactos y resultados esperados, use [docs/MERGE_SMOKE_CHECKLIST.md](/es/docs/operations/merge-smoke-checklist/).
 
-Para un ensayo local de gestión de promesas, prefiera la campaña `smoke-editable`. Es solo local a través de `test_only: true`, permanece activo mucho más allá de la ventana de humo normal y le brinda a `/test/setup` un objetivo estable para la cobertura de modificación/cancelación.
+Para un ensayo local de gestión de aportes, prefiera la campaña `smoke-editable`. Es solo local a través de `test_only: true`, permanece activo mucho más allá de la ventana de humo normal y le brinda a `/test/setup` un objetivo estable para la cobertura de modificación/cancelación.
 
 Puedes ejercitar ese camino de principio a fin con:
 
@@ -366,7 +402,7 @@ Antes de reparar una proyección, ahora puede comprobar explícitamente la desvi
 ./scripts/check-projections.sh --podman        # Reuse/start the Podman dev stack first
 ```
 
-Ese script llama a los puntos finales de verificación de deriva del administrador de solo lectura y sale de un valor distinto de cero cuando las proyecciones almacenadas `campaign-pledges:{slug}`, `stats:{slug}` o `tier-inventory:{slug}` ya no coinciden con la verdad del compromiso activo.
+Ese script llama a los puntos finales de verificación de deriva del administrador de solo lectura y sale de un valor distinto de cero cuando las proyecciones almacenadas `campaign-pledges:{slug}`, `stats:{slug}` o `tier-inventory:{slug}` ya no coinciden con la verdad del aporte activo.
 
 ### Cambios de comportamiento intencionales
 
@@ -442,11 +478,11 @@ Pruebas basadas en navegador para flujos de usuarios completos en `tests/e2e/`.
 - El control deslizante de propinas actualiza los totales del carrito inmediatamente
 - Las campañas de un solo nivel reemplazan el nivel anterior inmediatamente cuando se selecciona un nuevo nivel.
 - La vista previa del pago propio publica cargas útiles canónicas en `/checkout-intent/start`
-- Las páginas de resultados canceladas o exitosas de origen restauran o hidratan el estado del compromiso guardado
+- Las páginas de resultados canceladas o exitosas de origen restauran o hidratan el estado del aporte guardado
 
 **Administrar flujo:**
-- Carga de promesas respaldadas por tokens en `/manage/`
-- Inicio de actualización del método de pago para promesas activas y `payment_failed`
+- Carga de aportes respaldadas por tokens en `/manage/`
+- Inicio de actualización del método de pago para aportes activos y `payment_failed`
 - Cancelar publicaciones de confirmación en `/pledge/cancel`
 - Modificar publicaciones de confirmación a `/pledge/modify`
 
@@ -466,13 +502,13 @@ Pruebas basadas en navegador para flujos de usuarios completos en `tests/e2e/`.
 - Indicadores estatales en progreso meta
 
 **Aspectos destacados de la cobertura de pago:**
-- Flujo completo del compromiso: tiempo de ejecución del carrito → revisión del compromiso → paso de pago de Stripe en el sitio → página de éxito
+- Flujo completo del aporte: tiempo de ejecución del carrito → revisión del aporte → paso de pago de Stripe en el sitio → página de éxito
 - Verifique que la vista previa del resumen del pedido de pago aparezca inmediatamente y se resuelva en totales que tengan en cuenta las propinas
 - Cobertura de prueba de integración de API de trabajador para estadísticas en vivo y arranque de pago
 
 **Aspectos destacados de la cobertura del panel de administración:**
 - Inicio de sesión con enlace mágico, pestañas con alcance de función y restricciones de acceso de usuarios de campaña
-- Configuración, complementos, campañas, análisis, informes, seguidores y comportamiento de la pestaña Marketing
+- Configuración, complementos, campañas, análisis, informes, patrocinadores y comportamiento de la pestaña Marketing
 - Superadministrador Cree un nuevo flujo de campaña, incluidos varios usuarios de campaña nuevos o existentes y el comportamiento del correo electrónico de asignación.
 - Flujo de publicación de vista previa protegida, incluida la creación de vínculos al panel de control del usuario actual, UX de entrada de correo electrónico del revisor opcional, manejo de conflictos de revisión base, vínculos del revisor las 24 horas y cero persistencia del correo electrónico del revisor en la campaña Markdown
 - Flujo de campaña de archivo de superadministrador, que incluye visibilidad no en vivo, rechazo de campaña en vivo, rechazo de usuario de campaña, movimientos de archivo local, cuerpo de envío de GitHub Action y presupuesto de redacción de eventos de auditoría
@@ -607,7 +643,7 @@ npx wrangler dev --env dev --port 8787
 
 ## 2. Configuración de Resend
 
-Utilice [EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md) como referencia completa de configuración e integración del correo electrónico. Esta sección es la ruta corta de prueba manual.
+Utilice [EMAIL.md](/es/docs/operations/email-system/) como referencia completa de configuración e integración del correo electrónico. Esta sección es la ruta corta de prueba manual.
 
 ### Crear cuenta y clave API
 
@@ -644,11 +680,13 @@ curl -X POST 'https://api.resend.com/emails' \
   }'
 ```
 
+Para obtener evidencia de entrega de producción, cree también `https://worker.example.com/webhooks/resend`, suscríbase a eventos entregados/rebotados/quejados/fallidos/suprimidos y almacene su secreto de firma como `RESEND_WEBHOOK_SECRET`. Las pruebas unitarias sintetizan eventos firmados; no llaman en vivo Resend.
+
 ---
 
 ## 3. Configuración de Stripe (modo de prueba)
 
-Utilice [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md) como referencia completa de configuración, webhook, liquidación y conciliación de Stripe. Esta sección es la ruta corta del modo de prueba local.
+Utilice [PAYMENT_PROCESSOR.md](/es/docs/operations/payment-processor/) como referencia completa de configuración, webhook, liquidación y conciliación de Stripe. Esta sección es la ruta corta del modo de prueba local.
 
 ### Obtener claves de prueba
 
@@ -730,17 +768,17 @@ stripe listen --forward-to 127.0.0.1:8787/webhooks/stripe
    - Haga clic en "Prometer $5" en un nivel
    - El carrito se abre con el artículo.
 
-2. **Pagar**: haga clic en "Continuar con el compromiso" en la revisión del carrito propio
+2. **Pagar**: haga clic en "Continuar con el aporte" en la revisión del carrito propio
    - Verifique que la reseña muestre el subtotal + propina + impuestos + envío inmediatamente
    - Utilice la tarjeta de prueba Stripe: `4242 4242 4242 4242`
    - Cualquier vencimiento futuro, cualquier CVC
 
 3. **Configuración de Stripe**: el segundo sidecar de pago lo mantiene en el sitio y monta la interfaz de usuario de pago seguro de Stripe.
    - La tarjeta está guardada (no cargada)
-   - El cliente espera la confirmación de persistencia del compromiso antes de considerar el flujo como exitoso.
+   - El cliente espera la confirmación de persistencia del aporte antes de considerar el flujo como exitoso.
    - Luego serás enviado a la página de éxito.
 
-4. **Consultar correo electrónico**: Deberías recibir los correos electrónicos de los seguidores con enlaces mágicos.
+4. **Consultar correo electrónico**: Deberías recibir los correos electrónicos de los patrocinadores con enlaces mágicos.
 
 5. **Pruebe el acceso a la comunidad**:
    - Haga clic en el enlace de la comunidad en el correo electrónico.
@@ -860,7 +898,7 @@ Esperado: Devuelve un error de validación de cierre fallido como `Invalid cart 
    ```bash
    stripe trigger checkout.session.completed
    ```
-Verifique los registros de trabajadores para ver el mensaje "Compromiso confirmado".
+Verifique los registros de trabajadores para ver el mensaje "Aporte confirmado".
 
 4. **Prueba de firma no válida (debe fallar):**
    ```bash
@@ -870,27 +908,27 @@ Verifique los registros de trabajadores para ver el mensaje "Compromiso confirma
    ```
 Esperado: `{"error":"Invalid signature"}`
 
-### Prueba de metadatos de compromiso almacenados
+### Prueba de metadatos de aporte almacenados
 
 Después de completar un flujo de contribución:
 
-1. **Consulte los datos de las promesas respaldadas por los trabajadores** a través de `/pledge?token=...`
+1. **Consulte los datos de los aportes respaldadas por los trabajadores** a través de `/pledge?token=...`
 2. **Verifique que los datos contengan:**
    - `stripeCustomerId`
    - `stripePaymentMethodId`
    - `pledgeStatus: "active"`
    - `charged: false`
 
-### Puntos finales de gestión de promesas de prueba
+### Puntos finales de gestión de aportes de prueba
 
-1. **Obtenga detalles de la promesa (requiere un token válido):**
+1. **Obtenga detalles del aporte (requiere un token válido):**
    ```bash
    # Use token from supporter email
    curl "http://localhost:8787/pledge?token=YOUR_TOKEN"
    ```
 Esperado: devuelve detalles del pedido con indicadores `canModify`, `canCancel`.
 
-2. **Cancelar compromiso:**
+2. **Cancelar aporte:**
    ```bash
    curl -X POST http://localhost:8787/pledge/cancel \
      -H "Content-Type: application/json" \
@@ -899,7 +937,7 @@ Esperado: devuelve detalles del pedido con indicadores `canModify`, `canCancel`.
 Esperado: `{"success":true,"message":"Pledge cancelled"}`
 
 3. **Verificar cancelación:**
-   - Consulte el compromiso ahora informa `pledgeStatus: "cancelled"`
+   - Consulte el aporte ahora informa `pledgeStatus: "cancelled"`
    - Reintentar cancelar: debería obtener una respuesta de error limpia
 
 ### Método de pago de actualización de prueba
@@ -919,8 +957,8 @@ Esperado: devuelve un arranque de sesión personalizado para `Update Card` en el
    ```
 Esperado: Devuelve `{ pledgedAmount, pledgeCount, tierCounts, goalAmount, ... }`
 
-2. **Verificar la actualización de las estadísticas después del compromiso:**
-   - Haz una promesa de prueba
+2. **Verificar la actualización de las estadísticas después del aporte:**
+   - Haz un aporte de prueba
    - Llamar al punto final de estadísticas nuevamente
    - Confirmar que `pledgedAmount` aumentó
 
@@ -945,11 +983,14 @@ Esperado: devuelve `{ success: true }` y activa el flujo de trabajo de GitHub.
 ## 8. Lista de verificación de producción
 
 - [ ] Cambiar Stripe a claves en vivo
-- [ ] Revise [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md) para obtener claves activas de Stripe, secretos de webhooks, credenciales de liquidación y comprobaciones de conciliación.
-- [ ] Verifique el dominio del remitente Resend utilizado por `PLEDGES_EMAIL_FROM` y `UPDATES_EMAIL_FROM` (para esta implementación, `site.example.com`); ver [EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md)
+- [] Revise [PAYMENT_PROCESSOR.md](/es/docs/operations/payment-processor/) para obtener claves activas, secretos de webhooks, credenciales de liquidación y comprobaciones de conciliación de Stripe.
+- [] Verifique el dominio del remitente Resend utilizado por `PLEDGES_EMAIL_FROM` y `UPDATES_EMAIL_FROM` (para esta implementación, `site.example.com`); ver [EMAIL.md](/es/docs/operations/email-system/)
 - [ ] Si los recordatorios de inicio o los widgets de administración de Turnstile están habilitados, verifique que las claves públicas del sitio y los secretos coincidentes de Worker Turnstile estén configurados.
 - [ ] Implementar trabajador: `wrangler deploy`
 - [ ] Configurar el webhook de Stripe en el panel → `https://worker.example.com/webhooks/stripe`
+- [] Configure el webhook de entrega Resend → `https://worker.example.com/webhooks/resend` y configure `RESEND_WEBHOOK_SECRET`
+- [ ] Confirmar `EMAIL_OUTBOX_ENABLED=true` y `PAYMENT_RECONCILIATION_ENABLED=true` en el vivo Worker
+- [] Ejecute la verificación de optimización/manifiesto de medios e inspeccione las advertencias de referencias rotas del panel
 - [ ] Pruebe con una contribución real de $1
 
 ## 9. Referencia de secretos
@@ -968,6 +1009,7 @@ Esperado: devuelve `{ success: true }` y activa el flujo de trabajo de GitHub.
 - `MAGIC_LINK_SECRET`: cadena aleatoria de más de 32 caracteres para la firma de tokens HMAC
 - `CAMPAIGN_PREVIEW_SECRET`: secreto de firma de enlace de revisor de vista previa dedicado opcional; si se omite, el Trabajador recurre a los secretos de firma existentes
 - `RESEND_API_KEY` — Clave API Resend para correos electrónicos de soporte (re_...)
+- `RESEND_WEBHOOK_SECRET` — Secreto de firma Resend/Svix para eventos de entrega y supresión (whsec_...)
 - `ADMIN_SECRET`: cadena aleatoria para puntos finales de API de administración
 - `ADMIN_SETTLEMENT_SECRET`: secreto de administración de ámbito opcional para puntos finales de liquidación; use un valor solo local separado en `worker/.dev.vars`
 - `ADMIN_BROADCAST_SECRET`: secreto de administración de ámbito opcional para puntos finales de diario, hitos y anuncios; también agréguelo a los secretos del repositorio de GitHub para la verificación del diario posterior a la implementación cuando esté habilitado
@@ -984,8 +1026,8 @@ Esperado: devuelve `{ success: true }` y activa el flujo de trabajo de GitHub.
 - `CORS_ALLOWED_ORIGIN`: debe coincidir con el origen del sitio para las solicitudes del panel del navegador; Podman local deriva esto para `http://127.0.0.1:4000`
 
 ### Cloudflare KV
-- **Espacio de nombres**: `PLEDGES`: almacena datos de promesas y estadísticas agregadas.
-  - Claves: `pledge:{orderId}` → promesa JSON
+- **Espacio de nombres**: `PLEDGES`: almacena datos de aportes y estadísticas agregadas.
+  - Claves: `pledge:{orderId}` → aporte JSON
   - Claves: `email:{email}` → conjunto de ID de pedido
   - Teclas: `stats:{campaignSlug}` → `{ pledgedAmount, pledgeCount, tierCounts }`
   - Claves: `campaign-preview-reviewers:{campaignSlug}` → Lista permitida de correo electrónico del revisor de vista previa protegida de 24 horas
@@ -1001,5 +1043,5 @@ Esperado: devuelve `{ success: true }` y activa el flujo de trabajo de GitHub.
 ### Panel de control Resend
 - **Dominio**: Verifique la parte del dominio de las direcciones del remitente configuradas en `_config.yml`/Worker env. Para esta implementación, `PLEDGES_EMAIL_FROM` es `The Pool <pledges@site.example.com>`, por lo que Resend debe autorizar a `site.example.com`.
 - **Clave API**: Crear clave con permiso de "Acceso de envío"
-- Se utiliza para: todos los correos electrónicos de compromiso dirigidos a los seguidores (confirmación, acceso a administración/comunidad, recordatorios de lanzamiento, recordatorios de pagos abandonados, actualizaciones del diario, correos electrónicos de Blast/anuncios, informes, éxito de los cargos, errores de pago, cancelaciones)
+- Se utiliza para: todos los correos electrónicos de aporte dirigidos a los patrocinadores (confirmación, acceso a administración/comunidad, recordatorios de lanzamiento, recordatorios de pagos abandonados, actualizaciones del diario, correos electrónicos de Blast/anuncios, informes, éxito de los cargos, errores de pago, cancelaciones)
 - Nota del desarrollador local: incluso cuando `SITE_BASE` apunta a `127.0.0.1`, las imágenes de correo electrónico incrustadas aún usan la base de recursos pública `https://site.example.com`, por lo que las vistas previas de la bandeja de entrada no muestran URL de imágenes de host local rotas.

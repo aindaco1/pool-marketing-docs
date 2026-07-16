@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-20 de junio de 2026
+16 de julio de 2026
 
 Este documento describe el sistema de producto complementario actual tal como se envía actualmente.
 
@@ -21,10 +21,10 @@ La plataforma admite dos ámbitos complementarios que comparten intencionalmente
 
 Ambos alcances:
 
-- use el mismo carrito y administre la interfaz de usuario de la tarjeta de compromiso
-- Admite artículos de precio fijo y variantes simples.
+- use el mismo carrito y administre la interfaz de usuario de la tarjeta de aporte
+- Admite precios base más anulaciones de precios específicas de variantes opcionales.
 - participar en totales canónicos, persistencia y seguimiento de inventario del lado de los trabajadores
-- obtener escasez del estado de compromiso guardado en lugar de giros de carrito no guardados
+- obtener escasez del estado de aporte guardado en lugar de giros de carrito no guardados
 
 La diferencia importante es la intención:
 
@@ -58,9 +58,9 @@ Los complementos de campaña se definen en una campaña específica y deben comp
 
 Ellos:
 
-- renderizar en una sección separada `Campaign Add-ons` en el carrito y Administrar promesa
+- renderizar en una sección separada `Campaign Add-ons` en el carrito y Administrar aporte
 - Sólo aparece cuando la campaña propietaria está presente.
-- se eliminan automáticamente si el compromiso de campaña propietario abandona el carrito
+- se eliminan automáticamente si el aporte de campaña propietario abandona el carrito
 - cuenta para el subtotal de propiedad de la campaña/progreso de financiación
 - seguir las reglas y anulaciones de envío de la campaña propietaria
 - permanecer asociado con la campaña en la generación de informes y cumplimiento
@@ -113,8 +113,14 @@ add_ons:
       variants:
         - { id: xs, label: XS, inventory: 1 }
         - { id: s, label: S, inventory: 2 }
-        - { id: m, label: M, inventory: 4 }
+        - { id: m, label: M, price: 27.50, inventory: 4 }
 ```
+
+La variante `price` es opcional. Un valor faltante o en blanco hereda el producto `price`; un valor numérico, incluido `0`, lo anula para esa variante. El panel etiqueta este campo como **Anulación de precio** y lo omite de YAML cuando se deja en blanco, por lo que los complementos y variantes existentes no requieren migración.
+
+Los precios de productos y variantes deben estar entre `$0` y `$1,000,000`, inclusive. El panel rechaza un valor de catálogo fuera de ese rango antes de su publicación, Worker rechaza de forma independiente un precio de catálogo fuera de rango y un valor de centavo histórico fuera de rango no se conserva sobre el precio de catálogo válido actual. Esto coincide con el límite de monto de pago canónico y evita que un catálogo inutilizable se publique correctamente.
+
+El Worker es la autoridad de precios. Carrito y Administrar aporte muestran los precios del catálogo para nuevas selecciones, pero el pago y la modificación del aporte los recalculan en el lado del servidor. Las líneas de aporte existentes mantienen sus centavos ahorrados denominados `unitPrice` cuando el producto y la variante no cambian, incluidas las ediciones de solo cantidad. Al seleccionar una variante diferente se utiliza el precio de catálogo actual de esa variante. Los informes, análisis, correos electrónicos y cumplimiento continúan leyendo el precio histórico persistente en lugar de cambiar el precio de los aportes anteriores.
 
 Los complementos de campaña utilizan la misma forma de producto, pero se encuentran en el frente de la campaña:
 
@@ -182,11 +188,11 @@ El flujo de complementos actual tiene en cuenta intencionalmente el inventario:
 - Los complementos globales leen el inventario de `add_ons`.
 - complementos de campaña leer inventario de `campaign_add_ons`
 - el Trabajador expone una instantánea del inventario actual en [/add-ons/inventory](https://github.com/your-org/your-project/blob/main/worker/src/index.js)
-- carrito y Administrar compromiso consumen el mismo asistente compartido de estado del producto que reconoce el inventario
+- carrito y Administrar aporte consumen el mismo asistente compartido de estado del producto que reconoce el inventario
 - Aparece un mensaje de stock bajo cuando la cantidad restante es igual o inferior a `low_stock_threshold`
-- Las variantes agotadas se eliminan de la superficie compartida del estado del producto a menos que ya estén seleccionadas en un compromiso existente.
-- El inventario adicional se cuenta a partir de los registros de promesas persistentes, no de los borradores del carrito en progreso.
-- Los recuentos vendidos se almacenan en `add-on-inventory-sold:v1` después del primer arranque de proyección, y las rutas de creación, modificación y cancelación de promesas mantienen esa proyección actualizada, de modo que las lecturas normales de inventario no enumeren todas las claves de promesas.
+- Las variantes agotadas se eliminan de la superficie compartida del estado del producto a menos que ya estén seleccionadas en un aporte existente.
+- El inventario adicional se cuenta a partir de los registros de aportes persistentes, no de los borradores del carrito en progreso.
+- Los recuentos vendidos se almacenan en `add-on-inventory-sold:v1` después del primer arranque de proyección, y las rutas de creación, modificación y cancelación de aportes mantienen esa proyección actualizada, de modo que las lecturas normales de inventario no enumeren todas las claves de aportes.
 - los superadministradores pueden configurar anulaciones de inventario de complementos de plataforma en el panel sin editar `_config.yml`; esas anulaciones se almacenan por separado de la línea base configurada
 
 ## Modelo de interfaz de usuario
@@ -202,7 +208,7 @@ El modelo de interfaz de usuario actual es intencionalmente simple y compartido:
   - entrada de cantidad
   - acción de agregar/eliminar con un solo clic
 - el carrito y Manage Pledge utilizan las mismas reglas de normalización del estado del producto
-- la sección `Add-ons` de la plataforma les dice explícitamente a los seguidores que el merchandising apoya al administrador de la plataforma y no aumenta los totales de financiación de la campaña.
+- la sección `Add-ons` de la plataforma les dice explícitamente a los patrocinadores que el merchandising apoya al administrador de la plataforma y no aumenta los totales de financiación de la campaña.
 - la sección `Campaign Add-ons` usa las mismas tarjetas sin esa nota de soporte de plataforma
 - en los carritos de campañas múltiples hay una sección combinada `Campaign Add-ons`, incluso cuando más de una campaña aporta complementos de campaña
 
@@ -239,12 +245,12 @@ El trabajador ahora también tiene una fuente de catálogo estática coincidente
 - `bundleAddOnAnchorCampaignSlug`
 - `bundleAddOnTotals`
 
-Los complementos también persisten en el propio registro de compromiso, por lo que:
+Los complementos también persisten en el propio registro de aporte, por lo que:
 
 - El subtotal canónico y las matemáticas de envío los incluyen.
-- los correos electrónicos de los seguidores pueden renderizarlos
+- los correos electrónicos de los patrocinadores pueden renderizarlos
 - Manage Pledge puede agregarlos o restarlos más tarde
-- Los informes de compromiso y cumplimiento pueden separar el valor del compromiso de la campaña del valor del merchandising de la plataforma cuando sea necesario.
+- Los informes de aporte y cumplimiento pueden separar el valor del aporte de la campaña del valor del merchandising de la plataforma cuando sea necesario.
 
 Comportamiento contable actual:
 
@@ -282,4 +288,4 @@ En `fulfillment-report`:
 - Los complementos de la plataforma son gestionados por el operador de la plataforma (`site.author`)
 - Los complementos de la campaña permanecen adjuntos a la campaña y la utilizan como cumplimiento.
 
-Esto mantiene clara la propiedad operativa sin cambiar la interfaz de usuario del complemento orientada a los seguidores.
+Esto mantiene clara la propiedad operativa sin cambiar la interfaz de usuario del complemento orientada a los patrocinadores.

@@ -9,11 +9,11 @@ render_with_liquid: false
 
 ## Last Updated
 
-July 5, 2026
+July 16, 2026
 
 The Pool uses a **no-account, email-based pledge management system**. Backers save a payment method through Stripe in The Pool's on-site payment step, manage pledges via order-scoped magic links, and are only charged if the campaign is funded.
 
-For setup, processor operations, and reconciliation, use [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md). For sender setup, email types, localization, and delivery behavior, use [EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md).
+For setup, processor operations, and reconciliation, use [PAYMENT_PROCESSOR.md](/docs/operations/payment-processor/). For classified snapshots, recovery ordering, and restore gates, use [BACKUP_RESTORE.md](/docs/operations/backup-restore/). For sender setup, email types, localization, and delivery behavior, use [EMAIL.md](/docs/operations/email-system/).
 
 ## Key Differentiators
 
@@ -137,6 +137,7 @@ Scarce-tier reservations and committed claim state now live in the per-campaign 
 - `additionalTiers` — Array of `{ id, qty }` for multi-tier pledges (when `single_tier_only: false`)
 - `tipPercent` / `tipAmount` — Optional The Pool platform tip stored separately from campaign subtotal
 - Bundled multi-campaign checkouts are persisted as separate pledge records, one per campaign
+- Add-on variants may override their product base price. The Worker resolves current catalog prices for new or changed selections, while an unchanged persisted product/variant retains its saved `bundleAddOns.unitPrice` through quantity-only edits; reports and emails use that historical saved value.
 
 **History entries:**
 Each history entry tracks a pledge event with full context:
@@ -191,6 +192,18 @@ Stateless HMAC-signed tokens (no database needed):
 
 Each token only authorizes its own order. A valid link no longer grants email-wide access to every pledge on the same address, and a valid token without a real backing pledge now fails closed instead of returning a synthetic placeholder.
 
+## Supporter Trust Boundaries
+
+The pledge lifecycle should remain understandable to a supporter who never reads the code. Use [ETHICAL_RISK.md](/docs/development/ethical-risk-review/) when a workflow change affects data collection, money, reminders, campaign visibility, admin power, or public sharing.
+
+Trust-sensitive workflow rules:
+
+- Browser UI can preview and explain state, but the Worker must canonicalize money, inventory, permissions, and persistence.
+- Supporters should be able to distinguish estimated vs final tax/shipping, draft vs committed pledge state, active vs closed campaigns, and reminder signup vs required checkout steps.
+- Email reminders and campaign updates should be opt-in or pledge-scoped, deduped, suppressible where appropriate, and sent through dry-run-aware paths.
+- Private, tokenized, preview, admin, and supporter-only routes should not become indexable, prefetched, or share-card targets.
+- Bulk or automated workflows should have bounded batches, audit records, idempotency, and operator evidence before live sends or mutations.
+
 ---
 
 ## Worker API Routes
@@ -198,7 +211,7 @@ Each token only authorizes its own order. A valid link no longer grants email-wi
 ### `POST /checkout-intent/start`
 Create a setup-mode Stripe Checkout Session from the first-party cart state for the on-site payment step.
 
-The complete payment processor integration, including setup-mode checkout, webhook persistence, recovery, settlement, and Stripe financial backfill, is documented in [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md).
+The complete payment processor integration, including setup-mode checkout, webhook persistence, recovery, settlement, and Stripe financial backfill, is documented in [PAYMENT_PROCESSOR.md](/docs/operations/payment-processor/).
 
 **Request:**
 ```json
@@ -210,7 +223,7 @@ The complete payment processor integration, including setup-mode checkout, webho
   "tipPercent": 5
 }
 ```
-**Response:**  
+**Response:**
 - custom mode: `{ checkoutUiMode, sessionId, clientSecret, publishableKey, orderId }`
 - hosted fallback: `{ checkoutUiMode: "hosted", url }`
 
@@ -284,7 +297,7 @@ If the token is valid but its pledge record no longer exists, this route returns
 ### `POST /pledge/cancel`
 Cancel an active pledge.
 
-**Request:** `{ token }`  
+**Request:** `{ token }`
 **Validation:**
 - Rejects if pledge is charged
 - Rejects if campaign deadline has passed
@@ -309,8 +322,8 @@ Change tier or amount.
 ### `POST /pledge/payment-method/start`
 Update saved payment method.
 
-**Request:** `{ token }`  
-**Response:**  
+**Request:** `{ token }`
+**Response:**
 - custom mode: `{ checkoutUiMode, sessionId, clientSecret, publishableKey }`
 - hosted fallback: `{ checkoutUiMode: "hosted", url }`
 
@@ -362,7 +375,7 @@ Recalculate stats from all pledges in KV (admin only).
 ### `POST /admin/rebuild`
 Trigger a GitHub Pages rebuild (for state transitions).
 
-**Headers:** `Authorization: Bearer ADMIN_SECRET`  
+**Headers:** `Authorization: Bearer ADMIN_SECRET`
 **Request:** `{ "reason": "campaign-state-change" }` (optional)
 
 ### `POST /admin/marketing/announcement`
@@ -465,8 +478,8 @@ The backfill uses `campaign-pledges:{slug}` indexes and grouped PaymentIntent lo
 ### `POST /admin/recover-checkout`
 Recover a missed Stripe webhook by manually creating a pledge from a completed checkout session.
 
-**Headers:** `Authorization: Bearer ADMIN_SECRET`  
-**Request:** `{ sessionId: "cs_test_..." }` or `{ orderId: "pledge-..." }`  
+**Headers:** `Authorization: Bearer ADMIN_SECRET`
+**Request:** `{ sessionId: "cs_test_..." }` or `{ orderId: "pledge-..." }`
 **Response:**
 ```json
 {
@@ -609,7 +622,7 @@ This allows supporters to fix expired/declined cards without manual admin interv
 
 ## Email Architecture
 
-This section summarizes pledge-related email behavior. The complete Resend setup and email-type reference lives in [EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md).
+This section summarizes pledge-related email behavior. The complete Resend setup and email-type reference lives in [EMAIL.md](/docs/operations/email-system/).
 
 | Provider | Purpose |
 |----------|---------|
@@ -617,39 +630,22 @@ This section summarizes pledge-related email behavior. The complete Resend setup
 
 The Worker handles all pledge-related email via Resend.
 
+In production, callers enqueue a durable `email-outbox:v1:*` record instead of waiting on Resend. The scheduler freezes the rendered payload on first attempt, sends it with a deterministic provider idempotency key, and keeps pledge truth independent from notification retry. Test sends, dry-run rendering, and admin login links remain immediate. Signed Resend events at `POST /webhooks/resend` update minimal delivery state and hashed suppression; Pool does not sync pledge audiences into Resend Contacts or Broadcasts.
+
+Diary, milestone, and live announcement mail includes a campaign-scoped RFC 8058 one-click unsubscribe URL. Suppression is checked immediately before provider delivery. Payment and pledge lifecycle mail remains transactional.
+
 ### Resend Integration (Worker)
 
 The Worker sends supporter emails after Stripe webhook confirms the setup-mode session. The sender domain must be authorized for the configured Resend API key; for this deployment, pledge confirmations use `The Pool <pledges@site.example.com>` because `site.example.com` is the authorized sending domain.
 
 ```js
 // In Worker: POST /webhooks/stripe handler
-async function sendSupporterEmail(env, { email, campaignSlug, campaignTitle, amount, token }) {
-  const manageUrl = `${env.SITE_BASE}/manage/?t=${token}`;
-  const communityUrl = `${env.SITE_BASE}/community/${campaignSlug}/?t=${token}`;
-  
-  await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${env.RESEND_API_KEY}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      from: env.PLEDGES_EMAIL_FROM,
-      to: email,
-      subject: `Pledge confirmed | ${campaignTitle}`,
-      html: `
-        <h1>Thanks for backing ${campaignTitle}!</h1>
-        <p><strong>Pledge amount:</strong> $${(amount / 100).toFixed(2)}</p>
-        <p><strong>Remember:</strong> Your card is saved but won't be charged unless this campaign reaches its goal.</p>
-        <hr>
-        <h2>Your Supporter Access</h2>
-        <p>No account needed — these links are your keys:</p>
-        <p><a href="${manageUrl}">Manage Your Pledge</a> — Cancel, modify, or update payment method</p>
-        <p><a href="${communityUrl}">Supporter Community</a> — Vote on creative decisions</p>
-        <hr>
-        <p style="color:#666;font-size:12px;">Save this email! You'll need these links to manage your pledge.</p>
-      `
-    })
+async function sendSupporterEmail(env, { orderId, email, campaignSlug, campaignTitle, amount, token }) {
+  return enqueueEmailOutbox(env, {
+    kind: 'supporter',
+    campaignSlug,
+    dedupeKey: `supporter-confirmation:${orderId}`,
+    payload: { email, campaignSlug, campaignTitle, amount, token }
   });
 }
 ```

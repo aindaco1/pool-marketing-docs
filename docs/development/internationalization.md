@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-July 1, 2026
+July 16, 2026
 
 This document records the current localization structure for The Pool and the supported workflow for adding languages in a fork.
 
@@ -156,6 +156,7 @@ The site uses a static locale-prefix model:
   - `/es/about/`
   - `/es/terms/`
   - `/es/campaigns/{slug}/`
+  - `/es/campaigns/{slug}/rewards/{tier-id}/` when a Shopping product is explicitly enabled
   - `/es/embed/campaign/`
   - `/es/manage/`
   - `/es/community/`
@@ -164,6 +165,8 @@ The site uses a static locale-prefix model:
 This keeps the Jekyll/GitHub Pages deployment model simple and predictable.
 
 Campaign collection routes are now generated in both locales, so the footer language switcher can remain available on campaign pages instead of disappearing or linking back to the default-language route.
+
+Focused Shopping product pages follow the same generated locale-pair model. Product facts such as the campaign-authored reward name and description remain authored content; shared preorder, shipping, and final-sale disclosures come from the locale catalog.
 
 ## Helpers and Runtime Plumbing
 
@@ -263,7 +266,34 @@ npm run podman:doctor
 ./scripts/dev.sh --podman
 ```
 
+## Neutral US / Latin American Spanish Guide
+
+The maintained Spanish locale targets clear, neutral Spanish for audiences in the United States and Latin America. Prefer direct, widely understood terms over regional slang, literal English syntax, or unexplained product jargon.
+
+Use this glossary consistently in public pages and shared interface copy:
+
+| English concept | Preferred Spanish | Avoid in public copy |
+| --- | --- | --- |
+| pledge | aporte | *pledge* |
+| supporter / backer | patrocinador / persona que apoya | *backer* |
+| reward tier | nivel de recompensa | *tier* |
+| add-on | complemento | *add-on* |
+| checkout | proceso de pago | *checkout* |
+| fulfillment | preparación y entrega | *fulfillment* |
+| shipping | envío | *shipping* |
+| return | devolución | *return* |
+| refund | reembolso | *refund* |
+| preview | vista previa | *preview* |
+| dashboard | panel | *dashboard* |
+| analytics | análisis | *analytics* |
+
+Technical developer documentation may retain exact identifiers such as `runtime`, route names, setting paths, or provider product names when translation would make the implementation ambiguous. User-facing policy and About copy should not depend on those English identifiers.
+
+For material policy changes, keep English and Spanish headings, anchors, obligations, time periods, remedies, and contact paths in direct parity. Automated key completeness does not replace a fluent human review; record the reviewer and date in release evidence when that review occurs.
+
 ## Current Boundaries
+
+Automated locale completeness and rendered i18n/SEO checks remain release gates. The v1.1.2 About, Terms, Shopping, shipping, and no-returns copy targets neutral US/Latin American Spanish, and the owner confirmed completion of the final fluent review on 2026-07-14. Require an explicit translator/native-speaker review plan before adding locales beyond English and Spanish.
 
 Still intentionally out of scope for this model:
 

@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-5 de julio de 2026
+16 de julio de 2026
 
 ## Empezando
 
@@ -64,13 +64,14 @@ bundle exec jekyll clean
 
 1. Root `README.md`: propósito y arquitectura de alto nivel
 2. `docs/PROJECT_OVERVIEW.md` — Cómo encajan todas las piezas
-3. `docs/WORKFLOWS.md`: ciclo de vida de la promesa, enlaces mágicos y flujo de carga
+3. `docs/WORKFLOWS.md`: ciclo de vida del aporte, enlaces mágicos y flujo de carga
 4. `docs/PAYMENT_PROCESSOR.md`: configuración, pago, webhooks, liquidación y conciliación de Stripe
 5. `docs/EMAIL.md`: configuración de Resend, tipos de correo electrónico, localización y comportamiento de entrega
-6. `docs/DEV_NOTES.md`: notas de integración, modelo de contenido y errores
-7. `docs/TESTING.md`: guía de prueba completa (incluye configuración de secretos)
-8. `docs/ROADMAP.md` — Funciones planificadas
-9. `docs/DASHBOARD.md` — Operaciones y edición del panel de administración
+6. `docs/ETHICAL_RISK.md`: Solicitudes de revisión de riesgos éticos para datos, dinero, mensajería, automatización, uso compartido público y poder administrativo
+7. `docs/DEV_NOTES.md`: notas de integración, modelo de contenido y errores
+8. `docs/TESTING.md`: guía de prueba completa (incluye configuración de secretos)
+9. `docs/ROADMAP.md` — Funciones planificadas
+10. `docs/DASHBOARD.md` — Operaciones y edición del panel de administración
 
 Para cambios en la interfaz de usuario del tablero, lea también `docs/ACCESSIBILITY.md`, `docs/I18N.md`, `docs/SECURITY.md` y `docs/SEO.md`; el shell de administración tiene requisitos explícitos para el acceso al teclado, cadenas en español, normalización de entrada y `noindex`.
 
@@ -100,24 +101,24 @@ Para cambios en la interfaz de usuario del tablero, lea también `docs/ACCESSIBI
 - Fases de producción, decisiones comunitarias, diario de producción.
 - Pledge UX, ícono de carrito, revisión de pago propia
 - Flujo de pago nativo de Stripe en el sidecar de pago existente
-- Gestión de promesas sin cuenta (enlaces mágicos, página `/manage/`)
+- Gestión de aportes sin cuenta (enlaces mágicos, página `/manage/`)
 - Flujo `Update Card` in situ en `/manage/`
-- Página comunitaria exclusiva para seguidores con votación
+- Página comunitaria exclusiva para patrocinadores con votación
 - Soporte de niveles no apilable (ocultar controles de cantidad en el carrito)
 - Manejo móvil de superposición de carritos/hamburguesas
-- Trabajador de Cloudflare (almacenamiento de promesas, estadísticas, inventario, correos electrónicos)
+- Trabajador de Cloudflare (almacenamiento de aportes, estadísticas, inventario, correos electrónicos)
 - Tarea programada por el trabajador para liquidación automática a medianoche en la zona horaria de la plataforma configurada
-- Cobro agregado (un cargo por partidario por campaña)
+- Cobro agregado (un cargo por patrocinador por campaña)
 - Flujo de datos de artículos de soporte y montos personalizados (carrito → Trabajador → KV → estadísticas)
 - Pre-renderizado del temporizador de cuenta regresiva (sin flash "00 00 00 00")
-- Compatibilidad con compromisos de varios niveles (`additionalTiers`)
+- Compatibilidad con aportes de varios niveles (`additionalTiers`)
 - Pruebas unitarias (Vitest) y pruebas E2E (Dramaturgo)
 - Cobertura E2E de pago totalmente automatizado
 - Lanzamiento de campaña de producción (Hand Relations)
 - Ruta de desarrollo/pruebas local respaldada por Podman
 - Protección más explícita contra la sobreventa de inventario a través de la coordinación de objetos duraderos
-- Panel de administración privado para edición de campañas, configuraciones, complementos, análisis, informes, seguidores, enlaces de marketing y administración de usuarios según los roles.
-- Rediseño completo de tipografía, elementos y diseños en páginas públicas, superficies de campaña, pago y gestión de compromiso.
+- Panel de administración privado para edición de campañas, configuraciones, complementos, análisis, informes, patrocinadores, enlaces de marketing y administración de usuarios según los roles.
+- Rediseño completo de tipografía, elementos y diseños en páginas públicas, superficies de campaña, pago y gestión de aporte.
 - Zona horaria de plataforma configurable para plazos de campaña, cuentas regresivas, informes, automatización del ciclo de vida y verificaciones de liquidación.
 - Recordatorios del lanzamiento de próximas campañas con Turnstile, deduplicación, cancelación de suscripción y entrega compartida de Resend
 - Mejora del rendimiento de las páginas públicas, minificación de activos generados, captación previa conservadora del mismo origen y derivados de medios responsivos
@@ -125,7 +126,7 @@ Para cambios en la interfaz de usuario del tablero, lea también `docs/ACCESSIBI
 
 🚧 **Enfoque activo:**
 - Auditorías de disciplina de puerta de fusión y preparación para el lanzamiento en accesibilidad, personalización, panel de control, i18n, rendimiento, seguridad y SEO
-- Profundidad de la calculadora de impuestos, herramientas de marketing de campañas más completas, precios de variantes adicionales y refuerzo posterior al lanzamiento para vistas previas de campañas protegidas y creación de nuevas campañas.
+- Profundidad de la calculadora de impuestos, herramientas de marketing de campaña más completas y refuerzo posterior al lanzamiento para vistas previas de campañas protegidas y creación de nuevas campañas.
 
 ---
 
@@ -142,6 +143,7 @@ Para cambios en la interfaz de usuario del tablero, lea también `docs/ACCESSIBI
 ### Solicitudes de extracción
 - Mantenga las relaciones públicas enfocadas y por debajo de ~300 líneas cuando sea posible
 - Complete la plantilla de relaciones públicas, incluya capturas de pantalla para los cambios en la interfaz de usuario e incluya capturas de pantalla de escritorio/tableta/móvil para los cambios en el diseño del panel de administración.
+- Incluya una revisión de riesgo ético cuando un RP cambie dinero, recopilación de datos, mensajes de apoyo, acceso de administrador, intercambio público, automatización, análisis o mecanismos de participación.
 - Problemas de enlace con `Closes #123`
 
 ### Etiquetas
@@ -156,9 +158,10 @@ Para cambios en la interfaz de usuario del tablero, lea también `docs/ACCESSIBI
 - [ ] Confirme que el desarrollo local del trabajador se esté ejecutando en el nodo 24 a través de la ruta Podman
 - [ ] Utilice únicamente la ruta Jekyll/Wrangler de host exclusivo si la necesita intencionalmente
 - [ ] Hojee `_layouts/` y `_includes/` para ver la integración del carrito propio
-- [ ] Revisar los scripts de carrito y compromiso de `assets/js/`
-- [ ] Lea `worker/src/` para comprender el backend (almacenamiento de promesas, estadísticas, carga)
+- [ ] Revisar los scripts de carrito y aporte de `assets/js/`
+- [ ] Lea `worker/src/` para comprender el backend (almacenamiento de aportes, estadísticas, carga)
 - [ ] Abra `/admin/` localmente con la ruta de correo electrónico predeterminada del administrador de desarrollo y comprenda la división de publicación del panel versus KV-save
+- [] Lea `docs/ETHICAL_RISK.md` antes de cambiar el pago, los correos electrónicos, los análisis, el poder administrativo, la visibilidad pública o la retención de datos.
 - [ ] Verifique que `CNAME` esté configurado en el dominio de su sitio público
 
 ---
@@ -171,7 +174,7 @@ Para cambios en la interfaz de usuario del tablero, lea también `docs/ACCESSIBI
 - **Pago personalizado local**: agregue `STRIPE_PUBLISHABLE_KEY_TEST` a `worker/.dev.vars`
 - **Panel de administración**: el desarrollador local otorga acceso de superadministrador de arranque a través de `ADMIN_BOOTSTRAP_EMAILS` en `worker/.dev.vars` ignorado; Los administradores de la bifurcación deben colocar el acceso de producción en `_config.yml` `admin.users`, `ADMIN_USERS_JSON` o en la pantalla de usuarios del panel. La pantalla de Usuarios se guarda en KV, no en GitHub.
 
-Consulte [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md), [EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md) y [TESTING.md](/es/docs/operations/testing/) para obtener las referencias completas sobre pagos, correos electrónicos y secretos.
+Consulte [PAYMENT_PROCESSOR.md](/es/docs/operations/payment-processor/), [EMAIL.md](/es/docs/operations/email-system/) y [TESTING.md](/es/docs/operations/testing/) para obtener las referencias completas sobre pagos, correos electrónicos y secretos.
 
 ---
 
@@ -189,10 +192,10 @@ Consulte [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/ma
 
 |Término|Definición|
 |------|------------|
-|**Promesa**|Pedido realizado sin cargo inmediato; tarjeta guardada a través de Stripe SetupIntent|
+|**Aporte**|Pedido realizado sin cargo inmediato; tarjeta guardada a través de Stripe SetupIntent|
 |**Todo o nada**|Tarjetas cargadas solo si `pledged_amount >= goal_amount` en la fecha límite|
 |**Intención de configuración**|Stripe se opone a guardar un método de pago para cargos posteriores fuera de la sesión|
-|**Enlace mágico**|URL firmada por HMAC enviada por correo electrónico para la gestión de promesas sin cuenta|
+|**Enlace mágico**|URL firmada por HMAC enviada por correo electrónico para la gestión de aportes sin cuenta|
 |**The Pool**|Nombre de la plataforma para el sitio de crowdfunding|
 |**Operador de plataforma**|Nombre de la empresa o estudio para su implementación|
 

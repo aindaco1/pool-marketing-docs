@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-1 de julio de 2026
+16 de julio de 2026
 
 Este documento registra la estructura de localización actual de The Pool y el flujo de trabajo admitido para agregar idiomas en una bifurcación.
 
@@ -35,8 +35,8 @@ El modelo i18n actual cubre:
   - `/community/`
   - `/admin/`
   - `/creator-campaign-checklist/`
-  - páginas de la comunidad de seguidores
-- copia localizada en tiempo de ejecución propiedad del sitio para carrito, pago, gestión de compromiso, autenticación de administrador/panel de control/vistas previas de informes/exploración de seguidores/vista previa de contenido, creación de nuevas campañas, vistas previas de campañas protegidas, flujos de la comunidad, cuentas regresivas de campañas (incluido el estado del tiempo restante del lector de pantalla), recordatorios de lanzamiento de próximas campañas, videos destacados/estados de carga y títulos insertados, avance de la comunidad de seguidores en Chrome, pestañas de diario, controles de fase de producción, etiquetas de galería, estadísticas en vivo texto de estado y el widget/creador de inserción de campaña
+  - páginas de la comunidad de patrocinadores
+- copia localizada en tiempo de ejecución propiedad del sitio para carrito, pago, gestión de aporte, autenticación de administrador/panel de control/vistas previas de informes/exploración de patrocinadores/vista previa de contenido, creación de nuevas campañas, vistas previas de campañas protegidas, flujos de la comunidad, cuentas regresivas de campañas (incluido el estado del tiempo restante del lector de pantalla), recordatorios de lanzamiento de próximas campañas, videos destacados/estados de carga y títulos insertados, avance de la comunidad de patrocinadores en Chrome, pestañas de diario, controles de fase de producción, etiquetas de galería, estadísticas en vivo texto de estado y el widget/creador de inserción de campaña
 - El cambio de idioma del administrador conserva el estado de vista seguro, como los filtros de campaña y los hashes, pero elimina los tokens de enlace mágico `admin_login` antes de vincularlos al idioma alternativo.
 - etiquetas de sección de complementos de campaña localizadas tanto en el carrito como en Manage Pledge, además de una copia de ayuda para el pago, como resúmenes de los botones del carrito, etiquetas de ubicación fiscal y una copia del siguiente paso del pago alojado
 - Cambio de pie de página de campaña localizado y formato de fecha de campaña localizado para Chrome de campaña pública
@@ -114,15 +114,15 @@ Esto incluye:
 - botones
 - etiquetas de estado
 - progreso/metatexto
-- carrito/pagar/Administrar copia en tiempo de ejecución de promesa
+- carrito/pagar/Administrar copia en tiempo de ejecución de aporte
 - Pestañas del panel de administración, filtros, etiquetas de formulario generadas, etiquetas de opciones, texto de ayuda, copia de carga de medios, copia de informe/soporte/análisis/marketing, copia de diálogo de nueva campaña, copia de diálogo de vista previa protegida y controles del editor de contenido
 - Etiquetas de la sección de complementos de la campaña y copia auxiliar de pago alojada/personalizada.
 - copia en tiempo de ejecución de la comunidad
-- cuenta regresiva de la campaña / video-heroe / comunidad-de-seguidores / diario / fase-de-producción / galería / copia de estadísticas en vivo
+- cuenta regresiva de la campaña / video-heroe / comunidad-de-patrocinadores / diario / fase-de-producción / galería / copia de estadísticas en vivo
 - Formulario de recordatorio del lanzamiento de la próxima campaña, estado y copia por correo electrónico
 - Etiquetas para compartir de campaña y mensajes con intención de compartir para Bluesky, X, Threads, Facebook, SMS y correo electrónico.
 - creador de inserción de campaña/copia de widget
-- Copia del correo electrónico del partidario del trabajador
+- Copia del correo electrónico del patrocinador del trabajador
 
 El inglés es el archivo fuente canónico y la configuración regional alternativa.
 
@@ -157,6 +157,7 @@ El sitio utiliza un modelo estático de prefijo local:
   - `/es/about/`
   - `/es/terms/`
   - `/es/campaigns/{slug}/`
+  - `/es/campaigns/{slug}/rewards/{tier-id}/` cuando un producto de Shopping está habilitado explícitamente
   - `/es/embed/campaign/`
   - `/es/manage/`
   - `/es/community/`
@@ -165,6 +166,8 @@ El sitio utiliza un modelo estático de prefijo local:
 Esto mantiene el modelo de implementación de Jekyll/GitHub Pages simple y predecible.
 
 Las rutas de recopilación de campañas ahora se generan en ambas configuraciones regionales, por lo que el selector de idioma del pie de página puede permanecer disponible en las páginas de la campaña en lugar de desaparecer o vincularse nuevamente a la ruta del idioma predeterminado.
+
+Las páginas de productos de Focused Shopping siguen el mismo modelo de par local generado. Los datos del producto, como el nombre y la descripción de la recompensa creados por la campaña, siguen siendo contenido de autor; Las divulgaciones compartidas sobre pedidos anticipados, envíos y ventas finales provienen del catálogo local.
 
 ## Ayudantes y plomería en tiempo de ejecución
 
@@ -202,10 +205,10 @@ Comportamiento actual importante:
 
 - el selector de idioma del pie de página es la superficie de cambio de configuración regional compartida
 - conserva la cadena de consulta actual y el hash
-- Las URL tokenizadas como `/manage/?t=...` pueden cambiar a `/es/manage/?t=...` sin perder el acceso al compromiso.
+- Las URL tokenizadas como `/manage/?t=...` pueden cambiar a `/es/manage/?t=...` sin perder el acceso al aporte.
 - Stripe se inicializa con la configuración regional actual donde sea compatible, por lo que las etiquetas de campo propiedad de Stripe y la validación también se pueden localizar
 - Los resúmenes de activación del carrito y la copia auxiliar de ubicación de impuestos provienen del catálogo local compartido, por lo que el pago personalizado sigue siendo traducible sin cadenas codificadas separadas.
-- Las plantillas de campañas públicas ahora enrutan cadenas de Chrome compartidas a través de datos locales en lugar de inglés codificado cuando sea práctico, incluido el CTA/estado de carga del video principal, títulos insertados de video principal, copia de adelanto de la comunidad de seguidores, copia de estado/formulario de recordatorio de lanzamiento, diario cromado, etiquetas de la fase de producción, etiquetas de accesibilidad de la galería, copia del compromiso de la barra lateral de la campaña, texto de estado del lector de pantalla de cuenta regresiva y fechas de la campaña localizadas.
+- Las plantillas de campañas públicas ahora enrutan cadenas de Chrome compartidas a través de datos locales en lugar de inglés codificado cuando sea práctico, incluido el CTA/estado de carga del video principal, títulos insertados de video principal, copia de adelanto de la comunidad de patrocinadores, copia de estado/formulario de recordatorio de lanzamiento, diario cromado, etiquetas de la fase de producción, etiquetas de accesibilidad de la galería, copia del aporte de la barra lateral de la campaña, texto de estado del lector de pantalla de cuenta regresiva y fechas de la campaña localizadas.
 - Las páginas de campaña utilizan etiquetas para compartir localizadas y texto de intención de compartir con reconocimiento del estado, al tiempo que dejan los títulos y anuncios publicitarios de las campañas escritos por los creadores tal como fueron escritos.
 - Las páginas de campaña ahora exponen el cambio de idioma del pie de página localizado a través de la campaña generada `localized_paths`
 - el generador de inserción de campaña alojada y el widget extraen sus cadenas de generador/tiempo de ejecución del catálogo de configuración regional compartido y conservan los enlaces de retorno de la campaña que tienen en cuenta la configuración regional.
@@ -224,8 +227,8 @@ Archivos relevantes:
 Comportamiento práctico:
 
 - Si no se captura ninguna preferencia local, los correos electrónicos vuelven al inglés.
-- si un partidario se compromete o administra desde `/es/...`, el trabajador puede persistir `preferredLang=es`
-- Los correos electrónicos de los seguidores y las URL de enlaces mágicos utilizan el modelo de ruta en español, como `/es/manage/?t=...`.
+- si un patrocinador se compromete o administra desde `/es/...`, el trabajador puede persistir `preferredLang=es`
+- Los correos electrónicos de los patrocinadores y las URL de enlaces mágicos utilizan el modelo de ruta en español, como `/es/manage/?t=...`.
 - Los correos electrónicos de recordatorio de lanzamiento utilizan el `preferredLang` persistente del registro y se vinculan a la ruta de la campaña localizada cuando hay una disponible.
 - los correos electrónicos de asignaciones de campaña y los correos electrónicos de revisores de vista previa protegidos utilizan el tema de correo electrónico compartido y el catálogo local; La copia del correo electrónico de vista previa del revisor debe indicar que el enlace caduca en 24 horas.
 - Las tarjetas compartidas de campaña también se pueden solicitar según la configuración regional, como `/share/campaign/sunder.png?lang=es`
@@ -264,7 +267,34 @@ npm run podman:doctor
 ./scripts/dev.sh --podman
 ```
 
+## Guía neutral en español de EE. UU./Latinoamérica
+
+La configuración regional en español mantenida apunta a un español claro y neutral para audiencias de Estados Unidos y América Latina. Prefiera términos directos y de amplia comprensión a la jerga regional, la sintaxis literal del inglés o la jerga de producto inexplicable.
+
+Utilice este glosario de forma coherente en páginas públicas y en copias de interfaces compartidas:
+
+|concepto ingles|Español preferido|Evitar en copia pública|
+| --- | --- | --- |
+|aporte|aporte|*aporte*|
+|patrocinador / patrocinador|patrocinador / persona que apoya|*patrocinador*|
+|nivel de recompensa|nivel de recompensa|*nivel*|
+|complemento|complemento|*complemento*|
+|pagar|proceso de pago|*pagar*|
+|cumplimiento|preparación y entrega|*cumplimiento*|
+|envío|envío|*envío*|
+|volver|devolución|*regreso*|
+|reembolso|reembolso|*reembolso*|
+|vista previa|vista previa|*vista previa*|
+|tablero|panel|*tablero*|
+|analítica|analisis|*análisis*|
+
+La documentación técnica del desarrollador puede conservar identificadores exactos como `runtime`, nombres de rutas, rutas de configuración o nombres de productos de proveedores cuando la traducción haría que la implementación fuera ambigua. La política orientada al usuario y la copia Acerca de no deben depender de esos identificadores en inglés.
+
+Para cambios importantes en las políticas, mantenga los títulos, anclajes, obligaciones, períodos de tiempo, recursos y vías de contacto en inglés y español en paridad directa. La integridad de las claves automatizadas no reemplaza una revisión humana fluida; registre el revisor y la fecha en la evidencia de divulgación cuando se realice esa revisión.
+
 ## Límites actuales
+
+La integridad local automatizada y las comprobaciones i18n/SEO representadas siguen siendo puertas de liberación. La copia v1.1.2 Acerca de, Términos, Compras, envío y sin devoluciones está dirigida al español neutral de EE. UU. y Latinoamérica, y el propietario confirmó la finalización de la revisión fluida final el 14 de julio de 2026. Exija un plan explícito de revisión de traductor/hablante nativo antes de agregar idiomas más allá del inglés y el español.
 
 Todavía intencionalmente fuera del alcance de este modelo:
 

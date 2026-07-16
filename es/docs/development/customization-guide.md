@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-5 de julio de 2026
+16 de julio de 2026
 
 Esta guía cubre la superficie de personalización sin código compatible para las bifurcaciones de The Pool tal como existe ahora.
 
@@ -18,7 +18,7 @@ El objetivo es permitir que las bifurcaciones cambien el nombre, el estilo y la 
 
 El modelo de configuración estructurado en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) es ahora la superficie canónica orientada a la horquilla.
 
-La configuración específica del proveedor se encuentra en runbooks separados: use [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md) para Stripe y liquidación, y [EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md) para remitentes Resend y entrega de correo electrónico.
+La configuración específica del proveedor se encuentra en runbooks separados: use [PAYMENT_PROCESSOR.md](/es/docs/operations/payment-processor/) para Stripe y liquidación, y [EMAIL.md](/es/docs/operations/email-system/) para remitentes Resend y entrega de correo electrónico.
 
 ## Comience aquí
 
@@ -127,8 +127,8 @@ Notas:
 - `platform.timezone` debe ser una zona horaria compatible con la IANA. El valor predeterminado es `America/Denver`, por lo que las bifurcaciones existentes mantienen el comportamiento del ciclo de vida anterior hasta que lo cambien.
 - `title` / `author` de nivel superior todavía existen en Jekyll, pero trátelos como metadatos/respaldo generales del sitio en lugar de la interfaz principal de personalización de la bifurcación.
 - `platform.default_social_image_path` es el valor predeterminado admitido para tarjetas OG/Twitter cuando una página o campaña no proporciona una imagen más específica.
-- `platform.logo_path` es también la marca reflejada que se utiliza en los correos electrónicos de los seguidores.
-- El dominio en `platform.pledges_email_from` y `platform.updates_email_from` debe estar autorizado por el proveedor de correo electrónico configurado. Con Resend, autorizar `pool.example.com` no autoriza a `example.com` y viceversa. Consulte [EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md) para ver la lista de verificación de configuración del remitente.
+- `platform.logo_path` es también la marca reflejada que se utiliza en los correos electrónicos de los patrocinadores.
+- El dominio en `platform.pledges_email_from` y `platform.updates_email_from` debe estar autorizado por el proveedor de correo electrónico configurado. Con Resend, autorizar `pool.example.com` no autoriza a `example.com` y viceversa. Consulte [EMAIL.md](/es/docs/operations/email-system/) para ver la lista de verificación de configuración del remitente.
 
 Ejemplo:
 
@@ -254,8 +254,8 @@ Patrón soportado actualmente:
 - La copia compartida del sistema/UI se encuentra en `_data/i18n/{lang}.yml`.
 - Las páginas públicas no predeterminadas se encuentran bajo un prefijo local como `/es/`.
 - Los mensajes compartidos de tiempo de ejecución/navegador se emiten a través de `assets/i18n.json`.
-- Los correos electrónicos de los seguidores de los trabajadores reutilizan ese catálogo de configuración regional compartido y `preferredLang` persistente
-- El cromo de la campaña, como el botón de video principal/texto de carga, el texto teaser de la comunidad de seguidores, las pestañas del diario, los controles de la fase de producción, las etiquetas de accesibilidad de la galería, los resúmenes de los botones del carrito y el texto auxiliar de ubicación de impuestos de pago ahora también provienen de `_data/i18n/{lang}.yml`.
+- Los correos electrónicos de los patrocinadores de los trabajadores reutilizan ese catálogo de configuración regional compartido y `preferredLang` persistente
+- El cromo de la campaña, como el botón de video principal/texto de carga, el texto teaser de la comunidad de patrocinadores, las pestañas del diario, los controles de la fase de producción, las etiquetas de accesibilidad de la galería, los resúmenes de los botones del carrito y el texto auxiliar de ubicación de impuestos de pago ahora también provienen de `_data/i18n/{lang}.yml`.
 - el conmutador de idioma del pie de página compartido es automático cuando se configura más de un idioma
 - Las páginas de formato largo como `about` y `terms` deberían usar páginas fuente localizadas en lugar de intentar almacenar cada párrafo en YAML.
 - Los metadatos públicos y las sugerencias de lenguaje de datos estructurados también siguen el mismo modelo local, por lo que las páginas públicas localizadas no necesitan un segundo sistema de traducción exclusivo para SEO.
@@ -270,7 +270,7 @@ Qué significa esto en la práctica:
   - su etiqueta agregada a `i18n.language_labels`
   - rutas localizadas agregadas a `i18n.pages`
   - páginas de origen localizadas para contenido de formato largo que realmente desea traducir
-- Las rutas tokenizadas de administración de promesas siguen funcionando en todas las configuraciones regionales porque el conmutador de idioma compartido conserva la cadena de consulta y el hash actuales.
+- Las rutas tokenizadas de administración de aportes siguen funcionando en todas las configuraciones regionales porque el conmutador de idioma compartido conserva la cadena de consulta y el hash actuales.
 
 Flujo de trabajo de bifurcación recomendado:
 
@@ -295,13 +295,14 @@ Los fundamentos actuales de SEO están intencionalmente limitados. Las horquilla
 - `platform.default_social_image_path`
 - página localizada `title` / `description` portada en páginas públicas
 - campaña `title`, `short_blurb` e imágenes principales
+- Portada opcional de `published_at` y `last_modified_at` para las fechas de los artículos de la campaña, además de `last_modified_at` en cualquier entrada del mapa del sitio que deba publicar una sugerencia de actualización.
 
 Esa superficie controla actualmente:
 
 - URL canónicas
 - meta descripciones
 - Vistas previas de Open Graph y Twitter
-- generación de URL del mapa del sitio
+- generación de URL de mapa de sitio XML/texto compartido; `robots.txt` anuncia solo el mapa del sitio XML canónico
 - en todo el sitio `Organization` / `WebSite` JSON-LD
 - campaña `CreativeWork` / ruta de navegación JSON-LD
 - texto alternativo de imagen social alternativa
@@ -309,8 +310,8 @@ Esa superficie controla actualmente:
 
 La implementación es deliberadamente limitada:
 
-- Los flujos privados/tokenizados/solo para seguidores están marcados `noindex`
-- `robots.txt` y `sitemap.xml` solo anuncian la superficie pública
+- Los flujos privados/tokenizados/solo para patrocinadores están marcados `noindex`
+- `robots.txt`, `sitemap.xml` y su diagnóstico `sitemap.txt` generado solo exponen la misma superficie pública
 - no existe una matriz gigante de configuración de SEO por página más allá de los campos de contenido que el sitio ya admite
 
 Ejemplo:
@@ -339,7 +340,7 @@ Teclas admitidas:
 
 Qué hacen:
 
-- `console_logging_enabled: false` suprime la salida del navegador y del trabajador `console` en el carrito compartido, la campaña, la comunidad, las estadísticas en vivo, la gestión de promesas, el webhook, el administrador y los tiempos de ejecución de las tareas programadas.
+- `console_logging_enabled: false` suprime la salida del navegador y del trabajador `console` en el carrito compartido, la campaña, la comunidad, las estadísticas en vivo, la gestión de aportes, el webhook, el administrador y los tiempos de ejecución de las tareas programadas.
 - `verbose_console_logging: false` mantiene el registrador activo pero suprime el ruido de depuración/información/registro de menor gravedad y al mismo tiempo permite advertencias y errores.
 
 Estos valores predeterminados son intencionalmente `true` en `_config.yml`, por lo que las bifurcaciones comienzan con diagnósticos completos disponibles y pueden desactivar el registro más tarde sin cambios de código.
@@ -350,7 +351,7 @@ Cuando están habilitados, los registradores compartidos ahora emiten:
 - Prefijos consistentes de navegador/ámbito de trabajo
 - etiquetas de gravedad como `LOG`, `WARN` y `ERROR`
 - cargas útiles `Error` normalizadas
-- captura del navegador para errores no detectados y rechazos de promesas no controlados
+- captura del navegador para errores no detectados y rechazos de aportes no controlados
 
 ### `shipping`
 
@@ -381,7 +382,7 @@ Opcionalmente, las campañas también pueden establecer `shipping_options` al fr
 
 `standard` siempre está disponible implícitamente y no es necesario incluirlo en la lista.
 
-Cuando una promesa califica para múltiples opciones de entrega, el carrito compartido y las UI de Administrar promesa muestran el mismo selector localizado y el Trabajador mantiene la opción seleccionada como parte del total de envío canónico.
+Cuando un aporte califica para múltiples opciones de entrega, el carrito compartido y las UI de Administrar aporte muestran el mismo selector localizado y el Trabajador mantiene la opción seleccionada como parte del total de envío canónico.
 
 Límite secreto importante:
 
@@ -430,7 +431,7 @@ Qué permite esto:
 - un valor predeterminado de envío gratuito a nivel de implementación que las campañas aún pueden anular
 - una tasa de reserva configurada si la cotización del operador en vivo no está disponible
 - una superficie de política de cotización de USPS orientada a la bifurcación para tiempos de espera, reutilización de cotizaciones de corta duración y tiempos de reutilización temporales después de fallas repetidas o limitación de tarifas
-- una superficie de selección de opciones de entrega compartida en el carrito y Administrar compromiso sin abrir opciones arbitrarias de velocidad del transportista
+- una superficie de selección de opciones de entrega compartida en el carrito y Administrar aporte sin abrir opciones arbitrarias de velocidad del transportista
 - nombres `shipping_preset` reutilizables en niveles de campaña para que las bifurcaciones no necesiten repetir dimensiones comunes de merchandising
 - sugerencias de perfil de USPS de nivel preestablecido opcionales para tipos de artículos que necesitan una forma de cotización nacional diferente
 - pedido opcional de clases de correo nacional de nivel preestablecido para productos que califican para clases de USPS más económicas como Media Mail
@@ -534,8 +535,8 @@ Comportamiento actual del inventario de complementos:
 
 - `inventory` puede vivir del producto en sí o de cada variante.
 - `low_stock_threshold` controla cuándo la interfaz de usuario de administración/carro compartido muestra mensajes de escasez
-- Las variantes agotadas se eliminan de la superficie compartida del estado del producto, a menos que el colaborador ya posea esa variante exacta en un compromiso existente.
-- Los complementos vendidos guardados cuentan en vivo en `add-on-inventory-sold:v1` después del inicio de la primera proyección, y las rutas de creación, modificación y cancelación del compromiso mantienen la proyección actualizada.
+- Las variantes agotadas se eliminan de la superficie compartida del estado del producto, a menos que el colaborador ya posea esa variante exacta en un aporte existente.
+- Los complementos vendidos guardados cuentan en vivo en `add-on-inventory-sold:v1` después del inicio de la primera proyección, y las rutas de creación, modificación y cancelación del aporte mantienen la proyección actualizada.
 - Tanto el carrito como Manage Pledge utilizan el mismo modelo de tarjeta de producto adicional compartido, por lo que las bifurcaciones no necesitan diseñar ni configurar dos sistemas de merchandising diferentes.
 - el encabezado de la sección complementaria y la nota de soporte se localizan a través de los archivos i18n de tiempo de ejecución normal, y la nota de soporte interpola automáticamente el nombre del autor del sitio configurado.
 
@@ -543,7 +544,7 @@ Las campañas también pueden definir complementos con alcance de campaña direc
 
 Ese catálogo propiedad de la campaña utiliza la misma forma de producto que las entradas globales `add_ons.products`, pero se comporta de manera diferente en dos formas importantes:
 
-- los complementos de la campaña se muestran en una sección separada `Campaign Add-ons` en el carrito y en Administrar compromiso
+- los complementos de la campaña se muestran en una sección separada `Campaign Add-ons` en el carrito y en Administrar aporte
 - Los complementos de la campaña cuentan para el subtotal de propiedad de la campaña/el progreso de financiación y siguen las reglas de envío de esa campaña.
 
 Por el contrario, los `add_ons.products` globales siguen siendo productos de plataforma:
@@ -575,11 +576,11 @@ Comportamiento actual:
 - `email_subject_prefix` se puede configurar como una cadena vacía para desactivar el prefijo por completo
 - cuando el prefijo se omite en tiempo de ejecución, el trabajador vuelve a `[platform.name]`
 - Los temas de los informes son concisos y están orientados a la capacidad de entrega: sin emoji, etiquetas de informe cortas y un patrón consistente de prefijo + tipo de informe + título de campaña.
-- Los correos electrónicos de promesas diarias utilizan un resumen exclusivo de la campaña con las promesas totales, las nuevas promesas en las 24 horas anteriores, el total de las promesas, el progreso de los objetivos y la cuenta regresiva/tiempo transcurrido de la fecha límite.
+- Los correos electrónicos de aportes diarias utilizan un resumen exclusivo de la campaña con los aportes totales, las nuevas aportes en las 24 horas anteriores, el total de los aportes, el progreso de los objetivos y la cuenta regresiva/tiempo transcurrido de la fecha límite.
 - Los envíos de cumplimiento se dividen por cumplimiento:
   - Los destinatarios del corredor de campaña reciben solo las filas completadas por la campaña.
   - `platform.support_email` recibe un correo electrónico de cumplimiento de plataforma por separado cuando existen filas de complementos de plataforma
-- los resúmenes de cumplimiento son intencionalmente concisos y orientados al cumplimiento; no reutilizan el resumen del cuerpo del informe de compromiso diario
+- los resúmenes de cumplimiento son intencionalmente concisos y orientados al cumplimiento; no reutilizan el resumen del cuerpo del informe de aporte diario
 - Ambos tipos de informes pueden incluir una breve nota de orientación en el cuerpo para que los corredores reciban recordatorios de comunicación de cumplimiento o motivación específicos de la etapa de la campaña junto con el CSV.
 
 Ejemplo:
@@ -599,7 +600,7 @@ reports:
 
 Qué permite esto:
 
-- Correos electrónicos diarios del libro mayor de compromisos relacionados con la campaña durante las campañas en vivo.
+- Correos electrónicos diarios del libro mayor de aportes relacionados con la campaña durante las campañas en vivo.
 - Exportaciones de cumplimiento únicas después de que pasa la fecha límite de la campaña.
 - Separe los correos electrónicos de cumplimiento de la plataforma y del corredor de la campaña cuando sea necesario entregar tanto los elementos de la campaña como los de la plataforma.
 - resúmenes del cuerpo opcionales y archivos adjuntos CSV opcionales sin cambiar los archivos de contenido de la campaña
@@ -621,7 +622,7 @@ Estos valores se emiten en la hoja de estilo generada [assets/main.css](https://
 
 Las mismas variables CSS generadas ahora también son el tema del sidecar Stripe Elements en el sitio, por lo que las anulaciones de tipografía/color/radio admitidas se llevan a cabo en la interfaz de usuario de pago personalizada sin agregar una capa de configuración separada solo para el pago.
 
-Un subconjunto deliberadamente más pequeño de la misma superficie de marca se refleja en el Worker para que los correos electrónicos de los seguidores puedan reutilizar el logotipo configurado, las pilas de fuentes, el color principal, los colores de borde/superficie y el radio del botón.
+Un subconjunto deliberadamente más pequeño de la misma superficie de marca se refleja en el Worker para que los correos electrónicos de los patrocinadores puedan reutilizar el logotipo configurado, las pilas de fuentes, el color principal, los colores de borde/superficie y el radio del botón.
 
 Claves admitidas actualmente:
 
@@ -699,7 +700,7 @@ Clave admitida hoy:
 
 El tiempo de ejecución del carrito propio y el flujo de pago personalizado en el sitio se tratan como un comportamiento integrado en la plataforma, no como cambios de modo orientados hacia la bifurcación.
 
-Utilice [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md) para la configuración secreta de Stripe, la configuración del webhook, el pago en modo de prueba local, el comportamiento de liquidación y las operaciones de conciliación.
+Utilice [PAYMENT_PROCESSOR.md](/es/docs/operations/payment-processor/) para la configuración secreta de Stripe, la configuración del webhook, el pago en modo de prueba local, el comportamiento de liquidación y las operaciones de conciliación.
 
 ### `cache`
 
@@ -720,7 +721,7 @@ Teclas admitidas:
 - `intent_prefetch_delay_ms`
 - `intent_prefetch_limit`
 
-Estos controlan el tiempo de ejecución seguro de captación previa de documentos del mismo origen cargados en páginas públicas. El valor predeterminado está habilitado, con exclusiones conservadoras de rutas/consultas y un límite bajo por página. Las superficies de aplicaciones privadas, como administración, pago, gestión de compromiso y rutas de la comunidad de seguidores, no cargan el tiempo de ejecución de captación previa pública.
+Estos controlan el tiempo de ejecución seguro de captación previa de documentos del mismo origen cargados en páginas públicas. El valor predeterminado está habilitado, con exclusiones conservadoras de rutas/consultas y un límite bajo por página. Las superficies de aplicaciones privadas, como administración, pago, gestión de aporte y rutas de la comunidad de patrocinadores, no cargan el tiempo de ejecución de captación previa pública.
 
 Los superadministradores pueden editar estos campos en el panel en **Configuración -> Rendimiento avanzado**. Los cambios publicados actualizan `_config.yml`, reflejan los valores de `INTENT_PREFETCH_*` orientados al trabajador y entran en vigor en las páginas estáticas después de la ruta normal de reconstrucción/implementación.
 
@@ -848,7 +849,7 @@ El script de sincronización también escribe valores de URL derivados:
 - la producción `[vars]` obtiene `CANONICAL_SITE_BASE` / `CANONICAL_WORKER_BASE` de la producción `platform.site_url` / `platform.worker_url`
 - dev `[env.dev.vars]` obtiene `SITE_BASE` / `WORKER_BASE` local de `_config.local.yml`, mientras que `CANONICAL_SITE_BASE` / `CANONICAL_WORKER_BASE` permanecen fijados a los valores de producción de `_config.yml`
 
-La pestaña **Informes** del panel del navegador ofrece vistas previas y descargas CSV de compromiso/cumplimiento para campañas a las que puede acceder el administrador. No envía correos electrónicos de informes y no escribe marcadores de "enviado".
+La pestaña **Informes** del panel del navegador ofrece vistas previas y descargas CSV de aporte/cumplimiento para campañas a las que puede acceder el administrador. No envía correos electrónicos de informes y no escribe marcadores de "enviado".
 
 El repositorio mantiene esos valores alineados automáticamente a través de las rutas principales locales/de desarrollo/prueba. Después de cambiarlos, reinicie la pila local para que tanto el sitio como el trabajador recojan los nuevos valores:
 
@@ -864,7 +865,7 @@ npm run sync:worker-config
 
 Ese comando sincroniza los valores reflejados por el trabajador en [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) de `_config.yml` y `_config.local.yml`.
 
-No escribe secretos de trabajador, archivos multimedia ni resultados de optimización generados. Los secretos de USPS OAuth, las claves secretas de Stripe, las claves Resend, las claves ZIP.TAX, los secretos de Turnstile, los tokens de GitHub y las credenciales de implementación de Cloudflare aún pertenecen a los secretos de Worker, los secretos del repositorio de GitHub o los archivos env locales ignorados. Los runbooks Stripe y Resend son [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md) y [EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md).
+No escribe secretos Worker, archivos multimedia ni resultados de optimización generados. Los secretos de OAuth USPS, las claves secretas Stripe, las claves Resend, las claves ZIP.TAX, los secretos Turnstile, los tokens GitHub y las credenciales de implementación Cloudflare aún pertenecen a los secretos Worker, los secretos del repositorio GitHub o los archivos de entorno locales ignorados. Los runbooks Stripe y Resend son [PAYMENT_PROCESSOR.md](/es/docs/operations/payment-processor/) y [EMAIL.md](/es/docs/operations/email-system/).
 
 Los recordatorios de lanzamiento tienen una configuración pública y un límite secreto:
 
@@ -894,7 +895,7 @@ La plataforma ahora admite una gran personalización sin código personalizado, 
 
 Todavía a nivel de código hoy:
 
-- agregar nuevos proveedores de pago o modos de pago más allá del modelo Stripe documentado en [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md)
+- agregar nuevos proveedores de pago o modos de pago más allá del modelo Stripe documentado en [PAYMENT_PROCESSOR.md](/es/docs/operations/payment-processor/)
 - cambiar proveedores de inserción compatibles
 - ampliar las listas permitidas de CSP para hosts externos arbitrarios
 - cambiar el estilo de campo propiedad de Stripe más allá del puente de token de diseño admitido y la API de apariencia de Stripe
@@ -929,8 +930,8 @@ npm run podman:doctor
 - Las páginas sensibles a CSP aún se cargan sin infracciones de CSP de la consola
 - totales del carrito/pago
 - Estilo de interfaz de usuario de pago de Stripe
-- Gestionar compromiso
-- correos electrónicos de seguidores
+- Gestionar aporte
+- correos electrónicos de patrocinadores
 - Estado de publicación/vista previa del panel de administración, estado de secretos de solo lectura, correos electrónicos de acceso a vista previa protegidos, correos electrónicos de asignación de nuevas campañas y visibilidad de la campaña con alcance de función cuando los campos del panel cambiaron
 
 6. Ejecute las comprobaciones pertinentes:

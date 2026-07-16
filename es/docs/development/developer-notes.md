@@ -10,16 +10,16 @@ lang: es
 
 ## Última actualización
 
-5 de julio de 2026
+16 de julio de 2026
 
 ## Pila
 
 - **Páginas de GitHub** — Jekyll 4.4.1 + sitio estático Sass
 - **Tiempo de ejecución del carrito propio**: carrito propiedad del navegador, revisión del pago y flujo de pago de Stripe en el sitio
-- **Cloudflare Worker**: API de backend, almacenamiento de promesas (KV), envío de correo electrónico
+- **Cloudflare Worker**: API de backend, almacenamiento de aportes (KV), envío de correo electrónico
 - **Stripe** — Sesiones de pago en modo de configuración para el paso de pago en el sitio, además de PaymentIntents para cargos posteriores
 - **Resend** — Correos electrónicos transaccionales (confirmación de soporte, recordatorios de lanzamiento, hitos, fallas)
-- **Panel de administración privado**: edición, configuración, complementos, informes, análisis, seguidores y herramientas de marketing de campañas basadas en roles
+- **Panel de administración privado**: edición, configuración, complementos, informes, análisis, patrocinadores y herramientas de marketing de campañas basadas en roles
 
 ### Perillas de plano libre aptas para horquillas
 
@@ -58,8 +58,8 @@ Trate [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_
 El objetivo de sincronización es [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) y los puntos de entrada de desarrollo/pruebas admitidos por el repositorio lo mantienen alineado automáticamente.
 
 Consulte [CUSTOMIZATION.md](/es/docs/development/customization-guide/) para conocer la superficie de bifurcación sin código admitida, incluidas las configuraciones que son solo para el sitio y las que se reflejan automáticamente en el trabajador.
-Consulte [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md) para conocer los detalles de pago, webhook, liquidación y conciliación de Stripe.
-Consulte [EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md) para conocer la configuración del remitente, los tipos de correo electrónico, la localización y el comportamiento de entrega de Resend.
+Consulte [PAYMENT_PROCESSOR.md](/es/docs/operations/payment-processor/) para conocer los detalles de pago, webhook, liquidación y conciliación de Stripe.
+Consulte [EMAIL.md](/es/docs/operations/email-system/) para conocer la configuración del remitente, los tipos de correo electrónico, la localización y el comportamiento de entrega de Resend.
 
 Valores de trabajador reflejados actuales que vale la pena tratar como parte de la superficie de personalización admitida:
 
@@ -82,7 +82,7 @@ Los fundamentos de SEO ahora siguen un modelo similar:
 
 - Los diseños públicos utilizan inclusiones compartidas para metadatos y JSON-LD.
 - `robots.txt` y `sitemap.xml` se generan a partir de la superficie estática pública.
-- `/manage/`, las páginas de la comunidad de seguidores y las páginas de resultados de compromisos emiten `noindex,nofollow`
+- `/manage/`, las páginas de la comunidad de patrocinadores y las páginas de resultados de aportes emiten `noindex,nofollow`
 - la superficie SEO orientada a la bifurcación admitida es principalmente `title`, `description`, `seo.x_handle`, `seo.same_as`, `seo.index_public_community_hub`, `platform.name`, `platform.site_url`, `platform.default_social_image_path` y campos de contenido de página/campaña como `title`, `description`, `short_blurb` e imágenes destacadas.
 
 El registro de la consola del navegador y del trabajador ahora utiliza asistentes de registro compartidos en lugar de llamadas ad hoc `console.*` en los tiempos de ejecución principales. Eso le da al repositorio un interruptor acotado:
@@ -98,7 +98,7 @@ Cuando están habilitados, los registradores compartidos ahora proporcionan diag
 - navegador estable/prefijos de ámbito de trabajo
 - etiquetas de gravedad explícitas
 - salida `Error` normalizada
-- captura del navegador para errores no detectados y rechazos de promesas no controlados
+- captura del navegador para errores no detectados y rechazos de aportes no controlados
 
 Mejores prácticas de cotización de envío en la implementación actual:
 
@@ -201,7 +201,7 @@ Esto se aplica a `support_items`, `decisions`, `stretch_goals`, `diary` y cualqu
 
 ## Edición del panel de administración
 
-El panel privado en `/admin/` ahora es el editor y la superficie de operaciones basados ​​en navegador compatibles. Lee de `_config.yml`, `_campaigns/*.md`, índices de compromiso de Worker KV y configuraciones de tiempo de ejecución de Worker, luego escribe a través de la ruta de persistencia correcta para cada flujo de trabajo.
+El panel privado en `/admin/` ahora es el editor y la superficie de operaciones basados ​​en navegador compatibles. Lee de `_config.yml`, `_campaigns/*.md`, índices de aporte de Worker KV y configuraciones de tiempo de ejecución de Worker, luego escribe a través de la ruta de persistencia correcta para cada flujo de trabajo.
 
 - La configuración respaldada por GitHub y el contenido de la campaña se publican a través de la validación del trabajador y la ruta normal de reconstrucción/implementación.
 - Los usuarios guardan directamente en Worker KV en `admin-users:v1`.
@@ -257,7 +257,7 @@ long_content:
 
 **El estado se calcula automáticamente** a partir de `start_date` y `goal_deadline`:
 - Antes de `start_date` → `upcoming` (botones deshabilitados)
-- Entre fechas → `live` (se aceptan promesas)
+- Entre fechas → `live` (se aceptan aportes)
 - Después de `goal_deadline` → `post` (campaña cerrada)
 
 El complemento `_plugins/campaign_state.rb` establece el estado en el momento de la compilación. El programador de trabajadores activa una reconstrucción del sitio cuando las fechas cruzan la medianoche en la zona horaria de la plataforma configurada.
@@ -393,7 +393,7 @@ tiers:
 
 En el panel de administración, los ID de nivel son de solo lectura para los editores: los ID heredados se conservan, mientras que los ID de nivel nuevos se derivan del nombre. `shipping_preset` se oculta para niveles digitales. Si un nivel físico no tiene un valor preestablecido, se muestran campos explícitos de peso/dimensión del paquete.
 
-**Productos complementarios de plataforma**: los productos globales o los artículos de venta adicional ahora tienen una ruta de configuración separada en `add_ons` en [/_config.yml](https://github.com/your-org/your-project/blob/main/_config.yml). Ese catálogo está destinado a productos de precio fijo en toda la plataforma con variantes simples, como tallas de camisa, y no debe modelarse como la campaña `support_items`. The Worker refleja el catálogo a través de [/api/add-ons.json](https://github.com/your-org/your-project/blob/main/api/add-ons.json), expone una instantánea del inventario actual a través de `/add-ons/inventory`, incluye selecciones de complementos a nivel de paquete más una campaña ancla durante el proceso de pago, conserva esos complementos vinculados al ancla en el compromiso sin contarlos para los totales de objetivos de campaña y ahora los expone por separado en las exportaciones de compromiso y cumplimiento. Los recuentos vendidos se encuentran en la proyección `add-on-inventory-sold:v1` después del arranque, y el carrito y Manage Pledge consumen la misma lógica de estado del producto que tiene en cuenta el inventario, incluidos mensajes de stock bajo y filtrado de variantes agotadas.
+**Productos complementarios de plataforma**: los productos globales o los artículos de venta adicional ahora tienen una ruta de configuración separada en `add_ons` en [/_config.yml](https://github.com/your-org/your-project/blob/main/_config.yml). Ese catálogo está destinado a productos de precio base para toda la plataforma con anulaciones de precios de variantes opcionales, como tallas de camisa, y no debe modelarse como campaña `support_items`. Worker refleja el catálogo a través de [/api/add-ons.json](https://github.com/your-org/your-project/blob/main/api/add-ons.json), expone una instantánea del inventario actual a través de `/add-ons/inventory`, incluye selecciones de complementos a nivel de paquete más una campaña ancla durante el proceso de pago, conserva esos complementos anclados en el aporte sin contarlos para los totales de objetivos de campaña y ahora los expone por separado en las exportaciones de aporte y cumplimiento. Los recuentos vendidos se encuentran en la proyección `add-on-inventory-sold:v1` después del arranque, y el carrito y Manage Pledge consumen la misma lógica de estado del producto que tiene en cuenta el inventario, incluidos precios de variantes, mensajes de stock bajo y filtrado de variantes agotadas.
 
 - Los complementos `category: digital` nunca contribuyen al envío
 - Los complementos `category: physical` participan en la misma calculadora de envío que se utiliza para los niveles físicos y los artículos de soporte físico.
@@ -415,7 +415,7 @@ phases:
         # current: 900  # Optional: live-stats.js fetches from KV
 ```
 
-### Decisiones comunitarias (solo para partidarios)
+### Decisiones comunitarias (solo para patrocinadores)
 
 ```yaml
 decisions:
@@ -427,7 +427,7 @@ decisions:
     status: open            # open | closed
 ```
 
-`vote` y `poll` actualmente utilizan la misma mecánica de envío y conteo solo para seguidores. Utilice `vote` cuando el resultado esté destinado a decidir un resultado, y utilice `poll` cuando el resultado sea una retroalimentación de asesoramiento o una recopilación de preferencias. La distinción es intencionalmente semántica/visual por ahora; Las versiones futuras pueden superponer diferentes flujos de trabajo de copia pública, informes o resultados sobre los mismos datos almacenados.
+`vote` y `poll` actualmente utilizan la misma mecánica de envío y conteo solo para patrocinadores. Utilice `vote` cuando el resultado esté destinado a decidir un resultado, y utilice `poll` cuando el resultado sea una retroalimentación de asesoramiento o una recopilación de preferencias. La distinción es intencionalmente semántica/visual por ahora; Las versiones futuras pueden superponer diferentes flujos de trabajo de copia pública, informes o resultados sobre los mismos datos almacenados.
 
 ### Diario de producción
 
@@ -442,7 +442,7 @@ diary:
       - type: text
         body: |
           Desert wrap. Wind, dust, and a miraculous sunset.
-          
+
           **The footage looks unreal.**
       - type: image
         src: /assets/images/campaigns/my-film/bts-sunset.jpg
@@ -467,7 +467,7 @@ diary:
     body: "Simple text without rich content."
 ```
 
-**Difusiones por correo electrónico:** Cuando se agregan e implementan entradas del diario, la acción de GitHub activa `/admin/diary/check`, que envía correos electrónicos de actualización a todos los partidarios de la campaña. La verificación automática envía sólo las entradas que no se han difundido antes. Las entradas del diario utilizan valores `id` estables para el seguimiento de transmisiones; el panel conserva las identificaciones existentes y el trabajador deriva las identificaciones basadas en títulos para las entradas recién agregadas. Los marcadores de fechas heredados aún se reconocen, por lo que las ediciones de entradas más antiguas no se reenvían. El extracto del correo electrónico se extrae automáticamente de los bloques de texto (primeros 200 caracteres, sin rebajas).
+**Difusiones por correo electrónico:** Cuando se agregan e implementan entradas del diario, la acción de GitHub activa `/admin/diary/check`, que envía correos electrónicos de actualización a todos los patrocinadores de la campaña. La verificación automática envía sólo las entradas que no se han difundido antes. Las entradas del diario utilizan valores `id` estables para el seguimiento de transmisiones; el panel conserva las identificaciones existentes y el trabajador deriva las identificaciones basadas en títulos para las entradas recién agregadas. Los marcadores de fechas heredados aún se reconocen, por lo que las ediciones de entradas más antiguas no se reenvían. El extracto del correo electrónico se extrae automáticamente de los bloques de texto (primeros 200 caracteres, sin rebajas).
 
 **Configuración requerida:** Agregue `ADMIN_SECRET` como secreto del repositorio de GitHub (Configuración → Secretos → Acciones), o agregue `ADMIN_BROADCAST_SECRET` tanto a los secretos de Cloudflare Worker como a los secretos del repositorio de GitHub cuando use credenciales de transmisión con alcance. Los secretos del repositorio autentican la acción de GitHub; Los secretos de los trabajadores son lo que lee la ruta desplegada. Sin el secreto coincidente en ambos lugares, las transmisiones de correo electrónico del diario fallarán en la autenticación.
 
@@ -491,7 +491,7 @@ El sitio ahora utiliza un tiempo de ejecución de carrito propio expuesto a trav
 
 Archivos clave:
 - `assets/js/cart-provider.js`: estado del carrito propiedad del navegador, representación del cajón, vista previa del pago, recuperación de éxito/cancelación
-- `assets/js/cart.js`: arranque del flujo de promesas compartidas y comportamientos del carrito a nivel de página
+- `assets/js/cart.js`: arranque del flujo de aportes compartidas y comportamientos del carrito a nivel de página
 - `_includes/cart-runtime-head.html` / `_includes/cart-runtime-foot.html`: arranque en tiempo de ejecución propio
 
 ### Niveles apilables versus no apilables
@@ -510,16 +510,16 @@ Archivos involucrados:
 - `_includes/ongoing-funding.html`
 - `_includes/production-phases.html`
 
-## Flujo de compromiso
+## Flujo de aporte
 
-El flujo de compromiso ahora es de principio a fin hasta Stripe:
+El flujo de aporte ahora es de principio a fin hasta Stripe:
 
 1. **El usuario agrega un nivel al carrito** → se abre el cajón del carrito propio
-2. **Compromiso de reseñas de usuarios** → el cajón muestra niveles, elementos de soporte, soporte personalizado, sugerencias y precios inmediatos
+2. **Aporte de reseñas de usuarios** → el cajón muestra niveles, elementos de soporte, soporte personalizado, sugerencias y precios inmediatos
 3. **El usuario hace clic en "Pagar"** → `cart-provider.js` publica artículos canónicos del carrito en el trabajador `/checkout-intent/start`
 4. **El trabajador crea una sesión de configuración de Stripe** → el segundo sidecar de pago monta la interfaz de usuario de pago segura de Stripe en el sitio y guarda la tarjeta sin cobrar
-5. **El usuario completa el paso de pago en el sitio** → el cliente espera la confirmación persistente del backend antes de considerar el compromiso como exitoso
-6. **Se activa el webhook de Stripe** → El trabajador almacena un compromiso por campaña en KV, actualiza las estadísticas y envía correos electrónicos a sus seguidores.
+5. **El usuario completa el paso de pago en el sitio** → el cliente espera la confirmación persistente del backend antes de considerar el aporte como exitoso
+6. **Se activa el webhook de Stripe** → El trabajador almacena un aporte por campaña en KV, actualiza las estadísticas y envía correos electrónicos a sus patrocinadores.
 
 Puntos clave:
 - Los pedidos de carritos alojados ya no forman parte del tiempo de ejecución.
@@ -540,15 +540,15 @@ Flujo de datos:
 1. `cart-provider.js` crea la carga útil del carrito propio y la envía a `/checkout-intent/start`.
 2. El trabajador canonicaliza la contribución y almacena metadatos desbordados en KV temporal (`pending-extras:{orderId}`, `pending-tiers:{orderId}`)
 3. El trabajador almacena `tipPercent` y metadatos de integridad en metadatos de sesión de Stripe
-4. En el webhook, el trabajador obtiene extras del KV temporal y los fusiona en el compromiso final
+4. En el webhook, el trabajador obtiene extras del KV temporal y los fusiona en el aporte final
 5. El trabajador llama a `updateSupportItemStats()` para actualizar las estadísticas en vivo de los elementos de soporte
 
 Administrar la visualización de la página:
 - Durante campañas **en vivo**: todos los elementos de soporte se muestran para su modificación
 - Durante campañas de **publicación**: solo se muestran los artículos con `late_support: true` (y solo si están financiados)
-- El resumen de la promesa muestra el subtotal, la propina opcional de The Pool, los impuestos, el envío y el total.
+- El resumen del aporte muestra el subtotal, la propina opcional de The Pool, los impuestos, el envío y el total.
 - La modificación de niveles recalcula dinámicamente el envío según el nivel `category`
-- Los compromisos activos se agrupan por separado de los compromisos cerrados; Los compromisos activos que vencieron la fecha límite se muestran como bloqueados y pasan a ser de solo lectura, excepto la "Tarjeta de actualización".
+- Los aportes activos se agrupan por separado de los aportes cerrados; Los aportes activos que vencieron la fecha límite se muestran como bloqueados y pasan a ser de solo lectura, excepto la "Tarjeta de actualización".
 
 ## Desarrollo Local
 
@@ -621,7 +621,7 @@ El script actualiza automáticamente `worker/.dev.vars` con el secreto del webho
 Utiliza la misma instancia de escucha de Stripe tanto para el reenvío como para la captura de secretos, lo que evita la discrepancia del webhook local que puede ocurrir si inicia un escucha para imprimir un secreto y otro para reenviar eventos.
 También borra los oyentes obsoletos en los puertos locales estándar antes de comenzar, de modo que la pila local coincida con el arnés de prueba/humo automatizado.
 
-> **Nota:** La simulación KV local se utiliza de forma predeterminada para una iteración rápida y compatibilidad con `scripts/seed-all-campaigns.sh`. Los datos de KV se restablecen cuando el trabajador se reinicia. Utilice `--remote` si necesita datos persistentes o para ver promesas reales.
+> **Nota:** La simulación KV local se utiliza de forma predeterminada para una iteración rápida y compatibilidad con `scripts/seed-all-campaigns.sh`. Los datos de KV se restablecen cuando el trabajador se reinicia. Utilice `--remote` si necesita datos persistentes o para ver aportes reales.
 
 **Opción B: solo herramientas de host (inicio manual)**
 
@@ -636,11 +636,11 @@ cd worker && npx wrangler dev --env dev --port 8787
 stripe listen --forward-to 127.0.0.1:8787/webhooks/stripe
 ```
 
-**Solución de problemas: promesas faltantes**
+**Solución de problemas: aportes faltantes**
 
-Si se completa un pago de Stripe pero el compromiso no aparece:
+Si se completa un pago de Stripe pero el aporte no aparece:
 1. Verifique la salida de Stripe CLI: ¿reenvió el webhook?
-2. Utilice el punto final de recuperación para crear manualmente el compromiso:
+2. Utilice el punto final de recuperación para crear manualmente el aporte:
    ```bash
    curl -X POST http://127.0.0.1:8787/admin/recover-checkout \
      -H 'Authorization: Bearer YOUR_ADMIN_SECRET' \
@@ -665,13 +665,13 @@ Si Stripe muestra fallas de webhook ("otros errores") para el punto final de pro
 - Los eventos de prueba enviados a un trabajador activo (o viceversa) se reconocen con `200 OK` y se omiten, lo que evita errores de firma.
 - No se necesita configuración; esto se maneja automáticamente
 
-### 6. Pruebe el flujo de promesas
+### 6. Pruebe el flujo de aportes
 
 1. Visita http://127.0.0.1:4000
 2. Haga clic en una campaña → Agregar un nivel al carrito
 3. Revise la vista previa del pago propio → Haga clic en "Pagar"
 4. Complete el paso de pago de Stripe en el sitio con la tarjeta de prueba: `4242 4242 4242 4242`
-5. Consulte los registros de trabajadores para confirmar el compromiso
+5. Consulte los registros de trabajadores para confirmar el aporte
 6. Comprobar correo electrónico (si está configurado Resend)
 
 ### Tarjetas de prueba de Stripe
@@ -698,18 +698,18 @@ Semillas de prueba se comprometen en KV local para su prueba:
 ```
 
 **Qué hace:**
-1. Borra los datos de compromiso existentes del KV local antes de la siembra
-2. Promesas de semillas para todas las campañas con escenarios realistas:
+1. Borra los datos de aporte existentes del KV local antes de la siembra
+2. Aportes de semillas para todas las campañas con escenarios realistas:
    - **hand-relations**: Financiamiento parcial y finalizado (~$8,200 / $25,000)
    - **sunder**: Financiamiento anticipado y en vivo (~$650 / $2500)
    - **tecolote**: Finalizado, financiamiento parcial (~$1,550 / $2,000)
    - **peor película de todos los tiempos**: Terminada, financiación parcial (~$1,290 / $2,500)
-3. Incluye diversos estados de compromiso:
-   - Promesas activas
-   - Promesas cargadas (para campañas financiadas)
-   - Promesas canceladas (con historial de cancelaciones adecuado y deltas negativos)
-   - Pago de promesas fallidas
-   - Promesas modificadas (actualizaciones/bajas con deltas de seguimiento del historial)
+3. Incluye diversos estados de aporte:
+   - aportes activos
+   - aportes cargados (para campañas financiadas)
+   - aportes cancelados (con historial de cancelaciones adecuado y deltas negativos)
+   - Pago de aportes fallidas
+   - aportes modificados (actualizaciones/bajas con deltas de seguimiento del historial)
 4. Vuelve a calcular las estadísticas de la campaña y el inventario de niveles a través de la API del trabajador.
 
 **Requisitos:**
@@ -717,8 +717,8 @@ Semillas de prueba se comprometen en KV local para su prueba:
 - `worker/.dev.vars` debe tener `ADMIN_SECRET` configurado
 - El KV local se reinicia cuando el trabajador se reinicia, así que vuelva a ejecutar este script después del reinicio
 
-**Formato del historial de promesas:**
-Los compromisos incluyen una matriz `history` que rastrea todos los cambios:
+**Formato del historial de aportes:**
+Los aportes incluyen una matriz `history` que rastrea todos los cambios:
 
 ```json
 {
@@ -741,13 +741,13 @@ Campos de entrada del historial:
 - `at` — Marca de tiempo ISO
 
 Tipos de historia:
-- `created` — Promesa inicial con montos completos
+- `created` — Aporte inicial con montos completos
 - `modified`: cambios de nivel/cantidad con valores delta (positivo para actualizaciones, negativo para degradaciones)
 - `cancelled` — Cancelación con importes negativos (se resta del total de la campaña)
 
-## Informes de compromiso
+## Informes de aporte
 
-Genere informes CSV de promesas de Cloudflare KV:
+Genere informes CSV de aportes de Cloudflare KV:
 
 ```bash
 # Remote production/dev reports require Wrangler auth.
@@ -793,19 +793,19 @@ CLOUDFLARE_ACCOUNT_ID=your-account-id
 El progreso se escribe en stderr, mientras que los datos CSV se escriben solo en stdout, por lo que las redirecciones de archivos se mantienen limpias.
 
 **Formato de salida:** Una fila por entrada del historial (estilo libro mayor). Esto significa:
-- Nuevas promesas: 1 fila (creada)
-- Promesas modificadas: más de 2 filas (creadas + deltas de modificación)
-- Promesas canceladas: 2 filas (creadas + canceladas con montos negativos)
+- Nuevas aportes: 1 fila (creada)
+- aportes modificados: más de 2 filas (creadas + deltas de modificación)
+- aportes cancelados: 2 filas (creadas + canceladas con montos negativos)
 
 **Columnas de salida:** correo electrónico, campaña, artículos, subtotal, porcentaje_propina, propina, impuestos, envío, total, estado, cobrado, creado_en, id_pedido
 
 **Valores de estado:**
-- `created`: creación de compromiso inicial (los elementos muestran la lista de niveles completa)
-- `modified`: cambio de nivel/cantidad de compromiso (los elementos muestran diferencias: `+Added Tier`, `-Removed Tier`)
-- `cancelled` — Compromiso cancelado (muestra montos negativos)
-- `active` — Compromiso heredado sin historia
-- `charged` — Promesa cargada heredada sin historia
-- `failed` — Compromiso fallido heredado sin historia
+- `created`: creación de aporte inicial (los elementos muestran la lista de niveles completa)
+- `modified`: cambio de nivel/cantidad de aporte (los elementos muestran diferencias: `+Added Tier`, `-Removed Tier`)
+- `cancelled` — Aporte cancelado (muestra montos negativos)
+- `active` — Aporte heredado sin historia
+- `charged` — aporte cargado heredada sin historia
+- `failed` — Aporte fallido heredado sin historia
 
 **Formato de elementos de fila modificado:**
 ```
@@ -818,7 +818,7 @@ El progreso se escribe en stderr, mientras que los datos CSV se escriben solo en
 - Los niveles sin cambios no aparecen en la diferencia
 
 **Soporte personalizado en artículos:**
-Cuando un compromiso incluye soporte personalizado, aparece como `Custom Support $X.XX` en la columna de elementos (por ejemplo, `Line of Dialogue; Custom Support $25.00`).
+Cuando un aporte incluye soporte personalizado, aparece como `Custom Support $X.XX` en la columna de elementos (por ejemplo, `Line of Dialogue; Custom Support $25.00`).
 
 **Formato de fila cancelada:**
 Las filas canceladas muestran importes negativos (subtotal, propina, impuestos, envío, total), de modo que la suma de todas las filas da el total correcto de la campaña. Los elementos tienen el prefijo `-` para indicar su eliminación.
@@ -830,7 +830,7 @@ El informe convierte los ID de nivel en nombres legibles por humanos (por ejempl
 
 ## Informes de cumplimiento
 
-Genere informes agregados que muestren el **estado actual** del compromiso de cada patrocinador (para fines de cumplimiento):
+Genere informes agregados que muestren el **estado actual** del aporte de cada patrocinador (para fines de cumplimiento):
 
 ```bash
 # All pledges, production KV
@@ -846,14 +846,14 @@ Genere informes agregados que muestren el **estado actual** del compromiso de ca
 ./scripts/fulfillment-report.sh worst-movie-ever > fulfillment.csv
 ```
 
-**Formato de salida:** Una fila por combinación única de correo electrónico + campaña. Se agregan varias promesas del mismo patrocinador.
+**Formato de salida:** Una fila por combinación única de correo electrónico + campaña. Se agregan varias aportes del mismo patrocinador.
 
 **Columnas de salida:** correo electrónico, campaña, artículos, subtotal, porcentaje_propina, propina, impuestos, envío, total, dirección_envío
 
-**Diferencias clave con promesa-report.sh:**
+**Diferencias clave con aporte-report.sh:**
 - Muestra **estado de nivel actual** (no el historial)
-- **Agrega** múltiples compromisos por patrocinador en una fila
-- **Excluye** promesas canceladas
+- **Agrega** múltiples aportes por patrocinador en una fila
+- **Excluye** aportes cancelados
 - **Excluye** soporte personalizado (solo muestra artículos entregables)
 - **No** columnas de estado, creada_en o id_pedido
 - Los artículos muestran las cantidades finales (por ejemplo, si el patrocinador se modifica desde el cuadro → diálogo, solo aparece el diálogo)
@@ -900,14 +900,14 @@ worker/src/
 |Punto final|Propósito|
 |----------|---------|
 |`POST /checkout-intent/start`|Cree la sesión de configuración de Stripe utilizada por el paso de pago en el sitio|
-|`POST /webhooks/stripe`|Manejar eventos de Stripe, almacenar promesas, enviar correos electrónicos|
-|`GET /pledge?token=...`|Obtenga detalles de la promesa para la página de administración|
+|`POST /webhooks/stripe`|Manejar eventos de Stripe, almacenar aportes, enviar correos electrónicos|
+|`GET /pledge?token=...`|Obtenga detalles del aporte para la página de administración|
 |`POST /pledge/cancel`|Cancelar una contribución activa|
 |`POST /pledge/modify`|Cambiar nivel/cantidad|
 |`POST /launch-reminders`|Guarde un recordatorio de suscripción para una próxima campaña|
 |`GET /launch-reminders/unsubscribe?t=...`|Suprimir un recordatorio de lanzamiento relacionado con la campaña|
-|`GET /stats/:slug`|Totales de compromisos en vivo para una campaña|
-|`POST /admin/settle/:slug`|Cargar manualmente todas las promesas financiadas|
+|`GET /stats/:slug`|Totales de aportes en vivo para una campaña|
+|`POST /admin/settle/:slug`|Cargar manualmente todas los aportes financiadas|
 
 ### Activador cron (establecimiento automático)
 
@@ -924,9 +924,9 @@ crons = ["* * * * *"]
 2. Enumera todas las campañas con `goal_deadline` y `goal_amount`.
 3. Pone en cola el envío de un recordatorio de lanzamiento único cuando se activa una próxima campaña.
 4. Para cada campaña en la que haya pasado la fecha límite en la zona horaria de la plataforma y se haya cumplido el objetivo:
-   - Comprueba si hay promesas activas no cargadas
+   - Comprueba si hay aportes activos no cargadas
    - Si es así, ejecuta la misma lógica de liquidación que `/admin/settle/:slug`.
-5. Agrega promesas por correo electrónico dentro de cada campaña para que cada partidario reciba UN cargo por campaña.
+5. Agrega aportes por correo electrónico dentro de cada campaña para que cada patrocinador reciba UN cargo por campaña.
 6. Envía correos electrónicos de pago exitoso/pago fallido según corresponda
 
 **Nota sobre la zona horaria:** El programador se ejecuta cada minuto, pero el trabajo del ciclo de vida se limita a una pequeña ventana de medianoche en la zona horaria de la plataforma y se reclama una vez por fecha local. Los trabajos de envío de recordatorios de lanzamiento pueden agotarse en cualquier tic programado después de que se reclame la transición en vivo, y los reintentos de correo electrónico de apoyo aún se ejecutan cada 15 minutos dentro del mismo controlador programado. Ambas colas mantienen marcadores de estado de cola livianos, por lo que los ticks inactivos omiten los escaneos de la lista KV y solo realizan una nueva verificación de compatibilidad cada hora a menos que el trabajo real se haya marcado como pendiente.
@@ -955,7 +955,7 @@ Los secretos viven en las variables de entorno de Cloudflare Worker. Nunca te co
 |`STRIPE_SECRET_KEY`|API Stripe (o variantes `_TEST`/`_LIVE`)|
 |`STRIPE_WEBHOOK_SECRET`|Verificar las firmas del webhook de Stripe|
 |`CHECKOUT_INTENT_SECRET`|Firmar instantáneas de pago propias|
-|`MAGIC_LINK_SECRET`|Firma HMAC para tokens de gestión de promesas|
+|`MAGIC_LINK_SECRET`|Firma HMAC para tokens de gestión de aportes|
 |`RESEND_API_KEY`|Enviar correos electrónicos de apoyo/hito/fallidos|
 |`CLOUDFLARE_USAGE_API_TOKEN`|Token GraphQL Analytics de solo lectura opcional para cargas de uso del plan de administrador; agregar lectura de facturación para la detección automática del plan de trabajadores|
 |`ADMIN_SECRET`|Proteger los puntos finales de administración (recuperación, reconstrucción y autenticación de automatización alternativa)|
@@ -1011,26 +1011,26 @@ El menú de hamburguesas móvil para alternar necesita un manejo cuidadoso del �
 ## Preguntas frecuentes
 
 **¿Por qué necesitamos un Trabajador si el sitio es estático?**
-Los webhooks Stripe SetupIntents + requieren secretos del lado del servidor y un punto final HTTPS. El Trabajador también almacena datos de compromiso en Cloudflare KV y envía correos electrónicos a través de Resend.
+Los webhooks Stripe SetupIntents + requieren secretos del lado del servidor y un punto final HTTPS. El Trabajador también almacena datos de aporte en Cloudflare KV y envía correos electrónicos a través de Resend.
 
 **¿Podemos saltarnos al Trabajador?**
-No. El trabajador maneja las sesiones de pago de Stripe, el procesamiento de webhooks, el almacenamiento de promesas (KV), las estadísticas en vivo, el inventario de niveles, los correos electrónicos de hitos y la liquidación de campañas. Es el backend central.
+No. El trabajador maneja las sesiones de pago de Stripe, el procesamiento de webhooks, el almacenamiento de aportes (KV), las estadísticas en vivo, el inventario de niveles, los correos electrónicos de hitos y la liquidación de campañas. Es el backend central.
 
-**¿Dónde se almacenan los datos de las promesas?**
+**¿Dónde se almacenan los datos de los aportes?**
 Cloudflare KV. Patrones clave:
-- `pledge:{orderId}`: datos completos del compromiso (correo electrónico, monto, nivel, ID de Stripe, estado)
+- `pledge:{orderId}`: datos completos del aporte (correo electrónico, monto, nivel, ID de Stripe, estado)
 - `email:{email}`: conjunto de ID de pedido para ese correo electrónico
 - `stats:{campaignSlug}` — Totales agregados (pledgedAmount, promesaCount, tierCounts)
 - `tier-inventory:{campaignSlug}` — Recuento de reclamos de niveles para niveles limitados
-- `campaign-pledges:{campaignSlug}`: índice de promesas de campaña para informes, liquidaciones, lecturas administrativas y reparación de proyecciones.
+- `campaign-pledges:{campaignSlug}`: índice de aportes de campaña para informes, liquidaciones, lecturas administrativas y reparación de proyecciones.
 - `add-on-inventory-sold:v1` — Proyección de recuento de ventas del complemento de plataforma
 - `launch-reminder-dispatch-queue:v1` y `supporter-email-retry-queue:v1`: marcadores de estado de cola que permiten que los cronómetros inactivos omitan los escaneos de la lista KV
 
 **¿Qué papel juega el carrito del navegador?**
-El carrito propio proporciona revisión de promesas y estado de transferencia de pago en el navegador. Los datos del compromiso final se almacenan en KV después de la confirmación del webhook de Stripe.
+El carrito propio proporciona revisión de aportes y estado de transferencia de pago en el navegador. Los datos del aporte final se almacenan en KV después de la confirmación del webhook de Stripe.
 
 **¿Esto almacena PII?**
-Las direcciones de correo electrónico se almacenan en KV para la gestión de promesas. Stripe almacena datos de tarjetas; almacenamos los ID de clientes/métodos de pago de Stripe.
+Las direcciones de correo electrónico se almacenan en KV para la gestión de aportes. Stripe almacena datos de tarjetas; almacenamos los ID de clientes/métodos de pago de Stripe.
 
 **¿Cómo desbloquean los objetivos ambiciosos los niveles?**
 Utilice `requires_threshold` en el nivel; la plantilla lo oculta hasta `pledged_amount >= threshold`.
@@ -1040,13 +1040,13 @@ Los Stripe SetupIntents (métodos de pago guardados) no caducan como las retenci
 
 **¿Cómo se cobran las campañas cuando se financian?**
 El trabajador liquida automáticamente las campañas a través del controlador programado una vez por día local después de la medianoche en la zona horaria de la plataforma. Cuando transcurre el plazo de una campaña y ésta ha cumplido su objetivo, el Trabajador:
-1. Agrega todas las promesas activas **por correo electrónico dentro de una campaña** (un cargo por partidario por campaña, no por fila de promesa)
-2. Utiliza el método de pago actualizado más recientemente para cada partidario
-3. Crea un Stripe PaymentIntent por partidario para el monto total de su campaña.
-4. Envía un correo electrónico de cargo por seguidor para esa campaña.
-5. Marca todas las promesas subyacentes como `charged`
+1. Agrega todas los aportes activos **por correo electrónico dentro de una campaña** (un cargo por patrocinador por campaña, no por fila de aporte)
+2. Utiliza el método de pago actualizado más recientemente para cada patrocinador
+3. Crea un Stripe PaymentIntent por patrocinador para el monto total de su campaña.
+4. Envía un correo electrónico de cargo por patrocinador para esa campaña.
+5. Marca todas los aportes subyacentes como `charged`
 
-Las promesas canceladas nunca se cobran. También puede activar la liquidación manualmente a través de `POST /admin/settle/:slug`.
+los aportes cancelados nunca se cobran. También puede activar la liquidación manualmente a través de `POST /admin/settle/:slug`.
 
 **¿En qué zona horaria están las fechas límite?**
 Todos los plazos utilizan la zona horaria configurada de la plataforma. Una campaña con `goal_deadline: 2025-12-20` finaliza a las 23:59:59 de esa fecha en `platform.timezone`. El valor predeterminado es `America/Denver`, por lo que las bifurcaciones existentes mantienen el comportamiento anterior hasta que un superadministrador cambia la zona horaria.
@@ -1151,7 +1151,7 @@ Utilice `_includes/a11y.html` para patrones comunes:
 
 ## Internacionalización (i18n)
 
-El sitio ahora tiene una base local real a través de páginas públicas compartidas, flujos de seguidores y copia en tiempo de ejecución propiedad del sitio. El inglés sigue siendo la configuración regional predeterminada y el español es la primera configuración regional secundaria.
+El sitio ahora tiene una base local real a través de páginas públicas compartidas, flujos de patrocinadores y copia en tiempo de ejecución propiedad del sitio. El inglés sigue siendo la configuración regional predeterminada y el español es la primera configuración regional secundaria.
 
 ### Estructura
 
@@ -1223,13 +1223,13 @@ Utilice los ayudantes locales para el enrutamiento de páginas:
 {% include language-switcher.html position="footer" %}
 ```
 
-Los mensajes en tiempo de ejecución para los flujos JS propiedad del sitio se emiten a través de [`assets/i18n.json`](https://github.com/your-org/your-project/blob/main/assets/i18n.json) y se inician en `POOL_CONFIG.i18n.messages`, por lo que los flujos de carrito, pago, comunidad de seguidores y Administrar compromiso pueden usar el mismo catálogo local sin una capa de traducción estilo SPA.
+Los mensajes en tiempo de ejecución para los flujos JS propiedad del sitio se emiten a través de [`assets/i18n.json`](https://github.com/your-org/your-project/blob/main/assets/i18n.json) y se inician en `POOL_CONFIG.i18n.messages`, por lo que los flujos de carrito, pago, comunidad de patrocinadores y Administrar aporte pueden usar el mismo catálogo local sin una capa de traducción estilo SPA.
 
-Las plantillas de campañas públicas ahora también obtienen más Chrome compartido de los mismos datos locales, incluido el texto de carga/reproducción de videos de héroes, texto de adelanto de la comunidad de seguidores, etiquetas de pestañas del diario y estados vacíos, etiquetas/CTA de la fase de producción y etiquetas de accesibilidad de la galería.
+Las plantillas de campañas públicas ahora también obtienen más Chrome compartido de los mismos datos locales, incluido el texto de carga/reproducción de videos de héroes, texto de adelanto de la comunidad de patrocinadores, etiquetas de pestañas del diario y estados vacíos, etiquetas/CTA de la fase de producción y etiquetas de accesibilidad de la galería.
 
 Los correos electrónicos de soporte de los trabajadores también consumen el catálogo de configuración regional compartido y el `preferredLang` persistente adjunto para pagar y administrar los flujos, por lo que los correos electrónicos de soporte localizados y los enlaces `/manage/` / `/community/:slug/` localizados permanecen alineados con el modelo de configuración regional del sitio.
 
-El conmutador de idioma de pie de página compartido también conserva la cadena de consulta y el hash actuales, lo cual es importante para rutas tokenizadas como `/manage/?t=...` y enlaces de comunidad de seguidores.
+El conmutador de idioma de pie de página compartido también conserva la cadena de consulta y el hash actuales, lo cual es importante para rutas tokenizadas como `/manage/?t=...` y enlaces de comunidad de patrocinadores.
 
 Límite importante:
 
@@ -1254,11 +1254,11 @@ Regla general manual:
 ### Categorías de traducción
 
 - `nav` - Etiquetas de navegación
-- `buttons`: texto del botón (promesa, cancelación, votación, etc.)
+- `buttons`: texto del botón (aporte, cancelación, votación, etc.)
 - `states`: estados de la campaña (activa, finalizada, próxima)
 - `progress` - Etiquetas de progreso de financiación
-- `pledge`: copia del flujo de compromiso
-- `manage` - Administrar página de compromiso
+- `pledge`: copia del flujo de aporte
+- `manage` - Administrar página de aporte
 - `status` - Etiquetas de estado
 - `community` - Página de votación/comunidad
 - `tiers`: etiquetas relacionadas con niveles
@@ -1306,7 +1306,7 @@ npm run test:e2e:ui        # Interactive UI mode
 
 **La cobertura de la prueba incluye:**
 - Botones de navegación y niveles de campaña
-- Pestañas del panel de administración, visibilidad de configuración/campaña con alcance de función, comportamiento del editor de contenido, configuración de medios, cargas, análisis/informes/partidarios/vistas de marketing, menús responsivos para tabletas/móviles y cobertura de ruta en español
+- Pestañas del panel de administración, visibilidad de configuración/campaña con alcance de función, comportamiento del editor de contenido, configuración de medios, cargas, análisis/informes/patrocinadores/vistas de marketing, menús responsivos para tabletas/móviles y cobertura de ruta en español
 - Entrada de monto personalizado → sincronización del precio del carrito propio
 - Entrada de artículos de soporte → sincronización de precios de carritos propios
 - Estados deshabilitados en campañas no activas
@@ -1328,7 +1328,7 @@ npm test  # Runs unit tests, then E2E tests
 
 ## Borrar datos de KV (depuración)
 
-Al depurar flujos de promesas, es posible que necesite borrar los datos de Worker KV.
+Al depurar flujos de aportes, es posible que necesite borrar los datos de Worker KV.
 
 ### KV local (desarrollador de Wrangler)
 
@@ -1360,8 +1360,8 @@ done
 
 |Vinculante|Propósito|
 |---------|---------|
-|`PLEDGES`|Registros de promesas, estadísticas y asignaciones de correo electrónico|
-|`VOTES`|Datos de votación de la comunidad (codificados por correo electrónico para evitar el abuso de votos de promesas múltiples)|
+|`PLEDGES`|Registros de aportes, estadísticas y asignaciones de correo electrónico|
+|`VOTES`|Datos de votación de la comunidad (codificados por correo electrónico para evitar el abuso de votos de aportes múltiples)|
 |`RATELIMIT`|Contadores de limitación de velocidad|
 
 **Vota las claves KV:**
@@ -1373,11 +1373,11 @@ done
 El flujo de liquidación utiliza un **bloqueo de objeto duradero con alcance de campaña** más invocaciones por lotes de autoencadenamiento para mantenerse dentro del límite de 50 subsolicitudes de Cloudflare Worker:
 
 1. **Programador** (`scheduled()`) reclama una ejecución diaria después de la medianoche en la zona horaria de la plataforma y luego reclama el bloqueo de liquidación de la campaña antes de enviar el trabajo.
-2. **Dispatch** actualiza el mismo bloqueo `SETTLEMENT_COORDINATOR`, lee el índice de promesas de campaña y procesa 6 promesas por lote a través de `/admin/settle-batch`.
-3. **Cada lote** verifica que todas las promesas con cargo pertenecen a una campaña, actualiza o reclama el bloqueo de la campaña y utiliza claves de idempotencia deterministas de Stripe para cada cargo de colaborador.
-4. **Se autoencadena** hasta que se procesen todos los compromisos, luego establece `campaign-charged:{slug}` solo cuando ningún compromiso activo aún necesita atención
+2. **Dispatch** actualiza el mismo bloqueo `SETTLEMENT_COORDINATOR`, lee el índice de aportes de campaña y procesa 6 aportes por lote a través de `/admin/settle-batch`.
+3. **Cada lote** verifica que todas los aportes con cargo pertenecen a una campaña, actualiza o reclama el bloqueo de la campaña y utiliza claves de idempotencia deterministas de Stripe para cada cargo de colaborador.
+4. **Se autoencadena** hasta que se procesen todos los aportes, luego establece `campaign-charged:{slug}` solo cuando ningún aporte activo aún necesita atención
 
-Los carritos de campañas múltiples siguen siendo compatibles porque la persistencia del webhook divide un paquete de carritos en registros de compromiso separados con alcance de campaña. La liquidación tiene un alcance intencional de campaña: los bloqueos, la validación de lotes, el estado del trabajo y los marcadores de finalización dependen de la campaña que se cobra.
+Los carritos de campañas múltiples siguen siendo compatibles porque la persistencia del webhook divide un paquete de carritos en registros de aporte separados con alcance de campaña. La liquidación tiene un alcance intencional de campaña: los bloqueos, la validación de lotes, el estado del trabajo y los marcadores de finalización dependen de la campaña que se cobra.
 
 **Estado utilizado por el acuerdo:**
 
@@ -1390,11 +1390,11 @@ Los carritos de campañas múltiples siguen siendo compatibles porque la persist
 |`cron:lastError`|Detalles del último error cron (TTL de 7 días)|
 |`SETTLEMENT_COORDINATOR` Objeto duradero|Bloqueo de liquidación de campaña de corta duración y estado de actualización/liberación del propietario|
 
-`campaign-pledges:{slug}` sigue siendo la vía rápida preferida para informes, liquidaciones y lecturas administrativas, pero las estadísticas y el recálculo de inventario lo tratan como un estado de proyección reparable en lugar de una verdad intocable. Si se desvía de los registros de compromiso activos subyacentes, la ruta de reconstrucción lo reescribe automáticamente.
+`campaign-pledges:{slug}` sigue siendo la vía rápida preferida para informes, liquidaciones y lecturas administrativas, pero las estadísticas y el recálculo de inventario lo tratan como un estado de proyección reparable en lugar de una verdad intocable. Si se desvía de los registros de aporte activos subyacentes, la ruta de reconstrucción lo reescribe automáticamente.
 
 **Comprobaciones de deriva de proyección:**
 
-- `POST /stats/:slug/check` compara las proyecciones almacenadas de `campaign-pledges:{slug}`, `stats:{slug}` y `tier-inventory:{slug}` con la verdad del compromiso activo sin mutar nada.
+- `POST /stats/:slug/check` compara las proyecciones almacenadas de `campaign-pledges:{slug}`, `stats:{slug}` y `tier-inventory:{slug}` con la verdad del aporte activo sin mutar nada.
 - `POST /admin/projections/check` realiza la misma comparación en todas las campañas.
 - `./scripts/check-projections.sh` es el contenedor local fácil de usar para esos cheques.
 
@@ -1403,13 +1403,13 @@ Los carritos de campañas múltiples siguen siendo compatibles porque la persist
 |Punto final|Propósito|
 |----------|---------|
 |`POST /admin/settle-dispatch/:slug`|Iniciar/reanudar liquidación por lotes|
-|`POST /admin/settle-batch`|Cobrar promesas específicas (máximo 6 por llamada)|
+|`POST /admin/settle-batch`|Cobrar aportes específicas (máximo 6 por llamada)|
 |`POST /admin/settle/:slug`|Liquidación monolítica heredada (puede alcanzar los límites de solicitudes secundarias)|
-|`POST /admin/campaign-index/rebuild/:slug`|Reconstruir el índice de compromiso de campaña de KV|
+|`POST /admin/campaign-index/rebuild/:slug`|Reconstruir el índice de aporte de campaña de KV|
 |`POST /stats/:slug/check`|Comprobación de deriva de proyección de solo lectura para una campaña|
 |`POST /admin/projections/check`|Comprobación de deriva de proyección de solo lectura para todas las campañas|
-|`POST /admin/backfill-customers/:slug`|Crear clientes de Stripe para las promesas que les faltan|
-|`POST /admin/analytics/stripe-financials/backfill`|Rellene la tarifa de transacción/valores netos del saldo real de Stripe para las promesas cobradas utilizando índices de promesas de campaña|
+|`POST /admin/backfill-customers/:slug`|Crear clientes de Stripe para los aportes que les faltan|
+|`POST /admin/analytics/stripe-financials/backfill`|Rellene la tarifa de transacción/valores netos del saldo real de Stripe para los aportes cobradas utilizando índices de aportes de campaña|
 |`GET /admin/cron/status`|Comprobar el latido del cron|
 
 **Comprobando el estado del cron:**

@@ -1,7 +1,7 @@
 ---
 title: Desarrollo local con Podman
 parent: Operaciones
-nav_order: 3
+nav_order: 5
 render_with_liquid: false
 lang: es
 ---
@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-5 de julio de 2026
+16 de julio de 2026
 
 Este repositorio ahora incluye una ruta de desarrollo local sin raíz respaldada por Podman para los dos servicios que generalmente crean la mayor rotación de configuración de host:
 
@@ -35,7 +35,7 @@ Incluido hoy:
 - Reenvío opcional de CLI de Stripe del host al trabajador local
 - Descubrimiento automático de Stripe CLI desde rutas de instalación comunes de macOS/Homebrew
 - Ejecución automatizada de Playwright sin cabeza en un contenedor Podman dedicado
-- Scripts de ayuda para informes locales, de pago, E2E, de trabajador, de promesa mutable y compatibles con Podman
+- Scripts de ayuda para informes locales, de pago, E2E, de trabajador, de aporte mutable y compatibles con Podman
 - soporte de respaldo previo a la fusión para la compilación de Jekyll y las fases de humo/navegador locales en máquinas sin un host funcional Bundler/cadena de herramientas Jekyll
 
 Aún no incluido:
@@ -96,6 +96,8 @@ npm run podman:doctor
 npm run podman:self-check
 ```
 
+En macOS y Windows, el desarrollo normal advierte cuando la máquina Podman tiene menos de 6144 MiB. Las fases `npm run test:premerge` y `npm run release:smoke -- --podman-e2e` requeridas imponen ese mínimo en poco tiempo. Cambie el tamaño de una máquina parada con `podman machine set --memory 6144`, reiníciela y vuelva a ejecutar el doctor. El flujo de trabajo semanal/manual `.github/workflows/podman-e2e.yml` ejercita por separado la ruta Podman de Linux sin raíz sin implementar nada.
+
 `npm run podman:self-check` es el pase de confianza automatizado más potente en esta rama. Ejecuta al médico, inicia la pila respaldada por Podman, ejecuta el humo del trabajador y ejecuta la suite automatizada Playwright en un contenedor.
 
 Más concretamente, la autocomprobación cubre:
@@ -107,7 +109,7 @@ Más concretamente, la autocomprobación cubre:
 
 La puerta de fusión más amplia también ejecuta `./scripts/smoke-pledge-management.sh --podman`, por lo que la ruta de modificación/cancelación mutable aún obtiene una cobertura de estado aislada incluso cuando las fases de compilación del host se realizan correctamente.
 
-Ese humo de promesa mutable ahora también sigue siendo compatible con configuraciones impositivas impulsadas por el proveedor, como `tax.provider: nm_grt`: la ruta del accesorio de prueba del trabajador genera una dirección de facturación para que `/test/setup` pueda crear una promesa real consciente de los impuestos en lugar de asumir un impuesto fijo.
+Ese humo de aporte mutable ahora también sigue siendo compatible con configuraciones impositivas impulsadas por el proveedor, como `tax.provider: nm_grt`: la ruta del accesorio de prueba del trabajador genera una dirección de facturación para que `/test/setup` pueda crear un aporte real consciente de los impuestos en lugar de asumir un impuesto fijo.
 
 Desde la raíz del repositorio:
 
@@ -198,6 +200,14 @@ Los contenedores de informes cargan la autenticación de Cloudflare desde `.env`
 `./scripts/test-e2e.sh --podman` ahora es una cobertura de navegador totalmente automatizada. El asistente dedicado `./scripts/test-checkout.sh --podman` sigue siendo la ruta interactiva manual cuando específicamente desea realizar un pago real en su propio navegador. El conjunto de navegador automatizado sin cabeza se ejecuta en su propio contenedor Playwright y reutiliza el sitio/trabajador que ya se está ejecutando en lugar de intentar iniciar Jekyll dentro del contenedor de prueba.
 
 El contenedor de humo de liberación utiliza la misma ruta E2E respaldada por Podman cuando Podman está disponible. Pase `--podman-e2e` para requerir esa fase para la evidencia de publicación, o `--skip-podman-e2e` solo cuando otra ejecución registrada ya cubra la misma superficie del navegador.
+
+La evidencia de Lighthouse de ruta central también utiliza la pila Podman:
+
+```bash
+npm run test:performance:lighthouse
+```
+
+Esta es una prueba de divulgación, no un requisito de todas las relaciones públicas. Utilice la variante de host solo cuando ya esté instalado un Chromium local compatible.
 
 Para una cobertura del navegador de panel enfocada en la pila respaldada por Podman, use:
 

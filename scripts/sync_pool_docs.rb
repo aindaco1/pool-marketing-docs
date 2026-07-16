@@ -28,18 +28,23 @@ DOCS = [
   { src: "docs/I18N.md", dest: "docs/development/internationalization.md", title: "Internationalization", parent: "Development", nav_order: 6 },
   { src: "docs/EMBEDS.md", dest: "docs/development/campaign-embeds.md", title: "Campaign Embeds", parent: "Development", nav_order: 7 },
   { src: "docs/ADD_ON_PRODUCTS.md", dest: "docs/development/add-on-products.md", title: "Add-On Products", parent: "Development", nav_order: 8 },
-  { src: "docs/AGENTS.md", dest: "docs/development/agents-operator-guide.md", title: "Agents & Operator Guide", parent: "Development", nav_order: 9 },
+  { src: "AGENTS.md", dest: "docs/development/agents-operator-guide.md", title: "Agents & Operator Guide", parent: "Development", nav_order: 9 },
+  { src: "README.md", dest: "docs/development/platform-readme.md", title: "Platform README", parent: "Development", nav_order: 10 },
+  { src: "docs/ETHICAL_RISK.md", dest: "docs/development/ethical-risk-review.md", title: "Ethical Risk Review", parent: "Development", nav_order: 11 },
   { src: "docs/DASHBOARD.md", dest: "docs/operations/admin-dashboard.md", title: "Admin Dashboard", parent: "Operations", nav_order: 1 },
   { src: "worker/README.md", dest: "docs/operations/worker.md", title: "Pledge Worker", parent: "Operations", nav_order: 2 },
-  { src: "docs/PODMAN.md", dest: "docs/operations/podman-local-dev.md", title: "Podman Local Dev", parent: "Operations", nav_order: 3 },
-  { src: "docs/TESTING.md", dest: "docs/operations/testing.md", title: "Testing Guide", parent: "Operations", nav_order: 4 },
-  { src: "docs/MERGE_SMOKE_CHECKLIST.md", dest: "docs/operations/merge-smoke-checklist.md", title: "Merge Smoke Checklist", parent: "Operations", nav_order: 5 },
-  { src: "docs/SECURITY.md", dest: "docs/operations/security.md", title: "Security Guide", parent: "Operations", nav_order: 6 },
-  { src: "tests/security/README.md", dest: "docs/operations/security-test-suite.md", title: "Security Test Suite", parent: "Operations", nav_order: 7 },
-  { src: "docs/SHIPPING.md", dest: "docs/operations/shipping.md", title: "Shipping", parent: "Operations", nav_order: 8 },
-  { src: "docs/ACCESSIBILITY.md", dest: "docs/operations/accessibility.md", title: "Accessibility", parent: "Operations", nav_order: 9 },
-  { src: "docs/SEO.md", dest: "docs/operations/seo.md", title: "SEO", parent: "Operations", nav_order: 10 },
-  { src: "docs/PERFORMANCE.md", dest: "docs/operations/performance.md", title: "Performance", parent: "Operations", nav_order: 11 },
+  { src: "docs/PAYMENT_PROCESSOR.md", dest: "docs/operations/payment-processor.md", title: "Payment Processor", parent: "Operations", nav_order: 3 },
+  { src: "docs/EMAIL.md", dest: "docs/operations/email-system.md", title: "Email System", parent: "Operations", nav_order: 4 },
+  { src: "docs/PODMAN.md", dest: "docs/operations/podman-local-dev.md", title: "Podman Local Dev", parent: "Operations", nav_order: 5 },
+  { src: "docs/TESTING.md", dest: "docs/operations/testing.md", title: "Testing Guide", parent: "Operations", nav_order: 6 },
+  { src: "docs/MERGE_SMOKE_CHECKLIST.md", dest: "docs/operations/merge-smoke-checklist.md", title: "Merge Smoke Checklist", parent: "Operations", nav_order: 7 },
+  { src: "docs/SECURITY.md", dest: "docs/operations/security.md", title: "Security Guide", parent: "Operations", nav_order: 8 },
+  { src: "tests/security/README.md", dest: "docs/operations/security-test-suite.md", title: "Security Test Suite", parent: "Operations", nav_order: 9 },
+  { src: "docs/BACKUP_RESTORE.md", dest: "docs/operations/backup-restore.md", title: "Backup, Restore, and Recovery", parent: "Operations", nav_order: 10 },
+  { src: "docs/SHIPPING.md", dest: "docs/operations/shipping.md", title: "Shipping", parent: "Operations", nav_order: 11 },
+  { src: "docs/ACCESSIBILITY.md", dest: "docs/operations/accessibility.md", title: "Accessibility", parent: "Operations", nav_order: 12 },
+  { src: "docs/SEO.md", dest: "docs/operations/seo.md", title: "SEO", parent: "Operations", nav_order: 13 },
+  { src: "docs/PERFORMANCE.md", dest: "docs/operations/performance.md", title: "Performance", parent: "Operations", nav_order: 14 },
   { src: "CHANGELOG.md", dest: "docs/reference/changelog.md", title: "Changelog", parent: "Reference", nav_order: 1 },
   { src: "docs/ROADMAP.md", dest: "docs/reference/roadmap.md", title: "Roadmap", parent: "Reference", nav_order: 2 },
   { src: "docs/PULL_REQUEST_TEMPLATE.md", dest: "docs/reference/pull-request-template.md", title: "Pull Request Template", parent: "Reference", nav_order: 3 }
@@ -102,7 +107,8 @@ def normalize_link(current_src, raw_target)
 
   current_dir = Pathname(current_src).dirname
   normalized = current_dir.join(path).cleanpath.to_s.sub(%r{\A\./}, "")
-  replacement = DESTINATIONS[normalized] || repo_url_for(normalized) || raw_target
+  replacement = DESTINATIONS[normalized] || repo_url_for(normalized)
+  return raw_target unless replacement
 
   replacement + suffix
 end
@@ -718,50 +724,38 @@ def rewrite_copy(content, current_src)
       /\*\*Dust Wave's open-source crowdfunding platform\*\* — \[site\.example\.com\]\(https:\/\/site\.example\.com\)\n\n/,
       "**Open-source crowdfunding platform starter**\n\n"
     )
-    rewritten.sub!(
-      /^Current release milestone: \*\*v1\.0\.\d+\*\*\. .+$/,
-      "Current release milestone: **v1.0.8**. The v1.0 feature set and launch-hardening pass are complete. v1.0.8 adds Store-derived runtime hardening, lazy authenticated Marketing reads, remembered admin dashboard tab/subtab context, stronger locale completeness checks, and generated-site SEO audit coverage in the merge gate."
-    )
-    rewritten.gsub!("the v0.9.5 through v1.0.2 creator-facing changes", "the v0.9.5 through v1.0.8 creator-facing changes")
-    rewritten.gsub!("the v0.9.5 through v1.0.3 creator-facing changes", "the v0.9.5 through v1.0.8 creator-facing changes")
-    rewritten.gsub!("the v0.9.5 through v1.0.4 creator-facing changes", "the v0.9.5 through v1.0.8 creator-facing changes")
-    rewritten.gsub!("the v0.9.5 through v1.0.5 creator-facing changes", "the v0.9.5 through v1.0.8 creator-facing changes")
-    rewritten.gsub!("the v0.9.5 through v1.0.6 creator-facing changes", "the v0.9.5 through v1.0.8 creator-facing changes")
-    rewritten.gsub!("the v0.9.5 through v1.0.7 creator-facing changes", "the v0.9.5 through v1.0.8 creator-facing changes")
     rewritten.gsub!(/\n\*🄯 Dust Wave\*\n/, "\n")
     rewritten.gsub!("*🄯 Dust Wave*", "")
     rewritten.gsub!(/^\*🄯 Dust Wave\*$/m, "")
   when "about.md"
-    rewritten = ABOUT_REWRITE.dup
+    rewritten.gsub!(/^\{% assign .+? %\}\n?/, "")
+    rewritten.gsub!("**The Pool** is {{ operator_name }}'s", "**The Pool** is an")
+    rewritten.gsub!("help {{ operator_name }} operate the service", "help operate the service")
+    rewritten.gsub!("{{ operator_name }}", "the platform operator")
+    rewritten.gsub!(
+      "{% include localized-url.html lang=page.lang translation_key='terms' %}#returns-refunds",
+      "/docs/overview/terms-and-guidelines/#returns-refunds"
+    )
+    rewritten.gsub!(
+      "{% include localized-url.html lang=page.lang translation_key='terms' %}#shipping-policy",
+      "/docs/overview/terms-and-guidelines/#shipping-policy"
+    )
+    rewritten.gsub!("[{{ support_email }}](mailto:{{ support_email }})", "[support@example.com](mailto:support@example.com)")
+    rewritten.gsub!(
+      "[github.com/your-org/your-project](https://github.com/your-org/your-project)",
+      "[github.com/aindaco1/pool](https://github.com/aindaco1/pool)"
+    )
+  when "terms.md"
+    rewritten.gsub!(/^\{% assign .+? %\}\n?/, "")
+    rewritten.gsub!("{{ operator_name }}", "the platform operator")
+    rewritten.gsub!("[{{ support_email }}](mailto:{{ support_email }})", "[support@example.com](mailto:support@example.com)")
+    rewritten.gsub!(
+      "[GitHub repository](https://github.com/your-org/your-project)",
+      "[GitHub repository](https://github.com/aindaco1/pool)"
+    )
   when "CHANGELOG.md"
     rewritten.gsub!(/^- Updated release metadata to `[^`]+`\.\n/, "")
-
-    if rewritten.include?("manual `scope=all` option") || rewritten.include?("mobile PageSpeed performance pass")
-      rewritten.gsub!(/^## v1\.0\.3 - 2026-06-01\n[\s\S]*?(?=^## v1\.0\.[0-9]+|\z)/m, "")
-      rewritten.gsub!(/^## v1\.0\.2 - 2026-06-01\n[\s\S]*?(?=^## v1\.0\.[0-9]+|\z)/m, "")
-    end
-
-    unless rewritten.match?(/^## v1\.0\.3\b/m)
-      if rewritten.match?(/^## v1\.0\.2\b/m)
-        rewritten.sub!(/(?=^## v1\.0\.2\b)/m, "#{CHANGELOG_103_ENTRY}\n")
-      elsif rewritten.match?(/^## v1\.0\.1\b/m)
-        rewritten.sub!(/(?=^## v1\.0\.1\b)/m, "#{CHANGELOG_103_ENTRY}\n")
-      else
-        rewritten.sub!("# Changelog\n\n", "# Changelog\n\n#{CHANGELOG_103_ENTRY}\n")
-      end
-    end
-
-    unless rewritten.match?(/^## v1\.0\.2 - 2026-06-01\b/m)
-      if rewritten.match?(/^## v1\.0\.1\b/m)
-        rewritten.sub!(/(?=^## v1\.0\.1\b)/m, "#{CHANGELOG_102_ENTRY}\n")
-      else
-        rewritten.sub!("# Changelog\n\n", "# Changelog\n\n#{CHANGELOG_102_ENTRY}\n")
-      end
-    end
   when "docs/CUSTOMIZATION.md"
-    rewritten.gsub!("such as `v1.0.2`", "such as `v1.0.3`")
-    rewritten.gsub!("version: 1.0.2", "version: 1.0.3")
-    rewritten.gsub!("release_label: v1.0.2", "release_label: v1.0.3")
     rewritten.gsub!('  default_social_image_alt: "Dust Wave on The Pool"', '  default_social_image_alt: "Social card for your deployment"')
   when "docs/PULL_REQUEST_TEMPLATE.md"
     rewritten.sub!(/\n## Rollback Plan\n<!-- How to revert safely if needed -->\n?\z/, "\n")
@@ -785,10 +779,6 @@ def rewrite_copy(content, current_src)
   when "docs/SEO.md"
     rewritten.gsub!('  default_social_image_alt: "Dust Wave on The Pool"', '  default_social_image_alt: "Social card for your deployment"')
   when "docs/SECURITY.md"
-    rewritten.sub!(
-      /## Vulnerability Summary.*?(?=## Secrets Checklist)/m,
-      "#{SECURITY_HARDENING_REWRITE}\n\n"
-    )
     rewritten.gsub!(/^- \*\*Primary:\*\* \[security@example\.com\]\n/, "")
   when "worker/README.md"
     rewritten.sub!(
@@ -817,6 +807,7 @@ def rewrite_copy(content, current_src)
     )
   end
 
+  rewritten.gsub!(/[ \t]+$/, "")
   rewritten
 end
 

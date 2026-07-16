@@ -1,7 +1,7 @@
 ---
 title: Accesibilidad
 parent: Operaciones
-nav_order: 9
+nav_order: 12
 render_with_liquid: false
 lang: es
 ---
@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-1 de julio de 2026
+16 de julio de 2026
 
 Este documento rastrea la línea base de accesibilidad actual de The Pool, las superficies de interacción de mayor riesgo que verificamos activamente y el trabajo de seguimiento restante necesario para pasar de una "postura de accesibilidad fuerte" hacia un cumplimiento de accesibilidad más completo.
 
@@ -22,6 +22,7 @@ Las prioridades actuales de accesibilidad son:
 - mejorar la semántica de ARIA y el comportamiento del teclado en superficies interactivas
 - Evite introducir regresiones de seguridad, especialmente en torno al flujo de pago de Stripe en el sitio.
 - agregue controles automatizados para viajes críticos en lugar de depender únicamente de la revisión manual
+- Revisar cómo los cambios afectan a diferentes grupos de usuarios, incluidos los usuarios localizados, los usuarios que solo usan teclado, los usuarios de lectores de pantalla, los usuarios de dispositivos móviles y los patrocinadores bajo presión de tiempo o dinero.
 
 ## Línea de base actual
 
@@ -38,7 +39,7 @@ El reciente pase de refuerzo de accesibilidad agregó:
 
 - semántica de diálogo, manejo de escape, captura de enfoque e intentos de restauración de enfoque para:
   - el carrito / sidecar de caja
-  - el modal de confirmación de compromiso de gestión
+  - el modal de confirmación de aporte de gestión
   - el modal `Update Card`
 - mejores relaciones entre campo y error en el proceso de pago en el sitio y en los flujos `Update Card`
 - Comportamiento de la pestaña del teclado estilo APG para:
@@ -73,6 +74,8 @@ El reciente pase de refuerzo de accesibilidad agregó:
   - Editor de contenido WYSIWYG cromado al que solo se puede acceder mediante el teclado cuando el bloque relevante está activo
   - Controles de carga de medios del editor de contenido con entradas de archivos nativos etiquetados, enfoque visible en el botón de carga con estilo, regiones de estado de carga y vistas previas locales del navegador antes de la publicación.
   - Configuración de subtítulos de imagen de la galería que reutilizan la etiqueta compartida/patrón de ayuda y exponen el editor de subtítulos flotantes como un cuadro de texto de texto enriquecido etiquetado.
+  - Búsqueda en la biblioteca de medios más filtros de imagen/vídeo/audio implementados como una lista de pestañas accesible, con estado seleccionado, metadatos/detalles de referencia accesibles mediante el teclado y acciones de reparación/reemplazo con nombre.
+  - texto alternativo requerido para imágenes de contenido significativas y un control explícito de imágenes decorativas que deshabilita y borra el texto alternativo en lugar de tratar un campo en blanco como un acceso directo de creación
   - Configuración -> Planificar encabezados de proveedores de uso que reutilizan la etiqueta de administración compartida/patrón de ayuda, el estado de carga gradual, el texto de la barra de progreso accesible y las tarjetas de métricas responsivas
   - Cree una nueva campaña y cuadros de diálogo de vista previa protegidos que reutilicen el patrón de etiqueta de administrador/ayuda/botón de información compartido, campos nativos, entrada de token de lista de correo electrónico, manejo de enfoque de diálogo y mensajes de estado cortés.
   - tablas de datos ordenables que exponen el estado `aria-sort` y los botones de clasificación
@@ -83,13 +86,13 @@ El reciente pase de refuerzo de accesibilidad agregó:
 La interfaz de usuario sensible a la accesibilidad más importante en la aplicación en este momento es:
 
 1. Carrito/sidecar de caja
-2. Gestionar compromiso confirmar modal
-3. Administrar compromiso modal `Update Card`
+2. Gestionar aporte confirmar modal
+3. Administrar aporte modal `Update Card`
 4. Pestañas de fase de campaña y pestañas de diario
 5. Deslizadores de punta de plataforma
 6. Medios de página de campaña pública y bloques de contenido de formato largo
 7. Formularios de recordatorio del lanzamiento de próximas campañas
-8. Configuración del panel de administración, editores de campañas, editores de contenido, informes, análisis, seguidores y herramientas de marketing.
+8. Configuración del panel de administración, editores de campañas, editores de contenido, informes, análisis, patrocinadores y herramientas de marketing.
 
 Estas superficies son más importantes porque combinan una interfaz de usuario personalizada, cambios de estado dinámicos y acciones de usuario de alto valor.
 
@@ -101,6 +104,7 @@ Los cambios de accesibilidad deben preservar estas limitaciones:
 - no agregue persistencia de navegador de larga duración para el estado de accesibilidad
 - no debilite el CSP ni el endurecimiento del proceso de pago para respaldar el comportamiento de conveniencia
 - prefiera elementos nativos y mejoras semánticas de bajo riesgo a los widgets personalizados
+- Evite patrones de interacción que presionen a los usuarios para que se comprometan, den propinas, acepten recordatorios o compartan antes de comprender el costo, el consentimiento y el estado.
 
 ## Modelo de panel de administración
 
@@ -115,6 +119,7 @@ El panel de administración tiene suficiente interfaz de usuario personalizada q
 - Los paneles de configuración de medios deben exponer el estado expandido/contraído desde el botón de engranaje y un grupo etiquetado para las configuraciones reveladas.
 - Las cargas de medios del editor de contenido deben utilizar el patrón de control de carga compartido para que la entrada del archivo nativo tenga un nombre accesible, una descripción del estado de carga y el mismo tratamiento de enfoque que otros botones de carga del panel.
 - La configuración del bloque de galería y la configuración de imágenes de galería individuales deben permanecer visual y semánticamente distintas, pero ambas deben reutilizar la etiqueta del campo de administración compartido y los componentes de ayuda.
+- Los derivados generados no deberían aparecer como opciones de selección duplicadas; Las tarjetas de origen exponen el estado derivado en el texto para que los usuarios de tecnología de asistencia reciban el mismo contexto de optimización que los usuarios de miniaturas.
 - Las tablas de administración ordenables deben usar botones reales en los encabezados de las columnas, mantener `aria-sort` y mantener los botones de exportación fuera de las regiones de la tabla desplazables horizontalmente.
 - Los mensajes de estado de Guardar/Publicar deben utilizar regiones de estado educadas; Los errores de validación o bloqueo deben permanecer cerca del campo o flujo de trabajo relevante.
 - Los campos modales Crear/Vista previa deben usar el mismo botón de información de administrador compartido/implementación de ayuda que los campos Configuración y Campaña; Evite la ayuda en línea única que pueda engancharse contra los bordes modales.
@@ -150,11 +155,11 @@ La cobertura automatizada actual relacionada con la accesibilidad incluye:
     - una página de campaña de formato largo y con mucha comunidad
     - la página Acerca de
     - la página de términos
-    - la página de promesa de éxito
-    - la página de compromiso cancelado
+    - la página de aporte de éxito
+    - la página de aporte cancelado
     - la página de índice de la comunidad
-    - la página denegada de la comunidad de seguidores
-    - la página de contenido de la comunidad de seguidores
+    - la página denegada de la comunidad de patrocinadores
+    - la página de contenido de la comunidad de patrocinadores
   - el barrido de accesibilidad de páginas públicas respaldado por Podman es la verificación final preferida cuando las sucursales cambian contenido público, páginas públicas respaldadas por documentos o Chrome de páginas de campaña sin necesidad de host Bundler/Jekyll
 - Cobertura instantánea de ARIA en Playwright para:
   - regiones principales de la página pública clave
@@ -165,13 +170,13 @@ La cobertura automatizada actual relacionada con la accesibilidad incluye:
   - estos verifican que la ruta de pago propia se puede avanzar mediante el teclado a través del paso de guardar en el sitio
 - aserciones de flujo de administración solo de teclado en:
   - `tests/e2e/manage-flows.spec.ts`
-  - estos verifican que la modificación del compromiso, la cancelación y la actualización del método de pago sigan siendo utilizables sin necesidad de ingresar un puntero
-- afirmaciones de la comunidad de seguidores solo con teclado en:
+  - estos verifican que la modificación del aporte, la cancelación y la actualización del método de pago sigan siendo utilizables sin necesidad de ingresar un puntero
+- afirmaciones de la comunidad de patrocinadores solo con teclado en:
   - `tests/e2e/community-flows.spec.ts`
-  - estos verifican que la CTA de estado denegado, la navegación hacia atrás del partidario y la votación sigan siendo utilizables sin la entrada del puntero.
+  - estos verifican que la CTA de estado denegado, la navegación hacia atrás del patrocinador y la votación sigan siendo utilizables sin la entrada del puntero.
 - aserciones de control de página pública secundaria de solo teclado en:
   - `tests/e2e/public-page-controls.spec.ts`
-  - estos verifican que la navegación por la pestaña del diario, la navegación por la galería en carrusel, la entrada de cantidades personalizadas, la entrada de elementos de soporte y la activación del avance de la comunidad de seguidores sigan siendo utilizables sin necesidad de ingresar un puntero.
+  - estos verifican que la navegación por la pestaña del diario, la navegación por la galería en carrusel, la entrada de cantidades personalizadas, la entrada de elementos de soporte y la activación del avance de la comunidad de patrocinadores sigan siendo utilizables sin necesidad de ingresar un puntero.
 - aserciones de teclado, hacha y semántica del panel de administración en:
   - `tests/e2e/admin-dashboard.spec.ts`
   - esto cubre el inicio de sesión de administrador, pestañas controladas por funciones, pestañas de la sección de configuración, subpestañas de campaña, ayuda de campo compartido, cuadros de diálogo de creación/vista previa, grupos de casillas de verificación de campaña de usuario, editor WYSIWYG cromado, paneles de configuración de medios, estado de carga de medios por etapas/ARIA, ayuda con subtítulos de galería, superficies de datos ordenables y carga de ruta de administrador en español.
@@ -228,7 +233,7 @@ npm run podman:doctor
 
 ## Comprobaciones manuales
 
-Las comprobaciones automáticas ayudan, pero estas comprobaciones de accesibilidad manuales siguen siendo importantes antes de fusionarlas para realizar cambios significativos en la interfaz de usuario:
+Los controles automatizados ayudan. Para esta versión, el pase manual de VoiceOver/NVDA es una prueba opcional en lugar de una puerta de bloqueo; cuando se realice, utilice estas comprobaciones para cambios significativos en la interfaz de usuario:
 
 - El cajón del carrito se puede abrir, navegar y cerrar solo con el teclado.
 - El disparador del carrito anuncia una etiqueta útil y un estado expandido/contraído para tecnología de asistencia.
@@ -236,7 +241,7 @@ Las comprobaciones automáticas ayudan, pero estas comprobaciones de accesibilid
 - El modal `Update Card` se puede utilizar solo con el teclado.
 - Las interfaces de campaña con pestañas responden correctamente a la navegación con el teclado.
 - Los controles secundarios de la página de campaña, como las pestañas del diario y las galerías de carrusel, siguen siendo utilizables solo con el teclado.
-- Los widgets de campañas públicas, como cantidades personalizadas, artículos de apoyo y avances de la comunidad de seguidores, siguen siendo utilizables solo con el teclado.
+- Los widgets de campañas públicas, como cantidades personalizadas, artículos de apoyo y avances de la comunidad de patrocinadores, siguen siendo utilizables solo con el teclado.
 - Los campos de correo electrónico de recordatorio de lanzamiento, los botones de envío, los widgets de Turnstile y los mensajes de estado siguen siendo utilizables sin suposiciones de solo punteros.
 - Los enlaces para compartir de la campaña tienen nombres útiles y accesibles aunque la interfaz de usuario visible sea solo de íconos.
 - Las galerías de carrusel permanecen enfocables con el teclado y se desplazan correctamente con las teclas de flecha y Inicio/Fin.

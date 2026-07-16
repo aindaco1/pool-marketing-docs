@@ -10,9 +10,9 @@ lang: es
 
 ## Última actualización
 
-5 de julio de 2026
+16 de julio de 2026
 
-Cloudflare Worker se encarga de la canonicalización de pagos propios, la integración de Stripe, la gestión de promesas, la autenticación de partidarios con alcance de pedidos, los recordatorios de lanzamiento de próximas campañas, los recordatorios de pagos abandonados basados ​​en el consentimiento, las explosiones de los partidarios de la campaña, las vistas previas de campañas protegidas y las API del panel de administración del navegador privado.
+Cloudflare Worker se encarga de la canonicalización de pagos propios, la integración de Stripe, la gestión de aportes, la autenticación de patrocinadores con alcance de pedidos, los recordatorios de lanzamiento de próximas campañas, los recordatorios de pagos abandonados basados ​​en el consentimiento, las explosiones de los patrocinadores de la campaña, las vistas previas de campañas protegidas y las API del panel de administración del navegador privado.
 
 Para el desarrollo local diario, prefiera la ruta Podman de raíz de repositorio:
 
@@ -29,7 +29,7 @@ Si trabaja específicamente desde el directorio `worker/`, los scripts Worker np
 
 Trate `_config.local.yml` como un archivo de solo anulación para valores específicos del host local. La configuración canónica de orientación hacia la bifurcación debe residir en la raíz del repositorio `_config.yml`, y el espejo del trabajador seguirá desde allí.
 
-Utilice [`docs/PAYMENT_PROCESSOR.md`](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md) para obtener detalles de configuración, pago, webhook, liquidación y conciliación de Stripe. Utilice [`docs/EMAIL.md`](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md) para la configuración del remitente, los tipos de correo electrónico, la localización y el comportamiento de entrega de Resend.
+Utilice [`docs/PAYMENT_PROCESSOR.md`](/es/docs/operations/payment-processor/) para obtener detalles de configuración, pago, webhook, liquidación y conciliación de Stripe. Utilice [`docs/BACKUP_RESTORE.md`](/es/docs/operations/backup-restore/) para instantáneas clasificadas, restauración de vista previa, retención y recuperación ante desastres. Utilice [`docs/EMAIL.md`](/es/docs/operations/email-system/) para la configuración del remitente, los tipos de correo electrónico, la localización y el comportamiento de entrega de Resend. Utilice [`docs/ETHICAL_RISK.md`](/es/docs/development/ethical-risk-review/) antes de agregar el comportamiento Worker que cambia el dinero, la recopilación de datos, la mensajería, la automatización, el intercambio público, el análisis o el poder administrativo.
 
 La entrega de informes de campaña sigue el mismo patrón:
 
@@ -37,7 +37,7 @@ La entrega de informes de campaña sigue el mismo patrón:
 - la sincronización de toda la implementación y el comportamiento del correo electrónico/informes se encuentran en `_config.yml` en `reports.campaign_runner`
 - el espejo del trabajador lleva esas configuraciones no secretas a `wrangler.toml`
 - el núcleo de informes compartido en `worker/src/reports.js` ahora impulsa tanto los correos electrónicos de los ejecutores programados como los asistentes de exportación del shell local para que la lógica CSV permanezca en un solo lugar.
-- el panel del navegador La pestaña Informes ofrece vistas previas y descargas CSV de compromiso/cumplimiento sin enviar correos electrónicos ni escribir marcadores de envío
+- el panel del navegador La pestaña Informes ofrece vistas previas y descargas CSV de aporte/cumplimiento sin enviar correos electrónicos ni escribir marcadores de envío
 
 La configuración de Worker reflejada ahora también incluye los indicadores de depuración compartidos:
 
@@ -54,7 +54,7 @@ El espejo Worker también incluye los botones de captación previa de intención
 
 Estos provienen de `performance.intent_prefetch_*` en la configuración de raíz del repositorio y los superadministradores los pueden editar en **Configuración -> Rendimiento avanzado**. Están reflejados para lograr paridad de configuración y visibilidad operativa; el tiempo de ejecución de captación previa real todavía se carga solo en diseños estáticos públicos y rechaza rutas privadas, tokenizadas, de pago, de administración, de soporte y de consultas confidenciales en el navegador.
 
-La protección DoS de ruta de escritura ahora requiere un espacio de nombres KV `RATELIMIT`. Si falta ese enlace, el trabajador no se cierra con `503` en lugar de ejecutarse sin protección contra abusos. Las lecturas públicas de datos en vivo se mantienen intencionalmente amplias para los picos de campaña, mientras que el pago, la gestión de promesas y las mutaciones de administración utilizan los límites más estrictos por IP documentados en [`docs/SECURITY.md`](/es/docs/operations/security/). Ese requisito agrega seguridad, no una nueva suposición de que cada bifurcación debe superar inmediatamente el plan Workers Free.
+La protección DoS de ruta de escritura ahora requiere un espacio de nombres KV `RATELIMIT`. Si falta ese enlace, el trabajador no se cierra con `503` en lugar de ejecutarse sin protección contra abusos. Las lecturas públicas de datos en vivo se mantienen intencionalmente amplias para los picos de campaña, mientras que el pago, la gestión de aportes y las mutaciones de administración utilizan los límites más estrictos por IP documentados en [`docs/SECURITY.md`](/es/docs/operations/security/). Ese requisito agrega seguridad, no una nueva suposición de que cada bifurcación debe superar inmediatamente el plan Workers Free.
 
 Los trabajadores estándar/pagados implementados ahora también configuran `limits.cpu_ms = 100` en [`wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml). Ese límite no se aplica en el desarrollo local y no es una anulación de Workers Free; es un límite conservador de denegación de billetera para implementaciones pagas que aún deja un espacio cómodo por encima de los tiempos de solicitud de ruta rápida observados actualmente en el arnés de la unidad.
 
@@ -78,7 +78,7 @@ Los informes de los ejecutores de campaña utilizan la zona horaria de la plataf
 
 Los recordatorios del próximo lanzamiento de campaña también se ejecutan en el programador de minutos. Las páginas de campañas públicas recopilan recordatorios explícitos por correo electrónico solo mientras se aproxima una campaña; El trabajador almacena claves de registro hash con alcance de campaña, pone en cola un trabajo de envío cuando esa campaña se activa y envía a través del módulo de correo electrónico Resend existente con el remitente de las actualizaciones. La cola de envío mantiene el estado `launch-reminder-dispatch-queue:v1`, por lo que los ticks programados inactivos omiten los análisis del espacio de nombres de envío; los trabajos en cola marcan el estado pendiente inmediatamente y el estado inactivo vence cada hora para compatibilidad con los trabajos insertados manualmente. La ruta del recordatorio no agrega una segunda integración de API Resend.
 
-Los recordatorios de pagos abandonados utilizan el mismo patrón de presupuesto. El navegador muestra una casilla de verificación explícita de un recordatorio solo en la superficie personalizada de contacto de pago propio, y `/checkout-intent/start` pone en cola `abandoned-cart:{orderId}` solo después de que Stripe crea exitosamente la sesión de pago. La persistencia exitosa del webhook elimina el registro de recordatorio del mismo pedido. El pase programado lee `abandoned-cart-queue:v1` primero y omite las listas de espacios de nombres cuando está inactivo o antes de la próxima hora de vencimiento; cuando vence, procesa un lote limitado, verifica el índice de promesas de campaña para evitar enviar correos electrónicos a los partidarios que completaron mediante otro pedido, escribe un marcador de envío por correo electrónico/conjunto de campaña y envía a través del módulo de correo electrónico compartido Resend con `/abandoned-cart/unsubscribe` firmado y tokens de enlace de reanudación. El `ABANDONED_CART_TOKEN_SECRET` opcional vuelve a ser `MAGIC_LINK_SECRET`.
+Los recordatorios de pagos abandonados utilizan el mismo patrón de presupuesto. El navegador muestra una casilla de verificación explícita de un recordatorio solo en la superficie personalizada de contacto de pago propio, y `/checkout-intent/start` pone en cola `abandoned-cart:{orderId}` solo después de que Stripe crea exitosamente la sesión de pago. La persistencia exitosa del webhook elimina el registro de recordatorio del mismo pedido. El pase programado lee `abandoned-cart-queue:v1` primero y omite las listas de espacios de nombres cuando está inactivo o antes de la próxima hora de vencimiento; cuando vence, procesa un lote limitado, verifica el índice de aportes de campaña para evitar enviar correos electrónicos a los patrocinadores que completaron mediante otro pedido, escribe un marcador de envío por correo electrónico/conjunto de campaña y envía a través del módulo de correo electrónico compartido Resend con `/abandoned-cart/unsubscribe` firmado y tokens de enlace de reanudación. El `ABANDONED_CART_TOKEN_SECRET` opcional vuelve a ser `MAGIC_LINK_SECRET`.
 
 Los reintentos de correo electrónico de confirmación del colaborador utilizan el mismo patrón de nivel gratuito. Los envíos fallidos escriben `supporter-email-retry:{orderId}` más `supporter-email-retry-queue:v1` y el pase de reintento programado omite los escaneos de la lista KV mientras la cola está inactiva o antes de que venza el siguiente reintento.
 
@@ -88,7 +88,7 @@ El SEO público y la validación de rastreo también son una preocupación para 
 
 La frecuencia de muestreo predeterminada es `0.1` y se puede anular con `OBSERVABILITY_SAMPLE_RATE=0.05` (o cualquier valor de `0-1`) si una bifurcación desea menos o más escrituras de tiempo muestreadas.
 
-Las estadísticas del lado de los trabajadores y la reparación de inventario ahora también tratan a `campaign-pledges:{slug}` como un estado de proyección en lugar de una verdad permanente. Si el índice de una campaña se desvía de los registros de compromiso activos subyacentes, las rutas de recálculo lo reparan automáticamente mientras reconstruyen los totales de la campaña y el inventario de nivel limitado.
+Las estadísticas del lado de los trabajadores y la reparación de inventario ahora también tratan a `campaign-pledges:{slug}` como un estado de proyección en lugar de una verdad permanente. Si el índice de una campaña se desvía de los registros de aporte activos subyacentes, las rutas de recálculo lo reparan automáticamente mientras reconstruyen los totales de la campaña y el inventario de nivel limitado.
 
 Antes de mutar algo, los operadores ahora pueden ejecutar comprobaciones de deriva de solo lectura a través de:
 
@@ -96,9 +96,9 @@ Antes de mutar algo, los operadores ahora pueden ejecutar comprobaciones de deri
 - `POST /admin/projections/check`
 - [`scripts/check-projections.sh`](https://github.com/your-org/your-project/blob/main/scripts/check-projections.sh) de la raíz del repositorio
 
-Esas comprobaciones comparan las proyecciones almacenadas `campaign-pledges:{slug}`, `stats:{slug}` y `tier-inventory:{slug}` con la verdad del compromiso activo y devuelven una diferencia estructurada en lugar de un estado de reparación silenciosa.
+Esas comprobaciones comparan las proyecciones almacenadas `campaign-pledges:{slug}`, `stats:{slug}` y `tier-inventory:{slug}` con la verdad del aporte activo y devuelven una diferencia estructurada en lugar de un estado de reparación silenciosa.
 
-La misma regla de "verdad guardada sobre el estado del borrador" ahora se aplica a los complementos de la plataforma: `_config.yml` define la línea base de inventario inicial para cada producto o variante, mientras que Worker almacena recuentos vendidos en `add-on-inventory-sold:v1`, actualiza esa proyección después de los eventos de creación, modificación o cancelación de promesas, y evita escaneos repetidos del espacio de nombres de promesas para lecturas normales de inventario después del arranque de la proyección inicial.
+La misma regla de "verdad guardada sobre el estado del borrador" ahora se aplica a los complementos de la plataforma: `_config.yml` define la línea base de inventario inicial para cada producto o variante, mientras que Worker almacena recuentos vendidos en `add-on-inventory-sold:v1`, actualiza esa proyección después de los eventos de creación, modificación o cancelación de aportes, y evita escaneos repetidos del espacio de nombres de aportes para lecturas normales de inventario después del arranque de la proyección inicial.
 
 ## Configuración
 
@@ -150,6 +150,9 @@ STRIPE_PUBLISHABLE_KEY_TEST=pk_test_...
 wrangler secret put STRIPE_WEBHOOK_SECRET_LIVE
 wrangler secret put STRIPE_WEBHOOK_SECRET_TEST
 
+# Optional: Film summary-only aggregate adapter
+wrangler secret put FILM_STRIPE_SUMMARY_ADAPTER_SECRET
+
 # First-party checkout intent signing secret
 wrangler secret put CHECKOUT_INTENT_SECRET
 
@@ -162,6 +165,9 @@ wrangler secret put CAMPAIGN_PREVIEW_SECRET
 
 # Email delivery
 wrangler secret put RESEND_API_KEY
+# Optional but recommended for delivery/suppression evidence after creating
+# https://worker.example.com/webhooks/resend in Resend.
+wrangler secret put RESEND_WEBHOOK_SECRET
 
 # Admin endpoints
 wrangler secret put ADMIN_SECRET
@@ -207,11 +213,11 @@ Si un flujo de trabajo de GitHub Actions o un trabajo de operador llama a puntos
 
 Se debe permitir que la clave API Resend se envíe desde el dominio configurado en `PLEDGES_EMAIL_FROM` y `UPDATES_EMAIL_FROM`. Para la implementación en vivo de Dust Wave, esas direcciones de remitente usan `site.example.com`; autorizar solo un dominio raíz no autoriza a los remitentes de subdominios, y autorizar solo un subdominio no autoriza a los remitentes de dominios raíz.
 
-Consulte [`../docs/EMAIL.md`](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md) antes de agregar nuevos flujos de trabajo de correo electrónico para que la identidad del remitente, la localización, la marca y el comportamiento de reintento permanezcan en la ruta compartida.
+Consulte [`../docs/EMAIL.md`](/es/docs/operations/email-system/) antes de agregar nuevos flujos de trabajo de correo electrónico para que la identidad del remitente, la localización, la marca y el comportamiento de reintento permanezcan en la ruta compartida.
 
 Para Configuración -> Uso del plan, Resend normalmente solo necesita `RESEND_API_KEY`. Los valores opcionales `PLAN_USAGE_RESEND_PLAN`, `RESEND_EMAILS_MONTHLY_LIMIT` y `RESEND_EMAILS_DAILY_LIMIT` son anulaciones de visualización para implementaciones en las que Resend devuelve encabezados de límite de velocidad pero no expone el encabezado de uso enviado mensual a través de un punto final de lectura segura.
 
-El pago personalizado requiere la clave publicable de Stripe correspondiente para el `APP_MODE` actual. Si el trabajador está configurado para el pago personalizado pero no hay una clave publicable disponible, el pago vuelve al pago alojado en Stripe en lugar de devolver `503`, por lo que los compromisos aún pueden continuar mientras se configura la clave publicable.
+El pago personalizado requiere la clave publicable de Stripe correspondiente para el `APP_MODE` actual. Si el trabajador está configurado para el pago personalizado pero no hay una clave publicable disponible, el pago vuelve al pago alojado en Stripe en lugar de devolver `503`, por lo que los aportes aún pueden continuar mientras se configura la clave publicable.
 
 La configuración de USPS para este repositorio se divide intencionalmente:
 
@@ -292,22 +298,22 @@ Devuelve un arranque de sesión personalizado (`checkoutUiMode`, `sessionId`, `c
 
 Si el navegador ya tiene un destino de impuestos de facturación, también puede incluir `billingAddress` en esa carga útil para que la cotización de pago final no tenga que recurrir a las reglas de destino de impuestos de solo envío.
 
-El trabajador reconstruye el nivel, el complemento del paquete, el soporte personalizado, el envío y el estado del subtotal a partir de artículos del carrito propios, valida el estado y el inventario de la campaña, firma una instantánea de pago de corta duración, reserva un inventario escaso para niveles limitados antes de que se complete el paso de pago y confirma esas reservas cuando el compromiso realmente persiste. Para promesas físicas o complementos físicos, el envío lo calcula el trabajador desde el destino más los metadatos de envío de campaña/artículo, utilizando cotizaciones en vivo de USPS cuando estén disponibles y tasas de implementación o respaldo de campaña cuando no.
+El trabajador reconstruye el nivel, el complemento del paquete, el soporte personalizado, el envío y el estado del subtotal a partir de artículos del carrito propios, valida el estado y el inventario de la campaña, firma una instantánea de pago de corta duración, reserva un inventario escaso para niveles limitados antes de que se complete el paso de pago y confirma esas reservas cuando el aporte realmente persiste. Para aportes físicas o complementos físicos, el envío lo calcula el trabajador desde el destino más los metadatos de envío de campaña/artículo, utilizando cotizaciones en vivo de USPS cuando estén disponibles y tasas de implementación o respaldo de campaña cuando no.
 
-Cuando un compromiso califica para mejoras de envío, el Trabajador también mantiene la opción de entrega limitada seleccionada (`standard`, `signature_required` o `adult_signature_required`) para que el carrito, la Gestión del compromiso, el total del compromiso almacenado y los correos electrónicos de los seguidores permanezcan alineados.
+Cuando un aporte califica para mejoras de envío, el Trabajador también mantiene la opción de entrega limitada seleccionada (`standard`, `signature_required` o `adult_signature_required`) para que el carrito, la Gestión del aporte, el total del aporte almacenado y los correos electrónicos de los patrocinadores permanezcan alineados.
 
 Las reservas y los reclamos de nivel limitado se serializan a través de un coordinador de objetos duraderos por campaña antes de que se actualice la instantánea del inventario de KV, por lo que los inicios, reintentos, modificaciones y finalizaciones de webhooks simultáneos no pueden sobrevender las escasas recompensas.
 
 ### GET /pledges?token={token}
-Obtenga la(s) promesa(s) autorizada(s) mediante un token de enlace mágico.
+Obtenga la(s) aporte(s) autorizada(s) mediante un token de enlace mágico.
 
 Comportamiento actual: el token devuelve solo su propia orden autorizada.
 
 ### GET /pledge?token={token}
-Obtenga detalles de compromiso único (punto final heredado).
+Obtenga detalles de aporte único (punto final heredado).
 
 ### POST /pledge/cancel
-Cancelar un compromiso activo.
+Cancelar un aporte activo.
 
 ```json
 {
@@ -317,7 +323,7 @@ Cancelar un compromiso activo.
 ```
 
 ### POST /pledge/modify
-Cambie los niveles, la cantidad o el soporte personalizado para un compromiso activo.
+Cambie los niveles, la cantidad o el soporte personalizado para un aporte activo.
 
 ```json
 {
@@ -330,19 +336,19 @@ Cambie los niveles, la cantidad o el soporte personalizado para un compromiso ac
 }
 ```
 
-Todos los campos excepto `token` son opcionales. Los cambios se rastrean en la matriz `history` del compromiso con entradas `type: "modified"` que incluyen el estado del nivel, cambios de complementos del paquete, `customAmount`, deltas de envío y cualquier opción de envío seleccionada.
+Todos los campos excepto `token` son opcionales. Los cambios se rastrean en la matriz `history` del aporte con entradas `type: "modified"` que incluyen el estado del nivel, cambios de complementos del paquete, `customAmount`, deltas de envío y cualquier opción de envío seleccionada.
 
-El trabajador valida el pedido solicitado con la carga útil del token y vuelve a calcular los totales a partir del estado del compromiso almacenado más las definiciones de la campaña. Los cambios estructurales al mismo precio, como un intercambio de variante adicional, todavía cuentan como cambios de compromiso reales para fines de persistencia y correo electrónico a los seguidores.
+El trabajador valida el pedido solicitado con la carga útil del token y vuelve a calcular los totales a partir del estado del aporte almacenado más las definiciones de la campaña. Los cambios estructurales al mismo precio, como un intercambio de variante adicional, todavía cuentan como cambios de aporte reales para fines de persistencia y correo electrónico a los patrocinadores.
 
 ### POST /stats/:slug/check
 Ejecute una verificación de desviación de proyección de solo lectura para una campaña.
 
-Requiere autenticación de administrador y devuelve si el índice de campaña almacenado, la proyección de estadísticas y la proyección de inventario de niveles todavía están sincronizados con la verdad del compromiso activo.
+Requiere autenticación de administrador y devuelve si el índice de campaña almacenado, la proyección de estadísticas y la proyección de inventario de niveles todavía están sincronizados con la verdad del aporte activo.
 
 ### POST /admin/projections/check
 Ejecute la misma verificación de deriva de solo lectura en todas las campañas.
 
-Este es el punto final del lado del trabajador que impulsa [`scripts/check-projections.sh`](https://github.com/your-org/your-project/blob/main/scripts/check-projections.sh) y las nuevas afirmaciones de humo de compromiso mutable.
+Este es el punto final del lado del trabajador que impulsa [`scripts/check-projections.sh`](https://github.com/your-org/your-project/blob/main/scripts/check-projections.sh) y las nuevas afirmaciones de humo de aporte mutable.
 
 ## Notas de seguridad del contenido
 
@@ -377,6 +383,15 @@ Devuelve el mismo concepto de tarjeta compartida de campaña que SVG para herram
 
 ### POST /webhooks/stripe
 Punto final del webhook de Stripe (firma verificada).
+
+### POST /webhooks/resend
+Punto final del webhook Resend/Svix para eventos entregados, rebotados, reclamados, fallidos y suprimidos. Requiere `RESEND_WEBHOOK_SECRET`, verifica el cuerpo de la solicitud sin procesar y la marca de tiempo, deduplica `svix-id`, actualiza el estado de entrega con privacidad minimizada y aplica hash a los destinatarios antes de la supresión local permanente de rebotes/quejas.
+
+### OBTENER o PUBLICAR /campaign-email/unsubscribe?t={token}
+Cancelación de suscripción firmada en el ámbito de la campaña para correo de diario, hitos y anuncios en vivo. RFC 8058 POST devuelve una respuesta de éxito en blanco; El navegador GET devuelve una página de confirmación sin tienda. La preferencia almacenada es un hash de correo electrónico y no suprime el correo electrónico de aporte/pago transaccional.
+
+### POST /film/stripe-summary
+Adaptador de película de servidor a servidor para agregados Stripe de solo resumen. Requiere `Authorization: Bearer <FILM_STRIPE_SUMMARY_ADAPTER_SECRET>`, `dataBoundary: "summary_only"`, `source: "pool"` y slugs de campaña mapeados en `mappedRefs`. La respuesta se limita a campos agregados de dinero/recuento, recuentos de referencias asignadas, estado, marca de tiempo generada y moneda. No devuelve correos electrónicos de soporte, ID de intención de pago, ID de cargo, ID de transacción de saldo ni datos de tarjeta/método de pago, y escribe un evento de auditoría de administración de solo metadatos.
 
 ### POST /tax/quote
 Devuelve una vista previa de impuestos calculados por el trabajador para la interfaz de usuario del carrito/pago.
@@ -427,7 +442,7 @@ Devuelve recuentos de entregas de webhooks recientes por día, resultados, resú
 ### GET /admin/observability/performance?days=2
 Resumen de rendimiento de muestra solo para administradores.
 
-Devuelve muestras de tiempos de reloj de pared para rutas de mutación clave, como inicio de pago, finalización de pago, escrituras de compromiso de gestión, cotizaciones de envío y abandono de pago. Esto está pensado como una ayuda de ajuste para la tapa `cpu_ms` desplegada, no como un sistema de seguimiento de alta cardinalidad.
+Devuelve muestras de tiempos de reloj de pared para rutas de mutación clave, como inicio de pago, finalización de pago, escrituras de aporte de gestión, cotizaciones de envío y abandono de pago. Esto está pensado como una ayuda de ajuste para la tapa `cpu_ms` desplegada, no como un sistema de seguimiento de alta cardinalidad.
 
 ### Panel de administración del navegador
 
@@ -447,17 +462,19 @@ Los shells privados `/admin/` y `/es/admin/` utilizan rutas de trabajo respaldad
 - `POST /admin/campaigns/create` permite a los superadministradores crear campañas de solo vista previa a través de la ruta de origen de la campaña respaldada por GitHub, asignar uno o más usuarios de campaña existentes,, opcionalmente, crear varios usuarios de campaña nuevos en `admin-users:v1`, enviar por correo electrónico a los usuarios asignados el enlace del panel de administración y registrar un evento de auditoría.
 - `POST /admin/campaigns/archive` permite a los superadministradores archivar campañas no activas localmente en desarrollo o enviando `.github/workflows/archive-campaign.yml` a producción; el trabajador valida CSRF, rol, slug, existencia de campaña y estado efectivo, registra un evento de auditoría y mueve la fuente/medios de la campaña a través del asistente de repositorio de desarrollo o acciones de GitHub.
 - `POST /admin/campaign-preview/publish` permite a los superadministradores y usuarios de campaña asignados publicar una vista previa protegida, almacena el administrador de publicación más los correos electrónicos de los revisores opcionales en `campaign-preview-reviewers:{slug}` con un TTL de 24 horas, devuelve un enlace de vista previa del panel firmado para el administrador de publicación, envía enlaces firmados a revisores opcionales, escribe solo indicadores de vista previa en la campaña Markdown y registra un evento de auditoría
-- `GET /admin/campaign-preview/:slug` devuelve una carga útil de vista previa de página de campaña completa privada/no-store con fuentes de campaña/incrustaciones de medios y controles de compromiso de solo lectura cuando el solicitante tiene una sesión de administrador autorizada o un token de revisor válido cuyo correo electrónico todavía está en la lista de permitidos de KV de 24 horas.
-- `GET /admin/analytics` lee ingresos derivados de promesas con alcance de rol, estado, idioma, referencia, fuente/medio/campaña/contenido UTM y métricas divididas de campaña/plataforma sin escribir el estado analítico; La presentación de la moneda en el tablero mantiene los centavos exactos.
+- `GET /admin/campaign-preview/:slug` devuelve una carga útil de vista previa de página de campaña completa privada/no-store con fuentes de campaña/incrustaciones de medios y controles de aporte de solo lectura cuando el solicitante tiene una sesión de administrador autorizada o un token de revisor válido cuyo correo electrónico todavía está en la lista de permitidos de KV de 24 horas.
+- `GET /admin/analytics` lee ingresos derivados de aportes con alcance de rol, estado, idioma, referencia, fuente/medio/campaña/contenido UTM y métricas divididas de campaña/plataforma sin escribir el estado analítico; La presentación de la moneda en el tablero mantiene los centavos exactos.
 - `GET /admin/plan-usage` permite a los superadministradores cargar el uso del plan Cloudflare y Resend desde las API del proveedor sin exponer los tokens del proveedor al navegador ni escribir el estado KV; el panel lo carga automáticamente cuando se abre Configuración -> Uso del plan
-- `POST /admin/analytics/stripe-financials/backfill` permite a los superadministradores reponer los valores netos y de tarifas de Stripe reales a partir de las transacciones de saldo de Stripe para las promesas cobradas, utilizando índices de promesas de campaña en lugar de escaneos de listas de KV.
+- `POST /admin/analytics/stripe-financials/backfill` permite a los superadministradores reponer los valores netos y de tarifas de Stripe reales a partir de las transacciones de saldo de Stripe para los aportes cobradas, utilizando índices de aportes de campaña en lugar de escaneos de listas de KV.
+- `GET /admin/reconciliation/:slug` lee las pausas de pago de campaña almacenadas; El superadministrador protegido por CSRF `POST` ejecuta la reconciliación de aporte/Stripe/liquidación limitada sin análisis del espacio de nombres KV
+- `POST /film/stripe-summary` expone agregados The Pool orientados a la película solo después de la autenticación del adaptador de portador; las referencias asignadas son slugs de campaña y la respuesta sigue siendo solo un resumen
 - `GET /admin/content/campaign?campaignSlug=...` carga contenido de campaña con alcance de roles en el editor del navegador sin conservar un borrador
 - `POST /admin/content/preview` valida y presenta borradores de contenido de campaña con alcance de roles sin publicar, auditar ni escribir KV
 - `POST /admin/content/publish` valida el mismo borrador, actualiza el archivo Markdown de la campaña a través de GitHub, activa el flujo de trabajo de reconstrucción normal y escribe un evento de auditoría.
-- `GET /admin/supporters?campaignSlug=...` lee filas de seguidores de campaña de `campaign-pledges:{slug}` únicamente; La presentación de la cantidad en el tablero mantiene los centavos exactos.
+- `GET /admin/supporters?campaignSlug=...` lee filas de patrocinadores de campaña de `campaign-pledges:{slug}` únicamente; La presentación de la cantidad en el tablero mantiene los centavos exactos.
 - `GET /admin/reports/campaign-runner/preview?campaignSlug=...&reportType=pledge|fulfillment` obtiene una vista previa del resultado del informe compartido del ejecutor de campaña sin enviar correos electrónicos ni escribir marcadores
 - `GET /admin/reports/campaign-runner.csv?campaignSlug=...&reportType=pledge|fulfillment` descarga el mismo informe CSV compartido sin enviar correo electrónico ni escribir marcadores
-- `GET /admin/marketing/referrals?campaignSlug=...` enumera los códigos de referencia de campaña guardados sin escribir ni escanear la verdad del compromiso
+- `GET /admin/marketing/referrals?campaignSlug=...` enumera los códigos de referencia de campaña guardados sin escribir ni escanear la verdad del aporte
 - `POST /admin/marketing/referrals` guarda o actualiza explícitamente un código de referencia de campaña con protección CSRF y una escritura KV con alcance de campaña.
 - `DELETE /admin/marketing/referrals` elimina explícitamente un código de referencia de campaña guardado con protección CSRF y una escritura KV con alcance de campaña.
 - `GET /admin/marketing/draft?campaignSlug=...&surface=marketing|blast`, `POST /admin/marketing/draft` y `DELETE /admin/marketing/draft` proporcionan carga/guardado/borrado de borradores Blast/Marketing compartido explícito con TTL de 7 días, protección contra conflictos de revisión y una escritura KV con alcance de campaña solo al guardar/borrar
@@ -470,18 +487,18 @@ Los shells privados `/admin/` y `/es/admin/` utilizan rutas de trabajo respaldad
 - `GET /admin/add-ons/inventory` lee el estado inicial, vendido, restante y de anulación del complemento de plataforma para superadministradores
 - `POST /admin/add-ons/inventory` establece, reabastece o restablece explícitamente las anulaciones de la línea base del inventario de complementos de la plataforma con protección CSRF y registro de auditoría
 
-Las lecturas normales del panel, los filtros de soporte, la paginación, los análisis derivados de promesas, las listas de referencias de marketing, el estado de las compras abandonadas, las cargas del selector de bibliotecas multimedia, las vistas previas de informes, las descargas CSV, las cargas de contenido, las lecturas de carga útil de vista previa protegida, las vistas previas de contenido, los simulacros rápidos y los borradores del editor local están diseñados para agregar escrituras de KV cero y operaciones de lista de KV cero. Las cargas de uso del plan también son de solo lectura KV, pero llaman intencionalmente a las API de los proveedores de Cloudflare y Resend una vez cuando un superadministrador abre Configuración -> Uso del plan. Los guardados de usuarios iniciados por el navegador, los guardados de referencias de marketing, los guardados/borrados de borradores compartidos, las mutaciones de supresión de pago abandonado con alcance, los envíos de Blast en vivo, las publicaciones de contenido, las publicaciones de vista previa, la creación de nuevas campañas, las operaciones de archivo de campañas y los cambios de inventario son mutaciones explícitas: los guardados de usuarios escriben `admin-users:v1`, los guardados de referencias escriben una lista de referencias con alcance de campaña, los guardados de borradores compartidos escriben un registro de borrador de 7 días, las supresiones de recordatorios con alcance escriben/eliminan un registro de supresión más actualizaciones de auditoría/salud, Blast en vivo envía un evento de auditoría después del envío, las publicaciones de contenido se comprometen con GitHub, desencadenan el flujo de trabajo de reconstrucción y escriben un evento de auditoría, las publicaciones de vista previa escriben una lista de acceso permitido de corta duración `campaign-preview-reviewers:{slug}` más un evento de auditoría, la creación de una nueva campaña puede escribir `admin-users:v1` más un evento de auditoría además de la escritura del archivo de campaña, y el archivo escribe un evento de auditoría mientras el desarrollo local o `.github/workflows/archive-campaign.yml` mueve el origen/los medios a `archive/campaigns/<slug>/`. Los envíos de recordatorios de pago abandonado también escriben un registro `abandoned-cart-resume:{orderId}` de corta duración para que el CTA del correo electrónico firmado pueda restaurar un borrador de pago desinfectado del navegador sin agregar escaneos de cola. Si a una campaña anterior le falta su proyección `campaign-pledges:{slug}`, los puntos finales de lectura del panel devuelven cero filas o un aviso de índice faltante sin bloqueo en lugar de recurrir a un escaneo de espacio de nombres; ejecute las herramientas de reparación/reconstrucción de proyecciones existentes explícitamente cuando eso suceda.
+Las lecturas normales del panel, los filtros de soporte, la paginación, los análisis derivados de aportes, las listas de referencias de marketing, el estado de las compras abandonadas, las cargas del selector de bibliotecas multimedia, las vistas previas de informes, las descargas CSV, las cargas de contenido, las lecturas de carga útil de vista previa protegida, las vistas previas de contenido, los simulacros rápidos y los borradores del editor local están diseñados para agregar escrituras de KV cero y operaciones de lista de KV cero. Las cargas de uso del plan también son de solo lectura KV, pero llaman intencionalmente a las API de los proveedores de Cloudflare y Resend una vez cuando un superadministrador abre Configuración -> Uso del plan. Los guardados de usuarios iniciados por el navegador, los guardados de referencias de marketing, los guardados/borrados de borradores compartidos, las mutaciones de supresión de pago abandonado con alcance, los envíos de Blast en vivo, las publicaciones de contenido, las publicaciones de vista previa, la creación de nuevas campañas, las operaciones de archivo de campañas y los cambios de inventario son mutaciones explícitas: los guardados de usuarios escriben `admin-users:v1`, los guardados de referencias escriben una lista de referencias con alcance de campaña, los guardados de borradores compartidos escriben un registro de borrador de 7 días, las supresiones de recordatorios con alcance escriben/eliminan un registro de supresión más actualizaciones de auditoría/salud, Blast en vivo envía un evento de auditoría después del envío, las publicaciones de contenido se comprometen con GitHub, desencadenan el flujo de trabajo de reconstrucción y escriben un evento de auditoría, las publicaciones de vista previa escriben una lista de acceso permitido de corta duración `campaign-preview-reviewers:{slug}` más un evento de auditoría, la creación de una nueva campaña puede escribir `admin-users:v1` más un evento de auditoría además de la escritura del archivo de campaña, y el archivo escribe un evento de auditoría mientras el desarrollo local o `.github/workflows/archive-campaign.yml` mueve el origen/los medios a `archive/campaigns/<slug>/`. Los envíos de recordatorios de pago abandonado también escriben un registro `abandoned-cart-resume:{orderId}` de corta duración para que el CTA del correo electrónico firmado pueda restaurar un borrador de pago desinfectado del navegador sin agregar escaneos de cola. Si a una campaña anterior le falta su proyección `campaign-pledges:{slug}`, los puntos finales de lectura del panel devuelven cero filas o un aviso de índice faltante sin bloqueo en lugar de recurrir a un escaneo de espacio de nombres; ejecute las herramientas de reparación/reconstrucción de proyecciones existentes explícitamente cuando eso suceda.
 
 Los inicios/intercambios de autenticación de administrador y las mutaciones de administrador de navegador tienen una velocidad limitada a través del enlace `RATELIMIT` y devuelven fallas privadas/sin almacenamiento cuando se aceleran. Las lecturas autenticadas normales, como comprobaciones de sesiones, resúmenes de paneles, filtros de soporte, vistas previas de informes, vistas de análisis y vistas previas de contenido, no están limitadas intencionalmente por la velocidad de KV. Los tokens de inicio de sesión de Magic-link son de un solo uso y las lecturas de sesión no actualizan las sesiones cercanas a su vencimiento ni limpian las sesiones vencidas en la ruta de lectura. Las mutaciones de administrador respaldadas por cookies requieren tanto el token CSRF de sesión como un contexto de recuperación confiable del mismo sitio `Origin`/`Referer` o que no sea entre sitios antes de escrituras duraderas.
 
 Cuando se configura `TURNSTILE_SECRET_KEY`, `POST /admin/auth/start` verifica el desafío Cloudflare Turnstile antes de enviar un correo electrónico con enlace mágico. Mantenga esa protección solo en la ruta de envío para que no agregue vistas de página del panel o escrituras KV al escribir.
 
-El inventario complementario de la plataforma utiliza `_config.yml` como línea base configurada, el estado KV `add-on-inventory-overrides` opcional para reabastecimientos del operador y `add-on-inventory-sold:v1` para recuentos vendidos derivados de la verdad del compromiso guardado. Las vistas de la página de inventario del administrador no cargan la tabla de inventario automáticamente; la lectura del inventario del superadministrador es explícita y utiliza la proyección del recuento de ventas después del arranque, mientras que las acciones de configuración/reabastecimiento/restablecimiento escriben solo el estado de anulación más un evento de auditoría.
+El inventario complementario de la plataforma utiliza `_config.yml` como línea base configurada, el estado KV `add-on-inventory-overrides` opcional para reabastecimientos del operador y `add-on-inventory-sold:v1` para recuentos vendidos derivados de la verdad del aporte guardado. Las vistas de la página de inventario del administrador no cargan la tabla de inventario automáticamente; la lectura del inventario del superadministrador es explícita y utiliza la proyección del recuento de ventas después del arranque, mientras que las acciones de configuración/reabastecimiento/restablecimiento escriben solo el estado de anulación más un evento de auditoría.
 
-La sección de la herramienta de marketing mantiene la creación de URL de campaña, parámetros UTM/referencia, accesos directos al creador de incrustaciones, preferencias de campos locales, vistas previas/descargas de QR y ediciones de campos no guardados en el estado del navegador. Los códigos de referencia guardados y los borradores compartidos están separados: la lista de referencias es de solo lectura, los guardados de referencia y los borradores compartidos son mutaciones KV explícitas con alcance de campaña, y los guardados de borradores compartidos obsoletos fallan si la revisión no coincide. Los informes de rendimiento de referencias/UTM pertenecen a Analytics y permanecen como de solo lectura. Las ediciones locales masivas permanecen locales en el navegador a menos que se guarden explícitamente como un borrador compartido; La carga de imágenes es una mutación de medios explícita respaldada por GitHub antes de los envíos de prueba/en vivo, los ensayos utilizan el índice de promesa de campaña sin listas KV ni escrituras, y los envíos en vivo escriben solo el evento de auditoría requerido después del envío.
+La sección de la herramienta de marketing mantiene la creación de URL de campaña, parámetros UTM/referencia, accesos directos al creador de incrustaciones, preferencias de campos locales, vistas previas/descargas de QR y ediciones de campos no guardados en el estado del navegador. Los códigos de referencia guardados y los borradores compartidos están separados: la lista de referencias es de solo lectura, los guardados de referencia y los borradores compartidos son mutaciones KV explícitas con alcance de campaña, y los guardados de borradores compartidos obsoletos fallan si la revisión no coincide. Los informes de rendimiento de referencias/UTM pertenecen a Analytics y permanecen como de solo lectura. Las ediciones locales masivas permanecen locales en el navegador a menos que se guarden explícitamente como un borrador compartido; La carga de imágenes es una mutación de medios explícita respaldada por GitHub antes de los envíos de prueba/en vivo, los ensayos utilizan el índice de aporte de campaña sin listas KV ni escrituras, y los envíos en vivo escriben solo el evento de auditoría requerido después del envío.
 
 ### POST /admin/broadcast/diary
-Envíe una notificación de actualización del diario a todos los partidarios de la campaña. Requiere el encabezado `x-admin-key`.
+Envíe una notificación de actualización del diario a todos los patrocinadores de la campaña. Requiere el encabezado `x-admin-key`.
 
 ```json
 {
@@ -518,7 +535,7 @@ Devoluciones:
 ```
 
 ### POST /admin/broadcast/milestone
-Envíe notificaciones de hitos a todos los seguidores de la campaña. Requiere el encabezado `x-admin-key`.
+Envíe notificaciones de hitos a todos los patrocinadores de la campaña. Requiere el encabezado `x-admin-key`.
 
 ```json
 {
@@ -549,11 +566,11 @@ Notas:
 - `reportType: "pledge"` es el informe diario de la campaña en vivo.
 - `reportType: "fulfillment"` es el informe único de envío/exportación posterior a la fecha límite
 - Los correos electrónicos de informes utilizan asuntos cortos, sin emojis y que priorizan la entregabilidad con el prefijo configurado más el tipo de informe y el título de la campaña.
-- Los correos electrónicos de compromiso diario incluyen totales de campaña únicamente más una breve nota de impulso/entrenamiento en el cuerpo.
+- Los correos electrónicos de aporte diario incluyen totales de campaña únicamente más una breve nota de impulso/entrenamiento en el cuerpo.
 - envíos de cumplimiento divididos por cumplimiento:
   - Los destinatarios de la campaña reciben solo las filas completadas por la campaña.
   - `platform.support_email` recibe un correo electrónico de cumplimiento de plataforma independiente cuando existen filas de plataforma
-- Los correos electrónicos de cumplimiento utilizan un resumen/nota de cuerpo específico del cumplimiento en lugar de reutilizar el resumen diario del informe de compromiso.
+- Los correos electrónicos de cumplimiento utilizan un resumen/nota de cuerpo específico del cumplimiento en lugar de reutilizar el resumen diario del informe de aporte.
 - Los simulacros de cumplimiento/respuestas de informes exponen `campaignRowCount`, `platformRowCount` y `platformRecipient`.
 
 Ejemplo de ejecución en seco:
@@ -593,8 +610,8 @@ Envíe un correo electrónico de prueba de cualquier tipo. En modo de prueba (`A
 ```
 
 Tipos válidos:
-- `supporter`: confirmación de compromiso (con elementos de compromiso de muestra)
-- `modified`: modificación de la promesa (con elementos de promesa de muestra)
+- `supporter`: confirmación de aporte (con elementos de aporte de muestra)
+- `modified`: modificación del aporte (con elementos de aporte de muestra)
 - `payment-failed` - Fallo en el pago (con subtotal/desglose de impuestos y elementos comprometidos)
 - `charge-success`: cargo exitoso (con subtotal/desglose de impuestos y elementos comprometidos)
 - `diary` - Notificación de actualización del diario
@@ -613,17 +630,20 @@ curl -X POST https://worker.example.com/test/email \
 
 ## Variables de entorno
 
-|Variable|Descripción|
+|variable|Descripción|
 |----------|-------------|
 |`SITE_BASE`|URL base del sitio Jekyll|
 |`WORKER_BASE`|URL base pública del Trabajador|
 |`PLATFORM_NAME`|Nombre de la plataforma pública utilizada en las respuestas de los trabajadores y en la copia del correo electrónico|
 |`PLATFORM_COMPANY_NAME`|Nombre de la empresa/autor de la plataforma utilizado para la copia de sugerencias de la plataforma|
 |`SUPPORT_EMAIL`|Contacto de soporte reflejado desde la configuración del sitio|
-|`PLEDGES_EMAIL_FROM`|Identidad del remitente de correos electrónicos relacionados con promesas; su dominio debe estar autorizado en Resend|
+|`PLEDGES_EMAIL_FROM`|Identidad del remitente de correos electrónicos relacionados con aportes; su dominio debe estar autorizado en Resend|
 |`UPDATES_EMAIL_FROM`|Identidad del remitente para correos electrónicos de actualización/hitos/Blast/anuncios; su dominio debe estar autorizado en Resend|
 |`POOL_EMAIL_DRY_RUN`|Modo opcional de evidencia de publicación sin envío para correos electrónicos de soporte/actualización; Los valores verdaderos omiten la solicitud Resend y devuelven una identificación de prueba.|
 |`RESEND_EMAIL_DRY_RUN`|Alias de compatibilidad para el modo de evidencia Resend sin envío|
+|`RESEND_WEBHOOK_SECRET`|Resend/Svix secreto de firma para `POST /webhooks/resend`|
+|`EMAIL_OUTBOX_ENABLED`|Bandera de salida de correo electrónico duradera de producción; predeterminado a menos que esté explícitamente `false`|
+|`PAYMENT_RECONCILIATION_ENABLED`|Permite la conciliación diaria indexada de Stripe; Por defecto está activado en modo en vivo y desactivado en modo de prueba.|
 |`EMAIL_LOGO_PATH`|Ruta del logotipo de correo electrónico del colaborador reflejada desde `platform.logo_path`|
 |`EMAIL_FONT_FAMILY`|Pila de fuentes del cuerpo del correo electrónico del colaborador reflejada desde `design.font_body`|
 |`EMAIL_HEADING_FONT_FAMILY`|Pila de fuentes de encabezado de correo electrónico de apoyo reflejada desde `design.font_display`|
@@ -684,32 +704,32 @@ curl -X POST https://worker.example.com/test/email \
 
 Cuando `SITE_BASE` apunta al desarrollador local (`localhost` / `127.0.0.1`), las imágenes de correo electrónico incrustadas aún regresan a la base de activos pública `https://site.example.com` para que los clientes de la bandeja de entrada no reciban URL de imágenes de host local rotas.
 
-El ritmo de Resend se centraliza como `RESEND_RATE_LIMIT_DELAY_MS` en `worker/src/email.js` y se reutiliza en transmisiones de seguidores, informes, recordatorios de lanzamiento, recordatorios de pago abandonado y campañas -> envíos masivos. Mantenga los nuevos flujos de trabajo de correo electrónico en la ruta compartida `sendResendEmail`/generador de carga útil para que la identidad del remitente, la localización, la marca y el comportamiento del límite de velocidad no se desvíen.
+El correo electrónico de producción utiliza la bandeja de salida compartida duradera en `worker/src/email-outbox.js`: congela la carga útil renderizada, envía con una clave de idempotencia determinista Resend, reintenta fallas de proveedor limitadas y verifica la supresión local inmediatamente antes de la entrega. Mantenga nuevos flujos de trabajo en `queuePoolEmail` / `enqueueEmailOutbox` más las plantillas compartidas de `worker/src/email.js` para que la identidad del remitente, la localización, la marca, el consentimiento y el comportamiento del proveedor no se desvíen. El inicio de sesión de administrador y los envíos de prueba explícitos siguen siendo inmediatos.
 
 Nota de bifurcación: trate esas variables de identidad, marca de correo electrónico, precios y envío como espejos de la configuración estructurada del sitio en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml), especialmente las secciones `platform`, `design`, `pricing` y `shipping`. El carrito/tiempo de ejecución propios y la interfaz de usuario de pago en el sitio personalizada son comportamientos integrados de la plataforma ahora, no opciones de entorno de trabajo que normalmente debería personalizar directamente.
 
 Mantenga `USPS_CLIENT_SECRET` fuera de la configuración del sitio. Pertenece a los secretos del trabajador o [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars).
 
-Nota de localización: el trabajador ahora localiza los asuntos/el cuerpo del correo electrónico dirigidos a los seguidores y los enlaces `/manage/` / `/community/:slug/` localizados desde el catálogo de configuración regional del sitio compartido. En funcionamiento normal, recupera ese catálogo de `SITE_BASE/assets/i18n.json`; las pruebas y las implementaciones avanzadas pueden inyectar `I18N_CATALOG_JSON` en su lugar. Eso significa que los correos electrónicos de soporte localizados y las rutas localizadas como `/es/manage/` o `/es/community/:slug/` permanecen alineadas con el modelo local del sitio cuando una implementación agrega esas rutas.
+Nota de localización: el trabajador ahora localiza los asuntos/el cuerpo del correo electrónico dirigidos a los patrocinadores y los enlaces `/manage/` / `/community/:slug/` localizados desde el catálogo de configuración regional del sitio compartido. En funcionamiento normal, recupera ese catálogo de `SITE_BASE/assets/i18n.json`; las pruebas y las implementaciones avanzadas pueden inyectar `I18N_CATALOG_JSON` en su lugar. Eso significa que los correos electrónicos de soporte localizados y las rutas localizadas como `/es/manage/` o `/es/community/:slug/` permanecen alineadas con el modelo local del sitio cuando una implementación agrega esas rutas.
 
 The Worker también ofrece vistas previas localizadas de tarjetas compartidas de campaña en `GET /share/campaign/:slug.png` con una consulta opcional `?lang=es`. El PNG generado refleja el lenguaje de estado/progreso de la campaña insertada y utiliza la campaña cuadrada `hero_image` dentro de la tarjeta. La ruta SVG permanece disponible en `GET /share/campaign/:slug.svg` para herramientas internas de vista previa/depuración, pero los metadatos públicos de `og:image` deben usar PNG u otra imagen rasterizada estática porque no todos los rastreadores externos aceptan imágenes SVG.
 
 ## Flujo de datos
 
-El runbook de pagos completo se encuentra en [`../docs/PAYMENT_PROCESSOR.md`](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md). Esta sección es el resumen compacto del flujo de datos del trabajador.
+El runbook de pagos completo se encuentra en [`../docs/PAYMENT_PROCESSOR.md`](/es/docs/operations/payment-processor/). Esta sección es el resumen compacto del flujo de datos de Worker.
 
-1. **Compromisos de usuarios en la página de la campaña**
+1. **Aportes de usuarios en la página de la campaña**
    - carrito propio creado con un artículo de nivel
    - `POST /checkout-intent/start` crea la sesión Stripe en modo de configuración utilizada por el paso de pago en el sitio
    - el sidecar de pago existente monta la interfaz de usuario de pago segura de Stripe para guardar la tarjeta
 
 2. ** Webhook de banda: checkout.session.completed **
    - Extraiga el método de pago y el cliente de SetupIntent
-   - Conservar los datos de compromiso en KV y actualizar las estadísticas/inventario
+   - Conservar los datos de aporte en KV y actualizar las estadísticas/inventario
    - Confirme la idempotencia del webhook solo después de una persistencia exitosa
    - Enviar correo electrónico de confirmación con un enlace mágico relacionado con el pedido
 
-3. **El usuario gestiona el compromiso a través de /manage/?t={token}**
+3. **El usuario gestiona el aporte a través de /manage/?t={token}**
    - Llamadas frontales GET `/pledges`
    - El token puede leer/modificar sólo su propio pedido autorizado
    - El usuario puede modificar el nivel, cancelar o actualizar el método de pago.
@@ -718,7 +738,7 @@ El runbook de pagos completo se encuentra en [`../docs/PAYMENT_PROCESSOR.md`](ht
    - El planificador o un operador autorizado envía la liquidación de la campaña.
    - El coordinador de asentamientos de la campaña serializa lotes de asentamientos
    - El trabajador crea PaymentIntents utilizando métodos de pago almacenados y claves de idempotencia deterministas
-   - Las promesas se actualizan a "cargadas" o "pago_fallido"
+   - los aportes se actualizan a "cargadas" o "pago_fallido"
 
 ## Modo de prueba
 
@@ -760,11 +780,11 @@ Agregue `?dev` a la URL de la página de administración para obtener datos simu
 
 ## Transmisiones diarias automatizadas
 
-Las entradas del diario se transmiten automáticamente a los seguidores cuando se despliegan:
+Las entradas del diario se transmiten automáticamente a los patrocinadores cuando se despliegan:
 
 1. Cuando se agrega una nueva entrada del diario y se implementa el sitio, la acción de GitHub `deploy.yml` llama a `POST /admin/diary/check`.
 2. El trabajador recupera datos de la campaña y compara las entradas del diario con lo que se ha enviado.
-3. Las nuevas entradas se transmiten a todos los seguidores de la campaña por correo electrónico.
+3. Las nuevas entradas se transmiten a todos los patrocinadores de la campaña por correo electrónico.
 4. Las entradas enviadas se rastrean en KV (`diary-sent:{campaignSlug}`) para evitar correos electrónicos duplicados
 
 Las entradas del diario deben tener valores `id` estables. El panel conserva los ID existentes y el trabajador obtiene ID basados ​​en títulos al publicar entradas que aún no tienen uno. Las transmisiones automáticas rastrean los marcadores `id:{entryId}` y aún reconocen los marcadores de fecha heredados, incluidas las cadenas de fecha que solo difieren en el formato de segundos `:00`. La actualización del título de una entrada del diario, visualización de fecha, fase o contenido existente no debería enviar otro correo electrónico automático.

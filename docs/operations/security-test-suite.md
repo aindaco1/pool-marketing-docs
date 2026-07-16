@@ -1,7 +1,7 @@
 ---
 title: "Security Test Suite"
 parent: "Operations"
-nav_order: 7
+nav_order: 9
 render_with_liquid: false
 ---
 
@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-June 9, 2026
+July 16, 2026
 
 This directory contains security-focused tests for the Worker API. Run these before deploying to production.
 
@@ -149,7 +149,7 @@ describe('My Security Test', () => {
       method: 'POST',
       body: JSON.stringify({ malicious: '<script>alert(1)</script>' })
     });
-    
+
     // Test should pass if properly rejected
     expect(res.status).toBe(400);
   });

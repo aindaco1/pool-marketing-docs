@@ -9,14 +9,14 @@ render_with_liquid: false
 
 ## Last Updated
 
-May 29, 2026
+July 16, 2026
 
 ## Purpose
 <!-- What problem does this PR solve? -->
 
 ## Changes
 <!-- List key changes with file paths when helpful -->
-- 
+-
 
 ## Screenshots / Demos
 <!-- Add images or GIFs for UI changes. -->
@@ -44,6 +44,13 @@ May 29, 2026
 - [ ] Uses repo/Worker secrets only
 - [ ] Admin dashboard changes do not expose/edit secret values; **Secrets & credentials** remains status-only
 - [ ] Admin mutations preserve the intended storage path: GitHub-backed publish, KV-only Users save, KV-only saved referral codes, or read-only browse/export
+
+## Ethical Risk Review
+- [ ] Reviewed `docs/ETHICAL_RISK.md` if this changes money, supporter data, messaging, analytics, automation, public sharing, or admin power
+- [ ] No new hidden data collection, tracking, public indexing, or private/tokenized prefetch behavior
+- [ ] Consent, opt-out, suppression, dry-run, or recourse behavior is preserved where the change touches email, reminders, previews, marketing, or pledge management
+- [ ] Abuse or misuse cases were considered for public pages, embeds, QR/referral links, Blast, admin roles, checkout, and reports when touched
+- [ ] User-facing claims about campaign state, scarcity, tax, shipping, fees, tips, or totals still match Worker-canonical truth
 
 ## Backward Compatibility
 - [ ] No breaking content model changes

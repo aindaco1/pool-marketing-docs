@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-29 de mayo de 2026
+16 de julio de 2026
 
 Este documento describe la función de inserción de campaña alojada de The Pool y cómo se relaciona con el trabajo de vista previa enriquecida/tarjeta compartida de la campaña más reciente.
 
@@ -116,3 +116,4 @@ Al validar la inserción manualmente:
 - el widget CTA y cerrar `X` apuntan a la página de campaña localizada correcta
 - Los estados compacto/completo y de medios ocultos aún se muestran limpiamente en dispositivos móviles.
 - el widget refleja los totales de la campaña en vivo y los cambios de estado
+- el widget no muestra el estado de la campaña de solo vista previa, protegida, tokenizada o privada y no implica un estado de campaña diferente al de la página de la campaña pública.

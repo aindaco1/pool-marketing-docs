@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-July 5, 2026
+July 16, 2026
 
 ## Stack
 
@@ -57,8 +57,8 @@ Treat [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_
 The sync target is [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml), and the repo’s supported dev/test entry points keep it aligned automatically.
 
 See [CUSTOMIZATION.md](/docs/development/customization-guide/) for the supported no-code fork surface, including which settings are site-only and which are auto-mirrored to the Worker.
-See [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md) for Stripe checkout, webhook, settlement, and reconciliation details.
-See [EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md) for Resend sender setup, email types, localization, and delivery behavior.
+See [PAYMENT_PROCESSOR.md](/docs/operations/payment-processor/) for Stripe checkout, webhook, settlement, and reconciliation details.
+See [EMAIL.md](/docs/operations/email-system/) for Resend sender setup, email types, localization, and delivery behavior.
 
 Current mirrored Worker values worth treating as part of the supported customization surface:
 
@@ -392,7 +392,7 @@ tiers:
 
 In the admin dashboard, tier IDs are read-only for editors: legacy IDs are preserved, while new tier IDs derive from the name. `shipping_preset` hides for digital tiers. If a physical tier has no preset, explicit package weight/dimension fields are shown.
 
-**Platform add-on products**: Global merch or upsell items now have a separate config path under `add_ons` in [/_config.yml](https://github.com/your-org/your-project/blob/main/_config.yml). That catalog is intended for fixed-price platform-wide products with simple variants, like shirt sizes, and should not be modeled as campaign `support_items`. The Worker mirrors the catalog through [/api/add-ons.json](https://github.com/your-org/your-project/blob/main/api/add-ons.json), exposes a current inventory snapshot through `/add-ons/inventory`, carries bundle-level add-on selections plus an anchor campaign through checkout, persists those anchor-bound add-ons on the pledge without counting them toward campaign-goal totals, and now exposes them separately in pledge and fulfillment exports. Sold counts live in the `add-on-inventory-sold:v1` projection after bootstrap, and cart and Manage Pledge both consume the same inventory-aware product-state logic, including low-stock messaging and sold-out variant filtering.
+**Platform add-on products**: Global merch or upsell items now have a separate config path under `add_ons` in [/_config.yml](https://github.com/your-org/your-project/blob/main/_config.yml). That catalog is intended for base-priced platform-wide products with optional variant price overrides, like shirt sizes, and should not be modeled as campaign `support_items`. The Worker mirrors the catalog through [/api/add-ons.json](https://github.com/your-org/your-project/blob/main/api/add-ons.json), exposes a current inventory snapshot through `/add-ons/inventory`, carries bundle-level add-on selections plus an anchor campaign through checkout, persists those anchor-bound add-ons on the pledge without counting them toward campaign-goal totals, and now exposes them separately in pledge and fulfillment exports. Sold counts live in the `add-on-inventory-sold:v1` projection after bootstrap, and cart and Manage Pledge both consume the same inventory-aware product-state logic, including variant prices, low-stock messaging, and sold-out variant filtering.
 
 - `category: digital` add-ons never contribute to shipping
 - `category: physical` add-ons participate in the same shipping calculator used for physical tiers and physical support items
@@ -441,7 +441,7 @@ diary:
       - type: text
         body: |
           Desert wrap. Wind, dust, and a miraculous sunset.
-          
+
           **The footage looks unreal.**
       - type: image
         src: /assets/images/campaigns/my-film/bts-sunset.jpg
@@ -1009,13 +1009,13 @@ The mobile hamburger menu toggle needs careful z-index handling to avoid overlap
 
 ## FAQ
 
-**Why do we need a Worker if the site is static?**  
+**Why do we need a Worker if the site is static?**
 Stripe SetupIntents + webhooks require server-side secrets and an HTTPS endpoint. The Worker also stores pledge data in Cloudflare KV and sends emails via Resend.
 
-**Can we skip the Worker?**  
+**Can we skip the Worker?**
 No. The Worker handles Stripe checkout sessions, webhook processing, pledge storage (KV), live stats, tier inventory, milestone emails, and campaign settlement. It's the core backend.
 
-**Where is pledge data stored?**  
+**Where is pledge data stored?**
 Cloudflare KV. Key patterns:
 - `pledge:{orderId}` — Full pledge data (email, amount, tier, Stripe IDs, status)
 - `email:{email}` — Array of order IDs for that email
@@ -1025,19 +1025,19 @@ Cloudflare KV. Key patterns:
 - `add-on-inventory-sold:v1` — Platform add-on sold-count projection
 - `launch-reminder-dispatch-queue:v1` and `supporter-email-retry-queue:v1` — Queue-state markers that let idle cron ticks skip KV list scans
 
-**What role does the browser cart play?**  
+**What role does the browser cart play?**
 The first-party cart provides pledge review and checkout handoff state in the browser. Final pledge data is stored in KV after Stripe webhook confirmation.
 
-**Does this store PII?**  
+**Does this store PII?**
 Email addresses are stored in KV for pledge management. Stripe stores card data; we store Stripe customer/payment method IDs.
 
-**How do stretch goals unlock tiers?**  
+**How do stretch goals unlock tiers?**
 Use `requires_threshold` on the tier; the template hides it until `pledged_amount >= threshold`.
 
-**What about long campaign durations?**  
+**What about long campaign durations?**
 Stripe SetupIntents (saved payment methods) don't expire like 7-day card holds, which is why we use them.
 
-**How are campaigns charged when funded?**  
+**How are campaigns charged when funded?**
 The Worker automatically settles campaigns via the scheduled handler once per local day after midnight in the platform timezone. When a campaign's deadline passes and it has met its goal, the Worker:
 1. Aggregates all active pledges **by email within a campaign** (one charge per supporter per campaign, not per pledge row)
 2. Uses the most recently updated payment method for each supporter
@@ -1047,7 +1047,7 @@ The Worker automatically settles campaigns via the scheduled handler once per lo
 
 Cancelled pledges are never charged. You can also manually trigger settlement via `POST /admin/settle/:slug`.
 
-**What timezone are deadlines in?**  
+**What timezone are deadlines in?**
 All deadlines use the configured platform timezone. A campaign with `goal_deadline: 2025-12-20` ends at 11:59:59 PM on that date in `platform.timezone`. The default is `America/Denver`, so existing forks keep the previous behavior until a super admin changes the timezone.
 
 ---

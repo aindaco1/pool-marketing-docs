@@ -1,7 +1,7 @@
 ---
 title: "Podman Local Dev"
 parent: "Operations"
-nav_order: 3
+nav_order: 5
 render_with_liquid: false
 ---
 
@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-July 5, 2026
+July 16, 2026
 
 This repo now includes a rootless Podman-backed local development path for the two services that usually create the most host setup churn:
 
@@ -94,6 +94,8 @@ Run the doctor first if you want a quick readiness check:
 npm run podman:doctor
 npm run podman:self-check
 ```
+
+On macOS and Windows, normal development warns when the Podman machine has less than 6144 MiB. `npm run test:premerge` and required `npm run release:smoke -- --podman-e2e` phases enforce that minimum before long suites. Resize a stopped machine with `podman machine set --memory 6144`, restart it, and rerun the doctor. The weekly/manual `.github/workflows/podman-e2e.yml` workflow separately exercises the rootless Linux Podman path without deploying anything.
 
 `npm run podman:self-check` is the strongest automated confidence pass on this branch. It runs the doctor, boots the Podman-backed stack, runs the worker smoke, and runs the automated Playwright suite in a container.
 
@@ -197,6 +199,14 @@ The report wrappers load Cloudflare auth from `.env`, `.env.local`, `.env.cloudf
 `./scripts/test-e2e.sh --podman` is now fully automated browser coverage. The dedicated `./scripts/test-checkout.sh --podman` helper remains the manual interactive path when you specifically want to drive a real checkout in your own browser. The automated headless browser suite runs in its own Playwright container and reuses the already-running site/Worker instead of trying to boot Jekyll inside the test container.
 
 The release smoke wrapper uses the same Podman-backed E2E path when Podman is available. Pass `--podman-e2e` to require that phase for release evidence, or `--skip-podman-e2e` only when another logged run already covers the same browser surface.
+
+Core-route Lighthouse evidence also uses the Podman stack:
+
+```bash
+npm run test:performance:lighthouse
+```
+
+This is release evidence, not an every-PR requirement. Use the host variant only when a compatible local Chromium is already installed.
 
 For focused dashboard browser coverage against the Podman-backed stack, use:
 

@@ -1,7 +1,7 @@
 ---
 title: "Testing Guide"
 parent: "Operations"
-nav_order: 4
+nav_order: 6
 render_with_liquid: false
 ---
 
@@ -9,9 +9,9 @@ render_with_liquid: false
 
 ## Last Updated
 
-July 5, 2026
+July 16, 2026
 
-This guide covers the automated test suites, local test infrastructure, and manual verification paths.
+This guide covers the automated test suites, local test infrastructure, and manual verification paths. Weekly synthetic recovery, protected preview drills, and post-restore verification are documented in [BACKUP_RESTORE.md](/docs/operations/backup-restore/).
 
 ## Quick Reference
 
@@ -21,6 +21,11 @@ npm run test:unit:watch    # Watch mode
 npm run test:unit:coverage # With coverage report
 npm run test:i18n          # Supported locale catalog completeness check
 npm run test:seo           # Generated-site SEO/crawl audit; build _site first
+npm run test:crawl-endpoints -- --base=https://site.example.com  # Live sitemap/robots/URL fetch audit
+npm run test:performance:budgets  # Generated JS/CSS release ceilings
+npm run test:performance:lighthouse # Core-route Lighthouse evidence in Podman
+npm run test:performance:runtime # Authenticated/redacted Worker p95 evidence; requires input or token
+npm run test:cache-policy  # Deployed public/private cache-header evidence
 npm run test:secrets       # Secret exposure audit for local env files
 npm run test:premerge      # Merge-readiness checks for changed Worker logic
 npm run release:smoke -- --evidence-file /tmp/pool-release-smoke.md  # Release sign-off wrapper
@@ -88,11 +93,32 @@ npm run release:i18n-seo-evidence
 npm run release:pledge-evidence
 npm run release:providers -- --no-dev-vars
 npm run release:payment-smoke -- --no-dev-vars
+npm run test:performance:budgets
+npm run test:performance:lighthouse
+npm run test:performance:runtime -- --input=/path/to/redacted-performance-observability.json
+npm run test:cache-policy
 ```
+
+Lighthouse, deployed cache-policy, and authenticated Worker timing checks follow the Store release-evidence model and are not required on every pull request. Their pure evaluators remain covered by the unit suite, while dashboard readiness/tab/table limits are exercised by the admin browser suite. Human VoiceOver, NVDA, and native-Spanish reviews are optional release evidence; automated accessibility, i18n completeness, and rendered SEO checks remain required.
 
 Provider checks are read-only and use shell credentials first. In CI, the Release Provider Evidence workflow runs `npm run release:providers -- --cloudflare-dns-only --strict --no-dev-vars` with `CLOUDFLARE_DNS_API_TOKEN`, `CLOUDFLARE_ZONE_ID`, and `CLOUDFLARE_ZONE`.
 
 Set `POOL_EMAIL_DRY_RUN=true` or `RESEND_EMAIL_DRY_RUN=true` for no-send email evidence during local mutation smoke. The payment smoke keeps pledge mutation evidence opt-in through `--local-mutation` / `PAYMENT_SMOKE_ALLOW_MUTATION=1` and refuses production hosts unless explicitly overridden.
+
+## Ethical Risk Review
+
+Automated tests cannot prove that a product change is ethically safe. For features that touch money, supporter data, messaging, analytics, automation, public sharing, or admin power, include a short [Ethical Risk review](/docs/development/ethical-risk-review/) in the PR or release notes.
+
+Useful evidence includes:
+
+- consent and opt-out behavior for reminders, Blast, previews, and supporter communications
+- dry-run/no-send evidence before bulk email or report delivery
+- noindex, sitemap, social-preview, and prefetch checks for private/tokenized surfaces
+- Worker-canonical total checks for campaign progress, add-ons, tips, tax, shipping, inventory, and settlement
+- accessibility and i18n checks for affected user-facing flows
+- an abuse-path note for how the feature could be used for spam, harassment, fraud, doxxing, misleading claims, or excessive engagement pressure
+
+Treat new hidden tracking, unbounded notifications, misleading public metadata, browser-trusted money logic, or public exposure of private/tokenized state as release blockers until mitigated.
 
 ---
 
@@ -107,9 +133,10 @@ Fast, isolated tests for JS functions in `tests/unit/`.
 | `live-stats.js` | `formatMoney`, `updateProgressBar`, `updateMarkerState`, `checkTierUnlocks`, `checkLateSupport`, `updateSupportItems`, `updateTierInventory` |
 | `platform-tip` | Tip sanitization, tip percent derivation, tip amount calculation |
 | `pledge-management` | DST-aware deadline enforcement through the configured platform timezone, cancel/modify/payment-method validation, pledge status transitions, multi-campaign independence, shipping in pledge records, API response shape |
-| `settlement` | Charge aggregation (including shipping fees), payment success/failure, retry flow, dry-run mode, edge cases, batched settlement, campaign pledge index, settlement dispatch, shipping in settlement, cron heartbeat |
+| `settlement` / `stripe-client` | Charge aggregation, deterministic settlement, Stripe API version/idempotency/error normalization, payment success/failure, retry flow, batched dispatch, stale/resume state, campaign pledge index, and cron heartbeat |
 | `email-broadcasts` | Diary excerpt extraction (with ellipsis truncation), diary/milestone tracking helpers, milestone checking logic, rate limiting |
 | `email-tip` | Tip-aware supporter email breakdowns across confirmation / modified / cancelled / failed / charged emails, plus launch reminder and abandoned-checkout email routing through the shared updates sender |
+| `email-outbox` | Durable enqueue dedupe, frozen payload/idempotency, provider retry timing, campaign/global suppression, Resend webhook signature verification, and delivery evidence |
 | `votes` | Email-based vote storage/dedup, vote status retrieval, campaign results, result aggregation |
 | `admin-dashboard` | Dashboard dirty-state tracking, settings serialization, content/editor normalization, staged media uploads/media picker, actual Stripe fee analytics/backfill, Analytics attribution reporting, marketing shared drafts, abandoned-checkout health/suppression, referral URL helpers, responsive/i18n support utilities |
 | `i18n-completeness` | Supported locale catalogs stay aligned with the English nested key surface |
@@ -117,7 +144,7 @@ Fast, isolated tests for JS functions in `tests/unit/`.
 | `page-prefetch` | Same-origin public-route allowlisting, sensitive-query exclusions, network guards, delay/limit handling, and document prefetch hint creation |
 | `cart-runtime-loader` | Lazy cart-runtime boot, persisted/recovery cart detection, idempotent loading, and user-intent triggers |
 | `site-asset-minification` | Generated `_site` CSS/JS minification behavior and check-mode failure cases |
-| `media-optimization-script` | Changed-file selection, lossless image optimization decisions, video derivative naming, and source-to-WebM reference rewrites |
+| `media-optimization-script` | Changed-file selection, source/derived classification, deterministic manifests, placement budgets, lossless image optimization decisions, video derivative naming, and source-to-WebM reference rewrites |
 
 ### Running
 
@@ -167,6 +194,7 @@ This runs:
 
 The pre-merge script now auto-starts Jekyll with `_config.yml,_config.local.yml` when needed so the local-only `smoke-editable` campaign is available during merge gating, and the Playwright harness uses the same combined config locally.
 That gate now tries the host Bundler/Jekyll path first, including a one-time `bundle install` attempt when Bundler is present but gems are missing. It keeps the lighter host Worker smoke, but runs the mutable-pledge smoke through the Podman-backed stack so the stateful modify/cancel path uses isolated local service state even when the host build path succeeds. If the host Ruby path still cannot build cleanly, it falls back to a Podman-backed Jekyll build plus the remaining Podman-aware smoke/browser helpers instead of failing on host setup alone.
+Both Jekyll helpers fail immediately when their build command fails, so minification and artifact validation cannot accidentally reuse stale `_site` output.
 For headless browser runs, Playwright now builds a static `_site` and serves that output with a lightweight HTTP server instead of using `jekyll serve`, which keeps automated browser checks closer to the real published asset layout.
 
 This branch now defaults to the first-party cart/runtime path in both `_config.yml` and `_config.local.yml`, and the browser path no longer supports the old hosted-cart runtime.
@@ -273,7 +301,15 @@ npm run assets:minify
 npm run test:seo
 ```
 
-The SEO audit checks the built pages, `robots.txt`, `sitemap.xml`, canonical URLs, hreflang alternates, Open Graph/Twitter metadata, and JSON-LD. Local test-only campaigns can be built for smoke coverage but remain intentionally absent from the sitemap.
+The SEO audit checks the built pages, `robots.txt`, `sitemap.xml`, the matching one-URL-per-line diagnostic `sitemap.txt`, canonical URLs, authored freshness hints, hreflang alternates, Open Graph/Twitter metadata, and JSON-LD. Local test-only campaigns can be built for smoke coverage but remain intentionally absent from either sitemap format.
+
+After a production deploy, verify the actual origin-facing crawl surface:
+
+```bash
+npm run test:crawl-endpoints -- --base=https://site.example.com --attempts=6 --retry-delay-ms=5000
+```
+
+This dependency-free audit is safe to run in the deploy job after the root build dependencies are gone. It compares ordinary and Google Inspection bodies for the XML and text sitemaps, requires their ordered public URL lists to match, enforces XML/text/robots MIME types, checks the canonical XML sitemap advertisement, and fetches every submitted page. A normal Cloudflare JavaScript-detection injection in an otherwise complete HTML page is permitted; an interstitial without the page's canonical link and main content fails. Bounded retries cover normal propagation without turning a persistent crawl defect into a warning.
 
 On GitHub, the same gate runs automatically in the `Merge Smoke` workflow for pull requests targeting `main`.
 
@@ -606,7 +642,7 @@ npx wrangler dev --env dev --port 8787
 
 ## 2. Resend Setup
 
-Use [EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md) as the full email setup and integration reference. This section is the short manual testing path.
+Use [EMAIL.md](/docs/operations/email-system/) as the full email setup and integration reference. This section is the short manual testing path.
 
 ### Create Account & API Key
 
@@ -643,11 +679,13 @@ curl -X POST 'https://api.resend.com/emails' \
   }'
 ```
 
+For production delivery evidence, also create `https://worker.example.com/webhooks/resend`, subscribe to delivered/bounced/complained/failed/suppressed events, and store its signing secret as `RESEND_WEBHOOK_SECRET`. Unit tests synthesize signed events; they do not call live Resend.
+
 ---
 
 ## 3. Stripe Setup (Test Mode)
 
-Use [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md) as the full Stripe setup, webhook, settlement, and reconciliation reference. This section is the short local test-mode path.
+Use [PAYMENT_PROCESSOR.md](/docs/operations/payment-processor/) as the full Stripe setup, webhook, settlement, and reconciliation reference. This section is the short local test-mode path.
 
 ### Get Test Keys
 
@@ -944,11 +982,14 @@ Expected: Returns `{ success: true }` and triggers GitHub workflow.
 ## 8. Production Checklist
 
 - [ ] Switch Stripe to live keys
-- [ ] Review [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md) for Stripe live keys, webhook secrets, settlement credentials, and reconciliation checks
-- [ ] Verify the Resend sender domain used by `PLEDGES_EMAIL_FROM` and `UPDATES_EMAIL_FROM` (for this deployment, `site.example.com`); see [EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md)
+- [ ] Review [PAYMENT_PROCESSOR.md](/docs/operations/payment-processor/) for Stripe live keys, webhook secrets, settlement credentials, and reconciliation checks
+- [ ] Verify the Resend sender domain used by `PLEDGES_EMAIL_FROM` and `UPDATES_EMAIL_FROM` (for this deployment, `site.example.com`); see [EMAIL.md](/docs/operations/email-system/)
 - [ ] If launch reminders or admin Turnstile widgets are enabled, verify the public site keys and matching Worker Turnstile secrets are set
 - [ ] Deploy Worker: `wrangler deploy`
 - [ ] Set up Stripe webhook in dashboard → `https://worker.example.com/webhooks/stripe`
+- [ ] Set up Resend delivery webhook → `https://worker.example.com/webhooks/resend` and set `RESEND_WEBHOOK_SECRET`
+- [ ] Confirm `EMAIL_OUTBOX_ENABLED=true` and `PAYMENT_RECONCILIATION_ENABLED=true` in the live Worker
+- [ ] Run media manifest/optimization check and inspect dashboard broken-reference warnings
 - [ ] Test with a real $1 pledge
 
 ## 9. Secrets Reference
@@ -967,6 +1008,7 @@ Expected: Returns `{ success: true }` and triggers GitHub workflow.
 - `MAGIC_LINK_SECRET` — Random 32+ char string for HMAC token signing
 - `CAMPAIGN_PREVIEW_SECRET` — Optional dedicated preview reviewer-link signing secret; if omitted, the Worker falls back to existing signing secrets
 - `RESEND_API_KEY` — Resend API key for supporter emails (re_...)
+- `RESEND_WEBHOOK_SECRET` — Resend/Svix signing secret for delivery and suppression events (whsec_...)
 - `ADMIN_SECRET` — Random string for admin API endpoints
 - `ADMIN_SETTLEMENT_SECRET` — Optional scoped admin secret for settlement endpoints; use a separate local-only value in `worker/.dev.vars`
 - `ADMIN_BROADCAST_SECRET` — Optional scoped admin secret for diary, milestone, and announcement endpoints; also add it to GitHub repository secrets for the post-deploy diary check when enabled

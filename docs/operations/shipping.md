@@ -1,7 +1,7 @@
 ---
 title: "Shipping"
 parent: "Operations"
-nav_order: 8
+nav_order: 11
 render_with_liquid: false
 ---
 
@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-June 20, 2026
+July 16, 2026
 
 This document describes the current shipping model in The Pool, including its Worker-first pricing flow, fork-facing config surface, USPS integration boundary, and the rule tree the cart, checkout, Manage Pledge, reporting, and emails now follow.
 
@@ -525,7 +525,7 @@ Current automated coverage includes:
 
 Current docs that should stay aligned with shipping behavior:
 
-- [README.md](/docs/overview/about-the-pool/)
+- [README.md](/docs/development/platform-readme/)
 - [docs/CUSTOMIZATION.md](/docs/development/customization-guide/)
 - [docs/DEV_NOTES.md](/docs/development/developer-notes/)
 - [docs/TESTING.md](/docs/operations/testing/)

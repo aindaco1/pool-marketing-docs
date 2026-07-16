@@ -9,252 +9,168 @@ render_with_liquid: false
 
 ## Last Updated
 
-July 5, 2026
+July 16, 2026
 
-This document is for people and LLMs working on forks of **The Pool**. It is a practical operator guide for making safe changes in this repo without drifting the site, the Worker, checkout math, or localized/public behavior out of sync.
+This is the operating guide for people and coding agents working on **The Pool**. Use it to make safe changes without drifting the static site, Cloudflare Worker, checkout math, private administration, or localized behavior out of sync.
 
-Use this alongside:
+Read it alongside:
 
-- [README.md](/docs/overview/about-the-pool/) for the current product and architecture overview
-- [docs/CUSTOMIZATION.md](/docs/development/customization-guide/) for the supported fork-facing config surface
-- [docs/PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md) for Stripe setup, checkout canonicalization, webhooks, settlement, and reconciliation
-- [docs/EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md) for Resend setup, sender identity, email templates, localization, and delivery behavior
-- [docs/TESTING.md](/docs/operations/testing/) for local verification and merge-gate expectations
-- [docs/I18N.md](/docs/development/internationalization/) for locale routing and translation rules
-- [docs/SEO.md](/docs/operations/seo/) for metadata, share cards, and indexing behavior
-- [docs/EMBEDS.md](/docs/development/campaign-embeds/) for the hosted campaign embed system
-- [docs/PERFORMANCE.md](/docs/operations/performance/) for public-page performance, generated asset minification, Cloudflare compression, and safe intent prefetching
-- [docs/DASHBOARD.md](/docs/operations/admin-dashboard/) for the browser admin dashboard and editing model
+- [README.md](/docs/development/platform-readme/) for the product and architecture overview
+- [docs/CUSTOMIZATION.md](/docs/development/customization-guide/) for the supported fork-facing configuration surface
+- [docs/PAYMENT_PROCESSOR.md](/docs/operations/payment-processor/) for Stripe, canonical checkout, webhooks, settlement, and reconciliation
+- [docs/ADD_ON_PRODUCTS.md](/docs/development/add-on-products/) for platform, campaign, and variant-specific add-on pricing
+- [docs/DASHBOARD.md](/docs/operations/admin-dashboard/) for private administration and editing
+- [docs/PERFORMANCE.md](/docs/operations/performance/) for budgets, Lighthouse, caching, and runtime observability
+- [docs/SECURITY.md](/docs/operations/security/) for security boundaries and release checks
+- [docs/BACKUP_RESTORE.md](/docs/operations/backup-restore/) for backup, restore, and disaster recovery
+- [docs/TESTING.md](/docs/operations/testing/) for local verification and merge gates
+- [docs/ROADMAP.md](/docs/reference/roadmap/) for planned and completed work
 
-## Project Shape
+## Project shape
 
 The Pool is a split system:
 
-- the static site is Jekyll + Sass + browser JavaScript, published from GitHub Pages
-- the API/payment/runtime side is a Cloudflare Worker in `worker/`
-- Stripe handles payment collection and saved payment methods
-- content and campaign configuration mostly live in markdown/front matter under `_campaigns/`
-- the private admin dashboard is the supported browser editing and operations surface for settings, add-ons, campaigns, reports, analytics, supporters, marketing links, and users
+- Jekyll, Sass, and browser JavaScript build the static site published through GitHub Pages.
+- The Cloudflare Worker in `worker/` owns APIs, canonical checkout validation, pledge persistence, emails, live statistics, settlement, share cards, and privileged administration.
+- Stripe collects payments and stores payment methods.
+- Campaign configuration lives primarily in `_campaigns/`; platform settings and products live in `_config.yml`.
+- The private dashboard is the supported browser surface for settings, add-ons, campaigns, reports, analytics, supporters, marketing links, diagnostics, and users.
 
-The important boundary is:
+If a change affects pricing, availability, campaign progress, pledge state, email content, or live campaign status, assume both the site and Worker are involved even when the symptom appears on only one side.
 
-- the site renders UI, campaign content, cart flows, localized pages, embeds, and SEO metadata
-- the Worker is the canonical source for checkout validation, pledge persistence, live stats, emails, settlement, and share-card PNG/SVG generation
+## Sources of truth
 
-If a change affects pricing, campaign totals, availability, pledge state, email content, or live campaign status, assume the Worker is involved even if the first symptom is on the site.
+- [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml): canonical fork-facing platform configuration
+- [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml): machine-local overrides only
+- [`_campaigns/`](https://github.com/your-org/your-project/tree/main/_campaigns): campaign content, tiers, goals, diary data, and campaign add-ons
+- [`_data/i18n/`](https://github.com/your-org/your-project/tree/main/_data/i18n): shared localized UI, runtime, and email copy
+- [`_data/media-optimization-manifest.json`](https://github.com/your-org/your-project/blob/main/_data/media-optimization-manifest.json): rebuildable repository media metadata; source files remain authoritative
+- [`_layouts/`](https://github.com/your-org/your-project/tree/main/_layouts) and [`_includes/`](https://github.com/your-org/your-project/tree/main/_includes): public pages, campaign pages, embeds, SEO, and locale helpers
+- [`assets/`](https://github.com/your-org/your-project/tree/main/assets): browser runtime, Sass, themes, and generated localized assets
+- [`worker/src/`](https://github.com/your-org/your-project/tree/main/worker/src): authoritative checkout, webhooks, statistics, emails, settlement, administration, and reports
+- [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml): Worker environment wiring and mirrored defaults
+- [`config/performance-budgets.json`](https://github.com/your-org/your-project/blob/main/config/performance-budgets.json): executable public and runtime performance thresholds
+- [`config/pool-data-inventory.json`](https://github.com/your-org/your-project/blob/main/config/pool-data-inventory.json): data classification, retention, and recovery inventory
+- [`tests/`](https://github.com/your-org/your-project/tree/main/tests): unit, security, accessibility, and end-to-end contracts
+- [`scripts/`](https://github.com/your-org/your-project/tree/main/scripts): local development, release gates, smoke tests, audits, and synchronization
+- [`docs/release-evidence/`](https://github.com/your-org/your-project/tree/main/docs/release-evidence): release-specific verification records
 
-## Source Of Truth
+## Safe workflow
 
-When you need to understand or change behavior, start here:
+Inspect `git status` before editing. Existing changes belong to the user unless the task explicitly includes them; do not overwrite, discard, or silently include them in a commit.
 
-- [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml): canonical fork-facing configuration
-- [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml): local overrides only
-- [`_campaigns/`](https://github.com/your-org/your-project/tree/main/_campaigns): campaign content, tiers, goals, diary data, community hooks, campaign-scoped merch
-- [`_data/i18n/`](https://github.com/your-org/your-project/tree/main/_data/i18n): shared UI/runtime/email copy by language
-- [`_layouts/`](https://github.com/your-org/your-project/tree/main/_layouts) and [`_includes/`](https://github.com/your-org/your-project/tree/main/_includes): public pages, campaign pages, embeds, SEO, localized routing helpers
-- [`assets/`](https://github.com/your-org/your-project/tree/main/assets): JS runtime, shared Sass partials, theme variables, generated i18n payload
-- [`worker/src/`](https://github.com/your-org/your-project/tree/main/worker/src): checkout, webhooks, live stats, email sending, share previews, settlement, admin/report logic
-- [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml): Worker env wiring mirrored from site config plus local/dev defaults
-- [`tests/`](https://github.com/your-org/your-project/tree/main/tests): unit, security, and E2E expectations
-- [`scripts/`](https://github.com/your-org/your-project/tree/main/scripts): local dev, merge gate, smoke tests, reports, and sync helpers
-- [`docs/DASHBOARD.md`](/docs/operations/admin-dashboard/): private admin dashboard editing and operations reference
-- [`docs/PAYMENT_PROCESSOR.md`](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md): payment processor setup, flow, and operations reference
-- [`docs/EMAIL.md`](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md): email setup and integration reference
-
-## Safe Workflow
-
-For normal development, prefer:
+For normal local development:
 
 ```bash
 npm run podman:doctor
 ./scripts/dev.sh --podman
 ```
 
-That path keeps the site and Worker running together with the repo's expected defaults.
-
-For final verification, use the narrowest command that proves the change, then run the broader gate before merge when the change is substantial:
+Use the narrowest focused test that proves a change, then run the complete pre-merge gate for a substantial or release-facing change:
 
 ```bash
-./scripts/pre-merge-regression.sh
+npm run test:premerge
 ```
 
-Useful focused checks:
+Useful focused checks include:
 
 - `bundle exec jekyll build --quiet`
 - `npx vitest run <targeted test files>`
-- `node --check <js file>`
-- `node --check assets/js/admin-dashboard.js` when the dashboard script changed
-- `npx playwright test tests/e2e/admin-dashboard.spec.ts --project=chromium` when dashboard UI or admin Worker contracts changed
-- `./scripts/test-worker.sh --podman`
-- `./scripts/test-e2e.sh --podman`
+- `node --check <changed JavaScript file>`
+- `npx playwright test tests/e2e/admin-dashboard.spec.ts --project=chromium`
+- `npm run test:performance:budgets`
+- `npm run test:performance:lighthouse`
+- `npm run test:performance:runtime -- --input=<redacted-observability.json>`
+- `npm run test:cache-policy`
+- `npm run production:posture -- --no-dev-vars`
+- `npm run release:smoke -- --evidence-file <path>`
 
-## Common Tasks
+Production posture, cache, and release-smoke results are only complete when their required provider credentials and secrets were available. Record omissions explicitly in release evidence.
 
-### Add or edit a campaign
+## Common change paths
 
-Start with:
+### Campaigns
 
-- the dashboard **Campaigns** tab for normal browser edits
-- [`_campaigns/<slug>.md`](https://github.com/your-org/your-project/tree/main/_campaigns)
-- campaign assets under [`assets/images/campaigns/<slug>/`](https://github.com/your-org/your-project/tree/main/assets/images/campaigns)
-- supporting docs in [docs/DASHBOARD.md](/docs/operations/admin-dashboard/)
+Use the dashboard **Campaigns** tab for normal edits. The underlying sources are `_campaigns/<slug>.md` and `assets/images/campaigns/<slug>/`.
 
-Check:
+Verify funding and stretch-goal math, tier inventory, physical-reward shipping, localized routing, embeds, and share previews.
 
-- funding goal and stretch-goal math
-- tier inventory and limited quantities
-- shipping settings for physical rewards
-- localized/public routing if the campaign page should work cleanly under `/es/`
-- embed/share-preview behavior if hero image, blurb, title, or live status changed
+### Branding, settings, and products
 
-### Change branding or product settings
+Use dashboard **Settings** and **Add-ons** for normal edits. Published settings and platform add-ons ultimately write back to `_config.yml` through the Worker-controlled GitHub path. Admin users and saved marketing referral codes are runtime exceptions stored in Worker KV.
 
-Start with:
-
-- the dashboard **Settings** and **Add-ons** tabs for normal browser edits
-- [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml)
-- [docs/CUSTOMIZATION.md](/docs/development/customization-guide/)
-
-Do not put canonical fork settings in `_config.local.yml`. Keep that file for machine-local overrides like localhost URLs and local-only flags.
-
-Dashboard publish buttons write GitHub-backed settings through the Worker-controlled GitHub path and start the normal deploy flow. Dashboard user management is different: **Settings -> Users** saves directly to Worker KV at `admin-users:v1`, does not commit to GitHub, and does not use the Settings publish button.
-
-If you change values that are mirrored into the Worker, restart the local stack or run:
+When mirrored settings change, restart the local stack or run:
 
 ```bash
 npm run sync:worker-config
 ```
 
-### Change checkout, totals, or pledge-management behavior
+Product-level add-on price is the default. A variant may inherit it or publish its own override between `$0` and the canonical `$1,000,000` ceiling. Keep dashboard normalization, public cart display, Worker validation, and documentation aligned.
 
-Start with:
+### Checkout and pledge management
 
-- site runtime in [`assets/js/`](https://github.com/your-org/your-project/tree/main/assets/js)
-- campaign/cart/manage templates in [`_includes/`](https://github.com/your-org/your-project/tree/main/_includes) and [`_layouts/`](https://github.com/your-org/your-project/tree/main/_layouts)
-- Worker checkout logic in [`worker/src/`](https://github.com/your-org/your-project/tree/main/worker/src)
-- payment processor guidance in [docs/PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md)
+Start with browser code in `assets/js/`, templates in `_includes/` and `_layouts/`, Worker code in `worker/src/`, and [docs/PAYMENT_PROCESSOR.md](/docs/operations/payment-processor/).
 
-Always assume there is a site-side piece and a Worker-side piece.
+Keep subtotal, variant price overrides, tips, tax, shipping, campaign contribution, persisted pledge data, emails, and reports aligned. The browser proposes state; the Worker resolves products and prices and decides canonical totals.
 
-Things that must stay aligned:
+### Email and supporter communication
 
-- subtotal math
-- tip math
-- sales tax
-- shipping
-- add-ons
-- campaign-goal contribution rules
-- pledge/email/report totals
+Check Worker mail logic, `_data/i18n/`, sender configuration, and [docs/EMAIL.md](/docs/operations/email-system/). Preserve domain alignment, `reply_to`, plain-text output, hosted media URLs, durable outbox/idempotency behavior, campaign/global suppression, and the boundary between transactional and promotional content. Admin login and explicit test sends remain immediate.
 
-If only one side changes, you probably have a bug.
+### Media
 
-### Change emails or supporter communication
+The repository asset tree is authoritative. Rebuild `_data/media-optimization-manifest.json` with `npm run media:manifest`; do not create a KV-backed media catalog. Use the existing GitHub optimizer dispatch for changed/all repair, preserve source files and intentionally skipped larger derivatives, require alt text for meaningful images, and use explicit decorative-image state for empty alt text.
 
-Start with:
+### Embeds, SEO, and share cards
 
-- Worker mail logic in [`worker/src/`](https://github.com/your-org/your-project/tree/main/worker/src)
-- translation copy in [`_data/i18n/`](https://github.com/your-org/your-project/tree/main/_data/i18n)
-- contact/sender identity in [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml)
-- email setup and type coverage in [docs/EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md)
+Check `embed/`, `_layouts/campaign-embed.html`, `assets/js/campaign-embed.js`, `assets/partials/_embed.scss`, Worker share-card code, `_includes/seo-meta.html`, and the embed/SEO docs. Keep campaign-page, embed, and preview state conceptually aligned.
 
-If you touch deliverability-sensitive behavior, also sanity-check:
+### Localization
 
-- `from` domain alignment
-- `reply_to`
-- plain-text body generation
-- hosted image URLs and email-safe video links for Blast content
-- transactional vs promotional content mixing
+Shared system strings belong in `_data/i18n/<lang>.yml`; creator-authored campaign content normally remains campaign content. New public routes and flows must account for locale helpers, localized campaign generation, and the footer language switcher.
 
-### Change embeds or rich previews
+## Invariants to protect
 
-Start with:
+1. **`_config.yml` is canonical.** Do not create a second product source of truth in local config or browser state.
+2. **Worker-mirrored settings stay synchronized.** Pricing, URLs, sender identity, and other mirrored values must match the site.
+3. **Checkout totals are server-verified.** New or changed product/variant selections use current catalog pricing; an unchanged saved product/variant may preserve its historical `unitPrice`. Catalog and persisted cent amounts must remain within the Worker amount limit.
+4. **Campaign progress has a precise boundary.** Tiers, direct campaign support, custom campaign amounts, and campaign add-ons count. Platform add-ons, platform tip, tax, and shipping do not.
+5. **Localized routes are a public contract.** Preserve locale routing and token/query behavior.
+6. **Private flows stay private.** Management, pledge result, protected preview, authenticated admin, and performance-observability responses must remain non-indexable and use private/no-store cache controls where applicable. Preview allowlists belong only in short-lived Worker KV.
+7. **Ended campaigns do not behave as live.** Countdown, pledge, embed, and preview behavior must use effective campaign state.
+8. **Performance thresholds are executable.** A value in configuration is not a gate until a test or audit consumes it. Distinguish measured baseline from the release threshold, use route-specific public budgets, and keep authenticated runtime evidence free of secrets and personal data.
+9. **Dependency findings are scoped and resolved deliberately.** Run the production audit and the full audit. Pin or replace vulnerable release tooling when a safe supported version exists; document any accepted dev-only finding.
+10. **Ethical review travels with product changes.** Review money, data, messaging, analytics, automation, admin power, visibility, and shareability while the implementation is still easy to change.
+11. **Payment recovery must not invent a second charge.** Persist settlement intent before Stripe calls, reuse deterministic idempotency inside the provider window, and stop ambiguous old work for reconciliation. Do not add manual money-moving recovery without distinct maker/checker operators.
+12. **Email delivery is separate from pledge truth.** Production notification side effects go through the shared outbox; provider failure must not roll back or mutate canonical pledge state.
 
-- dashboard **Marketing** tab if the task is only building a campaign embed snippet, saved referral URL, QR download, or tracked campaign link
-- dashboard **Campaigns -> Blast** if the task changes supporter email blast drafting, dry runs, test sends, live sends, or sent history
-- embed routes and layout in [`embed/`](https://github.com/your-org/your-project/tree/main/embed) and [`_layouts/campaign-embed.html`](https://github.com/your-org/your-project/blob/main/_layouts/campaign-embed.html)
-- embed client/runtime in [`assets/js/campaign-embed.js`](https://github.com/your-org/your-project/blob/main/assets/js/campaign-embed.js)
-- embed styles in [`assets/partials/_embed.scss`](https://github.com/your-org/your-project/blob/main/assets/partials/_embed.scss)
-- Worker share cards in [`worker/src/`](https://github.com/your-org/your-project/tree/main/worker/src)
-- SEO metadata in [`_includes/seo-meta.html`](https://github.com/your-org/your-project/blob/main/_includes/seo-meta.html)
-- guidance in [docs/EMBEDS.md](/docs/development/campaign-embeds/) and [docs/SEO.md](/docs/operations/seo/)
+## Documentation map
 
-Keep embed state, share-preview state, and campaign-page metadata conceptually aligned even when the rendered surfaces differ.
-
-### Add or extend a language
-
-Start with:
-
-- [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) `i18n` block
-- [`_data/i18n/<lang>.yml`](https://github.com/your-org/your-project/tree/main/_data/i18n)
-- localized long-form pages like [`es/about.md`](/docs/overview/about-the-pool/) and [`es/terms.md`](/docs/overview/terms-and-guidelines/)
-- locale helpers in [`_includes/localized-url.html`](https://github.com/your-org/your-project/blob/main/_includes/localized-url.html)
-- generated localized campaign pages in [`_plugins/localized_campaign_pages.rb`](https://github.com/your-org/your-project/blob/main/_plugins/localized_campaign_pages.rb)
-
-Shared system strings belong in `_data/i18n/{lang}.yml`.
-Campaign content authored by creators should usually remain campaign content, not be moved into translation YAML.
-
-## Invariants To Protect
-
-These are the easiest places for forks or LLMs to accidentally cause drift.
-
-### 1. `_config.yml` is canonical
-
-Do not treat `_config.local.yml` as a second source of truth.
-
-Admin dashboard changes that publish platform settings or platform add-ons should ultimately land back in `_config.yml` through the Worker-controlled GitHub path. Runtime-only admin users and saved marketing referral codes are the exception; those live in Worker KV.
-
-### 2. Worker-mirrored settings must stay in sync
-
-If you change pricing, site URLs, sender identity, or other mirrored settings, make sure the Worker sees the same values.
-
-### 3. Checkout totals are server-verified
-
-The browser can suggest a cart state. The Worker decides the canonical totals and persisted pledge shape.
-
-### 4. Campaign progress excludes some checkout dollars
-
-Shipping, tax, and platform tip do not all count toward campaign funding totals. Be careful when changing display language or reports so you do not imply otherwise.
-
-### 5. Localized routes are part of the public contract
-
-If you add a new public page, embed route, or campaign-specific flow, check whether the locale helpers and footer language switcher need to know about it.
-
-### 6. Tokenized/private flows should not become indexable
-
-`/manage/`, pledge result pages, and token-bearing/private routes must stay out of search indexing and should preserve token/query behavior when switching languages.
-
-Protected campaign previews are also private. Preview-only campaigns should stay out of public campaign routes until launched, and preview access emails should live only in short-lived Worker KV allowlists, not campaign Markdown or public generated artifacts.
-
-### 7. Ended campaigns should not behave like live ones
-
-Countdowns, pledge controls, and embed/share-preview state should respect the effective campaign state, especially after deadlines.
-
-## Best Docs For Specific Work
-
-- Fork config and branding: [docs/CUSTOMIZATION.md](/docs/development/customization-guide/)
-- Payment processor setup and settlement: [docs/PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md)
-- Email setup and templates: [docs/EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md)
-- Local dev and merge verification: [docs/TESTING.md](/docs/operations/testing/)
-- Podman setup and limits: [docs/PODMAN.md](/docs/operations/podman-local-dev/)
-- Localization model: [docs/I18N.md](/docs/development/internationalization/)
-- SEO and share metadata: [docs/SEO.md](/docs/operations/seo/)
+- Fork configuration: [docs/CUSTOMIZATION.md](/docs/development/customization-guide/)
+- Payments and settlement: [docs/PAYMENT_PROCESSOR.md](/docs/operations/payment-processor/)
+- Add-on products and variant pricing: [docs/ADD_ON_PRODUCTS.md](/docs/development/add-on-products/)
+- Email: [docs/EMAIL.md](/docs/operations/email-system/)
+- Testing: [docs/TESTING.md](/docs/operations/testing/)
+- Podman: [docs/PODMAN.md](/docs/operations/podman-local-dev/)
+- Localization: [docs/I18N.md](/docs/development/internationalization/)
+- SEO and previews: [docs/SEO.md](/docs/operations/seo/)
 - Campaign embeds: [docs/EMBEDS.md](/docs/development/campaign-embeds/)
-- Shipping and USPS behavior: [docs/SHIPPING.md](/docs/operations/shipping/)
-- Add-on product model: [docs/ADD_ON_PRODUCTS.md](/docs/development/add-on-products/)
-- Dashboard/editor flow: [docs/DASHBOARD.md](/docs/operations/admin-dashboard/)
-- Security posture and guardrails: [docs/SECURITY.md](/docs/operations/security/)
-- Release/merge checklist mindset: [docs/MERGE_SMOKE_CHECKLIST.md](/docs/operations/merge-smoke-checklist/)
+- Shipping: [docs/SHIPPING.md](/docs/operations/shipping/)
+- Dashboard: [docs/DASHBOARD.md](/docs/operations/admin-dashboard/)
+- Performance: [docs/PERFORMANCE.md](/docs/operations/performance/)
+- Security: [docs/SECURITY.md](/docs/operations/security/)
+- Backup and recovery: [docs/BACKUP_RESTORE.md](/docs/operations/backup-restore/)
+- Ethical risk: [docs/ETHICAL_RISK.md](/docs/development/ethical-risk-review/)
+- Merge and release checks: [docs/MERGE_SMOKE_CHECKLIST.md](/docs/operations/merge-smoke-checklist/)
 
-## Good LLM Behavior In This Repo
+## Working style for coding agents
 
-If you are an LLM helping with this codebase:
+- Read the implementation and nearby tests before proposing structural changes.
+- Prefer small, local edits that preserve established patterns and stay DRY.
+- Update tests and operator docs whenever behavior or release expectations change.
+- Consider public site, Worker, email, localization, accessibility, security, performance, and recovery consequences together.
+- Reuse an existing configuration surface or helper before inventing another.
+- Never silently drop locale, embed, share-preview, private-cache, or historical-price behavior.
+- Preserve unrelated user changes and stage only files in scope.
 
-- read the existing implementation before proposing structural changes
-- prefer small, local edits that preserve established patterns
-- update tests when behavior changes
-- keep public-site, Worker, email, and i18n consequences in mind together
-- avoid inventing new config surfaces when an existing one already fits
-- prefer repo-relative documentation links, not machine-specific paths
-- do not silently drop locale support, embed behavior, or share-preview behavior while changing campaign pages
-
-When in doubt, make the smallest change that keeps the site and Worker aligned, then verify it with the narrowest meaningful test plus the broader gate when warranted.
+When uncertain, make the smallest change that keeps the site and Worker aligned, prove it with the narrowest meaningful test, and run the broader gate when warranted.

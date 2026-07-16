@@ -1,7 +1,7 @@
 ---
 title: Rendimiento
 parent: Operaciones
-nav_order: 11
+nav_order: 14
 render_with_liquid: false
 lang: es
 ---
@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-1 de julio de 2026
+16 de julio de 2026
 
 The Pool es una plataforma de financiación colectiva estática con un trabajador de Cloudflare para mutaciones, lecturas en vivo y operaciones administrativas. El trabajo de rendimiento debe preservar esa forma: las páginas públicas deben ser rápidas desde HTML estático, el código de aplicación pesado debe cargarse sólo cuando un usuario lo necesita y el trabajo especulativo debe ser lo suficientemente conservador como para nunca hacer que los flujos de pago, administración o soporte sean menos confiables.
 
@@ -23,6 +23,7 @@ Esta guía cubre el modelo de rendimiento de la plataforma actual, los mandos qu
 - Evite cargar el código de pago, carrito, administrador o administración hasta que el usuario exprese su intención.
 - mantenga las páginas públicas rastreables y funcionales sin depender de JavaScript para el contenido principal
 - nunca especules sobre rutas privadas, tokenizadas, de pago, de administración o de apoyo
+- Evite el rendimiento o el comportamiento de captación previa que presione la acción del usuario, oculte el estado o cree tráfico en segundo plano para flujos que los usuarios no pretendían.
 - hacer que las características de rendimiento sean configurables desde `_config.yml` y el panel de administración donde las bifurcaciones pueden necesitar diferentes compensaciones de tráfico
 - medir los cambios en comparación con los activos reales construidos, no solo con los archivos fuente
 
@@ -34,14 +35,18 @@ Utilícelos como objetivos prácticos en lugar de afirmar que cada prueba local 
 - INP bajo `200ms` para interacciones de campaña, carrito, pago, administración y administración
 - CLS bajo `0.1`, con barras de progreso, medios de héroe, tarjetas de nivel y estadísticas en vivo que reservan espacio estable
 - no hay una pila de carritos llenos de ganas en una primera carga pública anónima
-- no se realizan precargas de documentos públicos en rutas privadas, tokenizadas, de pago, de administración, de administración o de la comunidad de seguidores
+- no se realizan precargas de documentos públicos en rutas privadas, tokenizadas, de pago, de administración, de administración o de la comunidad de patrocinadores
 - Los activos CSS/JS generados pasan `npm run assets:minify:check`
 - la salida generada de rastreo/metadatos pasa `npm run test:seo` después de una compilación de Jekyll
 - Cloudflare ofrece recursos de texto con compresión de transferencia y sin Auto Minify
+- los activos generados pasan `npm run performance:budget` contra `config/performance-budgets.json`
+- las rutas de lanzamiento principales pasan `npm run test:performance:lighthouse` con la misma configuración cuando la pila Podman local está disponible
+- los encabezados de caché públicos/privados implementados pasan `npm run test:cache-policy`
+- El administrador Worker autenticado lee el pase `npm run test:performance:runtime` contra la evidencia de observabilidad redactada antes de la aprobación de producción.
 
 ## Modelo de plataforma
 
-Jekyll genera el sitio público y lo implementa como salida de GitHub Pages. El trabajador maneja inquietudes dinámicas como la intención de pago, estadísticas en vivo, inventario, gestión de promesas, publicación administrativa, informes y observabilidad.
+Jekyll genera el sitio público y lo implementa como salida de GitHub Pages. El trabajador maneja inquietudes dinámicas como la intención de pago, estadísticas en vivo, inventario, gestión de aportes, publicación administrativa, informes y observabilidad.
 
 Superficies de repositorio importantes:
 
@@ -52,7 +57,36 @@ Superficies de repositorio importantes:
 - [`assets/js/cart-runtime-loader.js`](https://github.com/your-org/your-project/blob/main/assets/js/cart-runtime-loader.js): arranque del tiempo de ejecución del carrito diferido
 - [`assets/js/page-prefetch.js`](https://github.com/your-org/your-project/blob/main/assets/js/page-prefetch.js): tiempo de ejecución de captación previa de documentos basado en intención
 - [`scripts/minify-site-assets.mjs`](https://github.com/your-org/your-project/blob/main/scripts/minify-site-assets.mjs): minificación CSS/JS generada
+- [`scripts/audit-performance-budgets.mjs`](https://github.com/your-org/your-project/blob/main/scripts/audit-performance-budgets.mjs): límites máximos de liberación de activos designados y totales medidos
+- [`scripts/performance-lighthouse.mjs`](https://github.com/your-org/your-project/blob/main/scripts/performance-lighthouse.mjs): categoría Lighthouse, Web Vital y evidencia de liberación de recursos transferidos
+- [`scripts/audit-cache-policy.mjs`](https://github.com/your-org/your-project/blob/main/scripts/audit-cache-policy.mjs): evidencia de política de caché pública y privada/sin almacenamiento implementada
+- [`scripts/audit-runtime-performance.mjs`](https://github.com/your-org/your-project/blob/main/scripts/audit-runtime-performance.mjs): evidencia p95 autenticada para operaciones Worker configuradas
 - [`scripts/sync-worker-config.rb`](https://github.com/your-org/your-project/blob/main/scripts/sync-worker-config.rb): duplicación de configuración de sitio a trabajador
+
+Sass solo para administradores se emite como `assets/admin.css` y se carga solo mediante el diseño del administrador, lo que mantiene el CSS del panel fuera de las páginas de campaña públicas. Las sesiones de administración y el procesador de registros de auditoría que se utilizan con poca frecuencia se encuentran en `assets/js/admin-settings-review.js` y se cargan según demanda cuando se abre cualquiera de las secciones de Configuración; Tanto ese módulo como el paquete inicial `admin-dashboard.js` tienen límites ejecutables con nombre en `config/performance-budgets.json`. El CSS de fuente de visualización de Adobe se activa después de la preparación de DOM sin respaldo de secuencia de comandos; Inter sigue siendo la dependencia de la fuente del cuerpo. La caché Workers permanece deshabilitada para el modelo de lectura de administrador The Pool hasta que un punto de referencia representativo demuestre una mejora p95 de al menos el 40 %. Store v1.0.7 no alcanzó ese umbral, por lo que la paridad significa llevar la puerta de evidencia, no habilitar el cambio de caché por suposición.
+
+Los resúmenes de rendimiento de Worker conservan histogramas de latencia acotados y exponen p50/p95/p99 aproximados junto con el recuento, el promedio, el mínimo, el máximo y la última duración. No retienen cuerpos de solicitud ni identificadores de clientes.
+
+Los superadministradores pueden inspeccionar las rutas muestreadas más lentas durante los últimos siete días en **Configuración -> Diagnóstico de tiempo de ejecución**. La tabla es una vista de solo lectura de los resúmenes existentes, ordenados por página 95 y con un límite de 20 filas; no agrega otro almacén de telemetría.
+
+El paquete de navegador consume los límites `dashboard.initialReadyMs`, `dashboard.tabSwitchMs` y `dashboard.tableRenderMs` directamente. Worker registra muestras de `admin_dashboard_summary` y `admin_settings`, y la auditoría de tiempo de ejecución consume los límites p95 configurados. No agregue un valor de tiempo no consumido a la configuración y descríbalo como una puerta.
+
+## Publicar evidencia de desempeño
+
+El modelo alineado con Store mantiene las costosas mediciones del navegador en evidencia de lanzamiento en lugar de requerirlas en cada solicitud de extracción:
+
+```bash
+npm run test:performance:budgets
+npm run test:performance:lighthouse
+npm run test:cache-policy
+npm run test:performance:runtime -- --input=/path/to/redacted-performance-observability.json
+```
+
+Utilice `test:performance:lighthouse:host` cuando ya esté disponible un Chromium local compatible. `SITE_BASE` y `WORKER_BASE` pueden anular los valores predeterminados de producción para las comprobaciones de políticas de caché. El JSON de evidencia no contiene credenciales ni datos de clientes y se puede escribir con la opción `--output=...` de cada script.
+
+Para una lectura autenticada directa, establezca `ADMIN_PERFORMANCE_TOKEN` en un valor de portador de administrador con ámbito y pase `--worker-base=<url>` en lugar de `--input`. El resultado contiene solo nombres de operaciones, recuentos de muestras, valores de p95 y límites máximos configurados; no se hace eco del token ni de la carga útil de observabilidad sin procesar.
+
+El conjunto de unidades prueba a todos los evaluadores de presupuesto sin acceso a la red. Lighthouse utiliza restricciones de accesibilidad compartida/CLS/TBT además de límites de rendimiento, LCP y transferencia específicos de la ruta, por lo que una página de términos liviana no puede regresar a un presupuesto de página de campaña. Estos límites de publicación evitan regresiones no revisadas, pero no reemplazan los objetivos de optimización LCP/INP/CLS más estrictos mencionados anteriormente. Una versión puede omitir Lighthouse en vivo, caché o evidencia de tiempo de ejecución autenticada solo cuando la ruta/proveedor estable requerido o la credencial no están disponibles, y la omisión debe registrarse en la aprobación de la versión.
 
 ## Representación crítica
 
@@ -62,6 +96,7 @@ Barandillas actuales:
 
 - Las barras de progreso y las posiciones de los marcadores representan clases de utilidad estáticas de ancho/izquierda en la salida de Jekyll para que no comiencen colapsadas mientras se carga JavaScript.
 - Las imágenes principales de la campaña se emiten con precarga y alta prioridad de recuperación donde el diseño conoce el activo LCP probable.
+- Los fondos de las tarjetas de campaña de la página de inicio utilizan fuentes WebP responsivas generadas, carga diferida y decodificación asíncrona en lugar de transferir PNG de tamaño completo con entusiasmo.
 - Los videos de los héroes de la campaña de YouTube muestran primero un póster local o una fachada de reproducción y cargan el iframe de YouTube solo después de la intención de reproducción.
 - Los scripts comunes usan `defer` o carga dinámica diferida en lugar de etiquetas de script que bloquean el analizador.
 - los layouts completos del documento desactivan la detección móvil automática de teléfono/fecha/dirección/correo para que iOS no rediseñe de forma inesperada la copia operativa o el texto de campaña
@@ -96,7 +131,7 @@ Al cambiar el carrito o la carga del carrito, verifique con las herramientas de 
 
 ## Presupuesto de lectura del administrador
 
-El panel de administración debe mantener la navegación normal como de solo lectura y limitada. Los informes, los partidarios, la atribución de análisis, el estado de las compras abandonadas, los simulacros explosivos y las vistas de campañas similares deben utilizar proyecciones `campaign-pledges:<slug>` existentes o estados agregados pequeños en lugar de escaneos de espacios de nombres KV. Las cargas del selector de biblioteca multimedia deben leer los directorios de GitHub y no deben crear un estado KV.
+El panel de administración debe mantener la navegación normal como de solo lectura y limitada. Los informes, los patrocinadores, la atribución de análisis, el estado de las compras abandonadas, los simulacros explosivos y las vistas de campañas similares deben utilizar proyecciones `campaign-pledges:<slug>` existentes o estados agregados pequeños en lugar de escaneos de espacios de nombres KV. Las cargas del selector de biblioteca multimedia deben leer los directorios de GitHub y no deben crear un estado KV.
 
 Las escrituras duraderas en el panel deben estar vinculadas a acciones explícitas del usuario. Se permiten mutaciones en los códigos de referencia guardados, los borradores compartidos de Marketing/Blast, las supresiones de pagos abandonados en el ámbito de la campaña, los envíos en vivo de Blast, las publicaciones de contenido, las vistas previas protegidas y las acciones de creación/archivo de campañas; Las cargas de páginas, las ediciones de campos, la generación de vistas previas, la generación/descarga de QR, las cargas de informes, el estado recordado de pestañas/subpestañas de UI y los borradores locales no deben escribir KV. Al agregar una función de administración, documente si es de solo lectura, solo local, respaldada por GitHub o respaldada por KV antes de cablear la interfaz de usuario.
 
@@ -234,7 +269,7 @@ Validación recomendada después de cambiar la configuración:
 
 1. Habilite `performance.intent_prefetch_enabled: true` en una configuración provisional.
 2. Confirme que los enlaces de tarjetas de campaña públicas creen `link[rel="prefetch"][as="document"]` después de pasar el cursor o centrarse.
-3. Confirme que los enlaces de administración, gestión, pago, resultados de compromiso, comunidad, tokenizados, externos y `target="_blank"` no se precargan.
+3. Confirme que los enlaces de administración, gestión, pago, resultados de aporte, comunidad, tokenizados, externos y `target="_blank"` no se precargan.
 4. Verifique DevTools Network con condiciones de estilo de limitación y guardado de datos.
 5. Mantenga bajo el límite por página. El valor predeterminado es `3`.
 
@@ -255,9 +290,10 @@ Las páginas de campaña almacenan en caché las estadísticas en vivo y el inve
 Al cambiar lecturas en vivo:
 
 - prefiera una lectura pública combinada a varias lecturas independientes
-- invalidar las cachés del navegador después de una persistencia exitosa del compromiso
+- invalidar las cachés del navegador después de una persistencia exitosa del aporte
 - mantenga el comportamiento de recuperación obsoleto privado para el navegador y evite el almacenamiento confidencial de larga duración
 - use `GET /admin/observability/performance` para inspeccionar tiempos de trabajo de muestra en entornos locales o implementados
+- mantener autenticados `/admin/observability/performance` y `private, no-store`; La cobertura de la unidad verifica tanto las respuestas autenticadas como las no autorizadas, y el humo posterior al despliegue debe verificar el encabezado en vivo.
 
 ## Presupuesto de lista KV
 
@@ -265,14 +301,15 @@ Las solicitudes de lista KV de trabajadores son un presupuesto de nivel gratuito
 
 Barandillas actuales:
 
-- los informes de campaña, la navegación de los seguidores, los acuerdos y las rutas de reparación prefieren los índices `campaign-pledges:{slug}` a los escaneos de espacios de nombres de promesas.
+- los informes de campaña, la navegación de los patrocinadores, los acuerdos y las rutas de reparación prefieren los índices `campaign-pledges:{slug}` a los escaneos de espacios de nombres de aportes.
 - Las lecturas de inventario adicionales de la plataforma utilizan `add-on-inventory-sold:v1` después del primer arranque de proyección de recuento de ventas.
 - El envío de recordatorio de lanzamiento utiliza `launch-reminder-dispatch-queue:v1`, por lo que los ticks programados inactivos no aparecen en la lista `launch-reminder-dispatch:*`.
 - los recordatorios de pago abandonado utilizan `abandoned-cart-queue:v1`, por lo que los ticks programados inactivos no incluyen `abandoned-cart:*`; Los enlaces de currículum firmados utilizan registros `abandoned-cart-resume:{orderId}` separados de corta duración creados solo después de que el recordatorio se envía correctamente.
 - El reintento por correo electrónico de confirmación del colaborador utiliza `supporter-email-retry-queue:v1`, por lo que el reintento de sondeo omite los análisis `supporter-email-retry:*` mientras está inactivo o antes de que venza el siguiente intento.
+- la bandeja de salida de correo electrónico compartida usa `email-outbox-queue:v1`, por lo que el programador de minutos enumera `email-outbox:v1:*` solo mientras hay trabajo pendiente o durante la nueva verificación de compatibilidad cada hora.
 - Los marcadores de estado de cola inactivo caducan cada hora, lo que mantiene la compatibilidad con los trabajos insertados manualmente sin volver al sondeo del espacio de nombres a nivel de minutos.
 
-En condiciones normales de tráfico sin colas, se esperan aproximadamente `48-75` solicitudes de lista KV durante 24 horas. Los lotes de recordatorios de lanzamiento activos, los recordatorios de pago abandonado y los reintentos de correo electrónico de soporte aún muestran sus prefijos de cola limitada cuando el trabajo real está pendiente.
+En condiciones normales de tráfico sin colas, se esperan aproximadamente `72-100` KV solicitudes de lista durante 24 horas. Los lotes de recordatorios de lanzamiento activos, los recordatorios de pago abandonado vencido, los reintentos de soporte heredados vencidos y los trabajos de correo electrónico compartido pendientes aún enumeran sus prefijos de cola limitada cuando existe trabajo real.
 
 ## Optimización de medios
 
@@ -285,7 +322,10 @@ Utilice la canalización de medios del repositorio para los medios de origen:
 ```bash
 npm run media:optimize
 npm run media:optimize:check
+npm run media:manifest
 ```
+
+`_data/media-optimization-manifest.json` es un índice reconstruible determinista, no un segundo almacén de medios. Registra hashes de origen, tamaño, dimensiones/duración, derivados de WebP/WebM generados, referencias y advertencias. Los presupuestos de ubicación en el panel de medios para héroes, galerías, niveles, Blast y carteles son de asesoramiento y reutilizan este manifiesto; los tipos inseguros y la falta de texto alternativo requerido siguen siendo fallas de validación estrictas. Si un intento de derivación es mayor que su fuente, el hash de la fuente y el ancho omitido se registran para que el modo de verificación no clasifique erróneamente la omisión intencional como deriva.
 
 Si la máquina host no tiene instalados los optimizadores nativos, utilice en su lugar los contenedores respaldados por Podman:
 
@@ -320,7 +360,7 @@ Para páginas de campaña, prefiera:
 
 ## Administrador y superficies privadas
 
-El administrador, la vista previa de la campaña protegida, la gestión, el pago, el resultado del compromiso, la comunidad y las rutas tokenizadas deben optimizarse para lograr corrección y privacidad antes que la velocidad especulativa.
+El administrador, la vista previa de la campaña protegida, la gestión, el pago, el resultado del aporte, la comunidad y las rutas tokenizadas deben optimizarse para lograr corrección y privacidad antes que la velocidad especulativa.
 
 Reglas para superficies privadas:
 

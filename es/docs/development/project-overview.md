@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-5 de julio de 2026
+16 de julio de 2026
 
 **Objetivo:**
 Habilite el crowdfunding creativo con una verdadera lógica de *todo o nada* utilizando alojamiento estático.
@@ -20,7 +20,7 @@ Los creadores definen campañas en Markdown; los patrocinadores se comprometen a
 - Nombre de la plataforma: **The Pool**
 - Nombre de la empresa: configúrelo según el nombre de su organización o estudio.
 - Tema predeterminado: el estilo editorial más tranquilo de Dust Wave
-- Personalización de la bifurcación: `_config.yml` ahora impulsa una superficie de token/marca seleccionada que llega a páginas públicas, elementos de Stripe en el sitio y correos electrónicos de seguidores.
+- Personalización de la bifurcación: `_config.yml` ahora impulsa una superficie de token/marca seleccionada que llega a páginas públicas, elementos de Stripe en el sitio y correos electrónicos de patrocinadores.
 
 ---
 
@@ -31,34 +31,34 @@ Los creadores definen campañas en Markdown; los patrocinadores se comprometen a
 |**Frontal**|Páginas de GitHub (Jekyll + Sass + tiempo de ejecución del carrito)|Páginas de campaña, carrito, UX|
 |**Pagos**|Stripe (Sesiones de pago en modo configuración + cargos fuera de sesión)|Campos de pago seguros, métodos de pago guardados y luego tarjetas de cargo|
 |**API/pegamento**|Trabajador de Cloudflare (`worker.example.com`)|Maneja el arranque de pago, webhooks, totales con reconocimiento de propinas, recuperación y datos de informes.|
-|**IU de administrador**|Panel privado (`/admin/`, `/es/admin/`)|Configuraciones, campañas, complementos, análisis, informes, seguidores, herramientas de marketing y usuarios basados en roles|
+|**IU de administrador**|Panel privado (`/admin/`, `/es/admin/`)|Configuraciones, campañas, complementos, análisis, informes, patrocinadores, herramientas de marketing y usuarios basados en roles|
 |**Automatización**|Programador de trabajadores + Acción de GitHub|Auto-liquidación (por lotes) + transiciones de estado|
 |**Almacenamiento**|Rebaja / YAML|Definiciones y estado de la campaña|
-|**Estilo**|Sass + vars de tema generados|Sistema de diseño compartido para páginas públicas, pago, gestión de promesas y superficies de pago/correo electrónico de marca.|
+|**Estilo**|Sass + vars de tema generados|Sistema de diseño compartido para páginas públicas, pago, gestión de aportes y superficies de pago/correo electrónico de marca.|
 
 Todo el código está versionado y auditable. La edición de la campaña ahora fluye a través del panel de administración privado o ediciones directas del repositorio, y los cambios publicables aún se confirman en el repositorio a través de la ruta de GitHub controlada por el trabajador.
 Los superadministradores pueden crear campañas de solo vista previa a través de la misma ruta; esas campañas permanecen ocultas de las rutas de campaña públicas hasta su lanzamiento. Los superadministradores también pueden archivar campañas no activas a través de un movimiento validado de GitHub Actions en `archive/campaigns/<slug>/`, manteniendo las fuentes y los medios archivados en el repositorio en lugar de eliminar datos. Las listas de correo electrónico de revisores de vista previa protegidas permitidas se encuentran en registros KV de trabajador de corta duración en lugar de Markdown de campaña.
 Las cargas de medios del panel conservan el origen en el límite del trabajador: las cargas de imágenes/videos solicitan el flujo de trabajo de optimización del repositorio después de la confirmación, las publicaciones de contenido/diario/Blast eliminan o reutilizan los medios propiedad del panel de la misma campaña a través de las reglas de medios de la campaña compartida, y los bloques de imágenes pueden seleccionar medios de campaña existentes a través de un selector de directorio de GitHub de solo lectura en lugar de agregar un segundo índice de medios.
 
-Para una configuración y operaciones más detalladas, consulte [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md) para el modelo Stripe/settlement y [EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md) para el sistema de correo electrónico Resend.
+Para una configuración y operaciones más detalladas, consulte [PAYMENT_PROCESSOR.md](/es/docs/operations/payment-processor/) para el modelo Stripe/settlement y [EMAIL.md](/es/docs/operations/email-system/) para el sistema de correo electrónico Resend.
 
 ## Planificar notas de eficiencia para bifurcaciones
 
-La arquitectura actual está optimizada deliberadamente para que las implementaciones de Cloudflare gasten su presupuesto en mutaciones de promesas en lugar de navegación informal:
+La arquitectura actual está optimizada deliberadamente para que las implementaciones de Cloudflare gasten su presupuesto en mutaciones de aportes en lugar de navegación informal:
 
 - Las páginas de campaña y la página de administración prefieren una lectura combinada de `/live/:slug` en lugar de estadísticas y solicitudes de inventario separadas.
 - el navegador almacena en caché las estadísticas en vivo y el inventario en `localStorage` para los TTL configurados, y las pestañas ocultas dejan de actualizarse hasta que vuelven a ser visibles.
-- Los informes del panel de control, los partidarios, los análisis, los asistentes de liquidación, las búsquedas de audiencias de difusión/Blast de administración y las estadísticas/conciliación de inventario prefieren el índice `campaign-pledges:{slug}` y evitan costosas exploraciones de espacios de nombres en rutas de lectura normales.
+- Los informes del panel de control, los patrocinadores, los análisis, los asistentes de liquidación, las búsquedas de audiencias de difusión/Blast de administración y las estadísticas/conciliación de inventario prefieren el índice `campaign-pledges:{slug}` y evitan costosas exploraciones de espacios de nombres en rutas de lectura normales.
 - Las cargas/vistas previas de contenido del panel, vistas previas/descargas de informes, filtros de soporte, vistas de análisis, listas de referencias de marketing, lecturas de estado de pago abandonado, cargas del selector de biblioteca multimedia, vistas previas/descargas de QR, simulacros rápidos y borradores locales están diseñados para agregar escrituras de KV cero.
 - las lecturas de carga útil de vista previa protegida son de escritura cero; La publicación de una vista previa protegida escribe una lista permitida de acceso a la vista previa de 24 horas más un evento de auditoría.
 - las operaciones de archivo de campaña escriben un evento de auditoría; el movimiento del archivo fuente/medios se ejecuta localmente en desarrollo y en GitHub Actions para producción
 - Las rutas de escritura de nivel limitado ahora solicitan al coordinador de cada campaña la disponibilidad según la reserva, mientras que el inventario público permanece en KV como proyección.
-- El inventario de complementos de la plataforma utiliza una proyección de recuento de ventas después del arranque en lugar de reconstruirse a partir de escaneos del espacio de nombres de compromiso en lecturas normales.
-- El envío de recordatorios de lanzamiento, los recordatorios de pagos abandonados y el sondeo de reintento de confirmación de los seguidores utilizan marcadores de estado de cola, por lo que los ticks programados inactivos omiten los escaneos de la lista KV y recurren a las verificaciones de compatibilidad cada hora.
+- El inventario de complementos de la plataforma utiliza una proyección de recuento de ventas después del arranque en lugar de reconstruirse a partir de escaneos del espacio de nombres de aporte en lecturas normales.
+- El envío de recordatorios de lanzamiento, los recordatorios de pagos abandonados y el sondeo de reintento de confirmación de los patrocinadores utilizan marcadores de estado de cola, por lo que los ticks programados inactivos omiten los escaneos de la lista KV y recurren a las verificaciones de compatibilidad cada hora.
 - Los recordatorios de pago abandonado enviados pueden crear una instantánea de reanudación de corta duración, lo que permite que los enlaces de correo electrónico firmados restablezcan el mismo borrador de carrito/contacto desinfectado e inicien una nueva sesión de Stripe sin poner secretos de Stripe en las URL.
 - La limitación de velocidad aún falla al cerrarse, pero las solicitudes bloqueadas repetidas dentro de la misma ventana ya no reescriben el mismo contador KV en cada visita.
 
-Eso significa que el límite real para la mayoría de las bifurcaciones suele ser **KV escribe a partir de una actividad de compromiso exitosa**, no el tráfico de lectura pública ni el sondeo de listas inactivas. `RATELIMIT` es ahora un requisito estricto para las implementaciones admitidas, pero eso por sí solo no hace que el plan gratuito no sea viable para la forma de financiación colectiva a pequeña escala prevista para el proyecto.
+Eso significa que el límite real para la mayoría de las bifurcaciones suele ser **KV escribe a partir de una actividad de aporte exitosa**, no el tráfico de lectura pública ni el sondeo de listas inactivas. `RATELIMIT` es ahora un requisito estricto para las implementaciones admitidas, pero eso por sí solo no hace que el plan gratuito no sea viable para la forma de financiación colectiva a pequeña escala prevista para el proyecto.
 
 ## Forma de desarrollo local
 
@@ -78,9 +78,9 @@ Estos escenarios son intencionalmente aproximados. Asumen los TTL predeterminado
 
 |Escenario|Cómo se siente operativamente|Planificación para llevar|
 |----------|----------------------------------|-------------------|
-|Primer lanzamiento|Una o dos campañas activas, unos cuantos miles de visitas a la página de la campaña durante varios días y un puñado de promesas completadas por día.|Lo gratuito debería seguir siendo un punto de partida razonable.|
-|Fuerte tracción en la primera semana|Varios miles de lecturas dinámicas de Worker por día y un par de docenas de mutaciones de promesas en campañas en vivo.|A menudo, todavía es viable de forma gratuita, pero aquí es donde el pago comienza a reducir la ansiedad operativa.|
-|Plataforma comunitaria establecida|Mutaciones frecuentes de promesas todos los días en múltiples campañas activas, además de flujos de informes/reparaciones administrativas más regulares|El pago se convierte en la opción más cómoda a largo plazo; siga monitoreando los costos de las rutas de mutación y abuso.|
+|Primer lanzamiento|Una o dos campañas activas, unos cuantos miles de visitas a la página de la campaña durante varios días y un puñado de aportes completadas por día.|Lo gratuito debería seguir siendo un punto de partida razonable.|
+|Fuerte tracción en la primera semana|Varios miles de lecturas dinámicas de Worker por día y un par de docenas de mutaciones de aportes en campañas en vivo.|A menudo, todavía es viable de forma gratuita, pero aquí es donde el pago comienza a reducir la ansiedad operativa.|
+|Plataforma comunitaria establecida|Mutaciones frecuentes de aportes todos los días en múltiples campañas activas, además de flujos de informes/reparaciones administrativas más regulares|El pago se convierte en la opción más cómoda a largo plazo; siga monitoreando los costos de las rutas de mutación y abuso.|
 
 Para conocer los límites actuales de Cloudflare, consulte:
 
@@ -91,21 +91,21 @@ Para conocer los límites actuales de Cloudflare, consulte:
 
 ## Flujo de financiación
 
-Consulte [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md) para conocer la configuración completa de Stripe, la canonicalización del pago, el webhook, la liquidación y el runbook de conciliación. El siguiente resumen es el flujo a nivel de producto.
+Consulte [PAYMENT_PROCESSOR.md](/es/docs/operations/payment-processor/) para conocer la configuración completa de Stripe, la canonicalización del pago, el webhook, la liquidación y el runbook de conciliación. El siguiente resumen es el flujo a nivel de producto.
 
 1. **El visitante se compromete** a través del carrito propio → El trabajador crea una sesión de pago de Stripe en modo de configuración y el segundo sidecar de pago existente monta la interfaz de usuario de pago segura de Stripe en el sitio. Un pago puede incluir artículos de varias campañas. El carrito y el proceso de pago muestran el subtotal, el envío, el impuesto sobre las ventas y la propina de plataforma opcional de un modelo de precios compartido.
 2. **Stripe** guarda una tarjeta a través de ese paso de pago en el sitio y devuelve las identificaciones al Trabajador.
-3. El trabajador almacena los datos de las promesas en **Cloudflare KV** (niveles, artículos de soporte, montos personalizados, dirección de envío, porcentaje/cantidad de propina, ID de Stripe), ampliando un pago combinado en una promesa con alcance de campaña por campaña. El cliente no considera el pago como exitoso hasta que se confirme la persistencia.
+3. El trabajador almacena los datos de los aportes en **Cloudflare KV** (niveles, artículos de soporte, montos personalizados, dirección de envío, porcentaje/cantidad de propina, ID de Stripe), ampliando un pago combinado en un aporte con alcance de campaña por campaña. El cliente no considera el pago como exitoso hasta que se confirme la persistencia.
 4. **El programador de trabajadores** ejecuta el trabajo del ciclo de vida diario después de la medianoche en la zona horaria de la plataforma configurada:
    - Registra un latido cada hora (`cron:lastRun` en KV) para monitorear sin convertir el programador de nivel de minutos en una rotación constante de escritura en KV.
    - Activa la reconstrucción del sitio cuando pasa `goal_deadline` (`live` → `post`).
    - Si se financia, envía la liquidación por lotes a través del autoencadenamiento `/admin/settle-dispatch`.
-   - Cada lote (6 promesas) se ejecuta en una invocación de Trabajador separada para permanecer dentro de los límites de las subrequests.
-   - Los cargos se agregan por correo electrónico dentro de cada campaña: un cargo por seguidor por campaña.
-   - Actualiza el estado del compromiso a `charged` o `payment_failed` en KV.
+   - Cada lote (6 aportes) se ejecuta en una invocación de Trabajador separada para permanecer dentro de los límites de las subrequests.
+   - Los cargos se agregan por correo electrónico dentro de cada campaña: un cargo por patrocinador por campaña.
+   - Actualiza el estado del aporte a `charged` o `payment_failed` en KV.
    - Activa la reconstrucción de páginas de GitHub y la purga de caché de Cloudflare en transiciones de estado.
 5. **Los informes y las exportaciones de cumplimiento** utilizan los mismos creadores de informes de campaña:
-   - El panel de administración muestra una vista previa de los informes de compromiso y cumplimiento de las campañas a las que el administrador puede acceder y descarga el informe visible como CSV.
+   - El panel de administración muestra una vista previa de los informes de aporte y cumplimiento de las campañas a las que el administrador puede acceder y descarga el informe visible como CSV.
    - Las vistas previas/descargas de informes del panel no envían correos electrónicos ni escriben marcadores de envío.
    - La automatización de cumplimiento programada o basada en secuencias de comandos aún puede usar las rutas del informe de trabajo cuando esté configurada.
 
@@ -129,7 +129,7 @@ Consulte [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/ma
 |Estado|Significado|Experiencia de usuario visible|
 |--------|----------|------------|
 |`upcoming`|Programado/aún no disponible|Botones deshabilitados, mensaje "próximamente"|
-|`live`|Aceptar promesas|Carrito activo, barra de progreso actualizándose|
+|`live`|Aceptar aportes|Carrito activo, barra de progreso actualizándose|
 |`post`|Terminado|Muestra resultados financiados o no financiados|
 |`charged`|(bandera)|Verdadero después de una facturación exitosa|
 
@@ -170,14 +170,14 @@ Consulte [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/ma
 
 1. ✅ Dominio: `site.example.com` (CNAME para páginas de GitHub).
 2. ✅ Tiempo de ejecución del carrito propio habilitado en la configuración del sitio y en la compilación local.
-3. ✅ Cloudflare Worker implementado (`worker.example.com`) con secretos de firma de Stripe + Worker; consulte [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md).
+3. ✅ Cloudflare Worker implementado (`worker.example.com`) con secretos de firma Stripe + Worker; consulte [PAYMENT_PROCESSOR.md](/es/docs/operations/payment-processor/).
 4. ✅ Webhook de banda configurado → Trabajador `/webhooks/stripe`.
-5. ✅ Conjunto de secretos de repositorio: `STRIPE_SECRET_KEY`, `CHECKOUT_INTENT_SECRET`, secretos de administrador y secretos Resend; consulte [EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md).
+5. ✅ Conjunto de secretos de repositorio: `STRIPE_SECRET_KEY`, `CHECKOUT_INTENT_SECRET`, secretos de administrador y secretos Resend; consulte [EMAIL.md](/es/docs/operations/email-system/).
 6. ✅ Programador de trabajadores a nivel de minutos habilitado con puertas diarias de zona horaria de plataforma: verifique a través de `GET /admin/cron/status`.
 7. ✅ Purga de caché de Cloudflare configurada (preferido: token de API/ID de cuenta; correo electrónico heredado/autenticación de clave aún funciona si se configura explícitamente).
 8. ✅ La campaña de prueba se ejecuta de un extremo a otro en el modo de prueba de Stripe.
 9. ✅ El contenido de formato largo desinfecta los esquemas de enlaces de Markdown y solo muestra incrustaciones estructuradas de orígenes aprobados exactos.
-10. ✅ Las lecturas de enlaces mágicos de promesas faltantes fallan al cerrarse con `404`.
+10. ✅ Las lecturas de enlaces mágicos de aportes faltantes fallan al cerrarse con `404`.
 11. ✅ El panel de administración privado emite `noindex`, utiliza autenticación de enlace mágico, mantiene las mutaciones KV de usuario/referencia/revisor de vista previa separadas de los flujos de publicación respaldados por GitHub y mantiene las campañas de solo vista previa fuera de las rutas públicas hasta su lanzamiento.
 
 ---
@@ -189,6 +189,7 @@ Consulte [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/ma
 - **Automatización sobre operaciones:** GitHub Actions realiza todos los eventos basados en tiempo.
 - **Transferencia abierta:** El estado de la campaña y la plataforma sigue siendo revisable como Markdown/YAML, incluso cuando las ediciones de rutina se realizan a través del panel.
 - **Coherencia del diseño:** Utiliza el mismo lenguaje visual que Dust-wave-shop para lograr coherencia de marca.
+- **Administración consciente de los riesgos:** Los cambios de productos que afectan el dinero, los datos, los mensajes, la automatización, la visibilidad pública o el poder administrativo deben incluir la [revisión de riesgos éticos](/es/docs/development/ethical-risk-review/), mientras que las compensaciones aún son fáciles de cambiar.
 
 ## Aprendizajes críticos
 
@@ -197,14 +198,14 @@ Consulte [PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/ma
 3. **División por cero**: siempre verifique los denominadores antes de dividir en las plantillas de Liquid.
 4. **Compilación Sass**: Jekyll compila archivos `.scss` automáticamente cuando `sass:` está configurado en `_config.yml`.
 5. **Prerenderizado de cuenta regresiva**: Calcule los valores iniciales en el momento de la compilación (Jekyll) o el tiempo de renderizado (JS) para evitar el flash "00 00 00 00".
-6. **Flujo de datos de elementos de soporte**: Cart.js extrae elementos de soporte → El trabajador almacena en KV temporal → Webhook se fusiona en el compromiso final.
+6. **Flujo de datos de elementos de soporte**: Cart.js extrae elementos de soporte → El trabajador almacena en KV temporal → Webhook se fusiona en el aporte final.
 7. **Manejo de zona horaria compatible con el horario de verano**: toda la lógica de fecha límite (cuenta regresiva frontal, liquidación de trabajadores, transiciones de estado de campaña) utiliza `platform.timezone` / `PLATFORM_TIMEZONE` con `Intl.DateTimeFormat`; el valor predeterminado es `America/Denver`.
 8. **La seguridad del contenido debe mantenerse en el momento del procesamiento**: las auditorías de creación ayudan, pero la protección real proviene de la desinfección del enlace Markdown en tiempo de ejecución y la validación de inserción del origen exacto.
-9. **Los enlaces mágicos deben requerir filas de compromiso reales**: la validez del token por sí sola no es suficiente; Los registros de promesas faltantes no deberían cerrarse.
-10. **Chrome localizado debe permanecer compartido**: los controles de la página de la campaña y la copia de estado que pertenecen a la plataforma, no al creador, deben fluir a través del catálogo de configuración regional compartido para que las plantillas públicas, la interfaz de usuario en tiempo de ejecución y los correos electrónicos de los seguidores no se separen.
+9. **Los enlaces mágicos deben requerir filas de aporte reales**: la validez del token por sí sola no es suficiente; Los registros de aportes faltantes no deberían cerrarse.
+10. **Chrome localizado debe permanecer compartido**: los controles de la página de la campaña y la copia de estado que pertenecen a la plataforma, no al creador, deben fluir a través del catálogo de configuración regional compartido para que las plantillas públicas, la interfaz de usuario en tiempo de ejecución y los correos electrónicos de los patrocinadores no se separen.
 11. **El trabajo de rendimiento debe permanecer estático primero**: prefiera la salida estable de Jekyll, la minificación de activos generados, la carga en tiempo de ejecución diferida y la captación previa conservadora solo pública antes de agregar complejidad al cliente.
 12. **El trabajo del ciclo de vida de los medios debe permanecer respaldado por el repositorio**: las cargas del panel confirman primero los archivos fuente, la automatización del repositorio posee la optimización nativa de imágenes/videos y la limpieza en el momento de la publicación solo elimina los medios de la misma campaña que desaparecieron del contenido de autor y no se mencionan en ningún otro lugar.
 13. **Los datos de acceso a la vista previa deben permanecer fuera de la fuente**: Markdown de vista previa protegida solo incluye indicadores de vista previa; Los correos electrónicos de acceso previo pertenecen a listas permitidas de Worker KV de corta duración y enlaces firmados de 24 horas.
-14. **Las herramientas de marketing deben permanecer locales, indexadas o explícitas**: la generación de QR permanece local en el navegador, la atribución de Analytics y los simulacros de Blast utilizan índices de compromiso de campaña, los códigos de referencia guardados y los borradores compartidos son mutaciones KV explícitas con alcance de campaña, los borradores compartidos obsoletos fallan en conflictos de revisión y ninguno de estos flujos debe recurrir a escaneos de espacios de nombres.
+14. **Las herramientas de marketing deben permanecer locales, indexadas o explícitas**: la generación de QR permanece local en el navegador, la atribución de Analytics y los simulacros de Blast utilizan índices de aporte de campaña, los códigos de referencia guardados y los borradores compartidos son mutaciones KV explícitas con alcance de campaña, los borradores compartidos obsoletos fallan en conflictos de revisión y ninguno de estos flujos debe recurrir a escaneos de espacios de nombres.
 
 ---

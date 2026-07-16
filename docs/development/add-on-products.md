@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-June 20, 2026
+July 16, 2026
 
 This document describes the current add-on product system as it actually ships now.
 
@@ -21,7 +21,7 @@ The platform supports two add-on scopes that intentionally share the same card U
 Both scopes:
 
 - use the same cart and Manage Pledge card UI
-- support fixed-price items and simple variants
+- support base prices plus optional variant-specific price overrides
 - participate in canonical Worker-side totals, persistence, and inventory tracking
 - derive scarcity from saved pledge state rather than unsaved cart drafts
 
@@ -112,8 +112,14 @@ add_ons:
       variants:
         - { id: xs, label: XS, inventory: 1 }
         - { id: s, label: S, inventory: 2 }
-        - { id: m, label: M, inventory: 4 }
+        - { id: m, label: M, price: 27.50, inventory: 4 }
 ```
+
+Variant `price` is optional. A missing or blank value inherits the product `price`; a numeric value, including `0`, overrides it for that variant. The dashboard labels this field **Price override** and omits it from YAML when left blank, so existing add-ons and variants require no migration.
+
+Product and variant prices must be between `$0` and `$1,000,000`, inclusive. The dashboard rejects a catalog value outside that range before publish, the Worker independently rejects an out-of-range catalog price, and an out-of-range historical cent value is not preserved over the current valid catalog price. This matches the canonical checkout amount ceiling and prevents an unusable catalog from publishing successfully.
+
+The Worker is the price authority. Cart and Manage Pledge display catalog prices for new selections, but checkout and pledge modification recalculate them server-side. Existing pledge lines keep their saved cents-denominated `unitPrice` when the product and variant are unchanged, including quantity-only edits. Selecting a different variant uses that variant's current catalog price. Reports, analytics, emails, and fulfillment continue reading the persisted historical price rather than repricing old pledges.
 
 Campaign add-ons use the same product shape, but they live in campaign front matter:
 

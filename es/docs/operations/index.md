@@ -9,14 +9,16 @@ lang: es
 
 ## Última actualización
 
-31 de mayo de 2026
+16 de julio de 2026
 
-Esta sección cubre el panel de administración, el trabajador de compromiso, las opciones de tiempo de ejecución local, los controles de calidad y las reglas operativas que protegen el comportamiento de pago y cumplimiento.
+Esta sección cubre el panel de administración, el trabajador de aporte, las opciones de tiempo de ejecución local, los controles de calidad y las reglas operativas que protegen el comportamiento de pago y cumplimiento.
 
 ## Tiempo de ejecución local y servicios
 
 - [Panel de administración](/es/docs/operations/admin-dashboard/) para edición de campañas, informes, análisis, herramientas de marketing, carga de medios y gestión de usuarios basados ​​en navegador.
-- [Worker de promesas](/es/docs/operations/worker/) para secretos, espacios de nombres KV, webhooks, variables de entorno y puntos finales API.
+- [Worker de aportes](/es/docs/operations/worker/) para secretos, espacios de nombres KV, webhooks, variables de entorno y puntos finales API.
+- [Procesador de pagos](/es/docs/operations/payment-processor/) para configuración de Stripe, pago canónico, webhooks, liquidación y conciliación.
+- [Sistema de correo electrónico](/es/docs/operations/email-system/) para configuración del remitente, comportamiento, localización, entrega y reintentos del correo electrónico transaccional y de campaña.
 - [Podman Local Dev](/es/docs/operations/podman-local-dev/) para la pila local en contenedores, la matriz de soporte y el flujo de solución de problemas.
 
 ## Comprobaciones de calidad, seguridad y liberación
@@ -29,6 +31,7 @@ Esta sección cubre el panel de administración, el trabajador de compromiso, la
 
 ## Barandillas de Comercio y Plataforma
 
+- [Copia de seguridad, restauración y recuperación](/es/docs/operations/backup-restore/) para preparación de instantáneas, retención, orden de restauración, conciliación Stripe y evidencia de recuperación.
 - [Shipping](/es/docs/operations/shipping/) para el modelo de envío centrado en el trabajador, el límite de integración de USPS y la política alternativa.
 - [Calculadora de impuestos](/es/docs/operations/tax-calculator/) para modos de proveedor, configuración reflejada, comportamiento provisional del navegador y verificación de impuestos de pago.
 - [Accesibilidad](/es/docs/operations/accessibility/) para prioridades actuales, superficies críticas, cobertura y comprobaciones manuales.

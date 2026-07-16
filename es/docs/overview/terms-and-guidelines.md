@@ -10,108 +10,87 @@ lang: es
 
 ## Última actualización
 
-1 de julio de 2026
+16 de julio de 2026
 
-Estos términos reflejan el hito del lanzamiento de la plataforma The Pool **v1.0.8**.
+**Vigentes desde el 13 de julio de 2026.** Estos términos rigen el uso de The Pool, un servicio de crowdfunding operado por la persona operadora de la plataforma. Al usar el sitio, enviar un aporte o proporcionar contenido, aceptas estos términos y las condiciones específicas de la campaña que se muestren antes de confirmar el pago. Si una condición específica de campaña entra en conflicto con estos términos, se aplica la más específica para esa campaña, salvo que la ley lo prohíba.
 
-## Términos de compromiso
+## 1. Elegibilidad y uso aceptable
 
-- Todas las promesas son **todo o nada**. Su tarjeta se guarda de forma segura, pero se carga **solo si** la campaña alcanza su objetivo antes de la fecha límite.
-- Si una campaña no alcanza su objetivo de financiación, no se realizará ningún cargo en su tarjeta.
-- Puede modificar o cancelar su compromiso en cualquier momento antes de que finalice la campaña utilizando el enlace mágico en su correo electrónico de confirmación.
-- **No se requiere cuenta**: administre su contribución por completo a través de enlaces de correo electrónico.
-- Cuando esta implementación ofrezca idiomas adicionales, los enlaces de compromiso enviados por correo electrónico y los enlaces de la comunidad de seguidores pueden usar rutas localizadas sin dejar de autorizar el mismo compromiso.
-- Un único pago puede incluir más de una campaña, pero cada campaña se almacena y administra como su propio compromiso después del pago.
-- Los recordatorios del próximo lanzamiento de campaña son opcionales y separados de las promesas. Si opta por suscribirse, The Pool envía un recordatorio cuando la campaña se activa e incluye un enlace para cancelar la suscripción.
-- Los recordatorios de pagos abandonados son opcionales y separados de la promesa. Si opta explícitamente por registrarse durante el pago propio, The Pool puede enviar un recordatorio por un pago incompleto e incluye un enlace para cancelar la suscripción.
-- Algunas campañas se pueden compartir de forma privada antes del lanzamiento a través de enlaces de vista previa protegidos. Los enlaces de vista previa de Reviewer son solo por invitación, tienen alcance de campaña y caducan después de 24 horas.
-- Todas las fechas límite de la campaña utilizan la zona horaria de la plataforma configurada para esta implementación. Esta implementación tiene como valor predeterminado `America/Denver` a menos que los administradores de la plataforma la cambien.
-- Los votos de la comunidad se limitan a las opciones publicadas en la página de seguidores de una campaña y las decisiones cerradas no aceptan nuevos votos.
-- Si un enlace de administración apunta a un compromiso que ya no existe, The Pool lo trata como no disponible en lugar de reconstruir el acceso al compromiso del marcador de posición.
-- Las páginas de campañas públicas pueden incluir enlaces para compartir para plataformas externas, SMS y correo electrónico. Esos enlaces son solo para URL de campañas públicas y no incluyen tokens de administración de promesas, de pago, de comunidad de seguidores, de administración o de enlace mágico.
+Debes tener capacidad para celebrar un acuerdo vinculante y proporcionar datos correctos de contacto, pago, impuestos y envío. No uses el servicio de forma indebida, interfieras con su funcionamiento, intentes acceder a espacios privados, suplantes a otra persona, envíes material ilícito ni uses la plataforma para vulnerar derechos ajenos.
 
-## Procesamiento de pagos
+## 2. Aportes de todo o nada
 
-- Los detalles de tu tarjeta son manejados por **los campos de pago seguro de Stripe** integrados en el proceso de pago de The Pool. No almacenamos números de tarjeta completos ni valores CVC. No se realiza ningún cargo hasta que la campaña tenga éxito.
-- Si se financia una campaña, todas las promesas del mismo correo electrónico para esa campaña se combinan en un solo cargo.
-- Si un pago incluye más de una campaña financiada, cada campaña financiada puede generar su propio cargo porque las promesas y los acuerdos tienen un alcance de campaña.
-- Puede agregar una **propina de plataforma opcional** del 0 % al 15 % durante el proceso de pago. La propina predeterminada es del 5%.
-- Los consejos de plataforma opcionales apoyan el mantenimiento de The Pool y están incluidos en el total de su contribución, pero **no cuentan para el objetivo de financiación de una campaña**.
-- Esta implementación también puede ofrecer **complementos de plataforma opcionales** junto con un compromiso. Los complementos de la plataforma respaldan el mantenimiento de The Pool, se incluyen en el total de su contribución y **no cuentan para el objetivo de financiación de una campaña**.
-- Una campaña también puede ofrecer **complementos de campaña opcionales** junto con sus niveles de compromiso. Los complementos de la campaña se incluyen en el total de su compromiso, **cuentan para el objetivo de financiación de esa campaña** y permanecen asociados con esa campaña para informes y cumplimiento.
-- El impuesto sobre las ventas se aplica según las reglas impositivas configuradas para esta implementación. Dependiendo de la implementación, puede ser una tarifa fija configurada o un cálculo de impuestos basado en la ubicación según el destino de facturación o envío que proporcione durante el proceso de pago o cambios de promesa posteriores.
-- Las promesas de productos físicos, los complementos de campañas físicas o los complementos de plataformas físicas pueden incluir cargos de envío configurados para la implementación. Dependiendo de esta implementación y configuración de la campaña, el envío puede cotizarse desde USPS, utilizar una tarifa alternativa configurada, incluir anulaciones de envío gratuito u ofrecer opciones limitadas de actualización de firma nacional. Los complementos de campaña siguen las reglas de envío de la campaña propietaria; Los complementos de la plataforma física se pueden cobrar como un envío de plataforma separado. Su dirección de envío se recopila durante el proceso de pago para que se puedan obtener las recompensas físicas.
-- Para algunos carritos solo digitales o mixtos, The Pool también puede solicitar suficiente información sobre la ubicación de facturación para calcular el impuesto antes de finalizar el total del compromiso. Si aún no está disponible un resultado de impuestos preciso, el carrito puede mostrar los impuestos como una estimación hasta que el pago tenga suficientes detalles del destino.
-- Si hay una opción de entrega disponible para su envío y la cambia al finalizar la compra o en Administrar compromiso, el total de envío almacenado y el total del compromiso se recalculan a partir del estado del compromiso guardado antes de que el cambio persista.
-- Si modifica una promesa, The Pool vuelve a calcular los totales a partir del estado de la promesa guardada y las definiciones de campaña o complemento vigentes para esa implementación, en lugar de confiar en los campos de dinero enviados por el navegador.
-- Los correos electrónicos transaccionales y los enlaces de acceso de los seguidores pueden reflejar la marca configurada de esta implementación y la estructura de ruta localizada, pero cada enlace de administración enviado por correo electrónico aún autoriza solo el compromiso vinculado a ese pedido específico.
-- Los informes programados de los ejecutores de campaña, los cambios de estado de la campaña y las verificaciones de liquidación utilizan la misma zona horaria configurada de la plataforma que las fechas límite de la campaña. Los cheques de liquidación se serializan por campaña para evitar cargos de campaña duplicados.
+- Un aporte es un compromiso condicionado de apoyo a una campaña. Stripe guarda tu método de pago, pero no se realiza ningún cobro de campaña cuando haces el aporte inicial.
+- Puedes modificar o cancelar el aporte mediante su enlace seguro de gestión mientras la campaña siga abierta.
+- Si la campaña no alcanza su meta antes de la fecha límite, el aporte de campaña no se cobra.
+- Si la campaña alcanza su meta, The Pool puede cobrar el método de pago guardado después de que termine. Los aportes de un mismo correo a la misma campaña exitosa pueden combinarse en un solo cobro; las campañas diferentes se liquidan por separado.
+- Los niveles de recompensa, el apoyo directo, los montos personalizados y los complementos de campaña cuentan para la meta. Los impuestos, el envío, los complementos de plataforma y las propinas opcionales para la plataforma no cuentan.
+- Un método de pago rechazado o vencido puede impedir que se complete el aporte. Podemos pedirte que lo actualices, pero no prometemos recuperar todos los pagos fallidos.
 
-## Control creativo y envíos
+## 3. Precios, pagos, impuestos y cargos opcionales
 
-Esta sección se aplica solo a campañas que solicitan explícitamente envíos creativos (por ejemplo, derechos de nombres, ideas para historias, mensajes personalizados). Si una campaña no incluye niveles basados ​​en envíos, esta sección no se aplica a su compromiso.
+Los precios se muestran en dólares estadounidenses, salvo que se indique otra cosa. Antes de guardar o cobrar un aporte, el servidor verifica los precios actuales del catálogo, las variantes seleccionadas, el envío, los impuestos, las propinas, los complementos y los totales de campaña. Los totales mostrados por el navegador pueden seguir siendo estimados hasta contar con suficiente información del destino.
 
-- Usted nos otorga una licencia amplia e irrevocable para utilizar los medios/texto enviados en la producción.
-- Conservamos la discreción creativa; Se rechazarán las instrucciones inseguras, ilegales, difamatorias o inviables.
-- Los envíos deben cumplir con nuestras pautas de contenido (sin discursos de odio, acoso o contenido ilegal).
-- Nos reservamos el derecho de adaptar o modificar las presentaciones para adaptarlas a la visión creativa y las limitaciones de producción.
+Stripe gestiona los números completos de tarjeta y los códigos de seguridad; The Pool no los almacena. Los impuestos sobre ventas y el envío aplicables se muestran durante el proceso de pago cuando pueden calcularse. Las propinas y los complementos opcionales se identifican por separado antes de que confirmes el aporte.
 
-## Cumplimiento
+## 4. Envío y preparación de recompensas
+{: #shipping-policy}
 
-- El tiempo de cumplimiento puede ajustarse a las realidades de la producción.
-- Proporcionaremos actualizaciones periódicas sobre el progreso de la producción y los plazos de entrega.
-- Las recompensas digitales se entregarán por correo electrónico a la dirección proporcionada durante el compromiso.
-- Las recompensas físicas, los complementos de campaña físicos y los complementos de plataforma física se envían a la dirección recopilada durante el proceso de pago. Cualquier cargo de envío que se muestre durante el proceso de pago se almacena con el compromiso y se incluye en el total del compromiso.
+- Las recompensas y los productos físicos se envían a la dirección guardada con el aporte. Es tu responsabilidad revisarla y usar el enlace de gestión para solicitar cambios permitidos antes de que comience la preparación del envío.
+- Salvo que una campaña indique otra cosa, los artículos físicos se envían desde Nuevo México, Estados Unidos. Los destinos disponibles, métodos, condiciones de envío gratuito, opciones de firma y cargos son los que se muestran durante el proceso de pago.
+- Las páginas de campaña y producto pueden mostrar una fecha o periodo estimado de disponibilidad o entrega. Son estimaciones de buena fe, no fechas de entrega garantizadas. La producción creativa, la fabricación, el inventario, el clima, las aduanas, las operaciones del transportista y otros acontecimientos pueden causar retrasos.
+- Si se ofrece entrega internacional, la persona destinataria es responsable de aranceles, cargos de intermediación e impuestos locales que no se hayan cobrado durante el proceso de pago, salvo que la campaña indique expresamente otra cosa.
+- Los retrasos o pérdidas del transportista se revisan con los registros disponibles de seguimiento, dirección y preparación. Contáctanos pronto si el seguimiento parece detenido, indica una entrega en un lugar incorrecto o marca el paquete como entregado cuando no lo recibiste.
+- Las recompensas digitales se entregan al correo asociado con el aporte, salvo que la campaña indique otro método.
 
-## Reembolsos y Cancelaciones
+## 5. No devoluciones, problemas de entrega y reembolsos
+{: #returns-refunds}
 
-- **Antes de financiar:** Cancele en cualquier momento a través de su enlace de administración de contribuciones. No se realizará ningún cargo a tu tarjeta.
-- **Después de la financiación:** Una vez que una campaña alcanza su objetivo y se procesan los cargos, los reembolsos se manejan caso por caso.
-- Las promesas canceladas nunca se cobran.
-- Contáctenos en support@example.com para solicitudes de reembolso o problemas.
+**Política predeterminada: no se aceptan devoluciones ni cambios.** Una vez cobrado un aporte de campaña exitoso o un pedido de producto, las recompensas, los complementos de campaña y los productos de plataforma son venta final. No aceptamos devoluciones ni cambios por arrepentimiento, preferencia, ajuste o talla.
 
-## Privacidad y datos
+Esta política de venta final no elimina las soluciones disponibles para un artículo dañado, defectuoso, incorrecto o faltante:
 
-- Recopilamos solo la información necesaria para procesar las promesas y cumplir con las recompensas: correo electrónico, nombre, detalles de la promesa/pedido y, para recompensas físicas, complementos físicos de campaña o complementos de plataforma física, una dirección de envío.
-- Stripe maneja y almacena todos los detalles de la tarjeta. The Pool no almacena números de tarjeta completos ni valores CVC.
-- Las direcciones de correo electrónico y cualquier detalle de envío necesario para el cumplimiento pueden almacenarse en nuestro sistema para la gestión de promesas, confirmaciones específicas de campañas, actualizaciones de campañas y cumplimiento de recompensas.
-- Si se registra para recibir un recordatorio del próximo lanzamiento de una campaña, su correo electrónico se almacena en registros de recordatorio con alcance de campaña para que The Pool pueda enviar ese recordatorio, evitar envíos duplicados y respetar las cancelaciones de suscripción de esa campaña. Los registros de recordatorio pueden usar Cloudflare Turnstile para reducir el abuso.
-- Si opta por un recordatorio de pago abandonado, su correo electrónico y un registro de recordatorio de pago limitado pueden almacenarse brevemente para que The Pool pueda enviar un seguimiento, evitar envíos duplicados, restaurar el contexto de pago inacabado desde un enlace de recordatorio firmado, eliminar el recordatorio después de un compromiso completado y cumplir con las solicitudes de cancelación de suscripción.
-- Los operadores de campaña autorizados pueden ver el estado agregado de los recordatorios de pago abandonado para las campañas que administran y pueden establecer registros de supresión en el ámbito de la campaña. Esos controles utilizan identificadores de correo electrónico con hash y contadores agregados en lugar de exponer listas de destinatarios de recordatorios.
-- Los operadores de campaña autorizados pueden enviar mensajes de apoyo específicos de la campaña a los partidarios de las campañas que tienen permitido gestionar. Los correos electrónicos masivos utilizan el sistema de correo electrónico transaccional compartido, pueden incluir imágenes de campaña alojadas y enlaces de campaña ordinarios, y no deben exponer datos de partidarios de la campaña no relacionados.
-- Los operadores de campaña autorizados pueden guardar explícitamente borradores compartidos de Marketing o Blast para las campañas que administran. Estos borradores tienen un alcance de campaña, caducan después de un breve período de retención y pueden incluir borradores de líneas de asunto, enlaces de campaña, texto de CTA y referencias de medios alojadas en la campaña.
-- Los organizadores de la campaña pueden recibir informes del alcance de la campaña o exportaciones de cumplimiento que contengan detalles de los pedidos/partidarios necesarios para ejecutar esa campaña específica, coordinar la entrega o enviar actualizaciones relacionadas con la producción. Esos informes se limitan a la campaña que un partidario respaldó en lugar de exponer promesas de campaña no relacionadas.
-- Los operadores de campaña autorizados también pueden ver filas de seguidores, informes, análisis, datos de cumplimiento y contenido de la campaña relacionados con la campaña a través del panel de administración privado de The Pool. El acceso al panel tiene un alcance de roles: los usuarios de la campaña solo ven las campañas asignadas, mientras que los administradores de la plataforma pueden ver los datos operativos de toda la plataforma necesarios para ejecutar The Pool.
-- Los operadores de campaña autorizados pueden utilizar vistas previas protegidas para revisar los borradores de las páginas de la campaña antes del lanzamiento. Las listas de correo electrónico permitidos de revisores explícitos se almacenan solo durante la breve ventana de vista previa y no están destinadas a páginas de campañas públicas.
-- Si un administrador de plataforma autorizado archiva una campaña, los datos de origen de la campaña y los medios cargados propiedad de la campaña pueden conservarse en el archivo del repositorio para registros operativos en lugar de eliminarse.
-- Cuando un compromiso incluye artículos complementarios cumplidos por la plataforma, los operadores de la plataforma pueden recibir por separado exportaciones de cumplimiento solo de la plataforma limitadas a los artículos que deben entregar.
-- Los administradores de la plataforma pueden usar el panel para administrar la configuración de la campaña, la configuración de la plataforma, los complementos, los enlaces de referencia, los borradores de marketing compartidos y los usuarios autorizados del panel. Los valores secretos se guardan en almacenes secretos de implementación o en archivos locales ignorados, no en el contenido de la campaña ni en los borradores del panel.
-- Los complementos de plataforma con inventario limitado utilizan el estado de promesa guardado, no los borradores del carrito en progreso, para determinar el stock restante.
-- Los complementos de campaña con inventario limitado también utilizan el estado del compromiso guardado, no los borradores del carrito en progreso, para determinar el stock restante.
-- El acceso a la comunidad de seguidores en el navegador puede recordarse para la sesión actual por conveniencia, pero el enlace mágico enviado por correo electrónico sigue siendo la fuente de verdad para el acceso.
-- Las páginas públicas pueden precargar páginas públicas elegibles del mismo origen después de pasar el cursor, enfocar o tocar para agilizar la navegación normal. Este comportamiento de captación previa excluye enlaces de administración, pago, gestión de compromiso, comunidad de seguidores, tokenizados, externos y de consultas confidenciales.
-- Las páginas de vista previa protegidas son superficies de revisión privadas. Están excluidos del mapa del sitio público, de la vista previa social y de la intención de indexación hasta que se lance públicamente una campaña.
-- Las páginas de campañas públicas pueden aplazar las incrustaciones de medios de terceros seleccionados, como vídeos destacados de YouTube, hasta que usted decida reproducirlos. Hasta entonces, la página puede mostrar una imagen de póster local en lugar de comunicarse con ese proveedor de inserción externo.
-- Los enlaces para compartir de la campaña pueden preservar la referencia pública segura o los parámetros de consulta UTM para que los responsables de la campaña puedan comprender las fuentes de promoción pública. No conservan tokens, pedidos, correos electrónicos, sesiones ni otros parámetros de consulta confidenciales.
-- Los operadores de plataforma autorizados pueden cargar el estado de uso del plan de Cloudflare y Reenviar en el panel de administración privado. Esas comprobaciones de proveedores utilizan credenciales del lado del servidor y no envían detalles de promesas, correos electrónicos de seguidores, direcciones de envío ni datos de pago a los puntos finales de uso.
-- El panel de administración privado puede recordar el último espacio de trabajo de pestaña/subpestaña de un operador autorizado en ese navegador. Esta preferencia de UI es local del navegador y no se usa para conceder acceso más allá del rol de administrador con sesión iniciada.
-- No vendemos su información. Lo compartimos solo cuando sea necesario para el procesamiento de pagos, la entrega de correos electrónicos transaccionales, la prevención de abusos, el cálculo de cotizaciones de envío y el cumplimiento de recompensas.
+1. Escribe a [support@example.com](mailto:support@example.com) tan pronto como sea razonablemente posible y, por lo general, dentro de los **siete días calendario posteriores a la fecha en que el transportista marque el envío como entregado**.
+2. Incluye la referencia del aporte o pedido, una descripción del problema y fotos claras del artículo, empaque y etiqueta de envío cuando estén razonablemente disponibles.
+3. Verificamos el reporte con los registros disponibles de seguimiento y preparación. Si el envío no tiene seguimiento o no existe una fecha confiable de entrega, revisamos de buena fe el momento del reporte y la evidencia.
+4. Cuando se verifica el problema, la solución disponible puede ser reparación, reemplazo, entrega de artículos faltantes o reembolso del artículo afectado, según el problema y el inventario disponible.
 
-## Plataforma y tecnología
+El periodo de siete días es una **pauta para reportar problemas, no un plazo de devolución**. Un reporte posterior no elimina derechos que legalmente no puedan excluirse, aunque la demora puede dificultar una reclamación al transportista o la verificación de los hechos.
 
-The Pool es una [plataforma de financiación colectiva de código abierto](https://github.com/your-org/your-project) construida con:
+Antes de que una campaña se financie, puedes cancelar el aporte mientras siga abierta y no se realizará ningún cobro de campaña. Si una recompensa cobrada no puede entregarse, la campaña o la persona operadora de la plataforma proporcionará un plan actualizado y podrá ofrecer una entrega posterior, un sustituto razonable con tu aprobación o un reembolso por el artículo no entregado. Los cobros duplicados, errores del procesador, sospechas de fraude y reembolsos exigidos por la ley se revisan por separado de las devoluciones ordinarias.
 
-- **Jekyll en [GitHub Pages](https://docs.github.com/en/pages)** — Generación de sitios estáticos
-- **Tiempo de ejecución del carrito del grupo**: administración de carrito propia, complementos de pago, revisión de promesas y carga diferida de páginas públicas hasta que el estado del carrito o la intención del patrocinador requieran el conjunto completo del carrito.
-- **[Stripe](https://stripe.com)** — Campos de pago seguros, métodos de pago guardados y procesamiento de pagos
-- **[Cloudflare Workers](https://workers.cloudflare.com)** — API backend para validación de promesas canónicas, almacenamiento de promesas, estadísticas en vivo y liquidación de campañas automatizada
-- **Panel de administración privado**: edición de campañas según roles, vistas previas protegidas, creación de nuevas campañas, informes, análisis, vistas de seguidores, enlaces de marketing, gestión de usuarios y operaciones de plataforma.
-- **[Resend](https://resend.com)** — Correos electrónicos transaccionales (confirmaciones, recordatorios de lanzamiento, recordatorios de pago, campañas explosivas, actualizaciones, notificaciones de cargos)
+## 6. Riesgos de campaña y responsabilidad de los creadores
 
-Los datos de la promesa se almacenan en Cloudflare KV. Esta arquitectura significa menores costos generales y una mayor parte de su contribución se destina directamente al proyecto, con puntas de plataforma opcionales que ayudan a cubrir el mantenimiento de The Pool. Las compilaciones de producción también minimizan los activos CSS/JS generados después de la generación del sitio estático, generan variantes de imágenes responsivas para páginas públicas y permiten que Cloudflare maneje la compresión de transferencia en el borde. La automatización del ciclo de vida de la campaña utiliza la zona horaria configurada de la plataforma para que los plazos, las cuentas regresivas, los informes y las comprobaciones de liquidación se mantengan alineados.
+El crowdfunding apoya obras que aún pueden estar en desarrollo. Los planes creativos, calendarios, diseños, reparto, métodos de producción y detalles de entrega pueden cambiar. Los creadores de campaña son responsables de describir su proyecto con honestidad, usar los fondos para el proyecto anunciado, comunicar cambios importantes y hacer esfuerzos razonables para completar las recompensas prometidas. The Pool proporciona la plataforma y las herramientas operativas, pero no garantiza que cada proyecto o recompensa se complete exactamente como se describió al principio.
 
-## Preguntas
+## 7. Contribuciones creativas
 
-Si tiene preguntas sobre estos términos o su compromiso, envíenos un correo electrónico a support@example.com.
+Esta sección solo se aplica cuando una campaña solicita expresamente nombres, mensajes, imágenes, grabaciones, ideas de historia u otro material creado por patrocinadores. Confirmas que tienes derecho a enviar ese material. Otorgas al creador de la campaña y a la persona operadora de la plataforma una licencia mundial y libre de regalías para alojarlo, reproducirlo, editarlo, adaptarlo y usarlo en la campaña, la producción relacionada, la entrega y la promoción. Una campaña puede rechazar o modificar material inseguro, ilícito, difamatorio, infractor, que fomente el odio o el acoso, técnicamente inutilizable o contrario a la dirección creativa del proyecto.
 
----
+## 8. Comunicaciones y enlaces de acceso
+
+Las confirmaciones de aporte, avisos de pago, mensajes de entrega y actualizaciones importantes de campaña son comunicaciones transaccionales. Los recordatorios opcionales de lanzamiento y de procesos de pago incompletos requieren el consentimiento descrito al registrarte e incluyen una forma de cancelar la suscripción. No compartas enlaces seguros de gestión de aportes, comunidad de patrocinadores, vista previa o administración con personas no autorizadas. El acceso puede revocarse cuando un enlace vence, se usa indebidamente o deja de apuntar a un registro activo.
+
+## 9. Privacidad y datos
+
+The Pool recopila la información necesaria para operar el servicio, incluidos datos de contacto, aportes y pedidos, interacciones de campaña e información de envío para artículos físicos. Stripe gestiona los datos completos de las tarjetas. Cloudflare proporciona la infraestructura del sitio y del Worker; Resend entrega correos; y los proveedores de envío, impuestos y prevención de abusos reciben datos limitados cuando se necesita su servicio.
+
+Las personas operadoras autorizadas pueden acceder a información de patrocinadores, reportes y entrega solo para las campañas que tienen permiso de gestionar. Las personas administradoras de plataforma pueden acceder a la información necesaria para operar, proteger, conciliar, dar soporte, respaldar o restaurar la plataforma. No vendemos información personal. Los registros pueden conservarse para la entrega, contabilidad, prevención de fraude, obligaciones legales, gestión de disputas y recuperación ante desastres, y después eliminarse o reducirse cuando ya no sean razonablemente necesarios.
+
+Para hacer una pregunta de privacidad o solicitar que revisemos la información asociada con tu correo, escribe a [support@example.com](mailto:support@example.com). Es posible que debamos verificar que controlas el correo o aporte correspondiente antes de responder.
+
+## 10. Propiedad intelectual y código abierto
+
+Los creadores conservan los derechos sobre los materiales de campaña, sujetos a los permisos necesarios para mostrar, promocionar, administrar y archivar sus campañas. El nombre The Pool, la marca y el contenido del sitio pertenecen a sus respectivos titulares. El código fuente de la plataforma está disponible bajo la licencia publicada en su [repositorio de GitHub](https://github.com/aindaco1/pool); esa licencia de software no otorga derechos sobre material de campaña, contribuciones de patrocinadores, marcas ni datos privados.
+
+## 11. Disponibilidad, exenciones y responsabilidad
+
+El servicio se ofrece “según disponibilidad”. Trabajamos para mantener confiables los registros de aportes, la liquidación, el correo y las páginas públicas, pero no prometemos un funcionamiento ininterrumpido ni libre de errores. En la medida máxima permitida por la ley, la persona operadora de la plataforma no responde por daños indirectos, incidentales, especiales, consecuentes o punitivos derivados del uso del servicio, el desempeño de una campaña, cambios de producción o retrasos del transportista. Nada en estos términos excluye responsabilidades o derechos del consumidor que legalmente no puedan excluirse.
+
+## 12. Cambios a estos términos
+
+Podemos actualizar estos términos para reflejar cambios de producto, legales u operativos. La fecha de vigencia se actualizará cuando cambien de forma importante los términos públicos. Los cambios se aplican hacia el futuro, salvo que la ley exija otra cosa. Los cambios importantes específicos de una campaña también deben comunicarse a las personas afectadas mediante los canales normales de actualización de esa campaña.
+
+## 13. Contacto
+
+Envía tus preguntas sobre aportes, pagos, envíos, problemas de entrega, privacidad o estos términos a [support@example.com](mailto:support@example.com). Incluye el nombre de la campaña y la referencia del aporte o pedido cuando corresponda; no envíes por correo números completos de tarjeta ni códigos de seguridad.

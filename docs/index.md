@@ -8,7 +8,7 @@ description: Frequently asked questions and a recommended reading path for The P
 
 ## Last Updated
 
-June 9, 2026
+July 16, 2026
 
 This page is the **fastest way to get oriented** before you dive into the full docs.
 
@@ -59,15 +59,16 @@ Yes. The Pool is **open source** and documented for contributors, maintainers, a
 1. [About The Pool](/docs/overview/about-the-pool/) for product scope, supporter model, stack, and deployment shape.
 2. [Project Overview](/docs/development/project-overview/) for the system map and architecture boundaries.
 3. [Workflows](/docs/development/workflows/) for pledge lifecycle, state, and Worker routes.
-4. [Pledge Worker](/docs/operations/worker/) for secrets, KV setup, and API endpoints.
-5. [Admin Dashboard](/docs/operations/admin-dashboard/) when you are editing campaigns, settings, add-ons, reports, analytics, marketing links, media, or users.
-6. [Testing Guide](/docs/operations/testing/) before shipping any behavioral change.
+4. [Payment Processor](/docs/operations/payment-processor/) for canonical checkout, Stripe webhooks, settlement, and reconciliation.
+5. [Pledge Worker](/docs/operations/worker/) for secrets, KV setup, and API endpoints.
+6. [Admin Dashboard](/docs/operations/admin-dashboard/) when you are editing campaigns, settings, add-ons, reports, analytics, marketing links, media, or users.
+7. [Testing Guide](/docs/operations/testing/) before shipping any behavioral change.
 
 ## Browse By Section
 
 Start with the section that matches the kind of work you are doing:
 
 - [Overview](/docs/overview/) for public-facing context, platform framing, and policy pages.
-- [Development](/docs/development/) for contributor setup, architecture, customization, embeds, localization, and extension work.
-- [Operations](/docs/operations/) for Worker setup, local environments, shipping, security, accessibility, SEO, and merge readiness.
+- [Development](/docs/development/) for contributor setup, architecture, customization, embeds, localization, ethical review, and extension work.
+- [Operations](/docs/operations/) for Worker and payment setup, email, backup/recovery, local environments, shipping, security, accessibility, SEO, and merge readiness.
 - [Reference](/docs/reference/) for release notes, roadmap context, and shared process templates.

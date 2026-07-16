@@ -10,252 +10,168 @@ lang: es
 
 ## Última actualización
 
-5 de julio de 2026
+16 de julio de 2026
 
-Este documento está dirigido a personas y LLM que trabajan en bifurcaciones de **The Pool**. Es una guía práctica para el operador para realizar cambios seguros en este repositorio sin dessincronizar el sitio, el trabajador, las matemáticas de pago o el comportamiento público/localizado.
+Esta es la guía operativa para personas y agentes de codificación que trabajan en **The Pool**. Úselo para realizar cambios seguros sin desincronizar el sitio estático, Cloudflare Worker, las matemáticas de pago, la administración privada o el comportamiento localizado.
 
-Utilice esto junto con:
+Léelo junto a:
 
-- [README.md](/es/docs/overview/about-the-pool/) para ver la descripción general actual del producto y la arquitectura
-- [docs/CUSTOMIZATION.md](/es/docs/development/customization-guide/) para la superficie de configuración compatible orientada hacia la bifurcación
-- [docs/PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md) para configuración de Stripe, canonicalización de pago, webhooks, liquidación y conciliación
-- [docs/EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md) para configuración de Resend, identidad del remitente, plantillas de correo electrónico, localización y comportamiento de entrega
-- [docs/TESTING.md](/es/docs/operations/testing/) para verificación local y expectativas de fusión
-- [docs/I18N.md](/es/docs/development/internationalization/) para reglas de traducción y enrutamiento local
-- [docs/SEO.md](/es/docs/operations/seo/) para metadatos, tarjetas compartidas y comportamiento de indexación
-- [docs/EMBEDS.md](/es/docs/development/campaign-embeds/) para el sistema de inserción de campaña alojado
-- [docs/PERFORMANCE.md](/es/docs/operations/performance/) para obtener rendimiento de páginas públicas, minificación de activos generados, compresión de Cloudflare y captación previa de intenciones segura
-- [docs/DASHBOARD.md](/es/docs/operations/admin-dashboard/) para el panel de administración del navegador y el modelo de edición
+- [README.md](/es/docs/development/platform-readme/) para ver la descripción general del producto y la arquitectura
+- [docs/CUSTOMIZATION.md](/es/docs/development/customization-guide/) para conocer la superficie de configuración orientada hacia la horquilla admitida
+- [docs/PAYMENT_PROCESSOR.md](/es/docs/operations/payment-processor/) para Stripe, pago canónico, webhooks, liquidación y conciliación
+- [docs/ADD_ON_PRODUCTS.md](/es/docs/development/add-on-products/) para conocer los precios de complementos específicos de la plataforma, la campaña y la variante
+- [docs/DASHBOARD.md](/es/docs/operations/admin-dashboard/) para administración y edición privadas
+- [docs/PERFORMANCE.md](/es/docs/operations/performance/) para presupuestos, Lighthouse, almacenamiento en caché y observabilidad en tiempo de ejecución
+- [docs/SECURITY.md](/es/docs/operations/security/) para conocer los límites de seguridad y los controles de liberación
+- [docs/BACKUP_RESTORE.md](/es/docs/operations/backup-restore/) para respaldo, restauración y recuperación ante desastres
+- [docs/TESTING.md](/es/docs/operations/testing/) para verificación local y puertas de fusión
+- [docs/ROADMAP.md](/es/docs/reference/roadmap/) para trabajos planificados y completados
 
 ## Forma del proyecto
 
 The Pool es un sistema dividido:
 
-- el sitio estático es Jekyll + Sass + navegador JavaScript, publicado desde GitHub Pages
-- el lado API/pago/tiempo de ejecución es un trabajador de Cloudflare en `worker/`
-- Stripe maneja el cobro de pagos y los métodos de pago guardados
-- el contenido y la configuración de la campaña se encuentran principalmente en rebajas/fronteras bajo `_campaigns/`
-- El panel de administración privado es la superficie de operaciones y edición del navegador compatible para configuraciones, complementos, campañas, informes, análisis, seguidores, enlaces de marketing y usuarios.
+- Jekyll, Sass y JavaScript del navegador crean el sitio estático publicado a través de GitHub Pages.
+- El Cloudflare Worker en `worker/` posee API, validación de pago canónico, persistencia de aportes, correos electrónicos, estadísticas en vivo, liquidación, tarjetas compartidas y administración privilegiada.
+- Stripe recopila pagos y almacena métodos de pago.
+- La configuración de la campaña se encuentra principalmente en `_campaigns/`; La configuración de la plataforma y los productos se encuentran en `_config.yml`.
+- El panel privado es la superficie del navegador compatible con configuraciones, complementos, campañas, informes, análisis, patrocinadores, enlaces de marketing, diagnósticos y usuarios.
 
-El límite importante es:
+Si un cambio afecta el precio, la disponibilidad, el progreso de la campaña, el estado del aporte, el contenido del correo electrónico o el estado de la campaña activa, suponga que tanto el sitio como Worker están involucrados incluso cuando el síntoma aparezca en un solo lado.
 
-- el sitio muestra la interfaz de usuario, el contenido de la campaña, los flujos de carritos, las páginas localizadas, las incrustaciones y los metadatos de SEO
-- el Trabajador es la fuente canónica para la validación de pagos, persistencia de promesas, estadísticas en vivo, correos electrónicos, liquidaciones y generación de PNG/SVG de tarjetas compartidas.
+## fuentes de verdad
 
-Si un cambio afecta los precios, los totales de la campaña, la disponibilidad, el estado del compromiso, el contenido del correo electrónico o el estado de la campaña en vivo, asuma que el Trabajador está involucrado incluso si el primer síntoma está en el sitio.
-
-## Fuente de la verdad
-
-Cuando necesite comprender o cambiar un comportamiento, comience aquí:
-
-- [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml): configuración canónica orientada hacia la horquilla
-- [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml): solo anulaciones locales
-- [`_campaigns/`](https://github.com/your-org/your-project/tree/main/_campaigns): contenido de la campaña, niveles, objetivos, datos del diario, enlaces comunitarios, productos relacionados con la campaña
-- [`_data/i18n/`](https://github.com/your-org/your-project/tree/main/_data/i18n): UI compartida/tiempo de ejecución/copia de correo electrónico por idioma
-- [`_layouts/`](https://github.com/your-org/your-project/tree/main/_layouts) y [`_includes/`](https://github.com/your-org/your-project/tree/main/_includes): páginas públicas, páginas de campaña, incrustaciones, SEO, ayudas de enrutamiento localizado
-- [`assets/`](https://github.com/your-org/your-project/tree/main/assets): tiempo de ejecución de JS, parciales de Sass compartidos, variables de tema, carga útil i18n generada
-- [`worker/src/`](https://github.com/your-org/your-project/tree/main/worker/src): pago, webhooks, estadísticas en vivo, envío de correo electrónico, vistas previas de acciones, liquidación, lógica de administración/informe
-- [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml): Cableado del entorno del trabajador reflejado desde la configuración del sitio más los valores predeterminados locales/de desarrollo
-- [`tests/`](https://github.com/your-org/your-project/tree/main/tests): unidad, seguridad y expectativas E2E
-- [`scripts/`](https://github.com/your-org/your-project/tree/main/scripts): desarrollo local, puerta de fusión, pruebas de humo, informes y asistentes de sincronización
-- [`docs/DASHBOARD.md`](/es/docs/operations/admin-dashboard/): referencia de operaciones y edición del panel de administración privado
-- [`docs/PAYMENT_PROCESSOR.md`](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md): referencia de configuración, flujo y operaciones del procesador de pagos
-- [`docs/EMAIL.md`](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md): referencia de integración y configuración de correo electrónico
+- [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml): configuración canónica de plataforma orientada hacia la horquilla
+- [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml): solo anulaciones locales de la máquina
+- [`_campaigns/`](https://github.com/your-org/your-project/tree/main/_campaigns): contenido de la campaña, niveles, objetivos, datos del diario y complementos de la campaña
+- [`_data/i18n/`](https://github.com/your-org/your-project/tree/main/_data/i18n): interfaz de usuario localizada compartida, tiempo de ejecución y copia por correo electrónico
+- [`_data/media-optimization-manifest.json`](https://github.com/your-org/your-project/blob/main/_data/media-optimization-manifest.json): metadatos de medios del repositorio reconstruibles; Los archivos fuente siguen siendo autorizados.
+- [`_layouts/`](https://github.com/your-org/your-project/tree/main/_layouts) y [`_includes/`](https://github.com/your-org/your-project/tree/main/_includes): páginas públicas, páginas de campaña, incrustaciones, SEO y ayudantes locales
+- [`assets/`](https://github.com/your-org/your-project/tree/main/assets): tiempo de ejecución del navegador, Sass, temas y recursos localizados generados
+- [`worker/src/`](https://github.com/your-org/your-project/tree/main/worker/src): pago autorizado, webhooks, estadísticas, correos electrónicos, liquidación, administración e informes
+- [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml): cableado del entorno Worker y valores predeterminados reflejados
+- [`config/performance-budgets.json`](https://github.com/your-org/your-project/blob/main/config/performance-budgets.json): umbrales de rendimiento del ejecutable público y del tiempo de ejecución
+- [`config/pool-data-inventory.json`](https://github.com/your-org/your-project/blob/main/config/pool-data-inventory.json): inventario de clasificación, retención y recuperación de datos
+- [`tests/`](https://github.com/your-org/your-project/tree/main/tests): unidad, seguridad, accesibilidad y contratos de extremo a extremo
+- [`scripts/`](https://github.com/your-org/your-project/tree/main/scripts): desarrollo local, puertas de liberación, pruebas de humo, auditorías y sincronización
+- [`docs/release-evidence/`](https://github.com/your-org/your-project/tree/main/docs/release-evidence): registros de verificación específicos de la versión
 
 ## Flujo de trabajo seguro
 
-Para un desarrollo normal, prefiera:
+Inspeccione `git status` antes de editar. Los cambios existentes pertenecen al usuario a menos que la tarea los incluya explícitamente; no los sobrescriba, los descarte ni los incluya silenciosamente en una confirmación.
+
+Para un desarrollo local normal:
 
 ```bash
 npm run podman:doctor
 ./scripts/dev.sh --podman
 ```
 
-Esa ruta mantiene el sitio y el trabajador funcionando junto con los valores predeterminados esperados del repositorio.
-
-Para la verificación final, use el comando más limitado que pruebe el cambio, luego ejecute la puerta más amplia antes de fusionar cuando el cambio sea sustancial:
+Utilice la prueba enfocada más específica que demuestre un cambio, luego ejecute la puerta previa a la fusión completa para un cambio sustancial o de lanzamiento:
 
 ```bash
-./scripts/pre-merge-regression.sh
+npm run test:premerge
 ```
 
-Comprobaciones útiles y enfocadas:
+Los controles enfocados útiles incluyen:
 
 - `bundle exec jekyll build --quiet`
 - `npx vitest run <targeted test files>`
-- `node --check <js file>`
-- `node --check assets/js/admin-dashboard.js` cuando cambió el script del panel
-- `npx playwright test tests/e2e/admin-dashboard.spec.ts --project=chromium` cuando la interfaz de usuario del panel o los contratos de los trabajadores de administración cambiaron
-- `./scripts/test-worker.sh --podman`
-- `./scripts/test-e2e.sh --podman`
+- `node --check <changed JavaScript file>`
+- `npx playwright test tests/e2e/admin-dashboard.spec.ts --project=chromium`
+- `npm run test:performance:budgets`
+- `npm run test:performance:lighthouse`
+- `npm run test:performance:runtime -- --input=<redacted-observability.json>`
+- `npm run test:cache-policy`
+- `npm run production:posture -- --no-dev-vars`
+- `npm run release:smoke -- --evidence-file <path>`
 
-## Tareas comunes
+Los resultados de la postura de producción, el caché y la liberación de humo solo se completan cuando las credenciales y secretos de proveedor requeridos estaban disponibles. Registre las omisiones explícitamente en la evidencia de divulgación.
 
-### Agregar o editar una campaña
+## Caminos de cambio comunes
 
-Comience con:
+### Campañas
 
-- la pestaña **Campañas** del panel de control para realizar ediciones normales del navegador
-- [`_campaigns/<slug>.md`](https://github.com/your-org/your-project/tree/main/_campaigns)
-- activos de campaña en [`assets/images/campaigns/<slug>/`](https://github.com/your-org/your-project/tree/main/assets/images/campaigns)
-- documentos de soporte en [docs/DASHBOARD.md](/es/docs/operations/admin-dashboard/)
+Utilice la pestaña **Campañas** del panel para realizar ediciones normales. Las fuentes subyacentes son `_campaigns/<slug>.md` y `assets/images/campaigns/<slug>/`.
 
-Controlar:
+Verifique la financiación y los cálculos de objetivos ampliados, el inventario de niveles, el envío de recompensas físicas, el enrutamiento localizado, las incorporaciones y comparta vistas previas.
 
-- meta de financiación y matemáticas de meta ambigua
-- inventario por niveles y cantidades limitadas
-- Configuración de envío para recompensas físicas.
-- enrutamiento localizado/público si la página de la campaña debe funcionar limpiamente en `/es/`
-- Comportamiento de vista previa de inserción/compartición si se cambia la imagen principal, la propaganda, el título o el estado en vivo
+### Marca, configuración y productos.
 
-### Cambiar la configuración de la marca o del producto
+Utilice el panel **Configuración** y **Complementos** para realizar ediciones normales. Las configuraciones publicadas y los complementos de la plataforma finalmente escriben en `_config.yml` a través de la ruta GitHub controlada por Worker. Los usuarios administradores y los códigos de referencia de marketing guardados son excepciones de tiempo de ejecución almacenadas en Worker KV.
 
-Comience con:
-
-- las pestañas **Configuración** y **Complementos** del panel de control para realizar ediciones normales del navegador
-- [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml)
-- [docs/PERSONALIZACIÓN.md](/es/docs/development/customization-guide/)
-
-No coloque configuraciones de bifurcación canónicas en `_config.local.yml`. Conserve ese archivo para anulaciones locales de la máquina, como URL de host local y marcas solo locales.
-
-Los botones de publicación del panel escriben configuraciones respaldadas por GitHub a través de la ruta de GitHub controlada por el trabajador e inician el flujo de implementación normal. La administración de usuarios del panel es diferente: **Configuración -> Usuarios** guarda directamente en Worker KV en `admin-users:v1`, no se compromete con GitHub y no utiliza el botón de publicación de Configuración.
-
-Si cambia los valores que se reflejan en el trabajador, reinicie la pila local o ejecute:
+Cuando la configuración reflejada cambie, reinicie la pila local o ejecute:
 
 ```bash
 npm run sync:worker-config
 ```
 
-### Cambiar el comportamiento de pago, totales o gestión de promesas
+El precio adicional a nivel de producto es el predeterminado. Una variante puede heredarla o publicar su propia anulación entre `$0` y el techo canónico `$1,000,000`. Mantenga alineadas la normalización del panel, la visualización del carrito público, la validación de Worker y la documentación.
 
-Comience con:
+### Gestión de pagos y aportes
 
-- tiempo de ejecución del sitio en [`assets/js/`](https://github.com/your-org/your-project/tree/main/assets/js)
-- campaña/carrito/administrar plantillas en [`_includes/`](https://github.com/your-org/your-project/tree/main/_includes) y [`_layouts/`](https://github.com/your-org/your-project/tree/main/_layouts)
-- Lógica de pago del trabajador en [`worker/src/`](https://github.com/your-org/your-project/tree/main/worker/src)
-- orientación sobre el procesador de pagos en [docs/PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md)
+Comience con el código del navegador en `assets/js/`, las plantillas en `_includes/` y `_layouts/`, el código Worker en `worker/src/` y [docs/PAYMENT_PROCESSOR.md](/es/docs/operations/payment-processor/).
 
-Suponga siempre que hay una pieza del lado del sitio y una pieza del lado del trabajador.
+Mantenga alineados el subtotal, las anulaciones de precios de variantes, las propinas, los impuestos, los envíos, las contribuciones a la campaña, los datos de aportes persistentes, los correos electrónicos y los informes. El navegador propone estado; el Worker resuelve productos y precios y decide totales canónicos.
 
-Cosas que deben permanecer alineadas:
+### Comunicación por correo electrónico y con los patrocinadores
 
-- matemáticas subtotales
-- consejo de matemáticas
-- impuesto sobre las ventas
-- envío
-- complementos
-- reglas de contribución de objetivos de campaña
-- compromiso/correo electrónico/informar totales
+Verifique la lógica de correo Worker, `_data/i18n/`, la configuración del remitente y [docs/EMAIL.md](/es/docs/operations/email-system/). Preservar la alineación del dominio, `reply_to`, la salida de texto sin formato, las URL de medios alojados, el comportamiento de idempotencia/bandeja de salida duradera, la supresión global/de campaña y el límite entre el contenido transaccional y promocional. El inicio de sesión de administrador y los envíos de prueba explícitos siguen siendo inmediatos.
 
-Si solo cambia un lado, probablemente tengas un error.
+### Medios de comunicación
 
-### Cambiar correos electrónicos o comunicación con los seguidores
+El árbol de activos del repositorio tiene autoridad. Reconstruir `_data/media-optimization-manifest.json` con `npm run media:manifest`; no cree un catálogo de medios respaldado por KV. Utilice el envío del optimizador GitHub existente para reparar todos los cambios o todos los cambios, preservar los archivos de origen y los derivados más grandes omitidos intencionalmente, requerir texto alternativo para imágenes significativas y usar el estado de imagen decorativa explícito para el texto alternativo vacío.
 
-Comience con:
+### Inserta, SEO y comparte tarjetas
 
-- Lógica de correo del trabajador en [`worker/src/`](https://github.com/your-org/your-project/tree/main/worker/src)
-- copia de traducción en [`_data/i18n/`](https://github.com/your-org/your-project/tree/main/_data/i18n)
-- identidad de contacto/remitente en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml)
-- configuración de correo electrónico y cobertura de tipos en [docs/EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md)
+Verifique el código de tarjeta compartida `embed/`, `_layouts/campaign-embed.html`, `assets/js/campaign-embed.js`, `assets/partials/_embed.scss`, Worker, `_includes/seo-meta.html` y los documentos de inserción/SEO. Mantenga alineados conceptualmente el estado de la página de la campaña, la inserción y la vista previa.
 
-Si toca el comportamiento sensible a la capacidad de entrega, también verifique la cordura:
+### Localización
 
-- Alineación del dominio `from`
-- `reply_to`
-- generación de cuerpo de texto plano
-- URL de imágenes alojadas y enlaces de vídeo seguros para correo electrónico para contenido Blast
-- mezcla de contenido transaccional y promocional
+Las cadenas de sistema compartidas pertenecen a `_data/i18n/<lang>.yml`; El contenido de campaña escrito por el creador normalmente sigue siendo contenido de campaña. Las nuevas rutas y flujos públicos deben tener en cuenta los asistentes locales, la generación de campañas localizadas y el conmutador de idioma del pie de página.
 
-### Cambiar incrustaciones o vistas previas enriquecidas
+## Invariantes a proteger
 
-Comience con:
+1. **`_config.yml` es canónico.** No cree una segunda fuente de verdad del producto en la configuración local o en el estado del navegador.
+2. **La configuración reflejada de Worker permanece sincronizada.** Los precios, las URL, la identidad del remitente y otros valores reflejados deben coincidir con el sitio.
+3. **Los totales de pago están verificados por el servidor.** Las selecciones de productos/variantes nuevos o modificados utilizan los precios del catálogo actual; un producto/variante guardado sin cambios puede conservar su `unitPrice` histórico. Los montos del catálogo y de los centavos persistentes deben permanecer dentro del límite de monto de Worker.
+4. **El progreso de la campaña tiene un límite preciso.** Los niveles, el apoyo directo a la campaña, los montos de las campañas personalizadas y los complementos de la campaña cuentan. Los complementos de plataforma, propina de plataforma, impuestos y envío no lo hacen.
+5. **Las rutas localizadas son un contrato público.** Preservar el enrutamiento local y el comportamiento de token/consulta.
+6. **Los flujos privados permanecen privados.** La administración, el resultado del aporte, la vista previa protegida, el administrador autenticado y las respuestas de observabilidad del rendimiento deben permanecer no indexables y usar controles de caché privados/sin almacenamiento cuando corresponda. Las listas permitidas de vista previa pertenecen solo a Worker KV de corta duración.
+7. **Las campañas finalizadas no se comportan como activas.** El comportamiento de cuenta regresiva, aporte, inserción y vista previa debe utilizar el estado de campaña efectivo.
+8. **Los umbrales de rendimiento son ejecutables.** Un valor en la configuración no es una puerta hasta que una prueba o auditoría lo consume. Distinga la línea de base medida del umbral de publicación, utilice presupuestos públicos específicos de la ruta y mantenga la evidencia autenticada en tiempo de ejecución libre de secretos y datos personales.
+9. **Los hallazgos de dependencia tienen un alcance y se resuelven deliberadamente.** Ejecute la auditoría de producción y la auditoría completa. Fijar o reemplazar herramientas de liberación vulnerables cuando exista una versión compatible segura; documentar cualquier hallazgo aceptado solo para desarrolladores.
+10. **La revisión ética viaja con los cambios de productos.** Revise el dinero, los datos, los mensajes, los análisis, la automatización, el poder administrativo, la visibilidad y la capacidad de compartir mientras la implementación sigue siendo fácil de cambiar.
+11. **La recuperación del pago no debe inventar un segundo cargo.** Persistir en la intención de liquidación antes de que llame Stripe, reutilizar la idempotencia determinista dentro de la ventana del proveedor y detener el trabajo antiguo y ambiguo para la conciliación. No agregue la recuperación manual de movimiento de dinero sin operadores distintos de creador/comprobador.
+12. **La entrega de correo electrónico es independiente de la verdad del aporte.** Los efectos secundarios de las notificaciones de producción pasan por la bandeja de salida compartida; La falla del proveedor no debe revertir ni mutar el estado de aporte canónico.
 
-- Panel de control pestaña **Marketing** si la tarea es solo crear un fragmento de inserción de campaña, una URL de referencia guardada, una descarga de QR o un enlace de campaña rastreado
-- panel **Campañas -> Envíos de prueba** si la tarea cambia redacción masiva de correos electrónicos de soporte, simulacros, envíos de prueba, envíos en vivo o historial de envíos
-- incrustar rutas y diseño en [`embed/`](https://github.com/your-org/your-project/tree/main/embed) y [`_layouts/campaign-embed.html`](https://github.com/your-org/your-project/blob/main/_layouts/campaign-embed.html)
-- incrustar cliente/tiempo de ejecución en [`assets/js/campaign-embed.js`](https://github.com/your-org/your-project/blob/main/assets/js/campaign-embed.js)
-- incrustar estilos en [`assets/partials/_embed.scss`](https://github.com/your-org/your-project/blob/main/assets/partials/_embed.scss)
-- Tarjetas de acciones de trabajadores en [`worker/src/`](https://github.com/your-org/your-project/tree/main/worker/src)
-- Metadatos SEO en [`_includes/seo-meta.html`](https://github.com/your-org/your-project/blob/main/_includes/seo-meta.html)
-- orientación en [docs/EMBEDS.md](/es/docs/development/campaign-embeds/) y [docs/SEO.md](/es/docs/operations/seo/)
+## Mapa de documentación
 
-Mantenga alineados conceptualmente el estado de inserción, el estado de vista previa compartida y los metadatos de la página de la campaña incluso cuando las superficies renderizadas difieran.
-
-### Agregar o ampliar un idioma
-
-Comience con:
-
-- [Bloque `_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) `i18n`
-- [`_data/i18n/<lang>.yml`](https://github.com/your-org/your-project/tree/main/_data/i18n)
-- páginas localizadas de formato largo como [`es/about.md`](/es/docs/overview/about-the-pool/) y [`es/terms.md`](/es/docs/overview/terms-and-guidelines/)
-- ayudantes locales en [`_includes/localized-url.html`](https://github.com/your-org/your-project/blob/main/_includes/localized-url.html)
-- páginas de campaña localizadas generadas en [`_plugins/localized_campaign_pages.rb`](https://github.com/your-org/your-project/blob/main/_plugins/localized_campaign_pages.rb)
-
-Las cadenas de sistema compartidas pertenecen a `_data/i18n/{lang}.yml`.
-El contenido de la campaña creado por creadores normalmente debe seguir siendo contenido de la campaña, no trasladarse a YAML traducido.
-
-## Invariantes para proteger
-
-Estos son los lugares más fáciles para que las bifurcaciones o los LLM causen deriva accidentalmente.
-
-### 1. `_config.yml` es canónico
-
-No trate a `_config.local.yml` como una segunda fuente de verdad.
-
-Los cambios en el panel de administración que publican la configuración de la plataforma o los complementos de la plataforma deberían regresar en última instancia a `_config.yml` a través de la ruta de GitHub controlada por el trabajador. Los usuarios administradores solo en tiempo de ejecución y los códigos de referencia de marketing guardados son la excepción; los que viven en Worker KV.
-
-### 2. Las configuraciones reflejadas por los trabajadores deben permanecer sincronizadas
-
-Si cambia los precios, las URL del sitio, la identidad del remitente u otras configuraciones reflejadas, asegúrese de que el trabajador vea los mismos valores.
-
-### 3. Los totales de pago están verificados por el servidor
-
-El navegador puede sugerir un estado del carrito. El Trabajador decide los totales canónicos y la forma de prenda persistente.
-
-### 4. El progreso de la campaña excluye algunos dólares de pago
-
-El envío, los impuestos y la propina de la plataforma no cuentan para los totales de financiación de la campaña. Tenga cuidado al cambiar el idioma de visualización o los informes para no dar a entender lo contrario.
-
-### 5. Las rutas localizadas forman parte del contrato público
-
-Si agrega una nueva página pública, ruta de inserción o flujo específico de la campaña, verifique si los asistentes de configuración regional y el selector de idioma del pie de página necesitan saberlo.
-
-### 6. Los flujos tokenizados/privados no deberían volverse indexables
-
-`/manage/`, las páginas de resultados de compromiso y las rutas privadas/con token deben permanecer fuera de la indexación de búsqueda y deben preservar el comportamiento de token/consulta al cambiar de idioma.
-
-Las vistas previas de campañas protegidas también son privadas. Las campañas de solo vista previa deben permanecer fuera de las rutas de campaña públicas hasta su lanzamiento, y los correos electrónicos de acceso a vista previa deben estar solo en listas permitidas de Worker KV de corta duración, no en Markdown de campaña ni en artefactos generados públicamente.
-
-### 7. Las campañas finalizadas no deben comportarse como las activas.
-
-Las cuentas regresivas, los controles de promesas y el estado de inserción/compartición previa deben respetar el estado efectivo de la campaña, especialmente después de las fechas límite.
-
-## Los mejores documentos para trabajos específicos
-
-- Configuración y marca de la bifurcación: [docs/CUSTOMIZATION.md](/es/docs/development/customization-guide/)
-- Configuración y liquidación del procesador de pagos: [docs/PAYMENT_PROCESSOR.md](https://github.com/your-org/your-project/blob/main/docs/PAYMENT_PROCESSOR.md)
-- Configuración y plantillas de correo electrónico: [docs/EMAIL.md](https://github.com/your-org/your-project/blob/main/docs/EMAIL.md)
-- Desarrollo local y verificación de fusión: [docs/TESTING.md](/es/docs/operations/testing/)
-- Configuración y límites de Podman: [docs/PODMAN.md](/es/docs/operations/podman-local-dev/)
-- Modelo de localización: [docs/I18N.md](/es/docs/development/internationalization/)
-- SEO y compartir metadatos: [docs/SEO.md](/es/docs/operations/seo/)
+- Configuración de bifurcación: [docs/CUSTOMIZATION.md](/es/docs/development/customization-guide/)
+- Pagos y liquidación: [docs/PAYMENT_PROCESSOR.md](/es/docs/operations/payment-processor/)
+- Productos complementarios y precios de variantes: [docs/ADD_ON_PRODUCTS.md](/es/docs/development/add-on-products/)
+- Correo electrónico: [docs/EMAIL.md](/es/docs/operations/email-system/)
+- Pruebas: [docs/TESTING.md](/es/docs/operations/testing/)
+- Podman: [docs/PODMAN.md](/es/docs/operations/podman-local-dev/)
+- Localización: [docs/I18N.md](/es/docs/development/internationalization/)
+- SEO y vistas previas: [docs/SEO.md](/es/docs/operations/seo/)
 - Inserciones de campaña: [docs/EMBEDS.md](/es/docs/development/campaign-embeds/)
-- Comportamiento de envío y USPS: [docs/SHIPPING.md](/es/docs/operations/shipping/)
-- Modelo de producto complementario: [docs/ADD_ON_PRODUCTS.md](/es/docs/development/add-on-products/)
-- Flujo del panel/editor: [docs/DASHBOARD.md](/es/docs/operations/admin-dashboard/)
-- Postura de seguridad y barandillas: [docs/SECURITY.md](/es/docs/operations/security/)
-- Mentalidad de lista de verificación de liberación/fusión: [docs/MERGE_SMOKE_CHECKLIST.md](/es/docs/operations/merge-smoke-checklist/)
+- Envío: [docs/SHIPPING.md](/es/docs/operations/shipping/)
+- Panel de control: [docs/DASHBOARD.md](/es/docs/operations/admin-dashboard/)
+- Rendimiento: [docs/PERFORMANCE.md](/es/docs/operations/performance/)
+- Seguridad: [docs/SECURITY.md](/es/docs/operations/security/)
+- Copia de seguridad y recuperación: [docs/BACKUP_RESTORE.md](/es/docs/operations/backup-restore/)
+- Riesgo ético: [docs/ETHICAL_RISK.md](/es/docs/development/ethical-risk-review/)
+- Fusionar y liberar comprobaciones: [docs/MERGE_SMOKE_CHECKLIST.md](/es/docs/operations/merge-smoke-checklist/)
 
-## Buen comportamiento de LLM en este repositorio
+## Estilo de trabajo para agentes codificadores.
 
-Si eres un LLM y estás ayudando con este código base:
+- Lea la implementación y las pruebas cercanas antes de proponer cambios estructurales.
+- Prefiere ediciones pequeñas y locales que preserven los patrones establecidos y permanezcan SECO.
+- Actualice las pruebas y los documentos del operador cada vez que cambien el comportamiento o las expectativas de lanzamiento.
+- Considere en conjunto las consecuencias del sitio público, Worker, correo electrónico, localización, accesibilidad, seguridad, rendimiento y recuperación.
+- Reutilice una superficie de configuración o ayuda existente antes de inventar otra.
+- Nunca descarte silenciosamente el comportamiento local, incrustado, de vista previa compartida, de caché privada o de precios históricos.
+- Conserve los cambios de usuario no relacionados y organice solo los archivos dentro del alcance.
 
-- Lea la implementación existente antes de proponer cambios estructurales.
-- Prefiere ediciones pequeñas y locales que preserven los patrones establecidos.
-- actualizar las pruebas cuando el comportamiento cambie
-- Tenga en cuenta juntas las consecuencias del sitio público, del trabajador, del correo electrónico y de i18n.
-- Evite inventar nuevas superficies de configuración cuando una existente ya encaja.
-- prefiera enlaces de documentación relacionados con el repositorio, no rutas específicas de la máquina
-- no abandone silenciosamente el soporte local, el comportamiento de inserción o el comportamiento de vista previa compartida mientras cambia las páginas de la campaña
-
-En caso de duda, realice el cambio más pequeño que mantenga alineados al sitio y al trabajador, luego verifíquelo con la prueba significativa más estrecha más la puerta más amplia cuando sea necesario.
+Cuando no esté seguro, realice el cambio más pequeño que mantenga alineados el sitio y Worker, pruébelo con la prueba significativa más estrecha y ejecute la puerta más amplia cuando esté justificado.
