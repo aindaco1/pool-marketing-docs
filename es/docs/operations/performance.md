@@ -1,7 +1,7 @@
 ---
 title: Rendimiento
 parent: Operaciones
-nav_order: 14
+nav_order: 15
 render_with_liquid: false
 lang: es
 ---
@@ -10,9 +10,9 @@ lang: es
 
 ## Última actualización
 
-16 de julio de 2026
+25 de agosto de 2026
 
-The Pool es una plataforma de financiación colectiva estática con un trabajador de Cloudflare para mutaciones, lecturas en vivo y operaciones administrativas. El trabajo de rendimiento debe preservar esa forma: las páginas públicas deben ser rápidas desde HTML estático, el código de aplicación pesado debe cargarse sólo cuando un usuario lo necesita y el trabajo especulativo debe ser lo suficientemente conservador como para nunca hacer que los flujos de pago, administración o soporte sean menos confiables.
+The Pool es una plataforma de crowdfunding estática con un Cloudflare Worker para mutaciones, lecturas en vivo y operaciones administrativas. El trabajo de rendimiento conserva esa forma: las páginas públicas son rápidas a partir de HTML estático, el código de aplicación pesado se carga solo cuando un usuario lo necesita y el trabajo especulativo se mantiene lo suficientemente conservador como para nunca hacer que los flujos de pago, administración o soporte sean menos confiables.
 
 Esta guía cubre el modelo de rendimiento de la plataforma actual, los mandos que las horquillas pueden ajustar y la validación esperada antes de que cambie el rendimiento del envío.
 
@@ -36,7 +36,9 @@ Utilícelos como objetivos prácticos en lugar de afirmar que cada prueba local 
 - CLS bajo `0.1`, con barras de progreso, medios de héroe, tarjetas de nivel y estadísticas en vivo que reservan espacio estable
 - no hay una pila de carritos llenos de ganas en una primera carga pública anónima
 - no se realizan precargas de documentos públicos en rutas privadas, tokenizadas, de pago, de administración, de administración o de la comunidad de patrocinadores
-- Los activos CSS/JS generados pasan `npm run assets:minify:check`
+- Los activos CSS/JS generados y las copias ancladas de Site Shell pasan `npm run assets:minify:check`
+- los seis scripts de Site Shell generados suman un total de 9531 bytes sin procesar después de Build Core
+minificación (15.573 antes; 6.042 bytes o 38,8% eliminados)
 - la salida generada de rastreo/metadatos pasa `npm run test:seo` después de una compilación de Jekyll
 - Cloudflare ofrece recursos de texto con compresión de transferencia y sin Auto Minify
 - los activos generados pasan `npm run performance:budget` contra `config/performance-budgets.json`
@@ -56,20 +58,20 @@ Superficies de repositorio importantes:
 - [`_includes/page-prefetch.html`](https://github.com/your-org/your-project/blob/main/_includes/page-prefetch.html): inclusión de captación previa de documentos públicos
 - [`assets/js/cart-runtime-loader.js`](https://github.com/your-org/your-project/blob/main/assets/js/cart-runtime-loader.js): arranque del tiempo de ejecución del carrito diferido
 - [`assets/js/page-prefetch.js`](https://github.com/your-org/your-project/blob/main/assets/js/page-prefetch.js): tiempo de ejecución de captación previa de documentos basado en intención
-- [`scripts/minify-site-assets.mjs`](https://github.com/your-org/your-project/blob/main/scripts/minify-site-assets.mjs): minificación CSS/JS generada
+- [`@dustwave/build-core`](https://github.com/your-org/your-project/blob/main/shared/dust-wave-platform/packages/build-core/src/site-assets.js): minificación de CSS/JS y Site Shell generados fijados y incluidos en la lista permitida
 - [`scripts/audit-performance-budgets.mjs`](https://github.com/your-org/your-project/blob/main/scripts/audit-performance-budgets.mjs): límites máximos de liberación de activos designados y totales medidos
 - [`scripts/performance-lighthouse.mjs`](https://github.com/your-org/your-project/blob/main/scripts/performance-lighthouse.mjs): categoría Lighthouse, Web Vital y evidencia de liberación de recursos transferidos
 - [`scripts/audit-cache-policy.mjs`](https://github.com/your-org/your-project/blob/main/scripts/audit-cache-policy.mjs): evidencia de política de caché pública y privada/sin almacenamiento implementada
 - [`scripts/audit-runtime-performance.mjs`](https://github.com/your-org/your-project/blob/main/scripts/audit-runtime-performance.mjs): evidencia p95 autenticada para operaciones Worker configuradas
 - [`scripts/sync-worker-config.rb`](https://github.com/your-org/your-project/blob/main/scripts/sync-worker-config.rb): duplicación de configuración de sitio a trabajador
 
-Sass solo para administradores se emite como `assets/admin.css` y se carga solo mediante el diseño del administrador, lo que mantiene el CSS del panel fuera de las páginas de campaña públicas. Las sesiones de administración y el procesador de registros de auditoría que se utilizan con poca frecuencia se encuentran en `assets/js/admin-settings-review.js` y se cargan según demanda cuando se abre cualquiera de las secciones de Configuración; Tanto ese módulo como el paquete inicial `admin-dashboard.js` tienen límites ejecutables con nombre en `config/performance-budgets.json`. El CSS de fuente de visualización de Adobe se activa después de la preparación de DOM sin respaldo de secuencia de comandos; Inter sigue siendo la dependencia de la fuente del cuerpo. La caché Workers permanece deshabilitada para el modelo de lectura de administrador The Pool hasta que un punto de referencia representativo demuestre una mejora p95 de al menos el 40 %. Store v1.0.7 no alcanzó ese umbral, por lo que la paridad significa llevar la puerta de evidencia, no habilitar el cambio de caché por suposición.
+Sass solo para administradores se emite como `assets/admin.css` y se carga únicamente mediante el diseño del administrador, lo que mantiene el CSS del panel fuera de las páginas de campaña públicas. Las sesiones de administración y el procesador de registros de auditoría que se utilizan con poca frecuencia se encuentran en `assets/js/admin-settings-review.js` y se cargan a pedido cuando se abre cualquiera de las secciones de Configuración; Tanto ese módulo como el paquete inicial `admin-dashboard.js` tienen límites ejecutables con nombre en `config/performance-budgets.json`. El CSS de fuente de visualización de Adobe se activa después de la preparación de DOM sin respaldo de secuencia de comandos; Inter sigue siendo la dependencia de la fuente del cuerpo. La caché Workers permanece deshabilitada para el modelo de lectura de administrador The Pool hasta que un punto de referencia representativo demuestre una mejora de al menos el 40 % en p95. El umbral de evidencia, no la elección de caché de otro producto, controla la habilitación de The Pool.
 
 Los resúmenes de rendimiento de Worker conservan histogramas de latencia acotados y exponen p50/p95/p99 aproximados junto con el recuento, el promedio, el mínimo, el máximo y la última duración. No retienen cuerpos de solicitud ni identificadores de clientes.
 
 Los superadministradores pueden inspeccionar las rutas muestreadas más lentas durante los últimos siete días en **Configuración -> Diagnóstico de tiempo de ejecución**. La tabla es una vista de solo lectura de los resúmenes existentes, ordenados por página 95 y con un límite de 20 filas; no agrega otro almacén de telemetría.
 
-El paquete de navegador consume los límites `dashboard.initialReadyMs`, `dashboard.tabSwitchMs` y `dashboard.tableRenderMs` directamente. Worker registra muestras de `admin_dashboard_summary` y `admin_settings`, y la auditoría de tiempo de ejecución consume los límites p95 configurados. No agregue un valor de tiempo no consumido a la configuración y descríbalo como una puerta.
+El paquete de navegador consume los límites `dashboard.initialReadyMs`, `dashboard.tabSwitchMs` y `dashboard.tableRenderMs` directamente. La preparación inicial mide la cadena de solicitudes de la aplicación de navegación en frío a través del primer resumen del panel y las solicitudes de configuración, al tiempo que afirma por separado que el panel es visible; excluye deliberadamente el sondeo de afirmaciones del corredor de pruebas después de que hayan llegado esas solicitudes. Los presupuestos de pestañas y mesas de apoyo miden la interacción visible correspondiente. Worker registra muestras de `admin_dashboard_summary` y `admin_settings`, y la auditoría de tiempo de ejecución consume los límites p95 configurados. No agregue un valor de tiempo no consumido a la configuración y descríbalo como una puerta.
 
 ## Publicar evidencia de desempeño
 
@@ -86,11 +88,11 @@ Utilice `test:performance:lighthouse:host` cuando ya esté disponible un Chromiu
 
 Para una lectura autenticada directa, establezca `ADMIN_PERFORMANCE_TOKEN` en un valor de portador de administrador con ámbito y pase `--worker-base=<url>` en lugar de `--input`. El resultado contiene solo nombres de operaciones, recuentos de muestras, valores de p95 y límites máximos configurados; no se hace eco del token ni de la carga útil de observabilidad sin procesar.
 
-El conjunto de unidades prueba a todos los evaluadores de presupuesto sin acceso a la red. Lighthouse utiliza restricciones de accesibilidad compartida/CLS/TBT además de límites de rendimiento, LCP y transferencia específicos de la ruta, por lo que una página de términos liviana no puede regresar a un presupuesto de página de campaña. Estos límites de publicación evitan regresiones no revisadas, pero no reemplazan los objetivos de optimización LCP/INP/CLS más estrictos mencionados anteriormente. Una versión puede omitir Lighthouse en vivo, caché o evidencia de tiempo de ejecución autenticada solo cuando la ruta/proveedor estable requerido o la credencial no están disponibles, y la omisión debe registrarse en la aprobación de la versión.
+El conjunto de unidades prueba a todos los evaluadores de presupuesto sin acceso a la red. Lighthouse utiliza la mediana de tres ejecuciones, restricciones de accesibilidad compartida/CLS/TBT y límites de rendimiento, LCP y transferencia específicos de ruta, por lo que una página de términos liviana no puede retroceder al presupuesto de una página de campaña y una sola muestra ruidosa no puede decidir un lanzamiento. Estos límites de publicación evitan regresiones no revisadas, pero no reemplazan los objetivos de optimización LCP/INP/CLS más estrictos mencionados anteriormente. Una versión puede omitir Lighthouse en vivo, caché o evidencia de tiempo de ejecución autenticada solo cuando la ruta/proveedor estable requerido o la credencial no están disponibles, y la omisión debe registrarse en la aprobación de la versión.
 
 ## Representación crítica
 
-Las páginas de campañas públicas deben evitar cambios de diseño y recursos críticos descubiertos tardíamente.
+Las páginas de campaña públicas evitan cambios de diseño y recursos críticos descubiertos tardíamente.
 
 Barandillas actuales:
 
@@ -100,7 +102,7 @@ Barandillas actuales:
 - Los videos de los héroes de la campaña de YouTube muestran primero un póster local o una fachada de reproducción y cargan el iframe de YouTube solo después de la intención de reproducción.
 - Los scripts comunes usan `defer` o carga dinámica diferida en lugar de etiquetas de script que bloquean el analizador.
 - los layouts completos del documento desactivan la detección móvil automática de teléfono/fecha/dirección/correo para que iOS no rediseñe de forma inesperada la copia operativa o el texto de campaña
-- Las superficies privadas/administradoras permanecen `noindex` y no deben heredar el comportamiento de captación previa pública.
+- Las superficies privadas/administradoras permanecen `noindex` y no heredan el comportamiento de captación previa pública.
 
 Al cambiar el Chrome de la campaña, verifique:
 
@@ -113,14 +115,14 @@ Al cambiar el Chrome de la campaña, verifique:
 
 El tiempo de ejecución del carrito se divide intencionalmente. Las páginas públicas cargan primero un cargador pequeño y luego recuperan la pila de carritos más pesados ​​solo cuando es necesario.
 
-El cargador debería activarse en:
+El cargador se activa cuando:
 
 - interacción del botón agregar al carrito
 - Estado del carrito persistente que necesita restauración.
 - estado de recuperación de pago
 - Intención de la interfaz de usuario del carrito, como abrir el carrito
 
-Los archivos de carros pesados ​​no deben ser parte de una primera carga pública ordinaria a menos que esté presente uno de esos estados:
+Los archivos de carros pesados ​​no forman parte de una primera carga pública ordinaria a menos que esté presente uno de esos estados:
 
 - [`assets/js/cart-provider.js`](https://github.com/your-org/your-project/blob/main/assets/js/cart-provider.js)
 - [`assets/js/cart.js`](https://github.com/your-org/your-project/blob/main/assets/js/cart.js)
@@ -131,9 +133,9 @@ Al cambiar el carrito o la carga del carrito, verifique con las herramientas de 
 
 ## Presupuesto de lectura del administrador
 
-El panel de administración debe mantener la navegación normal como de solo lectura y limitada. Los informes, los patrocinadores, la atribución de análisis, el estado de las compras abandonadas, los simulacros explosivos y las vistas de campañas similares deben utilizar proyecciones `campaign-pledges:<slug>` existentes o estados agregados pequeños en lugar de escaneos de espacios de nombres KV. Las cargas del selector de biblioteca multimedia deben leer los directorios de GitHub y no deben crear un estado KV.
+El panel de administración mantiene la navegación normal como de solo lectura y limitada. Los informes, los patrocinadores, la atribución de análisis, el estado de las compras abandonadas, los ensayos de Blast y las vistas de campañas similares utilizan proyecciones de `campaign-pledges:<slug>` existentes o estados agregados pequeños en lugar de escaneos de espacios de nombres de KV. El selector de biblioteca multimedia carga los directorios GitHub y no crea el estado KV.
 
-Las escrituras duraderas en el panel deben estar vinculadas a acciones explícitas del usuario. Se permiten mutaciones en los códigos de referencia guardados, los borradores compartidos de Marketing/Blast, las supresiones de pagos abandonados en el ámbito de la campaña, los envíos en vivo de Blast, las publicaciones de contenido, las vistas previas protegidas y las acciones de creación/archivo de campañas; Las cargas de páginas, las ediciones de campos, la generación de vistas previas, la generación/descarga de QR, las cargas de informes, el estado recordado de pestañas/subpestañas de UI y los borradores locales no deben escribir KV. Al agregar una función de administración, documente si es de solo lectura, solo local, respaldada por GitHub o respaldada por KV antes de cablear la interfaz de usuario.
+Las escrituras duraderas en el panel están vinculadas a acciones explícitas del usuario. Se permiten mutaciones en los códigos de referencia guardados, los borradores compartidos de Marketing/Blast, las supresiones de pago abandonado en el ámbito de la campaña, los envíos en vivo de Blast, las publicaciones de contenido, las vistas previas protegidas y las acciones de creación/archivo de campañas; Las cargas de páginas, las ediciones de campos, la generación de vistas previas, la generación/descargas de QR, las cargas de informes, el estado de la interfaz de usuario de pestañas/subpestañas recordadas y los borradores locales no escriben KV. Al agregar una función de administración, documente si es de solo lectura, solo local, respaldada por GitHub o respaldada por KV antes de cablear la interfaz de usuario.
 
 ## Minificación de activos generados
 
@@ -157,7 +159,7 @@ La verificación de artefactos de compilación previa a la fusión también mini
 
 ## Compresión de Cloudflare
 
-Cloudflare debería manejar la compresión de transferencia en el borde. Se ha verificado la implementación en vivo que ofrece recursos de texto comprimido con gzip, Brotli y Zstandard según la solicitud `Accept-Encoding` y el comportamiento del borde.
+Cloudflare maneja la compresión de transferencia en el borde. Se ha verificado la implementación en vivo que ofrece recursos de texto comprimido con gzip, Brotli y Zstandard según la solicitud `Accept-Encoding` y el comportamiento del borde.
 
 Mantenga estas responsabilidades separadas:
 
@@ -165,15 +167,15 @@ Mantenga estas responsabilidades separadas:
 - Borde de Cloudflare: compresión de transferencia estándar gzip/Brotli/Z
 - control de fuente: archivos fuente legibles, copias minimizadas generadas no confirmadas
 
-Cloudflare Auto Minify debería permanecer deshabilitado. Reescribe las respuestas en el borde, lo que hace que el comportamiento de producción sea más difícil de reproducir localmente y de probar en CI. Prefiera el paso de activos generados controlados por repositorios.
+Cloudflare Auto Minify permanece deshabilitado. Reescribe las respuestas en el borde, lo que hace que el comportamiento de producción sea más difícil de reproducir localmente y de probar en CI. Prefiera el paso de activos generados controlados por repositorios.
 
 Mantenga Rocket Loader y la ofuscación de direcciones de correo electrónico desactivadas para este sitio. Rocket Loader reescribe etiquetas de script en el borde, mientras que la ofuscación de direcciones de correo electrónico inyecta `/cdn-cgi/scripts/*/cloudflare-static/email-decode.min.js`; Ambos hacen que las páginas con CSP estricto sean más difíciles de reproducir localmente y pueden aparecer como bloqueo de procesamiento o diagnóstico de ruido de consola en PageSpeed ​​Insights.
 
-Si Cloudflare Web Analytics está habilitado, las páginas de la campaña deben permitir el script de análisis de Cloudflare y el punto final de baliza en el CSP de la campaña. Las superficies privadas/administrativas deben ser más estrictas a menos que exista una decisión explícita de análisis/privacidad para incluirlas.
+Si Cloudflare Web Analytics está habilitado, las páginas de la campaña deben permitir el script de análisis y el punto final de baliza de Cloudflare en el CSP de la campaña. Las superficies privadas/administrativas siguen siendo más estrictas a menos que exista una decisión explícita de análisis/privacidad para incluirlas.
 
 Las hojas de estilo de fuentes se vinculan desde el encabezado del documento en lugar de importarse desde `assets/main.css`. Esto permite al navegador descubrir CSS de fuentes y conexiones de fuentes sin esperar en la hoja de estilo principal y al mismo tiempo preservar el comportamiento intencional de carga de fuentes.
 
-Las variables CSS del token de diseño generadas se incluyen en `assets/main.css`; `assets/theme-vars.css` sigue estando disponible como artefacto de compatibilidad, pero los diseños públicos no deberían solicitarlo como una hoja de estilo de bloqueo de renderizado separada.
+Las variables CSS del token de diseño generadas se incluyen en `assets/main.css`; `assets/theme-vars.css` sigue estando disponible como artefacto de compatibilidad, pero los diseños públicos no lo solicitan como una hoja de estilo de bloqueo de renderizado independiente.
 
 ## Captura previa basada en intención
 
@@ -293,11 +295,11 @@ Al cambiar lecturas en vivo:
 - invalidar las cachés del navegador después de una persistencia exitosa del aporte
 - mantenga el comportamiento de recuperación obsoleto privado para el navegador y evite el almacenamiento confidencial de larga duración
 - use `GET /admin/observability/performance` para inspeccionar tiempos de trabajo de muestra en entornos locales o implementados
-- mantener autenticados `/admin/observability/performance` y `private, no-store`; La cobertura de la unidad verifica tanto las respuestas autenticadas como las no autorizadas, y el humo posterior al despliegue debe verificar el encabezado en vivo.
+- mantener autenticados `/admin/observability/performance` y `private, no-store`; La cobertura de la unidad verifica las respuestas autenticadas y no autorizadas, y el humo posterior al despliegue verifica el encabezado en vivo.
 
 ## Presupuesto de lista KV
 
-Las solicitudes de lista KV de trabajadores son un presupuesto de nivel gratuito independiente de las lecturas y escrituras. Las rutas normales públicas y de panel deben evitar escaneos de espacios de nombres y preferir proyecciones, índices o marcadores explícitos de estado de cola.
+Workers KV las solicitudes de lista son un presupuesto de nivel gratuito independiente de las lecturas y escrituras. Las rutas normales públicas y de panel evitan escaneos de espacios de nombres y prefieren proyecciones, índices o marcadores explícitos de estado de cola.
 
 Barandillas actuales:
 
@@ -338,7 +340,7 @@ La imagen del sitio Podman incluye `ffmpeg`, `optipng`, `libjpeg-turbo-progs`, `
 
 Para regresiones implementadas con muchos medios, ejecute manualmente el flujo de trabajo **Optimizar medios del panel** de GitHub Actions con `scope=all` para que los activos de campaña existentes se optimicen mediante el mismo canal en lugar de editarlos una sola vez.
 
-Si PageSpeed ​​marca imágenes de campaña de gran tamaño que ya fluyen a través de `responsive-image.html`, primero confirme si existen los derivados correspondientes de `-320.webp`, `-480.webp`, `-640.webp`, `-960.webp` y `-1600.webp`. Los derivados que faltan deben ser producidos por `npm run media:optimize` localmente o mediante el flujo de trabajo con `scope=all`, no mediante ediciones de imágenes manuales únicas.
+Si PageSpeed ​​marca imágenes de campaña de gran tamaño que ya fluyen a través de `responsive-image.html`, primero confirme si existen los derivados correspondientes de `-320.webp`, `-480.webp`, `-640.webp`, `-960.webp` y `-1600.webp`. Produzca derivados faltantes con `npm run media:optimize` localmente o con el flujo de trabajo usando `scope=all`, no con ediciones de imágenes manuales únicas.
 
 El canal de medios:
 
@@ -360,7 +362,7 @@ Para páginas de campaña, prefiera:
 
 ## Administrador y superficies privadas
 
-El administrador, la vista previa de la campaña protegida, la gestión, el pago, el resultado del aporte, la comunidad y las rutas tokenizadas deben optimizarse para lograr corrección y privacidad antes que la velocidad especulativa.
+El administrador, la vista previa de la campaña protegida, la gestión, el pago, el resultado del aporte, la comunidad y las rutas tokenizadas optimizan la corrección y la privacidad antes que la velocidad especulativa.
 
 Reglas para superficies privadas:
 
@@ -413,7 +415,7 @@ Validación de fusión completa:
 npm run test:premerge
 ```
 
-La validación de producción o puesta en escena debe comparar:
+La validación de producción o puesta en escena compara:
 
 - LCP, INP, CLS, FCP y TTFB
 - recuento total de solicitudes y bytes transferidos en la primera carga
@@ -434,3 +436,14 @@ Utilice esta lista de verificación antes de fusionar cambios de rendimiento:
 - Las barras de progreso, los medios de héroe y los controles de campaña no cambian después de la hidratación.
 - los cambios de medios pasan `npm run media:optimize:check` cuando los medios cargados o agregados manualmente cambian
 - Las pruebas relevantes de unidades y navegadores se comparan con los activos creados.
+
+## No metas
+
+La plataforma actualmente no:
+
+- utilizar un trabajador de servicio para la navegación o el almacenamiento en caché de activos
+- páginas de renderizado previo
+- captar previamente URL arbitrarias del mismo origen
+- API de captación previa, pago, administración, soporte o rutas tokenizadas
+- confirmar CSS/JS minimizado generado nuevamente en los directorios de origen
+- confíe en Cloudflare Auto Minify para el comportamiento de producción

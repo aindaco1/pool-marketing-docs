@@ -10,11 +10,11 @@ lang: es
 
 ## Última actualización
 
-16 de julio de 2026
+25 de agosto de 2026
 
 Este documento cubre la arquitectura de seguridad, los riesgos conocidos, las medidas de refuerzo aplicadas, las compensaciones aceptadas y los procedimientos de prueba de penetración para la plataforma de financiación colectiva The Pool. Los límites de copia de seguridad cifrada, el estado de límite de velocidad/sesión en cuarentena, el manejo fuera del dispositivo y las aprobaciones de restauración de producción se definen en [BACKUP_RESTORE.md](/es/docs/operations/backup-restore/).
 
-Úselo junto con [ETHICAL_RISK.md](/es/docs/development/ethical-risk-review/) cuando un cambio genere un nuevo uso de datos, mensajes de apoyo, poder administrativo, intercambio público, automatización o presión de participación. La revisión de seguridad debe abarcar no sólo el aporte de credenciales y la inyección de código, sino también el uso indebido realista por parte de spammers, acosadores, estafadores, administradores descuidados y flujos de trabajo de crecimiento demasiado agresivos.
+Úselo junto con [ETHICAL_RISK.md](/es/docs/development/ethical-risk-review/) cuando un cambio genere un nuevo uso de datos, mensajes de apoyo, poder administrativo, intercambio público, automatización o presión de participación. La revisión de seguridad cubre no solo el aporte de credenciales y la inyección de código, sino también el uso indebido realista por parte de spammers, acosadores, estafadores, administradores descuidados y flujos de trabajo de crecimiento demasiado agresivos.
 
 ## Arquitectura de seguridad
 
@@ -31,6 +31,7 @@ Este documento cubre la arquitectura de seguridad, los riesgos conocidos, las me
 |**Reto de recordatorio de lanzamiento**|`POST /launch-reminders`|Verificación opcional/esperada de Cloudflare Turnstile antes de escribir el recordatorio de registro|
 |**Secreto de recuperación del administrador**|Automatización y recuperación de puntos finales `/admin/*`|Encabezado `Authorization: Bearer <secret>` o `x-admin-key` para operaciones basadas en scripts|
 |**Secretos de administración con alcance**|Puntos finales de automatización de liquidación y transmisión|Opcional `ADMIN_SETTLEMENT_SECRET` y `ADMIN_BROADCAST_SECRET`; cuando se configura, la ruta con alcance rechaza el `ADMIN_SECRET` más amplio|
+|**Puente de beneficios de podcast**|Eventos de concesión/revocación de The Pool salientes|Firma HMAC-SHA256 dedicada sobre `{timestamp}.{exact body}`, validación exacta de punto final, ventana de actualización del receptor de cinco minutos, ID de eventos estables y un interruptor de apagado The Pool deshabilitado de forma predeterminada.|
 |**Protección del modo de prueba**|`/test/*`|`APP_MODE === 'test'` verificación del entorno|
 
 ### Almacenamiento de datos (Cloudflare KV)
@@ -82,43 +83,12 @@ Este documento cubre la arquitectura de seguridad, los riesgos conocidos, las me
 |`results:{slug}:{decision}`|VOTOS|recuentos de votos|**Bajo** - semipúblico|
 |`rl:{endpoint}:{ip}`|LÍMITE DE TARIFAS|Recuento de solicitudes + tiempo de reinicio|**Bajo** - efímero|
 
-La reserva escasa de nivel limitado y la verdad del recuento comprometido ya no se almacenan en KV. Ese estado sensible a la raza ahora reside en el coordinador de Objetos Durables por campaña, mientras que KV mantiene solo la proyección pública `tier-inventory:{slug}`.
+La escasa reserva de nivel limitado y la verdad del recuento comprometido residen en el coordinador Durable Object por campaña en lugar de en KV, mientras que KV mantiene solo la proyección pública `tier-inventory:{slug}`.
 
 La serialización de liquidaciones también está respaldada por objetos duraderos. El enlace `SETTLEMENT_COORDINATOR` posee un bloqueo de corta duración por slug de campaña, por lo que los puntos finales de liquidación programada, liquidación directa, envío y lote no pueden cobrar la misma campaña al mismo tiempo. Los carritos de campañas múltiples aún funcionan porque la persistencia del proceso de pago crea registros de aporte separados con alcance de campaña y los bloqueos de liquidación dependen de la campaña que se cobra.
 
 ---
 
-## Resumen de vulnerabilidad
-
-### Crítico/alta prioridad
-
-|identificación|Problema|Gravedad|Estado|
-|----|-------|----------|--------|
-|SEC-001|Omisión del token de desarrollo en `/votes` en producción|**Alto**|✅ Fijo|
-|SEC-002|El webhook Stripe no se abre si no se establece el secreto|**Alto**|✅ Fijo|
-|SEC-003|Los puntos finales de prueba pueden ser accesibles en producción|**Alto**|✅ Fijo|
-
-### Prioridad media
-
-|identificación|Problema|Gravedad|Estado|
-|----|-------|----------|--------|
-|SEC-004|CORS `Access-Control-Allow-Origin: *` en todos los puntos finales|**Medio**|✅ Fijo|
-|SEC-005|Sin límite de velocidad en terminales costosos|**Medio**|✅ Fijo|
-|SEC-006|El secreto de administrador no es seguro en comparación con el tiempo|**Medio**|✅ Fijo|
-|SEC-007|La superficie del webhook del carrito alojado heredado permaneció accesible|**Medio**|✅ Fijo|
-
-### Prioridad baja
-
-|identificación|Problema|Gravedad|Estado|
-|----|-------|----------|--------|
-|SEC-008|Tokens de enlace mágico de larga duración (90 días)|**Bajo**|Aceptable|
-|SEC-009|La validación de entradas de votos podría ser más estricta|**Bajo**|✅ Fijo|
-|SEC-010|Tokens en cadenas de consulta (riesgo de fuga de referencia)|**Bajo**|Aceptable|
-|SEC-011|Validación de entrada en cargas útiles de inicio de pago|**Bajo**|✅ Fijo|
-|SEC-012|Faltan encabezados de respuesta de seguridad|**Bajo**|✅ Fijo|
-|SEC-013|El panel de administración almacena lagunas en la normalización de las entradas|**Bajo**|✅ Fijo|
-
----
 
 ## Notas de endurecimiento aplicado
 
@@ -132,7 +102,7 @@ Los casos de abuso de mayor impacto de The Pool a menudo cruzan los límites del
 - roles de administrador, alcance de la campaña, vistas previas protegidas, creación/archivo de campañas, carga de medios o publicación respaldada por GitHub
 - análisis, uso del plan del proveedor, exportaciones, copias de seguridad, comportamiento de restauración o nuevos flujos de datos de terceros
 
-La aprobación de seguridad debe responder a las mismas preguntas prácticas cada vez:
+La aprobación de seguridad responde siempre a las mismas preguntas prácticas:
 
 - ¿Qué datos resultan más fáciles de recopilar, inferir, exportar o exponer?
 - ¿Qué estado privado/tokenizado podría accidentalmente indexarse, captarse previamente, compartirse o enviarse por correo electrónico?
@@ -216,376 +186,112 @@ Las clases de campos de administración se normalizan consistentemente:
 
 La inyección de SQL no es una amenaza principal para el Worker actual porque el tiempo de ejecución no utiliza SQL. Las clases de inyección relevantes son XSS almacenado, inyección de YAML/front-matter, manipulación de clave/ruta KV, inyección de URL/CSS y escalada de privilegios mediante asignación masiva; los normalizadores administrativos están diseñados en torno a esos riesgos.
 
-### SEC-001: Bloquear la omisión del token de desarrollo (✅ CORREGIDO)
+### Protección de solicitudes de tiempo de ejecución
+
+El límite de solicitud Worker actual tiene estas propiedades obligatorias:
+
+- Las rutas `/test/*` devuelven `404` fuera de `APP_MODE=test`; voto de desarrollo
+Los tokens se aceptan solo en modo de prueba.
+- Las lecturas agregadas públicas pueden utilizar CORS comodín. Acreditado, pago, administrador,
+y otras respuestas protegidas utilizan el origen del sitio configurado normalizado.
+- Las respuestas JSON compartidas incluyen `X-Content-Type-Options: nosniff`,
+`X-Frame-Options: DENY`, la compatibilidad heredada de `X-XSS-Protection`
+encabezado y `Referrer-Policy: strict-origin-when-cross-origin`.
+- Arranque de pago, finalización de pago, método de pago, administrador, vista previa y
+otras respuestas específicas de pedidos utilizan la política privada/sin tienda cuando corresponda.
+Los POST de métodos de pago y pago entre sitios no superan las comprobaciones de origen.
+- Los analizadores de solicitudes imponen límites de tamaño corporal antes que los costosos JSON, Stripe o KV
+trabajo. Slugs, correos electrónicos, identificadores/opciones de voto, cantidades de centavos enteros, administración
+campos, valores de catálogo, rutas de medios, URL y colecciones estructuradas son
+normalizado y acotado en el límite Worker.
+- La ruta del webhook del carrito alojado eliminada está ausente. El pago propio y
+El webhook Stripe firmado son las únicas rutas de ingreso de pago admitidas.
+- Los tokens de portador comunitario permanecen en el almacenamiento de la sesión; un aporte de respaldo faltante
+devuelve `404` incluso cuando una firma de enlace mágico es válida.
+- Las reclamaciones de nivel escaso y la serialización de acuerdos utilizan su campaña
+Coordinadores Durable Object. KV expone proyecciones, no sensibles a la raza
+autoridad.
+- El catálogo de complementos y los precios históricos permanecen dentro del canónico Worker
+El límite de cantidad y los precios enviados por el navegador no son autorizados.
+- Los recordatorios de pago abandonado requieren consentimiento explícito, firmado
+Enlaces para cancelar suscripción/reanudar, retención limitada, deduplicación e índice de campaña
+controles antes de la entrega.
+
+### Comportamiento de falla del webhook Stripe
+
+El Worker comprueba el modo de evento antes de aplicar un webhook Stripe. Un secreto perdido
+para el modo seleccionado se reconoce con un resultado omitido, por lo que Stripe no
+Vuelva a intentarlo indefinidamente, pero el evento no se analiza en estado de aporte ni
+aplicado. Las firmas no válidas devuelven `401`. La postura de producción trata una falta
+El secreto del webhook en vivo es un defecto de implementación.
+
+El procesamiento de webhooks utiliza un contrato de arrendamiento, marcadores procesados, tamaño corporal limitado,
+observabilidad redactada y operaciones de pago idempotentes. Aporte canónica
+El estado no retrocede cuando falla un correo electrónico u otro efecto secundario de notificación.
+
+### Límites de tarifas y controles de denegación de billetera
+
+Se requiere `RATELIMIT`. Un enlace faltante o no disponible falla al cerrarse con
+`503`; Las solicitudes bloqueadas repetidas en la misma ventana no reescriben lo mismo.
+contador.
+
+|Clase de punto final|Límite|ventana|Llave|
+| --- | ---: | ---: | --- |
+|inicio de pago|40|60 segundos|IP|
+|Cotización de envío|90|60 segundos|IP|
+|cotización de impuestos|90|60 segundos|IP|
+|Finalización del pago|12|60 segundos|Orden|
+|Abandono de pago|12|60 segundos|Orden|
+|Iniciar registro de recordatorio|5|60 segundos|IP|
+|Administrar lecturas de aporte|120|60 segundos|IP|
+|Gestionar escrituras de aporte|30|60 segundos|IP|
+|Voto lee/escribe|45|60 segundos|IP|
+|Operaciones de administración|5|60 segundos|IP|
+|Adaptador de resumen de película Stripe|30|60 segundos|IP|
+
+Las lecturas públicas `/live/:slug`, `/stats/:slug` y `/inventory/:slug` permanecen
+sin límite para el tráfico legítimo de la campaña. Los webhooks Stripe se basan en la firma
+verificación, idempotencia y límites corporales en lugar de un límite estricto de IP compartida.
+El Workers estándar/pago implementado también declara `limits.cpu_ms = 100` como
+techo de denegación de cartera; el desarrollo local no hace cumplir eso Cloudflare
+límite.
+
+Utilice `GET /admin/observability/webhooks`,
+`GET /admin/observability/performance`, y
+[`scripts/check-observability.sh`](https://github.com/your-org/your-project/blob/main/scripts/check-observability.sh) para revisar
+resúmenes de entrega y tiempos limitados sin exponer cargas útiles de solicitudes sin procesar.
+
+### Comparación y alcance de credenciales
+
+Valores de portador de administrador, secretos de administrador con alcance, tokens CSRF, firmas de pago,
+las firmas de enlace mágico y los hashes de ejecución en seco utilizan ayudas de comparación seguras en el tiempo.
+Las credenciales de administrador que faltan fallan al cerrarse. Acuerdo de alcance, transmisión y
+Las rutas de mantenimiento prefieren su credencial dedicada y rechazan la más amplia.
+reserva cuando se configura el secreto de ámbito.
+
+### Seguridad de dependencia y liberación
+
+Tanto `npm audit --omit=dev --audit-level=moderate` como el completo
+`npm audit --audit-level=moderate` son comprobaciones de liberación. Hallazgos de producción
+liberación del bloque. Los hallazgos exclusivos para desarrolladores en las herramientas de compilación o lanzamiento requieren eliminación, una
+pasador limpio y compatible o un registro de aceptación con alcance explícito. la corriente
+El pin del faro se registra en el archivo de bloqueo; el registro de cambios y la evidencia de publicación,
+no en esta guía, conserve el historial de resolución específico de la versión.
+
+### Riesgos aceptados
+
+Se siguen aceptando dos compensaciones de baja gravedad:
+
+- Los enlaces mágicos caducan después de 90 días para que los patrocinadores sin cuenta puedan regresar
+cronogramas de campaña prolongados. Cada enlace tiene como alcance un pedido y requiere una
+aporte de respaldo.
+- La entrada Magic-link utiliza un parámetro de consulta. Comportamiento estricto del referente, ruta
+el alcance, la política de caché privada y la exclusión de la indexación/búsqueda previa reducen
+riesgo de fuga.
 
-**Archivo:** `worker/src/routes/votes.js`
+Los enlaces potenciales de menor duración y el intercambio único de tokens de URL se rastrean en
+la [Hoja de ruta](/es/docs/reference/roadmap/).
 
-**Patrón histórico de vulnerabilidad:**
-```javascript
-if (token.startsWith('dev-token-')) {
-  campaignSlug = token.replace('dev-token-', '');
-  orderId = 'dev-order-1';
-}
-```
-
-**Fijado:**
-```javascript
-if (token.startsWith('dev-token-')) {
-  if (env.APP_MODE !== 'test') {
-    return jsonResponse({ error: 'Invalid token' }, 401);
-  }
-  campaignSlug = token.replace('dev-token-', '');
-  orderId = 'dev-order-1';
-  email = 'dev@test.com';
-}
-```
-
-**Nota:** Los votos se codifican por **correo electrónico** (no por ID de pedido) para evitar que los patrocinadores con múltiples aportes voten varias veces. Worker también resuelve decisiones de campaña en el lado del servidor, rechaza decisiones desconocidas/cerradas y solo acepta valores de opciones de la lista de permitidos publicada de la campaña.
-
-Los títulos, las descripciones y las etiquetas de soporte creados por la campaña también tienen caracteres de escape de forma predeterminada en las superficies de carrito, administración y comunidad orientadas a los patrocinadores, por lo que las bifurcaciones con contenido editable por el creador no heredan una pistola XSS almacenada de forma predeterminada. Los bloques de diario y campaña de formato largo ahora aceptan Markdown más un subconjunto HTML en línea muy pequeño (`<br>`, `<em>`, `<strong>`, `<i>`, `<b>`, `<u>`); otras etiquetas sin formato se escapan en el momento de la renderización y la auditoría de contenido las rechaza. Los enlaces Markdown se reescriben a menos que utilicen un esquema de destino incluido en la lista de permitidos (`http:`, `https:`, `mailto:` o enlaces internos), y las incrustaciones estructuradas deben utilizar URL exactas del proveedor `https://` aprobadas en lugar de pasar una verificación de subcadena.
-Las páginas de la comunidad ya no conservan el token de portador de apoyo sin procesar en una cookie de larga duración; el token ahora permanece en el almacenamiento de la sesión del navegador mientras una cookie de verificación no confidencial maneja el estado ligero de UX.
-
-Las mutaciones de inventario de nivel limitado ahora fluyen a través de un coordinador Durable Object por campaña desde el inicio del pago en adelante. Los niveles escasos se reservan antes de redirigir a Stripe, se confirman en el momento de persistencia exitosa y solo se proyectan nuevamente en KV para lecturas públicas. Esto mantiene la verdad del inventario sensible a la raza fuera del KV visible para el cliente y al mismo tiempo preserva las lecturas públicas eficientes de `/inventory/:slug`.
-
-Los nuevos flujos de pago Stripe y `Update Card` en el sitio ahora también fallan de forma más privada de forma predeterminada: las respuestas Worker que llevan datos de arranque de sesión Stripe o el estado de finalización específico del pedido se entregan con `Cache-Control: private, no-store`, los POST del navegador entre sitios para inicio de pago / pago-completo / inicio de método de pago se rechazan a menos que se originen en `SITE_BASE`, y el navegador solo mantiene marcadores de pago a bordo de corta duración para la recuperación de reservas en lugar de dejarlos en un almacenamiento de larga duración indefinidamente. La persistencia del carrito de larga duración ahora solo mantiene la estructura del carrito y los datos de precios; Los borradores de contactos y direcciones se degradan a almacenamiento con alcance de sesión, y `/checkout-intent/complete` tiene su propio presupuesto de reintento para que la recuperación local no pueda enviarse spam indefinidamente. Después de una persistencia exitosa del aporte, el flujo de pago ahora también invalida las estadísticas en vivo/cachés de inventario inmediatamente y deja un marcador de actualización de corta duración para que las páginas de campaña restauradas no sigan mostrando totales obsoletos desde el estado previo al aporte del navegador.
-
-La evidencia de la caché de liberación está centralizada en `config/performance-budgets.json` y se ejecuta con `npm run test:cache-policy`. Verifica que las páginas/recursos públicos cumplan con la vida útil mínima de la caché, mientras que los objetivos de administración/sesión siguen siendo `private, no-store`; un cambio de rendimiento que debilita una ruta privada es un error de versión. Workers La caché permanece deshabilitada a menos que la evidencia representativa borre el umbral de mejora p95 configurado.
-
-El precio de los complementos está limitado al mismo límite máximo `$1,000,000` que los montos de pago canónicos. La normalización de variantes y productos de administración rechaza valores mayores antes de que se publique GitHub, la resolución del catálogo Worker vuelve a verificar los centavos resultantes y nunca se confía en un `unitPrice` histórico guardado fuera de rango como anulación de preservación de precios.
-
-La revisión de la dependencia de la versión ejecuta tanto `npm audit --omit=dev --audit-level=moderate` como el `npm audit --audit-level=moderate` completo. Los hallazgos de producción son obstáculos. Los hallazgos exclusivos para desarrolladores en las herramientas de compilación o lanzamiento deben eliminarse, anclarse a una versión limpia y compatible o aceptarse explícitamente con alcance y justificación. The Pool fija Lighthouse `12.6.1` porque la cadena transitiva Sentry/OpenTelemetry posterior llevaba un aviso de asignación moderado, mientras que esta versión compatible realiza auditorías limpias.
-
-Los recordatorios de pagos abandonados son solo opcionales. El navegador envía `abandonedCartConsent` solo cuando el colaborador marca la casilla de recordatorio, y Worker pone en cola un recordatorio solo después de que Stripe crea una sesión de pago propia válida. Los registros de recordatorio son de corta duración, utilizan enlaces de cancelación de suscripción firmados, se eliminan si el aporte persiste exitosamente para ese pedido y verifican los índices de aporte de la campaña antes de enviarlos para que un aporte completado posteriormente suprima el correo electrónico obsoleto de pago abandonado. Después de enviar un recordatorio, Worker almacena una instantánea separada de `abandoned-cart-resume:{orderId}` de corta duración para los enlaces de currículum firmados; esa instantánea contiene solo los campos de contacto/carrito desinfectados necesarios para reconstruir una nueva sesión de pago y nunca coloca secretos de Stripe en la URL.
-
----
-
-### SEC-002: No procesar el secreto del webhook Stripe faltante (✅ CORREGIDO)
-
-**Archivo:** `worker/src/index.js` (handleStripeWebhook)
-
-**Patrón histórico de vulnerabilidad:**
-```javascript
-const webhookSecret = getStripeWebhookSecret(env);
-if (webhookSecret) {
-  // Only verifies if secret exists
-}
-```
-
-**Fijado:**
-```javascript
-const webhookSecret = getStripeWebhookSecret(env);
-if (!webhookSecret) {
-  console.warn('Stripe webhook secret not configured for this mode, acknowledging receipt');
-  return jsonResponse({ received: true, skipped: 'webhook secret not configured' }, 200);
-}
-
-const { valid, error } = await verifyStripeSignature(body, sig, webhookSecret);
-if (!valid) {
-  return jsonResponse({ error: 'Invalid signature' }, 401);
-}
-```
-
-Worker reconoce los webhooks secretos faltantes para evitar infinitos reintentos de Stripe para el modo incorrecto, pero no analiza ni aplica el evento. La preparación para la producción aún debe tratar un secreto de webhook activo faltante como un defecto de implementación.
-
----
-
-### SEC-003: Puntos finales de prueba de guardia (✅ FIJO)
-
-**Archivo:** `worker/src/index.js` (enrutador)
-
-Worker ahora bloquea los puntos finales de prueba fuera de `APP_MODE === 'test'` antes de que se ejecuten esos controladores:
-
-```javascript
-// Block test endpoints in production
-if (path.startsWith('/test/') && env.APP_MODE !== 'test') {
-  return jsonResponse({ error: 'Not found' }, 404);
-}
-```
-
-Cada manejador también verifica el entorno como defensa en profundidad:
-```javascript
-async function handleTestSetup(request, env) {
-  if (env.APP_MODE !== 'test') {
-    return jsonResponse({ error: 'Not found' }, 404);
-  }
-  // ...
-}
-```
-
----
-
-### SEC-004: Restringir orígenes CORS (✅ FIJO)
-
-**Archivo:** `worker/src/index.js`
-
-CORS ahora está restringido según el tipo de punto final:
-- **Puntos finales públicos** (`/stats/*`, `/inventory/*`): Permitir `*`
-- **Puntos finales protegidos**: utilice un `env.CORS_ALLOWED_ORIGIN` normalizado, un `env.SITE_BASE` normalizado o el origen del sitio de producción canónico.
-
-```javascript
-function getAllowedOrigin(env, isPublic = false) {
-  if (isPublic) return '*';
-  return normalizeOrigin(env.CORS_ALLOWED_ORIGIN) ||
-         normalizeOrigin(env.SITE_BASE) ||
-         'https://site.example.com';
-}
-
-// Public endpoints pass isPublic=true:
-return jsonResponse(data, 200, env, true);
-
-// Protected endpoints use default:
-return jsonResponse(data, 200, env);
-```
-
----
-
-### SEC-005: Limitación de Tarifa (✅ FIJA)
-
-**Archivo:** `worker/src/index.js`
-
-La limitación de velocidad In-Worker ahora se implementa utilizando el almacenamiento KV con seguimiento por IP.
-
-**Límites de velocidad de ruta de escritura:**
-
-|Punto final|Límite|ventana|Notas|
-|----------|-------|--------|-------|
-|`/checkout-intent/start`|40 solicitudes|1 minuto|Comienza el pago; ajustado más alto para que las NAT compartidas y los picos legítimos sigan encajando|
-|`/shipping/quote`|90 solicitudes|1 minuto|Las actualizaciones de cotizaciones de envío se mantienen amplias durante las ediciones del carrito|
-|`/checkout-intent/complete`|12 solicitudes|1 minuto|Clave por `orderId` en lugar de solo IP para evitar castigar los reintentos reales|
-|`/checkout-intent/abandon`|12 solicitudes|1 minuto|Con la clave `orderId` para que los reintentos de limpieza de reservas sean amigables con las IP compartidas.|
-|`/pledge` + `/pledges`|120 solicitudes|1 minuto|Las lecturas de aporte de gestión siguen siendo generosas porque son lecturas orientadas al usuario|
-|`/pledge/cancel`, `/pledge/modify`, `/pledge/payment-method/start`|30 solicitudes|1 minuto|Escrituras de aporte de gestión|
-|`/votes`|45 solicitudes|1 minuto|Puntos finales de votación|
-|`/admin/*`|5 solicitudes|1 minuto|Operaciones de administración|
-
-**Cómo funciona:**
-
-- Los límites de velocidad se rastrean **por dirección IP** mediante el encabezado `CF-Connecting-IP`
-- Cada IP tiene su propio depósito, por lo que 100 usuarios diferentes no interferirán entre sí.
-- Los puntos finales de lectura pública como `/live/:slug`, `/stats/:slug` y `/inventory/:slug` permanecen sin límites para que una campaña legítimamente viral no active una defensa DoS solo por ser popular.
-- Las rutas de escritura de pago y Gestión de aporte mantienen límites más altos que un límite de fuerza bruta típico, por lo que los entornos NAT compartidos todavía tienen espacio para respirar.
-- `/checkout-intent/complete` tiene la clave `orderId`, que es más amigable para los reintentos de recuperación legítimos que un depósito por IP puro.
-- `/checkout-intent/abandon` también está codificado por `orderId`, por lo que los reintentos de limpieza/liberación no castigan a los patrocinadores detrás del mismo NAT durante un lanzamiento ocupado.
-- Los webhooks Stripe están protegidos con verificación de firma, idempotencia y un límite de tamaño del cuerpo de la solicitud en lugar de un límite estricto por IP que podría interferir con la entrega normal de Stripe.
-- Una vez que un cliente ya supera el límite de la ventana actual, las solicitudes bloqueadas repetidas no se cierran sin reescribir el mismo contador KV en cada visita. Eso evita que la presión abusiva se convierta en un plan gratuito innecesario que escribe KV.
-- Las costosas rutas POST ahora también rechazan cuerpos de solicitud obviamente sobredimensionados antes de analizar JSON o tocar flujos pesados Stripe/KV.
-- El Workers estándar/pago implementado ahora también declara `limits.cpu_ms = 100` en `wrangler.toml`. Esto es una barrera de protección de la billetera, no una afirmación de que las solicitudes normales sean tan costosas.
-- Los puntos finales de observabilidad exclusivos para administradores ahora exponen resúmenes de entrega de webhooks y tiempos de mutación muestreados para que los operadores puedan ajustar las defensas DoS sin depender únicamente de colas de registros sin procesar.
-
-**Configuración:**
-
-1. Cree el espacio de nombres KV:
-   ```bash
-   wrangler kv:namespace create "RATELIMIT"
-   wrangler kv:namespace create "RATELIMIT" --preview
-   ```
-
-2. Agregue a `wrangler.toml` (ambas secciones de producción y desarrollo):
-   ```toml
-   # Production
-   [[kv_namespaces]]
-   binding = "RATELIMIT"
-   id = "YOUR_RATELIMIT_KV_ID"
-   preview_id = "YOUR_RATELIMIT_PREVIEW_ID"
-
-   # Development (in [env.dev] section)
-   [[env.dev.kv_namespaces]]
-   binding = "RATELIMIT"
-   id = "YOUR_RATELIMIT_KV_ID"
-   preview_id = "YOUR_RATELIMIT_PREVIEW_ID"
-   ```
-
-**Nota:** `RATELIMIT` ahora es un requisito estricto. Si falta el enlace, Worker falla al cerrarse con `503` en lugar de servir tráfico sin protección contra abusos. Ese cambio aumenta la importancia de tener un margen de maniobra real para KV, pero no significa que el plan gratuito Workers sea repentinamente incompatible con la escala de financiación colectiva de baja a moderada prevista para el proyecto.
-
-**Nota sobre el límite de CPU:** El bloque `limits` configurable de Cloudflare solo se aplica en el modelo de uso estándar y solo en Workers implementado, no en el desarrollo local. El valor actual de `cpu_ms = 100` se eligió como un respaldo conservador después de que las solicitudes representativas de aprovechamiento de unidades aterrizaran alrededor del tiempo de reloj de pared `6 ms`, `15 ms` y `28 ms` para los flujos de luz de administración, recuperación de pago y abandono de pago, respectivamente. Esta es sólo una medida aproximada, pero es suficiente para justificar un techo bajo con margen de maniobra en lugar de dejar el valor predeterminado pagado en `30 seconds`.
-
-**Nota de observabilidad:** Utilice `GET /admin/observability/webhooks` para inspeccionar el volumen de webhooks, entregas duplicadas, errores de firma y resultados recientes, y `GET /admin/observability/performance` para inspeccionar tiempos de reloj de pared de muestra para las rutas de mutación clave. El script auxiliar [`scripts/check-observability.sh`](https://github.com/your-org/your-project/blob/main/scripts/check-observability.sh) envuelve ambos puntos finales para verificaciones locales o implementadas.
-
-**Respuesta cuando la tarifa es limitada:**
-```json
-{
-  "error": "Too many requests",
-  "retryAfter": 45
-}
-```
-
-Estado: `429 Too Many Requests` con encabezados:
-- `Retry-After`: Segundos hasta que se restablezca el límite
-- `X-RateLimit-Limit`: Máximo de solicitudes permitidas
-- `X-RateLimit-Remaining`: Solicitudes restantes en ventana
-- `X-RateLimit-Reset`: marca de tiempo de Unix cuando se restablece la ventana
-
-**Pruebas locales:**
-
-Reinicie Worker para restablecer los contadores de límite de velocidad (el KV local se simula y se reinicia al reiniciar):
-```bash
-lsof -ti:8787 | xargs kill -9
-cd worker && npx wrangler dev --port 8787
-```
-
----
-
-### SEC-006: Comparación de secretos de administración seguros en el tiempo (✅ CORREGIDO)
-
-**Archivo:** `worker/src/index.js`
-
-El Worker ahora utiliza una ayuda de comparación segura para los secretos de administrador:
-```javascript
-function timingSafeEqual(a, b) {
-  if (!a || !b || a.length !== b.length) return false;
-  let result = 0;
-  for (let i = 0; i < a.length; i++) {
-    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  }
-  return result === 0;
-}
-
-function requireAdmin(request, env, scope = 'default') {
-  const authHeader = request.headers.get('Authorization') || '';
-  const provided = authHeader.startsWith('Bearer ')
-    ? authHeader.slice('Bearer '.length)
-    : request.headers.get('x-admin-key') || '';
-  const credential = getAdminSecretForScope(env, scope);
-
-  if (!credential) {
-    console.error('admin secret not configured');
-    return { ok: false, status: 500, error: 'Admin not configured' };
-  }
-
-  if (!timingSafeEqual(provided, credential.secret)) {
-    return { ok: false, status: 401, error: 'Unauthorized' };
-  }
-
-  return { ok: true };
-}
-```
-
----
-
-## Compensaciones aceptadas / Candidatos de seguimiento
-
-Estos son los elementos actualmente conocidos que no se tratan como vulnerabilidades activas que requieren cambios inmediatos en el código:
-
-### SEC-008: Tokens Magic Link de larga duración (90 días)
-
-Estado: **Compensación aceptada**
-
-Por qué permanece:
-- Los enlaces mágicos no tienen intencionalmente cuentas y deben seguir siendo utilizables durante cronogramas de campaña más prolongados.
-- cada token tiene como alcance una ruta de pedido/campaña específica en lugar de otorgar un amplio acceso a la cuenta.
-
-Si esto alguna vez cambia, el seguimiento probable sería acortar la vida útil del token y combinarlo con una experiencia de usuario de reemisión/recuperación más sencilla.
-
-### SEC-010: Tokens en cadenas de consulta (riesgo de fuga de referencia)
-
-Estado: **Compensación aceptada**
-
-Por qué permanece:
-- La entrada de enlace mágico actualmente depende de las URL enviadas por correo electrónico con parámetros de consulta.
-- la plataforma ya limita la fuga de referencias con encabezados de respuesta más estrictos y un comportamiento de acceso con alcance
-
-Si esto se convierte en una preocupación de mayor prioridad, el seguimiento probable sería un flujo de intercambio de tokens único que elimine el token sin procesar de la URL visible después de la primera carga.
-
----
-
-### SEC-007: Eliminar la superficie del webhook del carrito alojado heredado (✅ CORREGIDO)
-
-**Archivo:** `worker/src/index.js`
-
-Worker ya no expone la ruta del webhook de pago de terceros eliminada, lo que elimina una superficie de devolución de llamada innecesaria que el flujo en vivo ya no necesita.
-
----
-
-### SEC-009: Validación de entrada más estricta en votos (✅ FIJADO)
-
-**Archivo:** `worker/src/routes/votes.js`, `worker/src/validation.js`
-
-Los puntos finales de votación ahora validan:
-- ID de decisión: máximo 100 caracteres, solo alfanuméricos + guiones
-- Opciones de votación: máximo 50 caracteres
-- Máximo 20 ID de decisión por solicitud
-
-```javascript
-// Validation rules
-const MAX_VOTE_OPTION_LENGTH = 50;
-const MAX_DECISION_ID_LENGTH = 100;
-const VALID_SLUG_REGEX = /^[a-z0-9-]+$/;
-
-// Validated before processing
-if (!isValidDecisionId(decisionId)) {
-  return jsonResponse({ error: 'Invalid decision ID format' }, 400, env);
-}
-
-if (!isValidVoteOption(option)) {
-  return jsonResponse({ error: 'Invalid vote option format' }, 400, env);
-}
-```
-
----
-
-### SEC-011: Validación de entrada al inicio del pago (✅ FIJO)
-
-**Archivo:** `worker/src/index.js`, `worker/src/validation.js`
-
-La ruta `/checkout-intent/start` ahora valida:
-- Slugs de campaña: máximo 100 caracteres, solo alfanuméricos + guiones (evita la inyección/recorrido)
-- Direcciones de correo electrónico: formato compatible con RFC, máximo 254 caracteres
-- ID y cantidades de artículos del carrito
-- Soporte/entradas de cantidades personalizadas a través de la reconstrucción de contribuciones canónicas
-
-```javascript
-if (!isValidSlug(campaignSlug)) {
-  return jsonResponse({ error: 'Invalid campaign slug format' }, 400);
-}
-
-if (email && !isValidEmail(email)) {
-  return jsonResponse({ error: 'Invalid email format' }, 400);
-}
-
-if (!parsedCart.valid) {
-  return jsonResponse({ error: parsedCart.error }, 400);
-}
-```
-
----
-
-### SEC-012: Encabezados de respuesta de seguridad (✅ CORREGIDO)
-
-**Archivo:** `worker/src/validation.js`
-
-Todas las respuestas de API ahora incluyen encabezados de seguridad:
-
-```javascript
-const SECURITY_HEADERS = {
-  'X-Content-Type-Options': 'nosniff',     // Prevents MIME-type sniffing
-  'X-Frame-Options': 'DENY',                // Prevents clickjacking
-  'X-XSS-Protection': '1; mode=block',      // Legacy XSS protection
-  'Referrer-Policy': 'strict-origin-when-cross-origin'  // Limits referer leakage
-};
-```
-
----
-
-### SEC-013: Normalización de entradas almacenadas en el panel de administración (✅ CORREGIDO)
-
-**Archivo:** `worker/src/index.js`
-
-El panel de administración ahora valida cada escritura en el panel respaldada por GitHub y KV a través de ayudas de normalización de administración compartidas antes de la persistencia.
-
-Rutas de escritura cubiertas:
-- `/admin/settings/preview` y `/admin/settings/publish`
-- `/admin/content/preview` y `/admin/content/publish`
-- `/admin/settings/logo-upload`, `/admin/settings/image-upload`, `/admin/settings/audio-upload` y `/admin/settings/video-upload`
-- `/admin/users`
-- `/admin/campaigns/create`, `/admin/campaigns/archive` y `/admin/campaign-preview/publish`
-- `/admin/marketing/referrals`
-- `/admin/marketing/announcement`
-
-El refuerzo rechaza primitivas XSS almacenadas, como `<script>` sin formato, atributos de controlador de eventos, enlaces de Markdown inseguros, enlaces de Markdown relativos a los padres, URL `javascript:`/`data:`, inyección de declaración/función CSS y rutas de activos inseguras. También rechaza la asignación masiva de configuraciones para filas exclusivas del panel y normaliza matrices estructuradas para complementos de plataforma, complementos de campaña, niveles, elementos de soporte, entradas de diario, objetivos ambiciosos, elementos en curso y decisiones. Las cargas de medios tienen un alcance de función, un tipo de contenido incluido en una lista permitida, un tamaño limitado y se escriben únicamente en directorios de activos del panel canónico. La representación de correo electrónico de Blast incluye solo rutas de imágenes alojadas en el sitio y enlaces de video seguros para correo electrónico en lugar de enlaces de imágenes remotas arbitrarias o incrustaciones de iframe.
-
-El panel del navegador también tiene un refuerzo de defensa en profundidad alrededor del shell de edición: el meta CSP de la página de administración evita scripts en línea, limita las conexiones Worker/API y mantiene las vistas previas del contenido en iframes aislados. Las implementaciones deben agregar protección de marcos a través de encabezados HTTP, como `Content-Security-Policy: frame-ancestors 'none'` o `X-Frame-Options: DENY`, porque el meta CSP no puede hacer cumplir esa directiva. Las cargas útiles de correo electrónico Magic-link eliminan los caracteres CRLF/de control de los valores de encabezado configurables antes de llamar a Resend para que los nombres de las plataformas o la configuración del remitente no puedan crear cargas útiles de inyección de encabezado.
-
----
 
 ## Lista de verificación de secretos
 
@@ -605,11 +311,12 @@ La configuración específica del pago está documentada en [PAYMENT_PROCESSOR.m
 |Secreto de administrador|`ADMIN_SECRET`|32+ caracteres|
 |Secreto de administración de liquidación|`ADMIN_SETTLEMENT_SECRET` (opcional, con alcance)|32+ caracteres|
 |Secreto de administrador de transmisión|`ADMIN_BROADCAST_SECRET` (opcional, con alcance)|32+ caracteres|
+|The Pool–El secreto del puente del podcast|`POOL_PODCAST_BRIDGE_SECRET` (obligatorio solo cuando los beneficios de Podcast están habilitados)|32+ caracteres|
 |Secreto del torniquete|`TURNSTILE_SECRET_KEY`, `ADMIN_TURNSTILE_SECRET_KEY` o `LAUNCH_REMINDER_TURNSTILE_SECRET_KEY`|N/A|
 |Clave API Resend|`RESEND_API_KEY`|N/A|
 |Token de análisis de uso de Cloudflare|`CLOUDFLARE_USAGE_API_TOKEN` o `CLOUDFLARE_ANALYTICS_API_TOKEN`|Lectura de análisis GraphQL; Lectura de facturación opcional para detección de planes|
 
-Cuando GitHub Actions o un script de operador llaman a puntos finales de administración protegidos, agregue solo el secreto coincidente necesario a los secretos del repositorio de GitHub. El flujo de trabajo de implementación predeterminado utiliza `ADMIN_BROADCAST_SECRET` para la verificación del diario posterior a la implementación cuando está configurado; La futura automatización de liquidaciones debería utilizar `ADMIN_SETTLEMENT_SECRET` en lugar del secreto alternativo más amplio.
+Cuando las acciones GitHub o un script de operador llaman a puntos finales de administración protegidos, agregue solo el secreto coincidente necesario a los secretos del repositorio GitHub. El flujo de trabajo de implementación predeterminado utiliza `ADMIN_BROADCAST_SECRET` para la verificación del diario posterior a la implementación cuando se configura. La automatización de la liquidación utiliza `ADMIN_SETTLEMENT_SECRET` en lugar del secreto alternativo más amplio.
 
 Generar secretos seguros:
 ```bash
@@ -633,7 +340,11 @@ npm audit --omit=dev --audit-level=moderate
 npm audit --audit-level=moderate
 ```
 
-`npm run test:premerge` ahora incluye la auditoría secreta automáticamente, por lo que la activación de combinación local verifica tanto el comportamiento de seguridad como la exposición accidental de credenciales.
+`npm run test:premerge` incluye la auditoría secreta, por lo que la activación de combinación local verifica tanto el comportamiento de seguridad como la exposición accidental de credenciales.
+El comando es un adaptador de política delgado The Pool sobre el escáner Dust Wave compartido:
+conserva el `worker/.dev.vars` ignorado y las reglas de accesorios de prueba, escanea
+formularios de credenciales rastreados más valores locales exactos en el árbol de trabajo/historial, y
+nunca imprime ni enmascara parcialmente un valor coincidente.
 
 Para ejecuciones locales, mantenga configurado `CHECKOUT_INTENT_SECRET` si desea que la suite de inicio de pago y pago del trabajador en vivo ejerza la ruta de firma propia real.
 
@@ -691,5 +402,3 @@ Consulte [PAYMENT_PROCESSOR.md](/es/docs/operations/payment-processor/) para obt
 
 - **Seguridad de Stripe:** [stripe.com/docs/security](https://stripe.com/docs/security)
 - **Estado de Cloudflare:** [cloudflarestatus.com](https://www.cloudflarestatus.com)
-
----

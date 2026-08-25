@@ -10,9 +10,53 @@ lang: es
 
 ## Última actualización
 
-16 de julio de 2026
+25 de agosto de 2026
 
 Esta guía cubre los conjuntos de pruebas automatizadas, la infraestructura de pruebas local y las rutas de verificación manual. La recuperación sintética semanal, los simulacros de vista previa protegida y la verificación posterior a la restauración están documentados en [BACKUP_RESTORE.md](/es/docs/operations/backup-restore/).
+
+`npm run jekyll-template:check` verifica que los 17 Jekyll construidos localmente
+Los archivos de integración aún coinciden exactamente con la plantilla de proyecto dorado fijada. el
+La puerta previa a la fusión ejecuta esta verificación antes de las compilaciones y también rechaza la plantilla.
+submódulo de la salida generada del sitio. `npm run jekyll-template:sync` es un
+Operación explícita de rama de actualización, no un paso de compilación.
+
+El repositorio registra las revisiones de la plataforma y la plantilla Jekyll como enlaces de git exactos.
+Después de clonar, cambiar de rama o revisar una actualización de dependencia compartida,
+inicialice las confirmaciones registradas y ejecute el contrato estrecho de pin/deriva antes
+pruebas más amplias. Utilice `git submodule status` para inspeccionar el registro actual
+versiones en lugar de copiarlas en otra guía:
+
+```bash
+git submodule update --init --recursive
+npx vitest run tests/unit/platform-pin.test.ts tests/unit/jekyll-template-pin.test.ts
+npm run jekyll-template:check
+```
+
+El adaptador de vídeo de producto sólo local tiene una ruta de humo de interfaz real limitada:
+
+```bash
+npm run test:product-video
+```
+
+Construye con el `_config.test.yml` rastreado, captura el `smoke-editable`
+ruta de campaña/nivel/complemento/vista previa de pago a través del motor de plataforma anclado,
+y escribe solo la salida ignorada debajo de `tmp/product-video`. Ver
+[PRODUCT_VIDEO_WORKFLOW.md](/es/docs/development/product-video-workflow/) para formatos de renderizado,
+requisitos del anfitrión y límites de limpieza.
+
+Si un Worker de solo host de repente devuelve `503` mientras la ruta de humo respaldada por Podman
+pasa, detenga la pila de desarrollo del host e inspeccione el local ignorado
+Directorio `worker/.wrangler/state` para una copia en conflicto de Cloud Drive, como
+`v3 2`. Mueva solo ese directorio de desarrollo local duplicado a un lado y reinicie
+el Worker; no cambie `wrangler.toml`, espacios de nombres remotos ni datos rastreados.
+Los contenedores Podman utilizan un estado aislado y lo restablecen para un tiempo de ejecución reproducible.
+cheques.
+
+La puerta previa a la fusión también posee todos los procesos Worker y Jekyll que inicia. limpieza
+señala el árbol hijo completo, espera sólo un período de gracia limitado, luego
+detiene por la fuerza a cualquier superviviente. Una regresión enfocada utiliza una estrategia deliberadamente obstinada.
+proceso secundario para garantizar que una puerta de paso completo no se bloquee hasta que se complete el trabajo de CI
+tiempo de espera después de imprimir su resumen de fase.
 
 ## Referencia rápida
 
@@ -53,9 +97,9 @@ npm run test:usps          # Live USPS credential + quote sanity check
 npm test                   # Run all tests
 ```
 
-`./scripts/test-e2e.sh --podman` es ahora la ruta del navegador totalmente automatizada. Utilice `./scripts/test-checkout.sh --podman` cuando desee específicamente realizar el pago manualmente en un navegador real.
+`./scripts/test-e2e.sh --podman` es la ruta del navegador totalmente automatizada. Utilice `./scripts/test-checkout.sh --podman` cuando desee específicamente realizar el pago manualmente en un navegador real.
 
-La ruta de prueba del trabajador local ahora prefiere el nodo 24, que coincide con las acciones de GitHub. Los scripts del host recurren al Nodo 22 si una bifurcación lo tiene instalado, pero ya no fuerzan el Nodo 20 porque Wrangler 4 requiere el Nodo 22 o posterior.
+La ruta de prueba local Worker prefiere el nodo 24, que coincide con las acciones GitHub. Ejecute `nvm use` desde la raíz del repositorio para seleccionar la línea base del Nodo 24.15 compatible. Los scripts del host recurren al Nodo 22.22.2 o posterior si una bifurcación lo tiene instalado; npm rechaza las versiones de nodos impares no admitidas, por lo que jsdom y el ejecutor de pruebas no se ejecutan silenciosamente fuera de sus rangos de motor declarados.
 
 Para la sección del navegador centrada en la accesibilidad, utilice:
 
@@ -103,6 +147,8 @@ npm run test:cache-policy
 Las comprobaciones de tiempo de Lighthouse, de política de caché implementada y de Worker autenticadas siguen el modelo de evidencia de lanzamiento de Store y no son necesarias en todas las solicitudes de extracción. Sus evaluadores puros permanecen cubiertos por el conjunto de unidades, mientras que los límites de preparación, pestañas y tablas del panel los ejerce el conjunto de navegadores de administración. Human VoiceOver, NVDA y revisiones en español nativo son pruebas de divulgación opcionales; La accesibilidad automatizada, la integridad de i18n y las comprobaciones SEO renderizadas siguen siendo necesarias.
 
 Las comprobaciones del proveedor son de solo lectura y utilizan primero las credenciales del shell. En CI, el flujo de trabajo de publicación de pruebas del proveedor ejecuta `npm run release:providers -- --cloudflare-dns-only --strict --no-dev-vars` con `CLOUDFLARE_DNS_API_TOKEN`, `CLOUDFLARE_ZONE_ID` y `CLOUDFLARE_ZONE`.
+
+La auditoría de postura de producción programada también requiere que `preview_urls = false` sea explícito en `worker/wrangler.toml`. Las URL de vista previa de Worker faltantes o habilitadas son un hallazgo de desviación de configuración que bloquea la versión.
 
 Configure `POOL_EMAIL_DRY_RUN=true` o `RESEND_EMAIL_DRY_RUN=true` para evidencia de no envío de correo electrónico durante el humo de mutación local. El humo de pago mantiene la aceptación de evidencia de mutación de aporte a través de `--local-mutation` / `PAYMENT_SMOKE_ALLOW_MUTATION=1` y rechaza los hosts de producción a menos que se anule explícitamente.
 
@@ -185,7 +231,7 @@ Esto se ejecuta:
 - Guiones de humo locales contra la campaña mutable de solo prueba:
   - `scripts/test-worker.sh` para verificaciones de contrato de sitio/trabajador y verificación de `/checkout-intent/start` con formato incorrecto
   - `scripts/smoke-pledge-management.sh` para una cobertura de modificación/cancelación exitosa en la campaña mutable solo local, utilizando las respuestas de reconstrucción del administrador más verificaciones de deriva de proyección de solo lectura como fuente autorizada de estadísticas/inventario durante el humo.
-El script ahora rota sus IP de solicitud de administrador sintéticas durante esas llamadas de reconstrucción/verificación para que el limitador de velocidad de administrador real no cree un falso negativo en la activación de combinación local.
+El script rota sus IP de solicitud de administrador sintéticas durante esas llamadas de reconstrucción/verificación para que el limitador de velocidad de administrador real no cree un falso negativo en la activación de fusión local.
 - Suite de unidad completa a través de `npm run test:unit`
 - Paquete de seguridad a través de `npm run test:security` contra un trabajador local iniciado automáticamente
 - Suite de seguridad respaldada por Podman a través de `npm run test:security:podman` cuando desea que el sitio/pila de trabajo se inicie y se ejerza en la misma invocación.
@@ -193,14 +239,14 @@ El script ahora rota sus IP de solicitud de administrador sintéticas durante es
 - Rendimiento de páginas públicas y regresiones de uso compartido a través de cobertura de unidades para captación previa de intenciones, carga diferida en tiempo de ejecución del carrito, minificación de activos generados y comportamiento de enlaces compartidos de campañas.
 - Dramaturgo sin cabeza E2E vía `npm run test:e2e:headless`
 
-El script previo a la fusión ahora inicia automáticamente Jekyll con `_config.yml,_config.local.yml` cuando es necesario, de modo que la campaña `smoke-editable` solo local esté disponible durante la activación de la fusión y el arnés Playwright use la misma configuración combinada localmente.
-Esa puerta ahora intenta primero la ruta del host Bundler/Jekyll, incluido un intento único de `bundle install` cuando Bundler está presente pero faltan gemas. Mantiene el humo del trabajador del host más ligero, pero ejecuta el humo de aporte mutable a través de la pila respaldada por Podman para que la ruta de modificación/cancelación con estado utilice un estado de servicio local aislado incluso cuando la ruta de compilación del host tiene éxito. Si la ruta Ruby del host aún no puede compilarse limpiamente, recurre a una compilación Jekyll respaldada por Podman más los asistentes de navegador/humo compatibles con Podman restantes en lugar de fallar solo en la configuración del host.
+El script previo a la combinación inicia automáticamente Jekyll con `_config.yml,_config.local.yml` cuando es necesario, de modo que la campaña `smoke-editable` solo local esté disponible durante la activación de la combinación y el arnés Playwright utilice la misma configuración combinada localmente.
+Esa puerta prueba primero la ruta del host Bundler/Jekyll, incluido un intento único de `bundle install` cuando Bundler está presente pero faltan gemas. Mantiene el humo más ligero del host Worker, pero ejecuta el humo de aporte mutable a través de la pila respaldada por Podman, de modo que la ruta de modificación/cancelación con estado utiliza un estado de servicio local aislado incluso cuando la ruta de compilación del host tiene éxito. Si la ruta Ruby del host aún no puede compilarse limpiamente, recurre a una compilación Jekyll respaldada por Podman más los asistentes de humo/navegador compatibles con Podman restantes en lugar de fallar solo en la configuración del host.
 Ambos ayudantes de Jekyll fallan inmediatamente cuando falla su comando de compilación, por lo que la minificación y la validación de artefactos no pueden reutilizar accidentalmente la salida obsoleta de `_site`.
-Para ejecuciones de navegadores sin cabeza, Playwright ahora construye un `_site` estático y sirve esa salida con un servidor HTTP liviano en lugar de usar `jekyll serve`, lo que mantiene las comprobaciones automatizadas del navegador más cercanas al diseño real de los activos publicados.
+Para ejecuciones de navegador sin cabeza, Playwright crea un `_site` estático y sirve esa salida con un servidor HTTP liviano en lugar de usar `jekyll serve`, lo que mantiene las comprobaciones automatizadas del navegador más cercanas al diseño real de los activos publicados.
 
-Esta rama ahora tiene como valor predeterminado la ruta de tiempo de ejecución/carro propio tanto en `_config.yml` como en `_config.local.yml`, y la ruta del navegador ya no admite el antiguo tiempo de ejecución del carro alojado.
+El repositorio utiliza de forma predeterminada la ruta de tiempo de ejecución/carro propio tanto en `_config.yml` como en `_config.local.yml`; la ruta del navegador no es compatible con el antiguo tiempo de ejecución del carrito alojado.
 
-El reciente refuerzo de seguridad que ahora cubre la puerta incluye:
+La cobertura de seguridad actual en la puerta incluye:
 
 - comportamiento de cierre fallido de `GET /pledge` cuando existe un token de enlace mágico pero la fila de aporte no
 - Neutralización del esquema de enlaces de Markdown en contenido de formato largo
@@ -215,13 +261,13 @@ npm run media:optimize:check
 npm run media:optimize:check:podman # use when host-native media tools are missing
 ```
 
-Los valores predeterminados del trabajador local en [worker/wrangler.toml](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) ahora coinciden con la configuración propia. `./scripts/dev.sh --podman` ahora genera automáticamente un `CHECKOUT_INTENT_SECRET` local en `worker/.dev.vars` si falta, por lo que los nuevos inicios de pago local no fallan al cerrarse en un secreto de desarrollo no inicializado.
+Los valores predeterminados locales de Worker en [worker/wrangler.toml](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) coinciden con esa configuración propia. `./scripts/dev.sh --podman` genera automáticamente un `CHECKOUT_INTENT_SECRET` local en `worker/.dev.vars` si falta, por lo que los nuevos inicios de pago locales no fallan al cerrarse en un secreto de desarrollo no inicializado.
 
 Cuando la puerta de fusión o el paquete de seguridad local utilizan el marcador de posición `STRIPE_SECRET_KEY=sk_test_smoke`, `/test/setup` genera ID de clientes de Stripe sintéticos deterministas en lugar de llamar a Stripe. Utilice una clave de prueba de Stripe real solo cuando necesite específicamente cobertura de humo de actualización de métodos de pago contra la API de Stripe.
 
 Para trabajo local, prefiera `./scripts/dev.sh --podman`. Inicia a Jekyll y al Trabajador en contenedores Podman desarraigados, preservando al mismo tiempo los mismos puertos y el estado local de Wrangler.
 
-[`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml) ahora es una capa de solo anulación, no una segunda configuración base. Cuando cambie o agregue configuraciones de orientación hacia la bifurcación, prefiera [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) a menos que el valor realmente difiera solo en su máquina local.
+[`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml) es una capa de solo anulación, no una segunda configuración base. Cuando cambie o agregue configuraciones de orientación hacia la bifurcación, prefiera [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) a menos que el valor difiera solo en su máquina local.
 
 Los scripts de ayuda del navegador admiten el mismo modo:
 
@@ -234,20 +280,20 @@ Los scripts de ayuda del navegador admiten el mismo modo:
 ./scripts/fulfillment-report.sh --podman --local
 ```
 
-Esos ayudantes todavía ejecutan Playwright y shell smoke logic en el host por ahora, pero primero inician el sitio y el Worker a través de la pila local compartida respaldada por Podman. Los scripts de informes ahora también se pueden ejecutar directamente a través del contenedor de trabajadores. Esto mantiene las pruebas y exportaciones locales más cerca de los límites del servicio similar a la producción sin forzar la configuración del host Ruby o Wrangler.
+Esos ayudantes ejecutan Playwright y generan lógica de humo en el host, pero primero inician el sitio y Worker a través de la pila local compartida respaldada por Podman. Los scripts de informes también pueden ejecutarse directamente a través del contenedor Worker. Esto mantiene las pruebas y exportaciones locales más cerca de los límites de los servicios similares a los de producción sin forzar la configuración del host Ruby o del host Wrangler.
 
-Para los comandos del lado del host que necesitan la pila respaldada por Podman pero que no deben depender de la persistencia de la pila separada en shells separados, use [`scripts/podman-stack-run.sh`](https://github.com/your-org/your-project/blob/main/scripts/podman-stack-run.sh). `npm run test:security:podman` usa ese contenedor.
+Para los comandos del lado del host que necesitan la pila respaldada por Podman sin depender de la persistencia de la pila separada en shells separados, use [`scripts/podman-stack-run.sh`](https://github.com/your-org/your-project/blob/main/scripts/podman-stack-run.sh). `npm run test:security:podman` usa ese contenedor.
 
-Para una ruta de navegador mayoritariamente independiente del host, `npm run test:e2e:headless:podman` ahora ejecuta la suite Playwright automatizada dentro de un contenedor Podman dedicado en la misma red de pod local que el sitio y el Worker.
+Para una ruta de navegador mayoritariamente independiente del host, `npm run test:e2e:headless:podman` ejecuta la suite automatizada Playwright dentro de un contenedor Podman dedicado en la misma red de pod local que el sitio y Worker.
 
-La cobertura reciente del navegador también incluye aserciones de ventanas gráficas móviles dedicadas para:
+La cobertura del navegador también incluye aserciones de ventana gráfica móvil dedicadas para:
 
 - páginas de campaña y controles públicos secundarios
 - Cajones de carrito/caja en tamaños de teléfono pequeños
 - Administre la accesibilidad de la tarjeta de aporte y actualización en ventanas gráficas móviles cortas
 - controles sin desbordamiento horizontal en las principales vías públicas y de gestión de aportes
 
-La cobertura reciente de páginas públicas ahora también protege el Chrome de campaña más localizado, que incluye:
+La cobertura de páginas públicas también protege el Chrome de campaña localizado, que incluye:
 
 - Estados de carga/reproducción de vídeo heroico
 - copia teaser de la comunidad de patrocinadores
@@ -261,11 +307,11 @@ El alcance actual de Podman es intencionalmente limitado:
 
 - incluido: Jekyll, Worker, `worker/.dev.vars` local, estado de Wrangler local, reenvío CLI de Stripe de host opcional, `test-checkout.sh`, `test-e2e.sh`, `test-worker.sh`, `smoke-pledge-management.sh`, `pledge-report.sh` y `fulfillment-report.sh` compatibles con Podman
 - También se incluye: Playwright sin cabeza en contenedores para el conjunto de navegadores automatizados.
-- aún no incluido: un paso del navegador de pago manual interactivo en contenedores
+- Límite actual: el pago manual interactivo utiliza el navegador del host; se realiza un seguimiento de una alternativa en contenedores en el [roadmap](/es/docs/reference/roadmap/)
 
 Utilice [docs/PODMAN.md](/es/docs/operations/podman-local-dev/) para conocer la configuración exacta y las limitaciones actuales.
 
-Si cambia `pricing.sales_tax_rate` o `shipping.fallback_flat_rate` en la configuración de Jekyll, el repositorio ahora sincroniza automáticamente los valores de Worker reflejados en [worker/wrangler.toml](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) a través de las rutas principales de desarrollo/prueba. Reinicie `./scripts/dev.sh --podman` antes de probar las matemáticas de pago para que ambos servicios recojan los nuevos valores.
+Si cambia `pricing.sales_tax_rate` o `shipping.fallback_flat_rate` en la configuración de Jekyll, el repositorio sincroniza automáticamente los valores reflejados de Worker en [worker/wrangler.toml](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) a través de las rutas principales de desarrollo/prueba. Reinicie `./scripts/dev.sh --podman` antes de probar las matemáticas de pago para que ambos servicios recojan los nuevos valores.
 
 Si ajusta el comportamiento de lectura del plan gratuito, manténgalos sincronizados también:
 
@@ -314,7 +360,7 @@ Es seguro ejecutar esta auditoría libre de dependencias en el trabajo de implem
 
 En GitHub, la misma puerta se ejecuta automáticamente en el flujo de trabajo `Merge Smoke` para solicitudes de extracción dirigidas a `main`.
 
-La puerta de fusión ahora escribe un archivo de registro por fase e imprime un resumen final de PASA/FALLA con las rutas de registro. Si falla una fase tardía respaldada por Podman, comience con el directorio de registro impreso al final de la ejecución en lugar de desplazarse por toda la transcripción.
+La puerta de combinación escribe un archivo de registro por fase e imprime un resumen final de PASA/FALLA con las rutas de registro. Si falla una fase tardía respaldada por Podman, comience con el directorio de registro impreso al final de la ejecución en lugar de desplazarse por toda la transcripción.
 
 ### Auditoría secreta
 
@@ -381,7 +427,7 @@ Puedes ejercitar ese camino de principio a fin con:
 ./scripts/smoke-pledge-management.sh
 ```
 
-Cuando `ADMIN_SECRET` está disponible, esa ruta de humo ahora también verifica que la campaña permanezca limpia en la proyección después de la configuración, modificación y cancelación llamando al punto final de solo lectura `POST /stats/:slug/check` entre fases de mutación.
+Cuando `ADMIN_SECRET` está disponible, esa ruta de humo también verifica que la campaña permanezca limpia en la proyección después de la configuración, modificación y cancelación llamando al punto final de solo lectura `POST /stats/:slug/check` entre fases de mutación.
 
 Para la verificación CSV local con respecto a su estado de trabajador local real, utilice:
 
@@ -392,9 +438,9 @@ Para la verificación CSV local con respecto a su estado de trabajador local rea
 
 Utilice `pledge-report.sh` cuando desee el libro mayor completo, incluidas las deltas de modificación/cancelación y las anotaciones de cambio de propinas. Utilice `fulfillment-report.sh` cuando desee fusionar el estado actual de un patrocinador dentro de una campaña.
 
-Si la vista de cumplimiento fusionada y el sitio público alguna vez no están de acuerdo para una campaña, trátelo primero como un problema probable de estadísticas obsoletas/proyección de inventario, no como un error de notificación de forma predeterminada. Las estadísticas de administración y los puntos finales de recálculo de inventario ahora reparan índices `campaign-pledges:{slug}` obsoletos mientras reconstruyen el estado de proyección de la campaña.
+Si la vista de cumplimiento fusionada y el sitio público alguna vez no están de acuerdo para una campaña, trátelo primero como un posible problema de proyección de inventario/estadísticas obsoletas, no como un error de notificación de forma predeterminada. Las estadísticas de administración y los puntos finales de recálculo de inventario reparan índices `campaign-pledges:{slug}` obsoletos mientras reconstruyen el estado de proyección de la campaña.
 
-Antes de reparar una proyección, ahora puede comprobar explícitamente la desviación:
+Antes de reparar una proyección, verifique explícitamente la desviación:
 
 ```bash
 ./scripts/check-projections.sh                 # Check all campaigns
@@ -408,8 +454,8 @@ Ese script llama a los puntos finales de verificación de deriva del administrad
 
 Al revisar los resultados, no los marque como regresiones:
 
-- Los enlaces mágicos ahora tienen un alcance de pedido en lugar de un alcance de correo electrónico.
-- `/checkout-intent/start` ahora reserva un inventario limitado y escaso antes de la confirmación del pago, y la persistencia exitosa confirma esa reserva.
+- Los enlaces mágicos tienen un alcance de orden en lugar de un alcance de correo electrónico.
+- `/checkout-intent/start` reserva un inventario limitado y escaso antes de la confirmación del pago, y la perseverancia exitosa confirma esa reserva.
 - El `GET /checkout` heredado está deshabilitado intencionalmente.
 
 ### Agregar pruebas
@@ -592,7 +638,7 @@ Consulte [tests/security/README.md](/es/docs/operations/security-test-suite/) pa
 
 ## Requisitos previos de las pruebas manuales
 
-- [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/install-and-update/) (`npm install -g wrangler`)
+- Repositorio bloqueado [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/install-and-update/) vía `npm ci` y `npx wrangler`
 - [Stripe CLI](https://stripe.com/docs/stripe-cli) para pruebas de webhook
 - Cuenta Stripe (modo de prueba)
 - Cuenta Resend (nivel gratuito: 3000 correos electrónicos/mes)
@@ -778,7 +824,7 @@ stripe listen --forward-to 127.0.0.1:8787/webhooks/stripe
    - El cliente espera la confirmación de persistencia del aporte antes de considerar el flujo como exitoso.
    - Luego serás enviado a la página de éxito.
 
-4. **Consultar correo electrónico**: Deberías recibir los correos electrónicos de los patrocinadores con enlaces mágicos.
+4. **Verificar correo electrónico**: confirma la recepción de los correos electrónicos de los patrocinadores con enlaces mágicos.
 
 5. **Pruebe el acceso a la comunidad**:
    - Haga clic en el enlace de la comunidad en el correo electrónico.
@@ -786,7 +832,7 @@ stripe listen --forward-to 127.0.0.1:8787/webhooks/stripe
 
 6. **Votación de prueba**:
    - Votar sobre una decisión
-   - Actualizar página: tu voto debe persistir
+   - Actualizar página: la votación persiste
 
 ### Tarjetas de prueba de Stripe
 
@@ -900,7 +946,7 @@ Esperado: Devuelve un error de validación de cierre fallido como `Invalid cart 
    ```
 Verifique los registros de trabajadores para ver el mensaje "Aporte confirmado".
 
-4. **Prueba de firma no válida (debe fallar):**
+4. **Prueba de firma no válida (fallo esperado):**
    ```bash
    curl -X POST http://localhost:8787/webhooks/stripe \
      -H "stripe-signature: invalid" \
@@ -938,7 +984,7 @@ Esperado: `{"success":true,"message":"Pledge cancelled"}`
 
 3. **Verificar cancelación:**
    - Consulte el aporte ahora informa `pledgeStatus: "cancelled"`
-   - Reintentar cancelar: debería obtener una respuesta de error limpia
+   - Reintentar cancelar: confirmar una respuesta de error limpia
 
 ### Método de pago de actualización de prueba
 

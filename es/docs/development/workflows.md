@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-16 de julio de 2026
+25 de agosto de 2026
 
 The Pool utiliza un **sistema de gestión de aportes basado en correo electrónico y sin cuenta**. Los patrocinadores guardan un método de pago a través de Stripe en el paso de pago en el sitio de The Pool, administran los aportes a través de enlaces mágicos con alcance de pedido y solo se les cobra si la campaña está financiada.
 
@@ -102,7 +102,7 @@ los aportes se almacenan en Cloudflare KV. Patrones clave:
 |`admin-marketing-referrals:{campaignSlug}`|Código de referencia guardado y metadatos de origen QR para la pestaña Marketing del panel|
 |`admin-marketing-draft:{campaignSlug}:{surface}`|Borrador explícito compartido de Marketing/Blast con TTL de 7 días y protección contra conflictos de revisión|
 
-Las reservas de nivel escaso y el estado de reclamo comprometido ahora se encuentran en el coordinador de objetos duraderos por campaña en lugar de en KV. `tier-inventory:{campaignSlug}` sigue siendo la proyección pública utilizada por `/inventory/:slug` y `/live/:slug`.
+Las reservas de nivel escaso y el estado de reclamo comprometido se encuentran en el coordinador Durable Object por campaña en lugar de KV. `tier-inventory:{campaignSlug}` sigue siendo la proyección pública utilizada por `/inventory/:slug` y `/live/:slug`.
 
 **Registro de aporte:**
 ```json
@@ -191,19 +191,19 @@ Tokens sin estado firmados por HMAC (no se necesita base de datos):
 3. Resolver el `orderId` autorizado
 4. Obtenga el aporte de KV y verifique el correo electrónico + la campaña
 
-Cada token sólo autoriza su propio pedido. Un enlace válido ya no otorga acceso a todo el correo electrónico a cada aporte en la misma dirección, y un token válido sin un aporte de respaldo real ahora falla al cerrarse en lugar de devolver un marcador de posición sintético.
+Cada token sólo autoriza su propio pedido. Un enlace válido no otorga acceso a todo el correo electrónico a cada aporte en la misma dirección, y un token válido sin un aporte de respaldo real no se cierra en lugar de devolver un marcador de posición sintético.
 
 ## Límites de confianza de los patrocinadores
 
-El ciclo de vida del aporte debe seguir siendo comprensible para un patrocinador que nunca lee el código. Utilice [ETHICAL_RISK.md](/es/docs/development/ethical-risk-review/) cuando un cambio en el flujo de trabajo afecte la recopilación de datos, el dinero, los recordatorios, la visibilidad de la campaña, el poder administrativo o el intercambio público.
+El ciclo de vida del aporte sigue siendo comprensible para un patrocinador que nunca lee el código. Utilice [ETHICAL_RISK.md](/es/docs/development/ethical-risk-review/) cuando un cambio en el flujo de trabajo afecte la recopilación de datos, el dinero, los recordatorios, la visibilidad de la campaña, el poder administrativo o el intercambio público.
 
 Reglas de flujo de trabajo sensibles a la confianza:
 
 - La interfaz de usuario del navegador puede obtener una vista previa y explicar el estado, pero Worker debe canonicalizar el dinero, el inventario, los permisos y la persistencia.
-- Los patrocinadores deberían poder distinguir los impuestos/envíos estimados de los finales, el borrador del aporte comprometido, las campañas activas de las cerradas y los recordatorios de registro de los pasos de pago requeridos.
-- Los recordatorios por correo electrónico y las actualizaciones de campañas deben tener un alcance voluntario o comprometido, desduplicados, suprimibles cuando corresponda y enviados a través de rutas de prueba.
-- Las rutas privadas, tokenizadas, de vista previa, de administrador y solo para patrocinadores no deben convertirse en objetivos indexables, captados previamente o de tarjeta compartida.
-- Los flujos de trabajo masivos o automatizados deben tener lotes delimitados, registros de auditoría, idempotencia y evidencia del operador antes de envíos en vivo o mutaciones.
+- Los patrocinadores pueden distinguir entre impuestos/envío estimados y finales, borradores y aportes comprometidos, campañas activas y cerradas, y recordatorios de registro y pasos de pago requeridos.
+- Los recordatorios por correo electrónico y las actualizaciones de campañas tienen un alcance voluntario o comprometido, se desduplican, se pueden suprimir cuando corresponda y se envían a través de rutas de prueba.
+- Las rutas privadas, tokenizadas, de vista previa, de administrador y solo para patrocinadores no se convierten en objetivos indexables, captados previamente ni de tarjeta compartida.
+- Los flujos de trabajo masivos o automatizados utilizan lotes limitados, registros de auditoría, idempotencia y evidencia del operador antes de envíos en vivo o mutaciones.
 
 ---
 
@@ -240,15 +240,15 @@ Si se selecciona el pago personalizado pero el entorno actual no tiene una clave
 7. En caso de persistencia, el trabajador recupera los metadatos temporales, extrae los detalles de envío de Stripe, calcula `subtotal + tax + shipping + tip`, persiste un aporte por campaña y confirma cualquier reserva de nivel limitado retenida a través del coordinador de objetos duraderos por campaña.
 8. Una vez que la persistencia tiene éxito, el cliente invalida los cachés de estadísticas en vivo de la campaña y escribe un marcador de actualización de corta duración para que las pestañas restauradas y las cargas de páginas de seguimiento obtengan totales nuevos.
 
-Las decisiones de disponibilidad de nivel limitado ahora provienen del estado consciente de la reserva del coordinador en las rutas de escritura, mientras que `/inventory/:slug` y `/live/:slug` continúan leyendo solo la proyección KV pública.
+Las decisiones de disponibilidad de nivel limitado provienen del estado consciente de la reserva del coordinador en las rutas de escritura, mientras que `/inventory/:slug` y `/live/:slug` continúan leyendo únicamente la proyección pública KV.
 
-El Trabajador no confía en los nombres de niveles, cantidades, cantidades de artículos de soporte enviados por el cliente o `amountCents`. `/checkout-intent/start` ahora reserva un inventario escaso antes de que se complete el paso de pago, y la persistencia confirma esas reservas. Las campañas más antiguas no necesitan un trabajo de migración porque el inventario reclamado puede reconstruirse a partir de la verdad del aporte, y la persistencia exitosa aún puede recurrir a un nuevo reclamo de coordinador si no existe una reserva preexistente.
+Worker no confía en los nombres de niveles, cantidades, cantidades de artículos de soporte enviados por el cliente ni en `amountCents`. `/checkout-intent/start` reserva un inventario escaso antes de que se complete el paso de pago, y la perseverancia confirma esas reservas. Las campañas más antiguas no necesitan un trabajo de migración porque el inventario reclamado puede reconstruirse a partir de la verdad del aporte, y la persistencia exitosa aún puede recurrir a un nuevo reclamo de coordinador si no existe una reserva preexistente.
 
 ## Seguridad en la representación de contenidos
 
 - El texto de campaña de formato largo se desinfecta antes de renderizar Markdown y luego se procesa posteriormente para neutralizar esquemas de enlaces inseguros.
 - Las incrustaciones estructuradas solo se representan cuando su `src` se resuelve en un origen/ruta de proveedor aprobado exacto.
-- Las auditorías de contenido de campaña aún protegen a `_campaigns/*.md`, pero la capa de procesamiento aplica las mismas reglas para que las bifurcaciones y las fuentes de contenido futuras no dependan únicamente de las auditorías.
+- Las auditorías de contenido de campaña aún protegen `_campaigns/*.md`, pero la capa de procesamiento aplica las mismas reglas para que todas las fuentes de contenido reciban protección en tiempo de ejecución en lugar de depender únicamente de las auditorías.
 
 ### `POST /webhooks/stripe`
 Manejar `checkout.session.completed`:
@@ -593,8 +593,8 @@ Se mantiene automáticamente una serie de ID de pedido por campaña (`campaign-p
 - Agregado en la creación de aportes (webhook) y recuperación (`/admin/recover-checkout`)
 - Eliminado al cancelar el aporte
 - Se puede reconstruir: `POST /admin/campaign-index/rebuild/:slug`
-- Las estadísticas y el recálculo de inventario ahora también reparan índices obsoletos si la matriz almacenada ya no coincide con los registros de aporte activos.
-- La deriva ahora se puede verificar sin mutación a través de `POST /stats/:slug/check` o `POST /admin/projections/check`
+- Las estadísticas y el nuevo cálculo del inventario también reparan los índices obsoletos si la matriz almacenada ya no coincide con los registros de aporte activos.
+- La deriva se puede comprobar sin mutación mediante `POST /stats/:slug/check` o `POST /admin/projections/check`
 
 **Comportamientos clave:**
 - Los aportes cancelados nunca se cobran
@@ -739,5 +739,3 @@ Todos los correos electrónicos muestran cantidades exactas con 2 decimales (sin
 - Desbloqueo automático cuando `pledged_amount >= threshold`
 - Mostrar como `achieved` o `locked`
 - Opcional: niveles de puerta con `requires_threshold`
-
----

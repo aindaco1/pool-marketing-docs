@@ -8,7 +8,7 @@ description: Frequently asked questions and a recommended reading path for The P
 
 ## Last Updated
 
-July 16, 2026
+August 25, 2026
 
 This page is the **fastest way to get oriented** before you dive into the full docs.
 
@@ -71,4 +71,4 @@ Start with the section that matches the kind of work you are doing:
 - [Overview](/docs/overview/) for public-facing context, platform framing, and policy pages.
 - [Development](/docs/development/) for contributor setup, architecture, customization, embeds, localization, ethical review, and extension work.
 - [Operations](/docs/operations/) for Worker and payment setup, email, backup/recovery, local environments, shipping, security, accessibility, SEO, and merge readiness.
-- [Reference](/docs/reference/) for release notes, roadmap context, and shared process templates.
+- [Reference](/docs/reference/) for release notes, prospective work, shared process templates, and the Pool-to-marketing source map.

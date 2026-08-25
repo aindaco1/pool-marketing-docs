@@ -10,13 +10,13 @@ lang: es
 
 ## Última actualización
 
-16 de julio de 2026
+25 de agosto de 2026
 
-Esta guía cubre la superficie de personalización sin código compatible para las bifurcaciones de The Pool tal como existe ahora.
+Esta guía cubre la superficie de personalización sin código admitida para bifurcaciones de The Pool.
 
 El objetivo es permitir que las bifurcaciones cambien el nombre, el estilo y la reconfiguración de la plataforma a través de la configuración, manteniendo alineados el pago, los informes, los correos electrónicos y el trabajador.
 
-El modelo de configuración estructurado en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) es ahora la superficie canónica orientada a la horquilla.
+El modelo de configuración estructurado en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) es la superficie canónica orientada hacia la horquilla.
 
 La configuración específica del proveedor se encuentra en runbooks separados: use [PAYMENT_PROCESSOR.md](/es/docs/operations/payment-processor/) para Stripe y liquidación, y [EMAIL.md](/es/docs/operations/email-system/) para remitentes Resend y entrega de correo electrónico.
 
@@ -40,14 +40,14 @@ Para ediciones normales del operador, utilice el panel de administración privad
 - **Configuración -> Usuarios** es solo en tiempo de ejecución y se guarda directamente en Worker KV en `admin-users:v1`; no se publica en GitHub.
 - **Secretos y credenciales** tiene un estado de solo lectura. Los valores secretos aún pertenecen a los secretos de los trabajadores, los secretos del repositorio de GitHub o los archivos env locales ignorados.
 
-Trate [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml) como un archivo de solo anulación. Mantenga la configuración de bifurcación canónica en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) y use el archivo local solo para cosas que deberían diferir en su máquina, como las URL del host local o la visibilidad de la campaña solo local.
+Trate [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml) como un archivo de solo anulación. Mantenga la configuración de bifurcación canónica en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) y use el archivo local solo para cosas que difieren en su máquina, como las URL del host local o la visibilidad de la campaña solo local.
 
-La ruta local normal ahora está basada en localhost:
+La ruta local normal está basada en localhost:
 
 - sitio: `http://127.0.0.1:4000`
 - Trabajador: `http://127.0.0.1:8787`
 
-El sitio estático generado ahora también excluye carpetas internas del repositorio como `worker/`, `scripts/` y `tests/`, por lo que la verificación estática se asemeja más a lo que realmente publicaría una bifurcación.
+El sitio estático generado excluye carpetas internas del repositorio como `worker/`, `scripts/` y `tests/`, por lo que la verificación estática se asemeja más a lo que realmente publicaría una bifurcación.
 
 ## Áreas de configuración admitidas
 
@@ -123,7 +123,7 @@ Estos valores alimentan:
 Notas:
 
 - `platform.*` es la superficie de marca principal.
-- `platform.version` debe ser la versión canónica del producto legible por máquina para el sitio, mientras que `platform.release_label` puede seguir siendo más amigable para copias públicas como `v1.0.8`.
+- `platform.version` es la versión canónica del producto legible por máquina para el sitio, mientras que `platform.release_label` puede seguir siendo más amigable para copias públicas como `v1.0.0`.
 - `platform.timezone` debe ser una zona horaria compatible con la IANA. El valor predeterminado es `America/Denver`, por lo que las bifurcaciones existentes mantienen el comportamiento del ciclo de vida anterior hasta que lo cambien.
 - `title` / `author` de nivel superior todavía existen en Jekyll, pero trátelos como metadatos/respaldo generales del sitio en lugar de la interfaz principal de personalización de la bifurcación.
 - `platform.default_social_image_path` es el valor predeterminado admitido para tarjetas OG/Twitter cuando una página o campaña no proporciona una imagen más específica.
@@ -135,8 +135,8 @@ Ejemplo:
 ```yml
 platform:
   name: My Fork
-  version: 1.0.8
-  release_label: v1.0.8
+  version: 1.0.0
+  release_label: v1.0.0
   company_name: Example Studio
   support_email: support@example.com
   pledges_email_from: "My Fork <pledges@pool.example.com>"
@@ -207,10 +207,14 @@ tax:
 
 Si habilita `zip_tax`, configure también el secreto de trabajador `ZIP_TAX_API_KEY`. Mantenga ese secreto fuera de `_config.yml`.
 
-El archivo inicial de Nuevo México suministrado se encuentra en [`worker/src/tax-data/nm-grt-starter.js`](https://github.com/your-org/your-project/blob/main/worker/src/tax-data/nm-grt-starter.js). Actualízalo con:
+La instantánea inicial de Nuevo México proporcionada está fijada en
+[`@dustwave/tax-core`](https://github.com/your-org/your-project/blob/main/shared/dust-wave-platform/packages/tax-core/src/nm-grt-starter.js).
+Actualícelo solo en el proceso de pago de la versión de la plataforma, revise la diferencia generada y
+luego avance el pin inmutable de The Pool. Desde la raíz del repositorio de la plataforma:
 
 ```bash
-node ./scripts/update-nm-grt-starter.mjs
+node ./packages/tax-core/bin/update-nm-grt-starter.mjs \
+  --output ./packages/tax-core/src/nm-grt-starter.js
 ```
 
 ### `i18n`
@@ -255,9 +259,9 @@ Patrón soportado actualmente:
 - Las páginas públicas no predeterminadas se encuentran bajo un prefijo local como `/es/`.
 - Los mensajes compartidos de tiempo de ejecución/navegador se emiten a través de `assets/i18n.json`.
 - Los correos electrónicos de los patrocinadores de los trabajadores reutilizan ese catálogo de configuración regional compartido y `preferredLang` persistente
-- El cromo de la campaña, como el botón de video principal/texto de carga, el texto teaser de la comunidad de patrocinadores, las pestañas del diario, los controles de la fase de producción, las etiquetas de accesibilidad de la galería, los resúmenes de los botones del carrito y el texto auxiliar de ubicación de impuestos de pago ahora también provienen de `_data/i18n/{lang}.yml`.
+- El cromo de la campaña, como el botón de vídeo principal/texto de carga, el texto de avance de la comunidad de patrocinadores, las pestañas del diario, los controles de la fase de producción, las etiquetas de accesibilidad de la galería, los resúmenes de los botones del carrito y el texto auxiliar de ubicación de impuestos de pago provienen de `_data/i18n/{lang}.yml`.
 - el conmutador de idioma del pie de página compartido es automático cuando se configura más de un idioma
-- Las páginas de formato largo como `about` y `terms` deberían usar páginas fuente localizadas en lugar de intentar almacenar cada párrafo en YAML.
+- Las páginas de formato largo como `about` y `terms` utilizan páginas fuente localizadas en lugar de intentar almacenar cada párrafo en YAML.
 - Los metadatos públicos y las sugerencias de lenguaje de datos estructurados también siguen el mismo modelo local, por lo que las páginas públicas localizadas no necesitan un segundo sistema de traducción exclusivo para SEO.
 
 Qué significa esto en la práctica:
@@ -281,7 +285,7 @@ Flujo de trabajo de bifurcación recomendado:
 
 ### superficie SEO
 
-Los fundamentos actuales de SEO están intencionalmente limitados. Las horquillas deben tratarlas como perillas soportadas:
+Los fundamentos actuales de SEO están intencionalmente limitados. Estos son los pomos soportados para horquillas:
 
 - nivel superior `title`
 - nivel superior `description`
@@ -295,7 +299,7 @@ Los fundamentos actuales de SEO están intencionalmente limitados. Las horquilla
 - `platform.default_social_image_path`
 - página localizada `title` / `description` portada en páginas públicas
 - campaña `title`, `short_blurb` e imágenes principales
-- Portada opcional de `published_at` y `last_modified_at` para las fechas de los artículos de la campaña, además de `last_modified_at` en cualquier entrada del mapa del sitio que deba publicar una sugerencia de actualización.
+- Portada opcional de `published_at` y `last_modified_at` para las fechas de los artículos de la campaña, además de `last_modified_at` en cualquier entrada del mapa del sitio que publique una sugerencia de actualización.
 
 Esa superficie controla actualmente:
 
@@ -345,7 +349,7 @@ Qué hacen:
 
 Estos valores predeterminados son intencionalmente `true` en `_config.yml`, por lo que las bifurcaciones comienzan con diagnósticos completos disponibles y pueden desactivar el registro más tarde sin cambios de código.
 
-Cuando están habilitados, los registradores compartidos ahora emiten:
+Cuando están habilitados, los registradores compartidos emiten:
 
 - marcas de tiempo ISO
 - Prefijos consistentes de navegador/ámbito de trabajo
@@ -390,7 +394,7 @@ Límite secreto importante:
 - mantenga el compañero `USPS_CLIENT_SECRET` en Secretos del trabajador o `worker/.dev.vars`
 - no guardes el secreto en la configuración de Jekyll
 
-La lista de destinos de pago ahora está intencionalmente separada de esas perillas. Mantenga los países de envío permitidos actualmente en [`_data/shipping_countries.yml`](https://github.com/your-org/your-project/blob/main/_data/shipping_countries.yml) en lugar de editar el código de ejecución del navegador.
+La lista de destinos de pago está intencionalmente separada de esas perillas. La plataforma posee el registro canónico en `packages/shipping-core/data/shipping-countries.yml`; actualice la instantánea [`_data/shipping_countries.yml`](https://github.com/your-org/your-project/blob/main/_data/shipping_countries.yml) generada con `npm run shipping-countries:sync` después de avanzar el pin de plataforma exacto. `npm run shipping-countries:check` falla al desviarse.
 
 Ejemplo:
 
@@ -453,7 +457,7 @@ Los metadatos preestablecidos y anulados pueden incluir:
 
 `weight_oz` es el peso del artículo. `packaging_weight_oz` es una asignación de embalaje única para esa línea de pedido, y `stack_height_in` permite apilar niveles físicos de varias cantidades de manera más realista que el simple `height * qty`.
 
-El patrón más seguro es codificar deliberadamente un orden válido más barato por valor preestablecido en lugar de intentar inferir la elegibilidad "letra" o "plana" a partir de dimensiones sin procesar en tiempo de ejecución. El sitio actual ahora usa:
+El patrón más seguro es codificar deliberadamente un orden válido más barato por valor preestablecido en lugar de intentar inferir la elegibilidad "letra" o "plana" a partir de dimensiones sin procesar en tiempo de ejecución. El sitio utiliza:
 
 - `sticker`
   - `manual_domestic_rate: FIRST_CLASS_FLAT`
@@ -553,6 +557,26 @@ Por el contrario, los `add_ons.products` globales siguen siendo productos de pla
 - no cuentan para los totales de financiación de la campaña
 - Los complementos físicos globales se combinan en un cargo de envío/envío de plataforma independiente.
 
+### `podcast_benefits`
+
+Utilice `podcast_benefits` para el límite no secreto entre las recompensas The Pool y el
+tiempo de ejecución separado del podcast Dust Wave:
+
+- `enabled` es un interruptor de apagado explícito y el valor predeterminado es `false`
+- `bridge_url` debe ser el Podcast exacto
+Punto final `/v1/internal/pool/grants`
+- `bridge_timeout_ms` acepta un tiempo de espera de servicio limitado de 1 a 15 segundos
+- `mappings` está actualmente vacío, por lo que el puente no emite derechos
+
+El `POOL_PODCAST_BRIDGE_SECRET` coincidente nunca pertenece a `_config.yml`; conjunto
+un valor generado independientemente en secretos Worker o ignorado
+`worker/.dev.vars` e instale ese mismo valor específico del entorno en
+Pódcast. La implementación expone y prueba solo la entrega firmada.
+primitivo. No escanea aportes, emite códigos, pone en cola correos electrónicos ni cambia
+comportamiento de pago/liquidación mientras `mappings` está vacío y el interruptor de apagado está
+apagado. Un `_config.local.yml` local puede anular `bridge_url` con el correspondiente
+Punto final local Podcast Worker para una prueba de integración aislada.
+
 ### `reports`
 
 Utilice `reports` para conocer el comportamiento de los informes de los ejecutores de campañas que deben mantenerse alineados con la programación de los trabajadores y la generación de informes del panel.
@@ -620,7 +644,7 @@ Utilice `design` para anulaciones seleccionadas del sistema de diseño que no re
 
 Estos valores se emiten en la hoja de estilo generada [assets/main.css](https://github.com/your-org/your-project/blob/main/assets/main.scss), que mantiene el puente de variables de diseño compatible con el estricto CSP del sitio. [assets/theme-vars.css](https://github.com/your-org/your-project/blob/main/assets/theme-vars.css) permanece como un artefacto de compatibilidad, pero los diseños públicos no lo solicitan por separado. Las bifurcaciones no necesitan editar Sass solo para cambiar los tokens admitidos.
 
-Las mismas variables CSS generadas ahora también son el tema del sidecar Stripe Elements en el sitio, por lo que las anulaciones de tipografía/color/radio admitidas se llevan a cabo en la interfaz de usuario de pago personalizada sin agregar una capa de configuración separada solo para el pago.
+Las mismas variables CSS generadas también son el tema del sidecar Stripe Elements en el sitio, por lo que las anulaciones de tipografía/color/radio admitidas se llevan a cabo en la interfaz de usuario de pago personalizada sin agregar una capa de configuración separada solo para el pago.
 
 Un subconjunto deliberadamente más pequeño de la misma superficie de marca se refleja en el Worker para que los correos electrónicos de los patrocinadores puedan reutilizar el logotipo configurado, las pilas de fuentes, el color principal, los colores de borde/superficie y el radio del botón.
 
@@ -857,7 +881,7 @@ El repositorio mantiene esos valores alineados automáticamente a través de las
 ./scripts/dev.sh --podman
 ```
 
-Para mayor comodidad, el repositorio ahora incluye:
+Para mayor comodidad, el repositorio incluye:
 
 ```bash
 npm run sync:worker-config
@@ -877,7 +901,7 @@ Los recordatorios de lanzamiento tienen una configuración pública y un límite
 
 Los medios cargados en el panel tampoco agregan una nueva configuración de script de sincronización. Carga archivos fuente de confirmación en los directorios de activos existentes; Las cargas de imágenes/vídeos solicitan el flujo de trabajo **Optimizar medios del panel** después de que la confirmación se realice correctamente. `npm run media:optimize` / `npm run media:optimize:check`, las variantes respaldadas por Podman para máquinas sin optimizadores nativos y el mismo flujo de trabajo manejan la compresión de imágenes, variantes WebP responsivas en `320w`, `480w`, `640w`, `960w` y `1600w`, y derivados de WebM fuera del Worker.
 
-La minificación de CSS/JS generada también está fuera de la ruta de guardado del trabajador y del panel. Las implementaciones de producción ejecutan `npm run assets:minify` solo después de que Jekyll escribe `_site`, por lo que las bifurcaciones deben mantener los recursos fuente legibles en `assets/` y permitir que el paso de implementación del artefacto maneje la salida minimizada. La compresión de borde de Cloudflare debería permanecer habilitada, pero Cloudflare Auto Minify debería permanecer deshabilitada para evitar una segunda capa de reescritura.
+La minificación de CSS/JS generada también está fuera de Worker y de la ruta de guardado del panel. Las implementaciones de producción ejecutan `npm run assets:minify` solo después de que Jekyll escribe `_site`, por lo que las bifurcaciones mantienen los recursos de origen legibles en `assets/` y permiten que el paso de implementación del artefacto maneje la salida minimizada. La compresión de bordes Cloudflare permanece habilitada, mientras que Cloudflare Auto Minify permanece deshabilitada para evitar una segunda capa de reescritura.
 
 Las principales rutas de validación local/de desarrollo ya llaman a esa sincronización automáticamente:
 
@@ -891,7 +915,7 @@ Las principales rutas de validación local/de desarrollo ya llaman a esa sincron
 
 ## Lo que todavía requiere código
 
-La plataforma ahora admite una gran personalización sin código personalizado, pero aún no todo es configurable intencionalmente.
+La plataforma admite una gran personalización sin código personalizado, pero no todo es intencionalmente configurable.
 
 Todavía a nivel de código hoy:
 
@@ -941,7 +965,7 @@ npx vitest run tests/unit/config-boot.test.ts tests/unit/cart-provider.test.ts t
 ./scripts/podman-self-check.sh
 ```
 
-## Orientación para futuras incorporaciones
+## Agregar perillas de personalización
 
 Al agregar nuevas perillas de personalización, prefiera este orden:
 

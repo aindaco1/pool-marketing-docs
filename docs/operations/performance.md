@@ -1,7 +1,7 @@
 ---
 title: "Performance"
 parent: "Operations"
-nav_order: 14
+nav_order: 15
 render_with_liquid: false
 ---
 
@@ -9,9 +9,9 @@ render_with_liquid: false
 
 ## Last Updated
 
-July 16, 2026
+August 25, 2026
 
-The Pool is a static-first crowdfunding platform with a Cloudflare Worker for mutations, live reads, and admin operations. Performance work should preserve that shape: public pages should be fast from static HTML, heavy application code should load only when a user needs it, and speculative work should stay conservative enough that it never makes checkout, admin, or supporter flows less reliable.
+The Pool is a static-first crowdfunding platform with a Cloudflare Worker for mutations, live reads, and admin operations. Performance work preserves that shape: public pages are fast from static HTML, heavy application code loads only when a user needs it, and speculative work stays conservative enough that it never makes checkout, admin, or supporter flows less reliable.
 
 This guide covers the current platform performance model, the knobs forks can tune, and the validation expected before shipping performance changes.
 
@@ -35,7 +35,9 @@ Use these as practical targets rather than claims that every local test run will
 - CLS under `0.1`, with progress bars, hero media, tier cards, and live stats reserving stable space
 - no eager full cart stack on an anonymous public first load
 - no public document prefetches on private, tokenized, checkout, admin, manage, or supporter-community routes
-- generated CSS/JS assets pass `npm run assets:minify:check`
+- generated CSS/JS assets and pinned Site Shell copies pass `npm run assets:minify:check`
+- the six generated Site Shell scripts total 9,531 raw bytes after Build Core
+  minification (15,573 before; 6,042 bytes or 38.8% removed)
 - generated crawl/metadata output passes `npm run test:seo` after a Jekyll build
 - Cloudflare serves text assets with transfer compression and without Auto Minify
 - generated assets pass `npm run performance:budget` against `config/performance-budgets.json`
@@ -55,20 +57,20 @@ Important repo surfaces:
 - [`_includes/page-prefetch.html`](https://github.com/your-org/your-project/blob/main/_includes/page-prefetch.html): public document prefetch include
 - [`assets/js/cart-runtime-loader.js`](https://github.com/your-org/your-project/blob/main/assets/js/cart-runtime-loader.js): lazy cart runtime bootstrap
 - [`assets/js/page-prefetch.js`](https://github.com/your-org/your-project/blob/main/assets/js/page-prefetch.js): intent-based document prefetch runtime
-- [`scripts/minify-site-assets.mjs`](https://github.com/your-org/your-project/blob/main/scripts/minify-site-assets.mjs): generated CSS/JS minification
+- [`@dustwave/build-core`](https://github.com/your-org/your-project/blob/main/shared/dust-wave-platform/packages/build-core/src/site-assets.js): pinned, allowlisted generated CSS/JS and Site Shell minification
 - [`scripts/audit-performance-budgets.mjs`](https://github.com/your-org/your-project/blob/main/scripts/audit-performance-budgets.mjs): measured total and named-asset release ceilings
 - [`scripts/performance-lighthouse.mjs`](https://github.com/your-org/your-project/blob/main/scripts/performance-lighthouse.mjs): Lighthouse category, Web Vital, and transferred-resource release evidence
 - [`scripts/audit-cache-policy.mjs`](https://github.com/your-org/your-project/blob/main/scripts/audit-cache-policy.mjs): deployed public-cache and private/no-store policy evidence
 - [`scripts/audit-runtime-performance.mjs`](https://github.com/your-org/your-project/blob/main/scripts/audit-runtime-performance.mjs): authenticated p95 evidence for configured Worker operations
 - [`scripts/sync-worker-config.rb`](https://github.com/your-org/your-project/blob/main/scripts/sync-worker-config.rb): site-to-Worker config mirroring
 
-Admin-only Sass is emitted as `assets/admin.css` and loaded only by the admin layout, keeping dashboard CSS off public campaign pages. The infrequently used Admin sessions and Audit log renderer lives in `assets/js/admin-settings-review.js` and loads on demand when either Settings section opens; both that module and the initial `admin-dashboard.js` bundle have named executable ceilings in `config/performance-budgets.json`. Adobe display-font CSS is activated after DOM readiness with a no-script fallback; Inter remains the body-font dependency. Workers Cache remains disabled for the Pool admin read model until a representative benchmark proves at least a 40% p95 improvement. Store v1.0.7 did not meet that threshold, so parity means carrying the evidence gate—not enabling the cache switch by assumption.
+Admin-only Sass is emitted as `assets/admin.css` and loaded only by the admin layout, keeping dashboard CSS off public campaign pages. The infrequently used Admin sessions and Audit log renderer lives in `assets/js/admin-settings-review.js` and loads on demand when either Settings section opens; both that module and the initial `admin-dashboard.js` bundle have named executable ceilings in `config/performance-budgets.json`. Adobe display-font CSS is activated after DOM readiness with a no-script fallback; Inter remains the body-font dependency. Workers Cache remains disabled for the Pool admin read model until a representative benchmark proves at least a 40% p95 improvement. The evidence threshold, not another product's cache choice, controls Pool enablement.
 
 Worker performance summaries retain bounded latency histograms and expose approximate p50/p95/p99 alongside count, average, minimum, maximum, and last duration. They do not retain request bodies or customer identifiers.
 
 Super admins can inspect the slowest sampled routes for the last seven days under **Settings -> Runtime diagnostics**. The table is a read-only view of the existing summaries, sorted by p95 and capped at 20 rows; it does not add another telemetry store.
 
-The browser suite consumes the `dashboard.initialReadyMs`, `dashboard.tabSwitchMs`, and `dashboard.tableRenderMs` limits directly. The Worker records `admin_dashboard_summary` and `admin_settings` samples, and the runtime audit consumes the configured p95 ceilings. Do not add an unconsumed timing value to the configuration and describe it as a gate.
+The browser suite consumes the `dashboard.initialReadyMs`, `dashboard.tabSwitchMs`, and `dashboard.tableRenderMs` limits directly. Initial readiness measures the cold-navigation application request chain through the first dashboard-summary and settings requests while separately asserting that the dashboard is visible; it deliberately excludes test-runner assertion polling after those requests have arrived. Tab and supporter-table budgets measure the corresponding visible interaction. The Worker records `admin_dashboard_summary` and `admin_settings` samples, and the runtime audit consumes the configured p95 ceilings. Do not add an unconsumed timing value to the configuration and describe it as a gate.
 
 ## Release Performance Evidence
 
@@ -85,11 +87,11 @@ Use `test:performance:lighthouse:host` when a compatible local Chromium is alrea
 
 For a direct authenticated read, set `ADMIN_PERFORMANCE_TOKEN` to a scoped admin bearer value and pass `--worker-base=<url>` instead of `--input`. The output contains only operation names, sample counts, p95 values, and configured ceilings; it does not echo the token or raw observability payload.
 
-The unit suite tests all budget evaluators without network access. Lighthouse uses shared accessibility/CLS/TBT constraints plus route-specific performance, LCP, and transfer ceilings so a lightweight terms page cannot regress to a campaign-page budget. These release ceilings prevent unreviewed regressions but do not replace the stricter LCP/INP/CLS optimization targets above. A release may skip live Lighthouse, cache, or authenticated runtime evidence only when the required stable route/provider or credential is unavailable, and the omission must be recorded in release sign-off.
+The unit suite tests all budget evaluators without network access. Lighthouse uses the median of three runs, shared accessibility/CLS/TBT constraints, and route-specific performance, LCP, and transfer ceilings so a lightweight terms page cannot regress to a campaign-page budget and a single noisy sample cannot decide a release. These release ceilings prevent unreviewed regressions but do not replace the stricter LCP/INP/CLS optimization targets above. A release may skip live Lighthouse, cache, or authenticated runtime evidence only when the required stable route/provider or credential is unavailable, and the omission must be recorded in release sign-off.
 
 ## Critical Rendering
 
-Public campaign pages should avoid layout shifts and late-discovered critical resources.
+Public campaign pages avoid layout shifts and late-discovered critical resources.
 
 Current guardrails:
 
@@ -99,7 +101,7 @@ Current guardrails:
 - YouTube campaign hero videos render a local poster/play facade first and load the YouTube iframe only after play intent
 - common scripts use `defer` or lazy dynamic loading instead of parser-blocking script tags
 - full document layouts opt out of mobile automatic phone/date/address/email detection so iOS does not restyle operational copy or campaign text unexpectedly
-- private/admin surfaces stay `noindex` and should not inherit public prefetch behavior
+- private/admin surfaces stay `noindex` and do not inherit public prefetch behavior
 
 When changing campaign chrome, verify:
 
@@ -112,14 +114,14 @@ When changing campaign chrome, verify:
 
 The cart runtime is intentionally split. Public pages load a small loader first, then fetch the heavier cart stack only when needed.
 
-The loader should trigger on:
+The loader triggers on:
 
 - add-to-cart button interaction
 - persisted cart state that needs restoration
 - checkout recovery state
 - cart UI intent, such as opening the cart
 
-The heavy cart files should not be part of an ordinary public first load unless one of those states is present:
+The heavy cart files are not part of an ordinary public first load unless one of those states is present:
 
 - [`assets/js/cart-provider.js`](https://github.com/your-org/your-project/blob/main/assets/js/cart-provider.js)
 - [`assets/js/cart.js`](https://github.com/your-org/your-project/blob/main/assets/js/cart.js)
@@ -130,9 +132,9 @@ When changing cart or checkout loading, verify with browser network tools that a
 
 ## Admin Read Budget
 
-The admin dashboard should keep normal browsing read-only and bounded. Reports, supporters, analytics attribution, abandoned-checkout health, Blast dry runs, and similar campaign views should use existing `campaign-pledges:<slug>` projections or small aggregate state instead of KV namespace scans. Media-library picker loads should read GitHub directories and should not create KV state.
+The admin dashboard keeps normal browsing read-only and bounded. Reports, supporters, analytics attribution, abandoned-checkout health, Blast dry runs, and similar campaign views use existing `campaign-pledges:<slug>` projections or small aggregate state instead of KV namespace scans. Media-library picker loads read GitHub directories and do not create KV state.
 
-Durable dashboard writes should be tied to explicit user actions. Saved referral codes, shared Marketing/Blast drafts, campaign-scoped abandoned-checkout suppressions, Blast live sends, content publishes, protected previews, and campaign creation/archive actions are allowed mutations; page loads, field edits, preview generation, QR generation/downloads, reporting loads, remembered tab/subtab UI state, and local drafts should not write KV. When adding an admin feature, document whether it is read-only, local-only, GitHub-backed, or KV-backed before wiring the UI.
+Durable dashboard writes are tied to explicit user actions. Saved referral codes, shared Marketing/Blast drafts, campaign-scoped abandoned-checkout suppressions, Blast live sends, content publishes, protected previews, and campaign creation/archive actions are allowed mutations; page loads, field edits, preview generation, QR generation/downloads, reporting loads, remembered tab/subtab UI state, and local drafts do not write KV. When adding an admin feature, document whether it is read-only, local-only, GitHub-backed, or KV-backed before wiring the UI.
 
 ## Generated Asset Minification
 
@@ -156,7 +158,7 @@ The pre-merge build-artifact check also minifies `_site` and fails if generated 
 
 ## Cloudflare Compression
 
-Cloudflare should handle transfer compression at the edge. The live deployment has been verified serving compressed text assets with gzip, Brotli, and Zstandard depending on the request `Accept-Encoding` and edge behavior.
+Cloudflare handles transfer compression at the edge. The live deployment has been verified serving compressed text assets with gzip, Brotli, and Zstandard depending on the request `Accept-Encoding` and edge behavior.
 
 Keep these responsibilities separate:
 
@@ -164,15 +166,15 @@ Keep these responsibilities separate:
 - Cloudflare edge: gzip/Brotli/Zstandard transfer compression
 - source control: readable source files, not committed generated minified copies
 
-Cloudflare Auto Minify should stay disabled. It rewrites responses at the edge, making production behavior harder to reproduce locally and harder to test in CI. Prefer the repo-controlled generated asset step instead.
+Cloudflare Auto Minify stays disabled. It rewrites responses at the edge, making production behavior harder to reproduce locally and harder to test in CI. Prefer the repo-controlled generated asset step instead.
 
 Keep Rocket Loader and Email Address Obfuscation disabled for this site. Rocket Loader rewrites script tags at the edge, while Email Address Obfuscation injects `/cdn-cgi/scripts/*/cloudflare-static/email-decode.min.js`; both make strict-CSP pages harder to reproduce locally and can show up as render-blocking or console-noise diagnostics in PageSpeed Insights.
 
-If Cloudflare Web Analytics is enabled, campaign pages must allow Cloudflare's analytics script and beacon endpoint in the campaign CSP. Private/admin surfaces should stay stricter unless there is an explicit analytics/privacy decision to include them.
+If Cloudflare Web Analytics is enabled, campaign pages must allow Cloudflare's analytics script and beacon endpoint in the campaign CSP. Private/admin surfaces stay stricter unless there is an explicit analytics/privacy decision to include them.
 
 Font stylesheets are linked from the document head instead of imported from `assets/main.css`. This lets the browser discover font CSS and font connections without waiting on the main stylesheet while preserving the intentional font-loading behavior.
 
-The generated design-token CSS variables are included in `assets/main.css`; `assets/theme-vars.css` remains available as a compatibility artifact, but public layouts should not request it as a separate render-blocking stylesheet.
+The generated design-token CSS variables are included in `assets/main.css`; `assets/theme-vars.css` remains available as a compatibility artifact, but public layouts do not request it as a separate render-blocking stylesheet.
 
 ## Intent-Based Prefetching
 
@@ -292,11 +294,11 @@ When changing live reads:
 - invalidate browser caches after successful pledge persistence
 - keep stale recovery behavior private to the browser and avoid long-lived sensitive storage
 - use `GET /admin/observability/performance` to inspect sampled Worker timings on deployed or local environments
-- keep `/admin/observability/performance` authenticated and `private, no-store`; unit coverage checks both authenticated and unauthorized responses, and post-deploy smoke should verify the live header
+- keep `/admin/observability/performance` authenticated and `private, no-store`; unit coverage checks both authenticated and unauthorized responses, and post-deploy smoke verifies the live header
 
 ## KV List Budget
 
-Workers KV list requests are a separate free-tier budget from reads and writes. Normal public and dashboard paths should avoid namespace scans and prefer projections, indexes, or explicit queue-state markers.
+Workers KV list requests are a separate free-tier budget from reads and writes. Normal public and dashboard paths avoid namespace scans and prefer projections, indexes, or explicit queue-state markers.
 
 Current guardrails:
 
@@ -337,7 +339,7 @@ The Podman site image includes `ffmpeg`, `optipng`, `libjpeg-turbo-progs`, `gifs
 
 For deployed media-heavy regressions, manually run the **Optimize dashboard media** GitHub Actions workflow with `scope=all` so existing campaign assets are optimized by the same pipeline rather than edited one-off.
 
-If PageSpeed flags oversized campaign images that already flow through `responsive-image.html`, first confirm whether the corresponding `-320.webp`, `-480.webp`, `-640.webp`, `-960.webp`, and `-1600.webp` derivatives exist. Missing derivatives should be produced by `npm run media:optimize` locally or by the workflow with `scope=all`, not by one-off manual image edits.
+If PageSpeed flags oversized campaign images that already flow through `responsive-image.html`, first confirm whether the corresponding `-320.webp`, `-480.webp`, `-640.webp`, `-960.webp`, and `-1600.webp` derivatives exist. Produce missing derivatives with `npm run media:optimize` locally or with the workflow using `scope=all`, not with one-off manual image edits.
 
 The media pipeline:
 
@@ -359,7 +361,7 @@ For campaign pages, prefer:
 
 ## Admin And Private Surfaces
 
-Admin, protected campaign preview, manage, checkout, pledge-result, community, and tokenized routes should optimize for correctness and privacy before speculative speed.
+Admin, protected campaign preview, manage, checkout, pledge-result, community, and tokenized routes optimize for correctness and privacy before speculative speed.
 
 Rules for private surfaces:
 
@@ -412,7 +414,7 @@ Full merge validation:
 npm run test:premerge
 ```
 
-Production or staging validation should compare:
+Production or staging validation compares:
 
 - LCP, INP, CLS, FCP, and TTFB
 - total request count and transferred bytes on first load
@@ -433,3 +435,14 @@ Use this checklist before merging performance changes:
 - progress bars, hero media, and campaign controls do not shift after hydration
 - media changes pass `npm run media:optimize:check` when uploaded or manually added media changed
 - relevant unit and browser tests pass against built assets
+
+## Non-Goals
+
+The platform does not currently:
+
+- use a service worker for navigation or asset caching
+- prerender pages
+- prefetch arbitrary same-origin URLs
+- prefetch API, checkout, admin, supporter, or tokenized routes
+- commit generated minified CSS/JS back into source directories
+- rely on Cloudflare Auto Minify for production behavior

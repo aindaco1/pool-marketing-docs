@@ -9,9 +9,9 @@ render_with_liquid: false
 
 ## Last Updated
 
-July 16, 2026
+August 25, 2026
 
-This repo now includes a rootless Podman-backed local development path for the two services that usually create the most host setup churn:
+This repo includes a rootless Podman-backed local development path for the two services that usually create the most host setup churn:
 
 - Jekyll site
 - Cloudflare Worker local dev server
@@ -37,12 +37,13 @@ Included today:
 - Podman-aware checkout, E2E, worker, mutable-pledge, and local report helper scripts
 - pre-merge fallback support for Jekyll build and local smoke/browser phases on machines without a working host Bundler/Jekyll toolchain
 
-Not included yet:
+Current boundaries:
 
 - a containerized manual checkout browser step
 - true host-validation for Linux and Windows in this repo thread
 
-That is intentional. The first slice is meant to improve onboarding and local parity without risking application regressions.
+The current scope improves onboarding and local parity without moving every
+host workflow into a container.
 
 ## Why This Path Exists
 
@@ -71,11 +72,11 @@ Podman mode is designed around three priorities:
 
 ## Support Matrix
 
-| Host OS | Podman model | Current status |
+| Host OS | Podman model | Support state |
 |---------|--------------|----------------|
-| macOS | `podman machine` VM | Host-validated on this branch. Prefer `libkrun` if `applehv` is unstable. |
-| Linux | native rootless Podman | Supported by the launcher logic and self-check flow, but not host-validated in this thread. |
-| Windows | `podman machine` VM | Supported by the launcher logic and self-check flow when running from a bash-capable shell, but not host-validated in this thread. |
+| macOS | `podman machine` VM | Host-validated. Prefer `libkrun` if `applehv` is unstable. |
+| Linux | native rootless Podman | Supported by the launcher logic and self-check flow; physical-host validation is not recorded. |
+| Windows | `podman machine` VM | Supported by the launcher logic and self-check flow from a bash-capable shell; physical-host validation is not recorded. |
 
 On macOS and Windows, `./scripts/dev.sh --podman` will initialize/start the default `podman machine` when needed. On Linux, the launcher skips machine management and talks directly to the local rootless Podman engine.
 
@@ -97,7 +98,7 @@ npm run podman:self-check
 
 On macOS and Windows, normal development warns when the Podman machine has less than 6144 MiB. `npm run test:premerge` and required `npm run release:smoke -- --podman-e2e` phases enforce that minimum before long suites. Resize a stopped machine with `podman machine set --memory 6144`, restart it, and rerun the doctor. The weekly/manual `.github/workflows/podman-e2e.yml` workflow separately exercises the rootless Linux Podman path without deploying anything.
 
-`npm run podman:self-check` is the strongest automated confidence pass on this branch. It runs the doctor, boots the Podman-backed stack, runs the worker smoke, and runs the automated Playwright suite in a container.
+`npm run podman:self-check` is the strongest automated confidence pass for the Podman path. It runs the doctor, boots the Podman-backed stack, runs the worker smoke, and runs the automated Playwright suite in a container.
 
 More specifically, the self-check covers:
 
@@ -108,7 +109,7 @@ More specifically, the self-check covers:
 
 The broader merge gate additionally runs `./scripts/smoke-pledge-management.sh --podman` so the mutable modify/cancel path still gets isolated stateful coverage even when host build phases succeed.
 
-That mutable-pledge smoke now also stays compatible with provider-driven tax setups such as `tax.provider: nm_grt`: the Worker test fixture path seeds a billing address so `/test/setup` can build a real tax-aware pledge instead of assuming flat tax.
+That mutable-pledge smoke stays compatible with provider-driven tax setups such as `tax.provider: nm_grt`: the Worker test fixture path seeds a billing address so `/test/setup` can build a real tax-aware pledge instead of assuming flat tax.
 
 From the repo root:
 
@@ -134,7 +135,7 @@ http://127.0.0.1:4000/admin/
 
 The local Worker serves dashboard APIs at `http://127.0.0.1:8787`, with `CORS_ALLOWED_ORIGIN` derived for the local site. The dashboard can exercise the seeded local test campaigns and local KV. Dashboard user-management saves write to local KV (`admin-users:v1`) rather than committing to GitHub. Dev Worker config also sets `ADMIN_LOCAL_REPO_WRITES_ENABLED=true` and starts a token-protected local repo helper on the Worker container loopback address, so **Create new campaign** and **Archive campaign** can write/move files in the mounted repository instead of depending on GitHub workflow dispatch while testing locally.
 
-Foreground `./scripts/dev.sh --podman` also supervises the dev pod. If Jekyll or Wrangler exits, the launcher prints recent logs, restarts the stopped container, and recreates the pod if a direct restart is not enough. Pod recreation is retried because Podman can occasionally return partial-start errors such as `starting some containers: internal libpod error`; between attempts the launcher removes partial dev containers/pods by name and dev-stack label, verifies the old artifacts are gone, waits for Podman's port forwards to release, refreshes the Podman connection, and restarts the Podman machine on macOS/Windows if cleanup alone does not clear the stale state. The launcher also starts the empty pod before adding the site and Worker containers, which avoids a flaky Podman path where a created pod can leave `pool-dev-site` created and `pool-dev-worker` missing. Jekyll readiness checks wait for the real `/admin/` page instead of any HTTP response, so a stale listener or a still-building site does not count as ready. Tune the check interval with `PODMAN_SUPERVISE_INTERVAL`, the restart log tail with `PODMAN_SUPERVISE_LOG_LINES`, startup retries with `PODMAN_STACK_START_ATTEMPTS`, retry delay with `PODMAN_STACK_RETRY_DELAY`, site readiness timeout with `PODMAN_SITE_READY_TIMEOUT`, and Worker readiness timeout with `PODMAN_WORKER_READY_TIMEOUT`. Detached helper flows still get Podman's `unless-stopped` restart policy on the site and Worker containers.
+Foreground `./scripts/dev.sh --podman` also supervises the dev pod. If Jekyll or Wrangler exits, the launcher prints recent logs, restarts the stopped container, and recreates the pod if a direct restart is not enough. Pod recreation is retried because Podman can occasionally return partial-start errors such as `starting some containers: internal libpod error`; between attempts the launcher removes partial dev containers/pods by name and dev-stack label, verifies the old artifacts are gone, waits for Podman's port forwards to release, refreshes the Podman connection, and restarts the Podman machine on macOS/Windows if cleanup alone does not clear the stale state. The launcher also starts the empty pod before adding the site and Worker containers, which avoids a flaky Podman path where a created pod can leave `pool-dev-site` created and `pool-dev-worker` missing. Jekyll readiness checks wait for the real `/admin/` page instead of any HTTP response, so a stale listener or a still-building site does not count as ready. A cold Worker volume receives a separate lock-hash-verified dependency-install grace period before the ordinary runtime health clock starts, preventing a slow `npm ci` from being killed and restarted indefinitely; warm volumes skip that wait immediately. Tune the check interval with `PODMAN_SUPERVISE_INTERVAL`, the restart log tail with `PODMAN_SUPERVISE_LOG_LINES`, startup retries with `PODMAN_STACK_START_ATTEMPTS`, retry delay with `PODMAN_STACK_RETRY_DELAY`, site readiness timeout with `PODMAN_SITE_READY_TIMEOUT`, cold Worker install timeout with `PODMAN_WORKER_INSTALL_TIMEOUT`, and Worker runtime readiness timeout with `PODMAN_WORKER_READY_TIMEOUT`. Detached helper flows still get Podman's `unless-stopped` restart policy on the site and Worker containers.
 
 ## Rebuild Images
 
@@ -166,7 +167,7 @@ Use `PODMAN_REBUILD=1 npm run media:optimize:podman` after package changes so th
 
 ## Browser Testing
 
-The browser helper scripts can now boot against the Podman-backed stack:
+The browser helper scripts can boot against the Podman-backed stack:
 
 ```bash
 ./scripts/test-checkout.sh --podman
@@ -196,7 +197,7 @@ Run:
 
 The report wrappers load Cloudflare auth from `.env`, `.env.local`, `.env.cloudflare`, and `worker/.dev.vars`, pass it into `podman exec`, and print progress to stderr so redirected CSV files remain clean.
 
-`./scripts/test-e2e.sh --podman` is now fully automated browser coverage. The dedicated `./scripts/test-checkout.sh --podman` helper remains the manual interactive path when you specifically want to drive a real checkout in your own browser. The automated headless browser suite runs in its own Playwright container and reuses the already-running site/Worker instead of trying to boot Jekyll inside the test container.
+`./scripts/test-e2e.sh --podman` is fully automated browser coverage. The dedicated `./scripts/test-checkout.sh --podman` helper remains the manual interactive path when you specifically want to drive a real checkout in your own browser. The automated headless browser suite runs in its own Playwright container and reuses the already-running site/Worker instead of trying to boot Jekyll inside the test container.
 
 The release smoke wrapper uses the same Podman-backed E2E path when Podman is available. Pass `--podman-e2e` to require that phase for release evidence, or `--skip-podman-e2e` only when another logged run already covers the same browser surface.
 
@@ -218,9 +219,9 @@ That focused suite is the preferred local browser check for admin UI changes suc
 
 For host-side commands that need a Podman-backed site/Worker without assuming detached stack persistence, use [`scripts/podman-stack-run.sh`](https://github.com/your-org/your-project/blob/main/scripts/podman-stack-run.sh). `npm run test:security:podman` uses that wrapper to boot the stack, run the security suite, and tear the stack down in one invocation.
 
-The Worker container defaults to `node:24-bookworm-slim`. If a local Podman image pull stalls but the Playwright image is already cached, the launcher can reuse `mcr.microsoft.com/playwright:v1.57.0-noble` as a Node 24 base so development still matches the GitHub Actions Node 24 runtime.
+The Worker container defaults to `node:24-bookworm-slim`. If a local Podman image pull stalls but the Playwright image pinned in `Containerfile.playwright.dev` is already cached, the launcher can reuse that exact Node 24 base so development still matches the GitHub Actions Node 24 runtime. Use `nvm use` from the repository root to select the supported Node 24.15 baseline before running host-side npm commands.
 
-For the host-side headless browser path, Playwright now builds a clean static `_site` and serves it with a lightweight HTTP server instead of relying on `jekyll serve`. That keeps browser regressions closer to the real published asset shape and avoids some WEBrick instability during parallel runs.
+For the host-side headless browser path, Playwright builds a clean static `_site` and serves it with a lightweight HTTP server instead of relying on `jekyll serve`. That keeps browser regressions closer to the real published asset shape and avoids some WEBrick instability during parallel runs.
 
 ## Cross-Platform First Run
 
@@ -234,15 +235,15 @@ npm run test:e2e:headless:podman
 
 If the doctor passes and the headless Podman suite is green, you are in a good place for normal local work.
 
-Note that the generated static site now excludes repo-internal folders like `worker/`, `scripts/`, and `tests/`, so local static verification is closer to what a fork would actually publish.
+Note that the generated static site excludes repo-internal folders like `worker/`, `scripts/`, and `tests/`, so local static verification is closer to what a fork would actually publish.
 
-Current confidence level:
+Current validation record:
 
-- macOS: host-validated in this branch work
-- Linux: prepared and self-checkable, but not host-validated here
-- Windows: prepared and self-checkable from a bash-capable shell, but not host-validated here
+- macOS: host-validated
+- Linux: prepared and self-checkable; physical-host validation is not recorded
+- Windows: prepared and self-checkable from a bash-capable shell; physical-host validation is not recorded
 
-The content-safety filter unit tests also know how to fall back to Podman when host Bundler/Jekyll gems are unavailable, so a missing host Ruby setup no longer breaks that part of the suite on a machine where Podman is healthy.
+The content-safety filter unit tests also know how to fall back to Podman when host Bundler/Jekyll gems are unavailable, so that part of the suite does not require host Ruby on a machine where Podman is healthy.
 
 ## Logs
 
@@ -263,7 +264,7 @@ npm run podman:doctor
 ./scripts/smoke-pledge-management.sh --podman
 ```
 
-That sequence now exercises the same location-aware test-fixture path the merge gate relies on.
+That sequence exercises the same location-aware test-fixture path the merge gate relies on.
 
 If `./scripts/dev.sh --podman` never gets past Podman startup, check the machine first:
 
@@ -282,7 +283,7 @@ podman machine init --now
 
 On macOS, the launcher uses the machine's forwarded Unix API socket directly once the VM is up. That avoids a class of flaky default-connection issues we saw with the packaged CLI.
 
-The doctor and launcher now also do a short stability check after startup so they do not flash green on a machine that immediately falls back into a stale connection state.
+The doctor and launcher also do a short stability check after startup so they do not flash green on a machine that immediately falls back into a stale connection state.
 
 On Linux, if `podman info` fails, fix the local rootless Podman session first and then rerun the doctor:
 
@@ -316,10 +317,5 @@ Podman mode is not meant to perfectly clone Cloudflare production, but it does p
 - the same first-party cart and checkout path
 - the same static-build browser path used by the host headless harness
 
-## Next Likely Steps
-
-The safest follow-up improvements are:
-
-- containerized/manual browser coverage beyond the automated headless suite
-- Podman-aware wrappers for any remaining local helper scripts that teams want to keep inside the same launcher model
-- optional declarative pod spec for teams that prefer a checked-in local environment manifest
+Prospective Podman and cross-platform validation work is tracked in the
+[Roadmap](/docs/reference/roadmap/).

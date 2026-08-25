@@ -1,7 +1,7 @@
 ---
 title: "Tax Calculator"
 parent: "Operations"
-nav_order: 8
+nav_order: 12
 render_with_liquid: false
 ---
 
@@ -9,15 +9,21 @@ render_with_liquid: false
 
 ## Last Updated
 
-April 21, 2026
+August 25, 2026
 
-This document covers The Pool's current tax-calculation model, including provider selection, fork-facing configuration, browser behavior, Worker endpoints, and the checks operators should run before shipping tax-related changes.
+This document covers The Pool's current tax-calculation model, including
+provider selection, fork-facing configuration, browser behavior, Worker
+endpoints, and the checks operators should run before shipping tax-related
+changes.
 
-The short version: tax is now a first-class Worker concern rather than one fixed configured rate everywhere. A deployment can still stay on a flat tax rate, but it can also switch to provider-backed or vendored location-aware calculation without forking checkout math in multiple places.
+Tax is a first-class Worker concern rather than one fixed configured rate
+everywhere. A deployment can stay on a flat rate or switch to provider-backed
+or vendored location-aware calculation without forking checkout math across
+the browser, Worker, pledge management, emails, and reports.
 
 ## What The Tax Layer Owns
 
-The tax layer exists to keep one consistent answer across:
+The tax layer keeps one consistent answer across:
 
 - cart previews
 - custom checkout UI
@@ -27,22 +33,27 @@ The tax layer exists to keep one consistent answer across:
 - supporter emails
 - reports and exports
 
-In the current model, the Worker remains the source of truth. The browser can ask for previews, but the final persisted totals still come from Worker-side calculation.
+The Worker remains the source of truth. The browser can request previews, but
+persisted totals come from Worker-side calculation.
 
 ## Current Provider Modes
 
-The Pool currently supports four tax-provider modes:
+The supported operator-facing provider modes are:
 
 | Provider | What it does | Best fit |
-|----------|--------------|----------|
-| `flat` | Uses the legacy configured `pricing.sales_tax_rate` | simple deployments that want one configured rate |
-| `offline_rules` | Uses vendored VAT/GST and state-level fallback rules | forks that want location-aware behavior without depending on one live local-jurisdiction API for every quote |
-| `nm_grt` | Starts from the vendored New Mexico dataset and can refine with the EDAC GRT API | New Mexico-focused deployments that need stronger local GRT accuracy |
-| `zip_tax` | Uses ZIP.TAX for local US jurisdiction lookups and falls back to `offline_rules` outside US/CA | US-focused deployments that want provider-backed local tax precision |
+| --- | --- | --- |
+| `flat` | Uses the configured `pricing.sales_tax_rate` | Simple deployments that want one configured rate |
+| `offline_rules` | Uses vendored VAT/GST and state-level fallback rules | Forks that want location-aware behavior without a live local-jurisdiction request for every quote |
+| `nm_grt` | Uses the vendored New Mexico starter dataset and can refine complete New Mexico addresses with the EDAC GRT API | New Mexico-focused deployments that need stronger local GRT accuracy |
+| `zip_tax` | Uses ZIP.TAX for US and Canadian jurisdiction lookups and falls back to `offline_rules` for other countries | Deployments that want provider-backed local tax precision |
 
-## Config Surface
+The Worker still accepts the legacy provider value `external` as an alias for
+`zip_tax`, but new configuration and dashboard edits should use `zip_tax`.
 
-Fork-facing tax config lives in [`Customization Guide`](/docs/development/customization-guide/) under `tax`.
+## Configuration Surface
+
+Fork-facing tax config lives in [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) and is described
+in [CUSTOMIZATION.md](/docs/development/customization-guide/).
 
 Current keys:
 
@@ -63,14 +74,15 @@ tax:
   zip_tax_api_base: https://api.zip-tax.com
 ```
 
-The compatibility baseline still exists:
+The compatibility baseline remains available:
 
-- `pricing.sales_tax_rate` is still used by `flat`
-- `SALES_TAX_RATE` is still mirrored into the Worker for that legacy mode
+- `pricing.sales_tax_rate` is used by `flat`
+- `SALES_TAX_RATE` mirrors that configured rate into the Worker
 
 ## Worker Mirror And Secrets
 
-The non-secret tax settings are mirrored from site config into the Worker environment:
+The non-secret tax settings mirror from site config into the Worker
+environment:
 
 - `TAX_PROVIDER`
 - `TAX_ORIGIN_COUNTRY`
@@ -79,13 +91,11 @@ The non-secret tax settings are mirrored from site config into the Worker enviro
 - `ZIP_TAX_API_BASE`
 - `SALES_TAX_RATE` for `flat`
 
-If you enable `zip_tax`, also set:
+If you enable `zip_tax`, also set `ZIP_TAX_API_KEY`. Keep that key out of
+`_config.yml`; set it as a Worker secret or in ignored `worker/.dev.vars` for
+local work.
 
-- `ZIP_TAX_API_KEY`
-
-Keep that key out of `_config.yml`. Set it as a Worker secret or in `worker/.dev.vars` for local work.
-
-If you use the New Mexico starter dataset path, refresh the vendored file with:
+Refresh the vendored New Mexico starter dataset with:
 
 ```bash
 node ./scripts/update-nm-grt-starter.mjs
@@ -93,78 +103,92 @@ node ./scripts/update-nm-grt-starter.mjs
 
 ## Browser And Checkout Behavior
 
-The browser is intentionally allowed to show a provisional state before it has enough destination detail.
+The browser can show a provisional state before it has enough destination
+detail.
 
 Current behavior:
 
 - cart and checkout can show tax as `--`
-- the browser can request a preview through `POST /tax/quote`
-- final canonical checkout still happens through `POST /checkout-intent/start`
-- if the configured provider needs more location detail, the Worker can return a provisional result instead of guessing
-- New Mexico GRT is the most exact built-in path right now and usually needs full street-level destination data rather than only ZIP/state
+- the browser requests a preview through `POST /tax/quote`
+- canonical checkout runs through `POST /checkout-intent/start`
+- a location-aware provider can require billing or shipping destination detail
+  before returning a quote
+- `nm_grt` tries the EDAC API only when a New Mexico address includes a
+  parseable street plus city and postal code; otherwise it uses the starter
+  dataset or configured flat fallback
 
-This is why a tax preview may look incomplete early in checkout but still resolve correctly once billing or shipping details are present.
+A tax preview can therefore remain incomplete early in checkout and resolve
+once billing or shipping details are present.
 
 ## Main Endpoints
 
 ### `POST /tax/quote`
 
-This endpoint returns a Worker-calculated tax preview for first-party cart and checkout UI.
+This endpoint returns a Worker-calculated tax preview for the first-party cart
+and checkout UI.
 
 Use it for:
 
 - provisional cart display
 - custom checkout summaries
-- updating tax after destination changes
+- recalculation after destination changes
 
-Operational notes:
+Operational rules:
 
-- it is same-origin protected
-- it is rate limited
-- it is intended for first-party UI previews, not third-party public use
-- it can intentionally return a provisional/no-tax result when the payload is missing required destination detail
+- the request must come from the trusted site origin
+- the route is rate limited and body-size limited
+- the response is private and non-cacheable
+- the route is for first-party UI previews, not third-party public use
+- missing required destination detail returns an error instead of a guessed
+  location-aware tax result
 
 ### `POST /checkout-intent/start`
 
-This is still the authoritative checkout bootstrap.
-
-It is the endpoint that:
+This is the authoritative checkout bootstrap. It:
 
 - canonicalizes the cart
 - validates campaign and inventory state
-- computes the final checkout totals
-- persists the signed checkout snapshot that Stripe and the Worker later rely on
+- computes final checkout totals
+- persists the signed checkout snapshot used by Stripe and the Worker
 
-If tax behavior looks wrong in the browser, always confirm whether the problem is only in preview mode or also in the canonical `checkout-intent/start` result.
+If browser tax looks wrong, determine whether the problem affects only
+`/tax/quote` preview state or the canonical `/checkout-intent/start` result too.
 
-## Local Development Notes
+## Local Development
 
-For day-to-day local work, prefer the Podman path:
+For normal local work:
 
 ```bash
 npm run podman:doctor
 ./scripts/dev.sh --podman
 ```
 
-Important current local behavior:
+Important behavior:
 
-- changing tax settings in `_config.yml` is not enough by itself; restart the local stack so the Worker mirror updates too
-- the mutable-pledge smoke path is now compatible with provider-driven tax setups such as `tax.provider: nm_grt`
-- if a local test fixture does not seed enough billing or shipping detail, a provisional tax result may be expected rather than a bug
+- restart the local stack after changing `_config.yml` so the Worker mirror is
+  refreshed
+- mutable-pledge smoke coverage supports provider-driven setups such as
+  `tax.provider: nm_grt`
+- a fixture without enough billing or shipping detail can produce an expected
+  provisional state rather than a product bug
 
-See [`Podman Local Dev`](/docs/operations/podman-local-dev/), [`Testing Guide`](/docs/operations/testing/), and [`Pledge Worker`](/docs/operations/worker/) for the surrounding runtime details.
+See [PODMAN.md](/docs/operations/podman-local-dev/), [TESTING.md](/docs/operations/testing/), and the
+[Worker README](/docs/operations/worker/) for the surrounding runtime.
 
-## What To Verify Before Shipping
+## Verification
 
-When you change tax config, tax-provider code, checkout destination handling, or pricing display, verify all of these:
+When tax config, provider code, checkout destination handling, or pricing
+display changes, verify:
 
 - cart preview updates when destination detail changes
 - provisional `--` behavior appears only when expected
-- `POST /tax/quote` returns the expected preview shape for the configured provider
-- `POST /checkout-intent/start` returns final tax totals that match the deployment rules
-- Manage Pledge recalculation still keeps subtotal, tax, shipping, tip, and total coherent
-- stored pledge totals, emails, and reports still use the same tax answer
-- localized tax helper copy still reads correctly if the change touched checkout UI wording
+- `POST /tax/quote` returns the expected shape for the configured provider
+- `POST /checkout-intent/start` returns final totals that match deployment rules
+- Manage Pledge keeps subtotal, tax, shipping, tip, and total coherent
+- stored pledge totals, emails, and reports use the same tax answer
+- localized tax helper copy remains correct
+- `npx vitest run tests/unit/tax.test.ts` passes
+- affected cart, Manage Pledge, Worker business-logic, and dashboard tests pass
 
 ## Troubleshooting
 
@@ -173,18 +197,18 @@ When you change tax config, tax-provider code, checkout destination handling, or
 Check:
 
 - `tax.provider` in `_config.yml`
-- mirrored Worker env in `worker/wrangler.toml`
+- mirrored Worker values in `worker/wrangler.toml`
 - whether the local stack was restarted after config changes
 
 ### Tax stays `--`
 
 Check:
 
-- whether the selected provider needs more destination detail
-- whether the browser is sending billing or shipping address fields the provider actually uses
-- whether the issue appears only in preview mode or also in `checkout-intent/start`
+- whether the provider needs more destination detail
+- whether the browser sends the billing or shipping fields the provider uses
+- whether the issue affects preview only or canonical checkout too
 
-### ZIP.TAX path is not working
+### ZIP.TAX is unavailable
 
 Check:
 
@@ -192,18 +216,19 @@ Check:
 - `tax.zip_tax_api_base`
 - `ZIP_TAX_API_KEY`
 
-### New Mexico results look too broad
+### New Mexico results are too broad
 
 Check:
 
-- whether only ZIP/state is being provided instead of a full street-level destination
+- whether the destination includes a parseable street, city, and postal code
 - whether the starter dataset needs a refresh
-- whether the deployment should stay on `nm_grt` or use a different provider mode for that fork
+- whether `nm_grt` is the right provider for the deployment
 
-## Related Docs
+## Related Documentation
 
-- [`Pledge Worker`](/docs/operations/worker/)
-- [`Testing Guide`](/docs/operations/testing/)
-- [`Podman Local Dev`](/docs/operations/podman-local-dev/)
-- [`Customization Guide`](/docs/development/customization-guide/)
-- [`Project Overview`](/docs/development/project-overview/)
+- [CUSTOMIZATION.md](/docs/development/customization-guide/)
+- [PAYMENT_PROCESSOR.md](/docs/operations/payment-processor/)
+- [TESTING.md](/docs/operations/testing/)
+- [PODMAN.md](/docs/operations/podman-local-dev/)
+- [PROJECT_OVERVIEW.md](/docs/development/project-overview/)
+- [worker/README.md](/docs/operations/worker/)

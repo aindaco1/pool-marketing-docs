@@ -1,7 +1,7 @@
 ---
 title: "Agents & Operator Guide"
 parent: "Development"
-nav_order: 9
+nav_order: 10
 render_with_liquid: false
 ---
 
@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-July 16, 2026
+August 25, 2026
 
 This is the operating guide for people and coding agents working on **The Pool**. Use it to make safe changes without drifting the static site, Cloudflare Worker, checkout math, private administration, or localized behavior out of sync.
 
@@ -18,13 +18,15 @@ Read it alongside:
 - [README.md](/docs/development/platform-readme/) for the product and architecture overview
 - [docs/CUSTOMIZATION.md](/docs/development/customization-guide/) for the supported fork-facing configuration surface
 - [docs/PAYMENT_PROCESSOR.md](/docs/operations/payment-processor/) for Stripe, canonical checkout, webhooks, settlement, and reconciliation
+- [docs/TAX_CALCULATOR.md](/docs/operations/tax-calculator/) for tax providers, canonical quotes, mirrored configuration, and verification
 - [docs/ADD_ON_PRODUCTS.md](/docs/development/add-on-products/) for platform, campaign, and variant-specific add-on pricing
 - [docs/DASHBOARD.md](/docs/operations/admin-dashboard/) for private administration and editing
 - [docs/PERFORMANCE.md](/docs/operations/performance/) for budgets, Lighthouse, caching, and runtime observability
 - [docs/SECURITY.md](/docs/operations/security/) for security boundaries and release checks
 - [docs/BACKUP_RESTORE.md](/docs/operations/backup-restore/) for backup, restore, and disaster recovery
 - [docs/TESTING.md](/docs/operations/testing/) for local verification and merge gates
-- [docs/ROADMAP.md](/docs/reference/roadmap/) for planned and completed work
+- [docs/ROADMAP.md](/docs/reference/roadmap/) for prospective work only
+- [CHANGELOG.md](/docs/reference/changelog/) and [docs/release-evidence/](https://github.com/your-org/your-project/tree/main/docs/release-evidence) for completed release history and verification records
 
 ## Project shape
 
@@ -147,7 +149,10 @@ Shared system strings belong in `_data/i18n/<lang>.yml`; creator-authored campai
 ## Documentation map
 
 - Fork configuration: [docs/CUSTOMIZATION.md](/docs/development/customization-guide/)
+- Release history: [CHANGELOG.md](/docs/reference/changelog/)
+- Prospective work: [docs/ROADMAP.md](/docs/reference/roadmap/)
 - Payments and settlement: [docs/PAYMENT_PROCESSOR.md](/docs/operations/payment-processor/)
+- Tax calculation: [docs/TAX_CALCULATOR.md](/docs/operations/tax-calculator/)
 - Add-on products and variant pricing: [docs/ADD_ON_PRODUCTS.md](/docs/development/add-on-products/)
 - Email: [docs/EMAIL.md](/docs/operations/email-system/)
 - Testing: [docs/TESTING.md](/docs/operations/testing/)
@@ -172,5 +177,6 @@ Shared system strings belong in `_data/i18n/<lang>.yml`; creator-authored campai
 - Reuse an existing configuration surface or helper before inventing another.
 - Never silently drop locale, embed, share-preview, private-cache, or historical-price behavior.
 - Preserve unrelated user changes and stage only files in scope.
+- Keep current-state docs in present tense and grounded in verified behavior. Put proposals and deferred work only in the roadmap, and put completed release history only in the changelog or release evidence.
 
 When uncertain, make the smallest change that keeps the site and Worker aligned, prove it with the narrowest meaningful test, and run the broader gate when warranted.

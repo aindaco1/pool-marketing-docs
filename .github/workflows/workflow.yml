@@ -38,6 +38,12 @@ jobs:
       - name: Build site
         run: bundle exec jekyll build --trace
 
+      - name: Audit current documentation state
+        run: python3 scripts/audit_docs_current_state.py
+
+      - name: Audit internal links and anchors
+        run: python3 scripts/audit_links.py
+
       - name: Audit SEO output
         run: python3 scripts/audit_seo.py
 

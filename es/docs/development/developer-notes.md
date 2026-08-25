@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-16 de julio de 2026
+25 de agosto de 2026
 
 ## Pila
 
@@ -36,7 +36,7 @@ Si está intentando mantener una bifurcación cómoda en el plan gratuito Cloudf
 
 Los dos primeros viven en la configuración de Jekyll y dan forma al comportamiento de lectura del navegador. Los valores de precio/envío se reflejan automáticamente en el entorno del trabajador para que el pago, los correos electrónicos, los informes y las matemáticas de liquidación permanezcan alineados.
 
-La configuración ahora utiliza un modelo de configuración estructurado en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml):
+La configuración utiliza un modelo de configuración estructurado en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml):
 
 - nivel superior `title` / `description`
 - `seo`
@@ -70,29 +70,29 @@ Valores de trabajador reflejados actuales que vale la pena tratar como parte de 
 - vars de diseño y correo electrónico: `SUPPORT_EMAIL`, `PLEDGES_EMAIL_FROM`, `UPDATES_EMAIL_FROM`, `EMAIL_*`, `PLATFORM_FOOTER_LOGO_PATH`, `PLATFORM_FAVICON_PATH`, `PLATFORM_DEFAULT_SOCIAL_IMAGE_PATH`
 - vars de campaña-runner, recordatorio de lanzamiento, caché, rendimiento y depuración: `CAMPAIGN_RUNNER_*`, `LAUNCH_REMINDERS_ENABLED`, `LIVE_STATS_CACHE_TTL_SECONDS`, `LIVE_INVENTORY_CACHE_TTL_SECONDS`, `INTENT_PREFETCH_ENABLED`, `INTENT_PREFETCH_DELAY_MS`, `INTENT_PREFETCH_LIMIT`, `DEBUG_CONSOLE_LOGGING_ENABLED`, `DEBUG_VERBOSE_CONSOLE_LOGGING`
 
-El repositorio ahora incluye `npm run sync:worker-config`, que sincroniza esos valores reflejados de `_config.yml`/`_config.local.yml` en `worker/wrangler.toml`. Las rutas principales de desarrollo local, prueba, solo para trabajadores y previas a la fusión lo llaman automáticamente. La verificación de artefactos propios de la puerta de fusión también recurre a la ruta de compilación respaldada por Podman cuando el host Bundler/Jekyll no está disponible.
+El repositorio incluye `npm run sync:worker-config`, que sincroniza esos valores reflejados de `_config.yml`/`_config.local.yml` en `worker/wrangler.toml`. Las rutas principales de desarrollo local, prueba, solo Worker y previas a la fusión lo llaman automáticamente. La verificación de artefactos propios de la puerta de fusión también recurre a la ruta de compilación respaldada por Podman cuando el host Bundler/Jekyll no está disponible.
 
 Al agregar una nueva configuración visible para el trabajador, actualice `scripts/sync-worker-config.rb` en tres lugares: `TOP_LEVEL_ORDER`, `DEV_ENV_ORDER` y `build_mirror_values`. No añadas secretos a este camino; el script de sincronización es solo para configuraciones de repositorios no secretos.
 
-El desarrollo del trabajador local ahora apunta al Nodo 24 para que coincida con las acciones de GitHub. La imagen de Podman Worker tiene como valor predeterminado el Nodo 24, mientras que los scripts de ayuda del host prefieren el Nodo 24 y recurren al Nodo 22 en lugar de forzar la antigua ruta del Nodo 20 que Wrangler 4 ya no admite. El trabajador compartido `compatibility_date` debe moverse deliberadamente con las actualizaciones de Wrangler/tiempo de ejecución para que el comportamiento de Miniflare local y el comportamiento de los trabajadores implementados permanezcan alineados.
+El desarrollo local de Worker apunta al Nodo 24 para que coincida con las acciones de GitHub. La imagen Podman Worker tiene como valor predeterminado el Nodo 24, mientras que los scripts auxiliares del host prefieren el Nodo 24 y recurren al Nodo 22 en lugar de forzar la antigua ruta del Nodo 20 que Wrangler 4 ya no admite. Mueva el Worker `compatibility_date` compartido deliberadamente con Wrangler/actualizaciones de tiempo de ejecución para que el comportamiento local de Miniflare y el comportamiento implementado de Workers permanezcan alineados.
 
 Los secretos de USPS OAuth, Turnstile y firma de tokens están intencionalmente separados de esa superficie de configuración reflejada. Mantenga `USPS_CLIENT_SECRET`, `TURNSTILE_SECRET_KEY`, `LAUNCH_REMINDER_TURNSTILE_SECRET_KEY` y `LAUNCH_REMINDER_TOKEN_SECRET` en Secretos de trabajador o `worker/.dev.vars`, no en `_config.yml`.
 
-Los fundamentos de SEO ahora siguen un modelo similar:
+Los fundamentos de SEO siguen un modelo acotado similar:
 
 - Los diseños públicos utilizan inclusiones compartidas para metadatos y JSON-LD.
 - `robots.txt` y `sitemap.xml` se generan a partir de la superficie estática pública.
 - `/manage/`, las páginas de la comunidad de patrocinadores y las páginas de resultados de aportes emiten `noindex,nofollow`
 - la superficie SEO orientada a la bifurcación admitida es principalmente `title`, `description`, `seo.x_handle`, `seo.same_as`, `seo.index_public_community_hub`, `platform.name`, `platform.site_url`, `platform.default_social_image_path` y campos de contenido de página/campaña como `title`, `description`, `short_blurb` e imágenes destacadas.
 
-El registro de la consola del navegador y del trabajador ahora utiliza asistentes de registro compartidos en lugar de llamadas ad hoc `console.*` en los tiempos de ejecución principales. Eso le da al repositorio un interruptor acotado:
+El registro del navegador y de la consola Worker utiliza asistentes de registro compartidos en lugar de llamadas ad hoc a `console.*` en los tiempos de ejecución principales. Eso le da al repositorio un interruptor acotado:
 
 - `debug.console_logging_enabled`
 - `debug.verbose_console_logging`
 
 Si `console_logging_enabled` es `false`, tanto el tiempo de ejecución del navegador como el trabajador permanecen en silencio. Si `verbose_console_logging` es `false`, el ruido de depuración/información/registro de menor gravedad se suprime mientras se pueden seguir emitiendo advertencias y errores.
 
-Cuando están habilitados, los registradores compartidos ahora proporcionan diagnósticos más estructurados de forma predeterminada:
+Cuando están habilitados, los registradores compartidos proporcionan diagnósticos más estructurados de forma predeterminada:
 
 - Marcas de tiempo ISO en cada línea
 - navegador estable/prefijos de ámbito de trabajo
@@ -110,21 +110,21 @@ Mejores prácticas de cotización de envío en la implementación actual:
 - Las fallas repetidas de USPS `429`, tiempo de espera o `5xx` desencadenan un tiempo de reutilización temporal en la memoria antes de volver a intentarlo
 - la ruta de cotización alternativa sigue siendo canónica para el trabajador y no agrega rotación de caché de cotizaciones de KV
 
-La puerta de fusión ahora divide deliberadamente sus rutas de humo locales:
+La puerta de fusión divide deliberadamente sus rutas de humo locales:
 
 - `scripts/test-worker.sh` sigue siendo un humo de contrato más ligero a nivel de anfitrión
 - `scripts/smoke-pledge-management.sh` se ejecuta a través de la pila respaldada por Podman durante la activación de fusión, por lo que la ruta de modificación/cancelación mutable utiliza un estado de servicio local aislado.
 
-El arnés Playwright ahora construye un `_site` estático limpio y lo sirve desde un servidor HTTP liviano para comprobaciones del navegador sin cabeza, en lugar de depender de `jekyll serve`.
+El arnés Playwright crea un `_site` estático limpio y lo sirve desde un servidor HTTP liviano para comprobaciones del navegador sin cabeza, en lugar de depender de `jekyll serve`.
 
-Nota: el carrito/tiempo de ejecución propios y la interfaz de usuario de pago en el sitio personalizada ahora se tratan como comportamiento integrado de la plataforma, no como opciones de configuración orientadas a la bifurcación. El espacio de nombres de configuración `checkout` ahora es principalmente para configuraciones verdaderamente variables como la clave publicable de Stripe.
+Nota: el carrito/tiempo de ejecución propios y la interfaz de usuario de pago en el sitio personalizada son comportamientos integrados de la plataforma, no opciones de configuración orientadas a la bifurcación. El espacio de nombres de configuración `checkout` es principalmente para configuraciones verdaderamente variables como la clave publicable Stripe.
 
 ## Sistema de diseño
 
-El lenguaje visual predeterminado aún comienza con el aspecto editorial más tranquilo de Dust Wave, pero el repositorio actual ya no está limitado a un tema de marca codificado:
+El lenguaje visual predeterminado comienza con el aspecto editorial más tranquilo de Dust Wave sin bloquear el repositorio en un tema de marca codificado:
 
 - **Tokens de tema**: `design.*` en `_config.yml` alimenta variables CSS generadas en `assets/main.css`; `assets/theme-vars.css` sigue siendo un artefacto de compatibilidad
-- **Estilo de pago**: el sidecar Stripe Elements en el sitio ahora lee la misma superficie simbólica para colores, radio y fuente del cuerpo.
+- **Estilo de pago**: el sidecar Stripe Elements en el sitio lee la misma superficie del token en busca de colores, radio y fuente del cuerpo.
 - **Marca de correo electrónico del colaborador**: un subconjunto seleccionado de `platform.*` + `design.*` se refleja en el entorno del trabajador para que el estilo del logotipo/fuente/color/botón permanezca alineado en el correo electrónico.
 - **Espaciado**: el sistema Sass todavía utiliza internamente un ritmo de diseño basado en 8px
 - **Puntos de interrupción**: 724 px (xsm), 1000 px (sm/ms)
@@ -201,14 +201,14 @@ Esto se aplica a `support_items`, `decisions`, `stretch_goals`, `diary` y cualqu
 
 ## Edición del panel de administración
 
-El panel privado en `/admin/` ahora es el editor y la superficie de operaciones basados ​​en navegador compatibles. Lee de `_config.yml`, `_campaigns/*.md`, índices de aporte de Worker KV y configuraciones de tiempo de ejecución de Worker, luego escribe a través de la ruta de persistencia correcta para cada flujo de trabajo.
+El panel privado de `/admin/` es la superficie de operaciones y editor basado en navegador compatible. Lee desde los índices de aporte `_config.yml`, `_campaigns/*.md`, Worker KV y la configuración de tiempo de ejecución de Worker, luego escribe a través de la ruta de persistencia correcta para cada flujo de trabajo.
 
 - La configuración respaldada por GitHub y el contenido de la campaña se publican a través de la validación del trabajador y la ruta normal de reconstrucción/implementación.
 - Los usuarios guardan directamente en Worker KV en `admin-users:v1`.
 - Los códigos de referencia de marketing se guardan en KV con ámbito de campaña.
 - El borrador del contenido se guarda en el navegador hasta su publicación.
 - Los secretos permanecen en Secretos del trabajador o se ignoran `.dev.vars`; el panel solo muestra el estado configurado/faltante.
-- Los informes, los análisis, la exploración de los asistentes, las vistas previas de contenido, el filtrado de tablas y las descargas de CSV son flujos del panel de solo lectura y no deben agregar escrituras KV.
+- Los informes, los análisis, la exploración de los asistentes, las vistas previas de contenido, el filtrado de tablas y las descargas de CSV son flujos de panel de solo lectura y no agregan escrituras de KV.
 - Las cargas de imágenes/vídeo/audio utilizan los directorios de activos existentes, normalizan los nombres de archivos y luego publican a través de la misma ruta respaldada por GitHub que el campo que actualizan.
 - La limpieza de contenidos y medios del diario se ejecuta en el momento de la publicación. El trabajador compara el contenido/los datos del diario de la campaña previamente cargados con el borrador normalizado que se está confirmando, elimina las rutas de medios propiedad del panel de la misma campaña que desaparecieron y conserva las URL externas, los activos compartidos/predeterminados y los archivos a los que todavía se hace referencia en otras partes de la campaña.
 - La optimización de los medios está deliberadamente fuera del Trabajador. Después de que las cargas de imágenes y videos se confirmen exitosamente, el trabajador solicita el flujo de trabajo de acciones de GitHub `Optimize dashboard media` con `scope=changed`; Las cargas de audio se conservan en origen porque el optimizador no procesa `assets/audio`. Utilice `npm run media:optimize` localmente, `npm run media:optimize:podman` cuando falten optimizadores nativos del host, `npm run media:optimize:check` o `npm run media:optimize:check:podman` antes de fusionar cuando se modifiquen los medios cargados, o envíe manualmente el flujo de trabajo con `scope=all` para reprocesar los medios existentes.
@@ -393,7 +393,7 @@ tiers:
 
 En el panel de administración, los ID de nivel son de solo lectura para los editores: los ID heredados se conservan, mientras que los ID de nivel nuevos se derivan del nombre. `shipping_preset` se oculta para niveles digitales. Si un nivel físico no tiene un valor preestablecido, se muestran campos explícitos de peso/dimensión del paquete.
 
-**Productos complementarios de plataforma**: los productos globales o los artículos de venta adicional ahora tienen una ruta de configuración separada en `add_ons` en [/_config.yml](https://github.com/your-org/your-project/blob/main/_config.yml). Ese catálogo está destinado a productos de precio base para toda la plataforma con anulaciones de precios de variantes opcionales, como tallas de camisa, y no debe modelarse como campaña `support_items`. Worker refleja el catálogo a través de [/api/add-ons.json](https://github.com/your-org/your-project/blob/main/api/add-ons.json), expone una instantánea del inventario actual a través de `/add-ons/inventory`, incluye selecciones de complementos a nivel de paquete más una campaña ancla durante el proceso de pago, conserva esos complementos anclados en el aporte sin contarlos para los totales de objetivos de campaña y ahora los expone por separado en las exportaciones de aporte y cumplimiento. Los recuentos vendidos se encuentran en la proyección `add-on-inventory-sold:v1` después del arranque, y el carrito y Manage Pledge consumen la misma lógica de estado del producto que tiene en cuenta el inventario, incluidos precios de variantes, mensajes de stock bajo y filtrado de variantes agotadas.
+**Productos complementarios de plataforma**: los productos globales o los artículos de venta adicional tienen una ruta de configuración separada en `add_ons` en [/_config.yml](https://github.com/your-org/your-project/blob/main/_config.yml). Ese catálogo es para productos de precio base para toda la plataforma con anulaciones de precios de variantes opcionales, como tallas de camisa, y no está modelado como campaña `support_items`. Worker refleja el catálogo a través de [/api/add-ons.json](https://github.com/your-org/your-project/blob/main/api/add-ons.json), expone una instantánea del inventario actual a través de `/add-ons/inventory`, incluye selecciones de complementos a nivel de paquete más una campaña ancla durante el proceso de pago, conserva esos complementos anclados en el aporte sin contarlos para los totales de objetivos de campaña y los expone por separado en exportaciones de aporte y cumplimiento. Los recuentos vendidos se encuentran en la proyección `add-on-inventory-sold:v1` después del arranque, y el carrito y Manage Pledge consumen la misma lógica de estado del producto que tiene en cuenta el inventario, incluidos precios de variantes, mensajes de stock bajo y filtrado de variantes agotadas.
 
 - Los complementos `category: digital` nunca contribuyen al envío
 - Los complementos `category: physical` participan en la misma calculadora de envío que se utiliza para los niveles físicos y los artículos de soporte físico.
@@ -427,7 +427,10 @@ decisions:
     status: open            # open | closed
 ```
 
-`vote` y `poll` actualmente utilizan la misma mecánica de envío y conteo solo para patrocinadores. Utilice `vote` cuando el resultado esté destinado a decidir un resultado, y utilice `poll` cuando el resultado sea una retroalimentación de asesoramiento o una recopilación de preferencias. La distinción es intencionalmente semántica/visual por ahora; Las versiones futuras pueden superponer diferentes flujos de trabajo de copia pública, informes o resultados sobre los mismos datos almacenados.
+`vote` y `poll` utilizan la misma mecánica de envío y conteo solo para patrocinadores.
+Utilice `vote` cuando el resultado decida un resultado y `poll` para comentarios de asesoramiento.
+o recopilación de preferencias. La distinción es semántica y visual; cualquiera
+La posible divergencia pertenece al [Roadmap](/es/docs/reference/roadmap/).
 
 ### Diario de producción
 
@@ -487,7 +490,7 @@ Todos los valores monetarios deben ser números enteros (sin centavos).
 
 ### Tiempo de ejecución del carrito
 
-El sitio ahora utiliza un tiempo de ejecución de carrito propio expuesto a través de `window.PoolCartProvider`. El código de interfaz de usuario compartido se comunica con ese proveedor en lugar de depender de un asistente de carrito alojado por separado.
+El sitio utiliza un tiempo de ejecución de carrito propio expuesto a través de `window.PoolCartProvider`. El código de interfaz de usuario compartido se comunica con ese proveedor en lugar de depender de un asistente de carrito alojado por separado.
 
 Archivos clave:
 - `assets/js/cart-provider.js`: estado del carrito propiedad del navegador, representación del cajón, vista previa del pago, recuperación de éxito/cancelación
@@ -498,7 +501,7 @@ Archivos clave:
 
 Los niveles se pueden marcar como `stackable: false` para evitar ajustes de cantidad en el carrito.
 
-Cómo funciona ahora:
+Cómo funciona:
 1. Los botones de compra transportan los metadatos del nivel/carrito a través de ganchos `poolcart-*` e ID de artículos como `{campaignSlug}__{tierId}`.
 2. El proveedor propio fusiona adiciones repetidas solo para niveles apilables.
 3. La aplicación no apilable ocurre en el estado del carrito propio, no a través de parches DOM del carrito alojado.
@@ -512,7 +515,7 @@ Archivos involucrados:
 
 ## Flujo de aporte
 
-El flujo de aporte ahora es de principio a fin hasta Stripe:
+El flujo de aporte es de principio a fin hasta Stripe:
 
 1. **El usuario agrega un nivel al carrito** → se abre el cajón del carrito propio
 2. **Aporte de reseñas de usuarios** → el cajón muestra niveles, elementos de soporte, soporte personalizado, sugerencias y precios inmediatos
@@ -562,9 +565,9 @@ Cuentas requeridas:
 Herramientas necesarias:
 ```bash
 ruby --version   # 3.x recommended
-node --version   # 20.x recommended
-npm install -g wrangler
-wrangler login
+node --version   # 24.15 is the repository baseline
+npx wrangler --version
+npx wrangler login
 brew install stripe/stripe-cli/stripe
 stripe login
 ```
@@ -573,7 +576,7 @@ stripe login
 
 ```bash
 bundle install
-npm install
+npm ci
 ```
 
 ### 2. Configurar los secretos de los trabajadores
@@ -661,7 +664,7 @@ npm run test:secrets
 
 Si Stripe muestra fallas de webhook ("otros errores") para el punto final de producción:
 - El trabajador de producción recibe webhooks en **modo de prueba** pero no puede verificarlos (diferentes secretos de firma)
-- El trabajador ahora realiza una **detección en modo temprano**: analiza el campo `livemode` del evento antes de la verificación de la firma.
+- Worker realiza **detección de modo temprano**: analiza el campo `livemode` del evento antes de la verificación de la firma.
 - Los eventos de prueba enviados a un trabajador activo (o viceversa) se reconocen con `200 OK` y se omiten, lo que evita errores de firma.
 - No se necesita configuración; esto se maneja automáticamente
 
@@ -867,7 +870,7 @@ Genere informes agregados que muestren el **estado actual** del aporte de cada p
 
 ## Ruta del navegador heredado
 
-La sucursal ya no envía los antiguos recursos auxiliares del carrito alojado como archivos de navegador separados. La ruta del navegador ahora inicia solo el tiempo de ejecución del carrito propio.
+El repositorio no envía los antiguos recursos auxiliares del carrito alojado como archivos de navegador separados. La ruta del navegador inicia solo el tiempo de ejecución del carrito propio.
 
 **Limitaciones:**
 - Los campos de la tarjeta de crédito (número, vencimiento, CVV) están en el iframe de Stripe; no se puede acceder a ellos por razones de seguridad.
@@ -1151,7 +1154,7 @@ Utilice `_includes/a11y.html` para patrones comunes:
 
 ## Internacionalización (i18n)
 
-El sitio ahora tiene una base local real a través de páginas públicas compartidas, flujos de patrocinadores y copia en tiempo de ejecución propiedad del sitio. El inglés sigue siendo la configuración regional predeterminada y el español es la primera configuración regional secundaria.
+El sitio tiene una base regional en páginas públicas compartidas, flujos de patrocinadores y copia en tiempo de ejecución propiedad del sitio. El inglés sigue siendo la configuración regional predeterminada y el español es la primera configuración regional secundaria.
 
 ### Estructura
 
@@ -1210,7 +1213,7 @@ states:
   opens: "Opens %{date}"
 ```
 
-Ahora también admite:
+También soporta:
 
 - Anulación de `lang=`
 - recurrir a la configuración regional predeterminada cuando falta una clave en la configuración regional actual
@@ -1225,7 +1228,7 @@ Utilice los ayudantes locales para el enrutamiento de páginas:
 
 Los mensajes en tiempo de ejecución para los flujos JS propiedad del sitio se emiten a través de [`assets/i18n.json`](https://github.com/your-org/your-project/blob/main/assets/i18n.json) y se inician en `POOL_CONFIG.i18n.messages`, por lo que los flujos de carrito, pago, comunidad de patrocinadores y Administrar aporte pueden usar el mismo catálogo local sin una capa de traducción estilo SPA.
 
-Las plantillas de campañas públicas ahora también obtienen más Chrome compartido de los mismos datos locales, incluido el texto de carga/reproducción de videos de héroes, texto de adelanto de la comunidad de patrocinadores, etiquetas de pestañas del diario y estados vacíos, etiquetas/CTA de la fase de producción y etiquetas de accesibilidad de la galería.
+Las plantillas de campañas públicas también extraen Chrome compartido de los mismos datos locales, incluido el texto de carga/reproducción del video principal, texto teaser de la comunidad de patrocinadores, etiquetas de pestañas del diario y estados vacíos, etiquetas/CTA de la fase de producción y etiquetas de accesibilidad de la galería.
 
 Los correos electrónicos de soporte de los trabajadores también consumen el catálogo de configuración regional compartido y el `preferredLang` persistente adjunto para pagar y administrar los flujos, por lo que los correos electrónicos de soporte localizados y los enlaces `/manage/` / `/community/:slug/` localizados permanecen alineados con el modelo de configuración regional del sitio.
 
@@ -1248,8 +1251,8 @@ Límite importante:
 
 Regla general manual:
 
-- Si el texto es cromo de interfaz de usuario compartido, texto de botón, texto de estado, copia de pago/administración/tiempo de ejecución de la comunidad o copia de correo electrónico de soporte del trabajador, normalmente debería residir en `_data/i18n/{lang}.yml`.
-- Si el texto es contenido de una página real escrito en prosa, normalmente debería estar en una página fuente localizada.
+- Chrome de interfaz de usuario compartida, texto de botón, texto de estado, copia de pago/administración/tiempo de ejecución de la comunidad y copia de correo electrónico de soporte de Worker normalmente se encuentran en `_data/i18n/{lang}.yml`.
+- El contenido de una página real escrito en prosa normalmente se encuentra en una página fuente localizada.
 
 ### Categorías de traducción
 
@@ -1320,7 +1323,7 @@ npm test  # Runs unit tests, then E2E tests
 
 ### Agregar pruebas
 
-**Pruebas unitarias:** Agregar a `tests/unit/` con la extensión `.test.ts`. Las pruebas deben ser rápidas (sin red, sin DOM real).
+**Pruebas unitarias:** Agregar a `tests/unit/` con la extensión `.test.ts`. Mantenga las pruebas rápidas (sin red, sin DOM real).
 
 **Pruebas E2E:** Agregar a `tests/e2e/` con la extensión `.spec.ts`. Utilice `expect()` de Playwright para afirmaciones.
 
@@ -1417,5 +1420,3 @@ Los carritos de campañas múltiples siguen siendo compatibles porque la persist
 curl -s https://worker.example.com/admin/cron/status \
   -H 'Authorization: Bearer YOUR_ADMIN_SECRET'
 ```
-
----

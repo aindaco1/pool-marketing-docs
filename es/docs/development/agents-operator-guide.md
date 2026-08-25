@@ -1,7 +1,7 @@
 ---
 title: Guía para agentes y operadores
 parent: Desarrollo
-nav_order: 9
+nav_order: 10
 render_with_liquid: false
 lang: es
 ---
@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-16 de julio de 2026
+25 de agosto de 2026
 
 Esta es la guía operativa para personas y agentes de codificación que trabajan en **The Pool**. Úselo para realizar cambios seguros sin desincronizar el sitio estático, Cloudflare Worker, las matemáticas de pago, la administración privada o el comportamiento localizado.
 
@@ -19,13 +19,15 @@ Léelo junto a:
 - [README.md](/es/docs/development/platform-readme/) para ver la descripción general del producto y la arquitectura
 - [docs/CUSTOMIZATION.md](/es/docs/development/customization-guide/) para conocer la superficie de configuración orientada hacia la horquilla admitida
 - [docs/PAYMENT_PROCESSOR.md](/es/docs/operations/payment-processor/) para Stripe, pago canónico, webhooks, liquidación y conciliación
+- [docs/TAX_CALCULATOR.md](/es/docs/operations/tax-calculator/) para proveedores de impuestos, cotizaciones canónicas, configuración reflejada y verificación
 - [docs/ADD_ON_PRODUCTS.md](/es/docs/development/add-on-products/) para conocer los precios de complementos específicos de la plataforma, la campaña y la variante
 - [docs/DASHBOARD.md](/es/docs/operations/admin-dashboard/) para administración y edición privadas
 - [docs/PERFORMANCE.md](/es/docs/operations/performance/) para presupuestos, Lighthouse, almacenamiento en caché y observabilidad en tiempo de ejecución
 - [docs/SECURITY.md](/es/docs/operations/security/) para conocer los límites de seguridad y los controles de liberación
 - [docs/BACKUP_RESTORE.md](/es/docs/operations/backup-restore/) para respaldo, restauración y recuperación ante desastres
 - [docs/TESTING.md](/es/docs/operations/testing/) para verificación local y puertas de fusión
-- [docs/ROADMAP.md](/es/docs/reference/roadmap/) para trabajos planificados y completados
+- [docs/ROADMAP.md](/es/docs/reference/roadmap/) solo para trabajos potenciales
+- [CHANGELOG.md](/es/docs/reference/changelog/) y [docs/release-evidence/](https://github.com/your-org/your-project/tree/main/docs/release-evidence) para ver el historial de versiones completo y los registros de verificación
 
 ## Forma del proyecto
 
@@ -148,7 +150,10 @@ Las cadenas de sistema compartidas pertenecen a `_data/i18n/<lang>.yml`; El cont
 ## Mapa de documentación
 
 - Configuración de bifurcación: [docs/CUSTOMIZATION.md](/es/docs/development/customization-guide/)
+- Historial de versiones: [CHANGELOG.md](/es/docs/reference/changelog/)
+- Trabajo prospectivo: [docs/ROADMAP.md](/es/docs/reference/roadmap/)
 - Pagos y liquidación: [docs/PAYMENT_PROCESSOR.md](/es/docs/operations/payment-processor/)
+- Cálculo de impuestos: [docs/TAX_CALCULATOR.md](/es/docs/operations/tax-calculator/)
 - Productos complementarios y precios de variantes: [docs/ADD_ON_PRODUCTS.md](/es/docs/development/add-on-products/)
 - Correo electrónico: [docs/EMAIL.md](/es/docs/operations/email-system/)
 - Pruebas: [docs/TESTING.md](/es/docs/operations/testing/)
@@ -173,5 +178,6 @@ Las cadenas de sistema compartidas pertenecen a `_data/i18n/<lang>.yml`; El cont
 - Reutilice una superficie de configuración o ayuda existente antes de inventar otra.
 - Nunca descarte silenciosamente el comportamiento local, incrustado, de vista previa compartida, de caché privada o de precios históricos.
 - Conserve los cambios de usuario no relacionados y organice solo los archivos dentro del alcance.
+- Mantenga los documentos del estado actual en tiempo presente y basados ​​en comportamientos verificados. Coloque las propuestas y el trabajo diferido solo en la hoja de ruta y coloque el historial de lanzamientos completo solo en el registro de cambios o en la evidencia de lanzamiento.
 
 Cuando no esté seguro, realice el cambio más pequeño que mantenga alineados el sitio y Worker, pruébelo con la prueba significativa más estrecha y ejecute la puerta más amplia cuando esté justificado.

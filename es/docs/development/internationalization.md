@@ -10,13 +10,13 @@ lang: es
 
 ## Última actualización
 
-16 de julio de 2026
+25 de agosto de 2026
 
-Este documento registra la estructura de localización actual de The Pool y el flujo de trabajo admitido para agregar idiomas en una bifurcación.
+Este documento describe la estructura de localización actual de The Pool y la
+Flujo de trabajo compatible para agregar idiomas en una bifurcación. El inglés es el predeterminado.
+local y el español es el local secundario mantenido.
 
-La ubicación secundaria enviada inmediatamente es español, pero el objetivo real es hacer que la localización futura sea sencilla sin código personalizado para las superficies compartidas propiedad del sitio.
-
-## Lo que existe ahora
+## Superficie de localización actual
 
 El modelo i18n actual cubre:
 
@@ -128,7 +128,8 @@ El inglés es el archivo fuente canónico y la configuración regional alternati
 
 ### 2. Páginas escritas de formato largo
 
-La copia de página de formato largo debe utilizar archivos fuente localizados en lugar de intentar forzar cada párrafo en YAML.
+La copia de página de formato largo utiliza archivos fuente localizados en lugar de forzar cada
+párrafo en YAML.
 
 Ejemplos:
 
@@ -139,7 +140,7 @@ Ejemplos:
 - [lista-de-verificación-de-campaña-de-creadores.md](https://github.com/your-org/your-project/blob/main/creator-campaign-checklist.md)
 - [es/creator-campaign-checklist.md](https://github.com/your-org/your-project/blob/main/es/creator-campaign-checklist.md)
 
-Ese mismo patrón debería usarse para futuras páginas con mucho contenido.
+Utilice el mismo patrón para cualquier página con mucho contenido.
 
 ## Modelo de enrutamiento
 
@@ -165,7 +166,7 @@ El sitio utiliza un modelo estático de prefijo local:
 
 Esto mantiene el modelo de implementación de Jekyll/GitHub Pages simple y predecible.
 
-Las rutas de recopilación de campañas ahora se generan en ambas configuraciones regionales, por lo que el selector de idioma del pie de página puede permanecer disponible en las páginas de la campaña en lugar de desaparecer o vincularse nuevamente a la ruta del idioma predeterminado.
+Las rutas de recopilación de campañas se generan en ambas configuraciones regionales, por lo que el selector de idioma del pie de página puede permanecer disponible en las páginas de la campaña en lugar de desaparecer o vincularse nuevamente a la ruta del idioma predeterminado.
 
 Las páginas de productos de Focused Shopping siguen el mismo modelo de par local generado. Los datos del producto, como el nombre y la descripción de la recompensa creados por la campaña, siguen siendo contenido de autor; Las divulgaciones compartidas sobre pedidos anticipados, envíos y ventas finales provienen del catálogo local.
 
@@ -197,8 +198,8 @@ Localización del panel de administración:
   - `campaign_readonly_*_label` y `campaign_readonly_*_help` para filas de solo lectura de campaña
   - Teclas `settings_option_*`, `campaign_option_*` y genéricas `option_*` para opciones de selección/casilla de verificación
 - Los controles del editor de contenido, el estado/errores de carga de medios por etapas, las etiquetas de configuración de medios/texto de ayuda, la configuración de la galería y los controles de subtítulos flotantes de la galería también están localizados en tiempo de ejecución; actualice inglés y español juntos al agregar un nuevo control de medios de administración
-- Los widgets de tiempo de ejecución de solo lectura, como Configuración -> El uso del plan, deben devolver ID de carga útil estables o valores `labelKey` opcionales del trabajador, mientras que las cadenas de visualización del navegador se encuentran en `_data/i18n/{lang}.yml`.
-- el trabajador debe seguir devolviendo valores estables del campo `path`; el cliente deriva claves i18n de esas rutas para que las bifurcaciones puedan agregar campos sin duplicar el código de renderizado
+- Los widgets de tiempo de ejecución de solo lectura, como Configuración -> Uso del plan, devuelven ID de carga útil estables o valores `labelKey` opcionales de Worker, mientras que el navegador muestra cadenas en vivo en `_data/i18n/{lang}.yml`.
+- Worker devuelve valores estables del campo `path`; el cliente deriva claves i18n de esas rutas para que las bifurcaciones puedan agregar campos sin duplicar el código de renderizado
 - los datos de campaña creados por el creador, los cuerpos del diario, los nombres de complementos, las opciones de decisión y otro contenido guardado se muestran como creados; el catálogo compartido solo localiza la interfaz de usuario del panel circundante
 
 Comportamiento actual importante:
@@ -208,11 +209,11 @@ Comportamiento actual importante:
 - Las URL tokenizadas como `/manage/?t=...` pueden cambiar a `/es/manage/?t=...` sin perder el acceso al aporte.
 - Stripe se inicializa con la configuración regional actual donde sea compatible, por lo que las etiquetas de campo propiedad de Stripe y la validación también se pueden localizar
 - Los resúmenes de activación del carrito y la copia auxiliar de ubicación de impuestos provienen del catálogo local compartido, por lo que el pago personalizado sigue siendo traducible sin cadenas codificadas separadas.
-- Las plantillas de campañas públicas ahora enrutan cadenas de Chrome compartidas a través de datos locales en lugar de inglés codificado cuando sea práctico, incluido el CTA/estado de carga del video principal, títulos insertados de video principal, copia de adelanto de la comunidad de patrocinadores, copia de estado/formulario de recordatorio de lanzamiento, diario cromado, etiquetas de la fase de producción, etiquetas de accesibilidad de la galería, copia del aporte de la barra lateral de la campaña, texto de estado del lector de pantalla de cuenta regresiva y fechas de la campaña localizadas.
+- Las plantillas de campañas públicas enrutan cadenas de Chrome compartidas a través de datos locales en lugar de inglés codificado cuando sea práctico, incluido el CTA/estado de carga del video principal, títulos insertados de video principal, copia de adelanto de la comunidad de patrocinadores, formulario de recordatorio de lanzamiento/copia de estado, diario cromado, etiquetas de fase de producción, etiquetas de accesibilidad de la galería, copia de aporte de la barra lateral de la campaña, texto de estado del lector de pantalla de cuenta regresiva y fechas de campaña localizadas.
 - Las páginas de campaña utilizan etiquetas para compartir localizadas y texto de intención de compartir con reconocimiento del estado, al tiempo que dejan los títulos y anuncios publicitarios de las campañas escritos por los creadores tal como fueron escritos.
-- Las páginas de campaña ahora exponen el cambio de idioma del pie de página localizado a través de la campaña generada `localized_paths`
+- Las páginas de la campaña exponen el cambio de idioma del pie de página localizado a través de la campaña generada `localized_paths`
 - el generador de inserción de campaña alojada y el widget extraen sus cadenas de generador/tiempo de ejecución del catálogo de configuración regional compartido y conservan los enlaces de retorno de la campaña que tienen en cuenta la configuración regional.
-- Los metadatos públicos y JSON-LD ahora también siguen el idioma de la página activa, la ruta de inicio localizada y el conjunto de idiomas admitidos para que las páginas localizadas no emitan sugerencias de rastreo solo en inglés por accidente.
+- Los metadatos públicos y JSON-LD siguen el idioma de la página activa, la ruta de inicio localizada y el conjunto de idiomas admitidos para que las páginas localizadas no emitan sugerencias de rastreo solo en inglés por accidente.
 - Las páginas localizadas de formato largo, como Acerca de y Términos, aún usan traducciones de archivos fuente, por lo que los barridos de documentos/contenido deben mantener esos archivos específicos de la configuración regional sincronizados manualmente.
 
 ## Comportamiento del correo electrónico del trabajador
@@ -294,7 +295,11 @@ Para cambios importantes en las políticas, mantenga los títulos, anclajes, obl
 
 ## Límites actuales
 
-La integridad local automatizada y las comprobaciones i18n/SEO representadas siguen siendo puertas de liberación. La copia v1.1.2 Acerca de, Términos, Compras, envío y sin devoluciones está dirigida al español neutral de EE. UU. y Latinoamérica, y el propietario confirmó la finalización de la revisión fluida final el 14 de julio de 2026. Exija un plan explícito de revisión de traductor/hablante nativo antes de agregar idiomas más allá del inglés y el español.
+La integridad local automatizada y las comprobaciones i18n/SEO representadas son puertas de liberación.
+La copia actual de Acerca de, Términos, Compras, Envío y No devoluciones tiene como objetivo neutral
+Español de Estados Unidos/Latinoamérica. Las reclamaciones de revisión humana específicas de la versión pertenecen a
+[publicar evidencia](https://github.com/your-org/your-project/tree/main/docs/release-evidence); agregar una configuración regional más allá del inglés y
+El español requiere un plan explícito de revisión de traductor/hablante nativo.
 
 Todavía intencionalmente fuera del alcance de este modelo:
 
@@ -302,3 +307,5 @@ Todavía intencionalmente fuera del alcance de este modelo:
 - traducción automática de configuraciones de campaña guardadas creadas por el administrador, nombres de complementos, opciones de decisión, etiquetas de referencia u otro contenido almacenado como datos de campaña/plataforma
 - reglas de impuestos, envío o precios específicos de la localidad
 - un canal de traducción automática en el repositorio
+
+El posible trabajo de localización se rastrea en [Roadmap](/es/docs/reference/roadmap/).

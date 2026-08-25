@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-16 de julio de 2026
+25 de agosto de 2026
 
 ## Empezando
 
@@ -30,7 +30,7 @@ npm run podman:doctor
 
 Ése es el camino predeterminado para el desarrollo local. Mantiene los puertos locales estándar y los archivos de estado locales, pero ejecuta Jekyll y Wrangler dentro de contenedores, por lo que las nuevas bifurcaciones no necesitan alojar Ruby o Wrangler solo para iniciar la aplicación.
 
-El contenedor Podman Worker ejecuta el Nodo 24, que coincide con las Acciones de GitHub. El desarrollo de Worker solo de host debe utilizar el Nodo 24 cuando sea posible; El nodo 22 es el tiempo de ejecución mínimo admitido para Wrangler 4.
+El contenedor Podman Worker ejecuta el nodo 24, que coincide con las acciones GitHub. El desarrollo de Worker solo de host utiliza el Nodo 24 cuando es posible; El nodo 22 es el tiempo de ejecución mínimo admitido para Wrangler 4.
 
 Si en su lugar necesita la ruta de solo host:
 
@@ -53,7 +53,7 @@ npm run podman:doctor
 npm run podman:self-check
 ```
 
-`./scripts/test-e2e.sh --podman` ahora es una cobertura de navegador totalmente automatizada. `./scripts/test-checkout.sh --podman` sigue siendo el asistente interactivo manual cuando desea realizar un pago real en su propio navegador.
+`./scripts/test-e2e.sh --podman` es una cobertura de navegador totalmente automatizada. `./scripts/test-checkout.sh --podman` sigue siendo el asistente interactivo manual cuando desea realizar un pago real en su propio navegador.
 
 Borre el caché si los estilos no se actualizan:
 ```bash
@@ -70,7 +70,7 @@ bundle exec jekyll clean
 6. `docs/ETHICAL_RISK.md`: Solicitudes de revisión de riesgos éticos para datos, dinero, mensajería, automatización, uso compartido público y poder administrativo
 7. `docs/DEV_NOTES.md`: notas de integración, modelo de contenido y errores
 8. `docs/TESTING.md`: guía de prueba completa (incluye configuración de secretos)
-9. `docs/ROADMAP.md` — Funciones planificadas
+9. `docs/ROADMAP.md`: solo trabajo prospectivo
 10. `docs/DASHBOARD.md` — Operaciones y edición del panel de administración
 
 Para cambios en la interfaz de usuario del tablero, lea también `docs/ACCESSIBILITY.md`, `docs/I18N.md`, `docs/SECURITY.md` y `docs/SEO.md`; el shell de administración tiene requisitos explícitos para el acceso al teclado, cadenas en español, normalización de entrada y `noindex`.
@@ -91,42 +91,12 @@ Para cambios en la interfaz de usuario del tablero, lea también `docs/ACCESSIBI
 
 ---
 
-## Estado actual (junio de 2026)
+## Estado actual del proyecto
 
-✅ **Completado:**
-- Jekyll + estructura del sitio de carrito propio
-- Sistema de estilo Sass (parciales modulares compartidos, cuadrícula de 8px)
-- Complemento de formato de dinero (estilo `$3,800`)
-- Tarjetas de campaña, diseño de dos columnas, variantes de héroe
-- Fases de producción, decisiones comunitarias, diario de producción.
-- Pledge UX, ícono de carrito, revisión de pago propia
-- Flujo de pago nativo de Stripe en el sidecar de pago existente
-- Gestión de aportes sin cuenta (enlaces mágicos, página `/manage/`)
-- Flujo `Update Card` in situ en `/manage/`
-- Página comunitaria exclusiva para patrocinadores con votación
-- Soporte de niveles no apilable (ocultar controles de cantidad en el carrito)
-- Manejo móvil de superposición de carritos/hamburguesas
-- Trabajador de Cloudflare (almacenamiento de aportes, estadísticas, inventario, correos electrónicos)
-- Tarea programada por el trabajador para liquidación automática a medianoche en la zona horaria de la plataforma configurada
-- Cobro agregado (un cargo por patrocinador por campaña)
-- Flujo de datos de artículos de soporte y montos personalizados (carrito → Trabajador → KV → estadísticas)
-- Pre-renderizado del temporizador de cuenta regresiva (sin flash "00 00 00 00")
-- Compatibilidad con aportes de varios niveles (`additionalTiers`)
-- Pruebas unitarias (Vitest) y pruebas E2E (Dramaturgo)
-- Cobertura E2E de pago totalmente automatizado
-- Lanzamiento de campaña de producción (Hand Relations)
-- Ruta de desarrollo/pruebas local respaldada por Podman
-- Protección más explícita contra la sobreventa de inventario a través de la coordinación de objetos duraderos
-- Panel de administración privado para edición de campañas, configuraciones, complementos, análisis, informes, patrocinadores, enlaces de marketing y administración de usuarios según los roles.
-- Rediseño completo de tipografía, elementos y diseños en páginas públicas, superficies de campaña, pago y gestión de aporte.
-- Zona horaria de plataforma configurable para plazos de campaña, cuentas regresivas, informes, automatización del ciclo de vida y verificaciones de liquidación.
-- Recordatorios del lanzamiento de próximas campañas con Turnstile, deduplicación, cancelación de suscripción y entrega compartida de Resend
-- Mejora del rendimiento de las páginas públicas, minificación de activos generados, captación previa conservadora del mismo origen y derivados de medios responsivos
-- Fortalecimiento del flujo de trabajo de medios del panel para el envío de optimización de imágenes/videos, limpieza de medios en el momento de la publicación y correcciones de anclaje/renderizado del diario
-
-🚧 **Enfoque activo:**
-- Auditorías de disciplina de puerta de fusión y preparación para el lanzamiento en accesibilidad, personalización, panel de control, i18n, rendimiento, seguridad y SEO
-- Profundidad de la calculadora de impuestos, herramientas de marketing de campaña más completas y refuerzo posterior al lanzamiento para vistas previas de campañas protegidas y creación de nuevas campañas.
+El [README](/es/docs/development/platform-readme/) describe la situación operativa y de cara al usuario actual.
+línea de base. Los [Changelog](/es/docs/reference/changelog/) registros completos e inéditos
+cambios, mientras que [Roadmap](/es/docs/reference/roadmap/) contiene trabajos potenciales. no
+Mantenga una segunda lista de capacidades o enfoque activo fechada en esta guía.
 
 ---
 
@@ -172,7 +142,7 @@ Para cambios en la interfaz de usuario del tablero, lea también `docs/ACCESSIBI
 - **Cloudflare Worker**: Los mismos secretos que env vars; establecer `SITE_BASE`
 - **Stripe**: para entornos alojados, cree un webhook para `https://worker.example.com/webhooks/stripe`
 - **Pago personalizado local**: agregue `STRIPE_PUBLISHABLE_KEY_TEST` a `worker/.dev.vars`
-- **Panel de administración**: el desarrollador local otorga acceso de superadministrador de arranque a través de `ADMIN_BOOTSTRAP_EMAILS` en `worker/.dev.vars` ignorado; Los administradores de la bifurcación deben colocar el acceso de producción en `_config.yml` `admin.users`, `ADMIN_USERS_JSON` o en la pantalla de usuarios del panel. La pantalla de Usuarios se guarda en KV, no en GitHub.
+- **Panel de administración**: el desarrollador local otorga acceso de superadministrador de arranque a través de `ADMIN_BOOTSTRAP_EMAILS` en `worker/.dev.vars` ignorado; Los administradores de la bifurcación colocan el acceso de producción en `_config.yml` `admin.users`, `ADMIN_USERS_JSON` o en la pantalla de usuarios del panel. La pantalla de usuarios se guarda en KV, no en GitHub.
 
 Consulte [PAYMENT_PROCESSOR.md](/es/docs/operations/payment-processor/), [EMAIL.md](/es/docs/operations/email-system/) y [TESTING.md](/es/docs/operations/testing/) para obtener las referencias completas sobre pagos, correos electrónicos y secretos.
 
@@ -204,5 +174,3 @@ Consulte [PAYMENT_PROCESSOR.md](/es/docs/operations/payment-processor/), [EMAIL.
 ## Contacto y propiedad
 
 Utilice los documentos del proyecto y el historial de Git existente como contexto, y mantenga el alcance de los cambios y bien probados antes de abrir un PR.
-
----

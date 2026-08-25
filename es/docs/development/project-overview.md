@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-16 de julio de 2026
+25 de agosto de 2026
 
 **Objetivo:**
 Habilite el crowdfunding creativo con una verdadera lógica de *todo o nada* utilizando alojamiento estático.
@@ -20,7 +20,7 @@ Los creadores definen campañas en Markdown; los patrocinadores se comprometen a
 - Nombre de la plataforma: **The Pool**
 - Nombre de la empresa: configúrelo según el nombre de su organización o estudio.
 - Tema predeterminado: el estilo editorial más tranquilo de Dust Wave
-- Personalización de la bifurcación: `_config.yml` ahora impulsa una superficie de token/marca seleccionada que llega a páginas públicas, elementos de Stripe en el sitio y correos electrónicos de patrocinadores.
+- Personalización de la bifurcación: `_config.yml` impulsa una superficie de token/marca seleccionada que llega a páginas públicas, Stripe Elements en el sitio y correos electrónicos de patrocinadores.
 
 ---
 
@@ -36,7 +36,7 @@ Los creadores definen campañas en Markdown; los patrocinadores se comprometen a
 |**Almacenamiento**|Rebaja / YAML|Definiciones y estado de la campaña|
 |**Estilo**|Sass + vars de tema generados|Sistema de diseño compartido para páginas públicas, pago, gestión de aportes y superficies de pago/correo electrónico de marca.|
 
-Todo el código está versionado y auditable. La edición de la campaña ahora fluye a través del panel de administración privado o ediciones directas del repositorio, y los cambios publicables aún se confirman en el repositorio a través de la ruta de GitHub controlada por el trabajador.
+Todo el código está versionado y auditable. La edición de la campaña fluye a través del panel de administración privado o ediciones directas del repositorio, con cambios publicables confirmados en el repositorio a través de la ruta GitHub controlada por Worker.
 Los superadministradores pueden crear campañas de solo vista previa a través de la misma ruta; esas campañas permanecen ocultas de las rutas de campaña públicas hasta su lanzamiento. Los superadministradores también pueden archivar campañas no activas a través de un movimiento validado de GitHub Actions en `archive/campaigns/<slug>/`, manteniendo las fuentes y los medios archivados en el repositorio en lugar de eliminar datos. Las listas de correo electrónico de revisores de vista previa protegidas permitidas se encuentran en registros KV de trabajador de corta duración en lugar de Markdown de campaña.
 Las cargas de medios del panel conservan el origen en el límite del trabajador: las cargas de imágenes/videos solicitan el flujo de trabajo de optimización del repositorio después de la confirmación, las publicaciones de contenido/diario/Blast eliminan o reutilizan los medios propiedad del panel de la misma campaña a través de las reglas de medios de la campaña compartida, y los bloques de imágenes pueden seleccionar medios de campaña existentes a través de un selector de directorio de GitHub de solo lectura en lugar de agregar un segundo índice de medios.
 
@@ -52,40 +52,28 @@ La arquitectura actual está optimizada deliberadamente para que las implementac
 - Las cargas/vistas previas de contenido del panel, vistas previas/descargas de informes, filtros de soporte, vistas de análisis, listas de referencias de marketing, lecturas de estado de pago abandonado, cargas del selector de biblioteca multimedia, vistas previas/descargas de QR, simulacros rápidos y borradores locales están diseñados para agregar escrituras de KV cero.
 - las lecturas de carga útil de vista previa protegida son de escritura cero; La publicación de una vista previa protegida escribe una lista permitida de acceso a la vista previa de 24 horas más un evento de auditoría.
 - las operaciones de archivo de campaña escriben un evento de auditoría; el movimiento del archivo fuente/medios se ejecuta localmente en desarrollo y en GitHub Actions para producción
-- Las rutas de escritura de nivel limitado ahora solicitan al coordinador de cada campaña la disponibilidad según la reserva, mientras que el inventario público permanece en KV como proyección.
+- Las rutas de escritura de nivel limitado solicitan al coordinador de cada campaña la disponibilidad según la reserva, mientras que el inventario público permanece en KV como una proyección.
 - El inventario de complementos de la plataforma utiliza una proyección de recuento de ventas después del arranque en lugar de reconstruirse a partir de escaneos del espacio de nombres de aporte en lecturas normales.
 - El envío de recordatorios de lanzamiento, los recordatorios de pagos abandonados y el sondeo de reintento de confirmación de los patrocinadores utilizan marcadores de estado de cola, por lo que los ticks programados inactivos omiten los escaneos de la lista KV y recurren a las verificaciones de compatibilidad cada hora.
 - Los recordatorios de pago abandonado enviados pueden crear una instantánea de reanudación de corta duración, lo que permite que los enlaces de correo electrónico firmados restablezcan el mismo borrador de carrito/contacto desinfectado e inicien una nueva sesión de Stripe sin poner secretos de Stripe en las URL.
 - La limitación de velocidad aún falla al cerrarse, pero las solicitudes bloqueadas repetidas dentro de la misma ventana ya no reescriben el mismo contador KV en cada visita.
 
-Eso significa que el límite real para la mayoría de las bifurcaciones suele ser **KV escribe a partir de una actividad de aporte exitosa**, no el tráfico de lectura pública ni el sondeo de listas inactivas. `RATELIMIT` es ahora un requisito estricto para las implementaciones admitidas, pero eso por sí solo no hace que el plan gratuito no sea viable para la forma de financiación colectiva a pequeña escala prevista para el proyecto.
+Eso significa que el límite real para la mayoría de las bifurcaciones suele ser **KV escribe desde una actividad de aporte exitosa**, no el tráfico de lectura pública ni el sondeo de listas inactivas. `RATELIMIT` es un requisito estricto para las implementaciones admitidas, pero eso por sí solo no hace que el plan gratuito no sea viable para la forma de financiación colectiva a pequeña escala prevista para el proyecto.
 
 ## Forma de desarrollo local
 
-La ruta local de baja fricción recomendada ahora usa Podman:
+La ruta local de baja fricción recomendada utiliza Podman:
 
 - `./scripts/dev.sh --podman` arranca a Jekyll y al Trabajador en contenedores desarraigados
 - `npm run podman:doctor` comprueba primero la preparación del host
-- `./scripts/test-e2e.sh --podman` ahora ejecuta el paquete de navegador de forma totalmente automatizada
+- `./scripts/test-e2e.sh --podman` ejecuta el paquete de navegador de forma totalmente automatizada.
 
 La ruta Ruby/Wrangler basada en host todavía existe, pero Podman es la forma más fácil de obtener un entorno local similar a la producción sin instalar manualmente todas las dependencias.
 
-Para los trabajadores estándar/pagados desplegados, el repositorio ahora también declara `limits.cpu_ms = 100` en `worker/wrangler.toml` como un respaldo de denegación de billetera. Ese límite es intencionalmente conservador, pero solo se aplica en la red implementada de Cloudflare, no durante el desarrollo local.
+Para Workers Estándar/Pagado implementado, el repositorio declara `limits.cpu_ms = 100` en `worker/wrangler.toml` como un respaldo de denegación de billetera. Ese límite es intencionalmente conservador, pero solo se aplica en la red implementada de Cloudflare, no durante el desarrollo local.
 
-### Escenarios aproximados de planificación
-
-Estos escenarios son intencionalmente aproximados. Asumen los TTL predeterminados del navegador de 5 minutos, una lectura en vivo combinada en cargas de campaña en frío y los límites del plan gratuito publicados por Cloudflare a partir del 7 de abril de 2026.
-
-|Escenario|Cómo se siente operativamente|Planificación para llevar|
-|----------|----------------------------------|-------------------|
-|Primer lanzamiento|Una o dos campañas activas, unos cuantos miles de visitas a la página de la campaña durante varios días y un puñado de aportes completadas por día.|Lo gratuito debería seguir siendo un punto de partida razonable.|
-|Fuerte tracción en la primera semana|Varios miles de lecturas dinámicas de Worker por día y un par de docenas de mutaciones de aportes en campañas en vivo.|A menudo, todavía es viable de forma gratuita, pero aquí es donde el pago comienza a reducir la ansiedad operativa.|
-|Plataforma comunitaria establecida|Mutaciones frecuentes de aportes todos los días en múltiples campañas activas, además de flujos de informes/reparaciones administrativas más regulares|El pago se convierte en la opción más cómoda a largo plazo; siga monitoreando los costos de las rutas de mutación y abuso.|
-
-Para conocer los límites actuales de Cloudflare, consulte:
-
-- [Precios para trabajadores](https://developers.cloudflare.com/workers/platform/pricing/)
-- [Límites KV de los trabajadores](https://developers.cloudflare.com/kv/platform/limits/)
+Escenarios de escalabilidad actuales y enlaces a la documentación del plan Cloudflare en vivo
+se mantienen una vez en la raíz [README](/es/docs/development/platform-readme/#cloudflare-guía-de-planificación-para-horquillas).
 
 ---
 
@@ -189,7 +177,7 @@ Consulte [PAYMENT_PROCESSOR.md](/es/docs/operations/payment-processor/) para con
 - **Automatización sobre operaciones:** GitHub Actions realiza todos los eventos basados en tiempo.
 - **Transferencia abierta:** El estado de la campaña y la plataforma sigue siendo revisable como Markdown/YAML, incluso cuando las ediciones de rutina se realizan a través del panel.
 - **Coherencia del diseño:** Utiliza el mismo lenguaje visual que Dust-wave-shop para lograr coherencia de marca.
-- **Administración consciente de los riesgos:** Los cambios de productos que afectan el dinero, los datos, los mensajes, la automatización, la visibilidad pública o el poder administrativo deben incluir la [revisión de riesgos éticos](/es/docs/development/ethical-risk-review/), mientras que las compensaciones aún son fáciles de cambiar.
+- **Administración consciente de los riesgos:** Los cambios de productos que afectan el dinero, los datos, la mensajería, la automatización, la visibilidad pública o el poder administrativo requieren la [revisión de riesgos éticos](/es/docs/development/ethical-risk-review/), mientras que las compensaciones aún son fáciles de cambiar.
 
 ## Aprendizajes críticos
 
@@ -201,11 +189,9 @@ Consulte [PAYMENT_PROCESSOR.md](/es/docs/operations/payment-processor/) para con
 6. **Flujo de datos de elementos de soporte**: Cart.js extrae elementos de soporte → El trabajador almacena en KV temporal → Webhook se fusiona en el aporte final.
 7. **Manejo de zona horaria compatible con el horario de verano**: toda la lógica de fecha límite (cuenta regresiva frontal, liquidación de trabajadores, transiciones de estado de campaña) utiliza `platform.timezone` / `PLATFORM_TIMEZONE` con `Intl.DateTimeFormat`; el valor predeterminado es `America/Denver`.
 8. **La seguridad del contenido debe mantenerse en el momento del procesamiento**: las auditorías de creación ayudan, pero la protección real proviene de la desinfección del enlace Markdown en tiempo de ejecución y la validación de inserción del origen exacto.
-9. **Los enlaces mágicos deben requerir filas de aporte reales**: la validez del token por sí sola no es suficiente; Los registros de aportes faltantes no deberían cerrarse.
-10. **Chrome localizado debe permanecer compartido**: los controles de la página de la campaña y la copia de estado que pertenecen a la plataforma, no al creador, deben fluir a través del catálogo de configuración regional compartido para que las plantillas públicas, la interfaz de usuario en tiempo de ejecución y los correos electrónicos de los patrocinadores no se separen.
-11. **El trabajo de rendimiento debe permanecer estático primero**: prefiera la salida estable de Jekyll, la minificación de activos generados, la carga en tiempo de ejecución diferida y la captación previa conservadora solo pública antes de agregar complejidad al cliente.
-12. **El trabajo del ciclo de vida de los medios debe permanecer respaldado por el repositorio**: las cargas del panel confirman primero los archivos fuente, la automatización del repositorio posee la optimización nativa de imágenes/videos y la limpieza en el momento de la publicación solo elimina los medios de la misma campaña que desaparecieron del contenido de autor y no se mencionan en ningún otro lugar.
-13. **Los datos de acceso a la vista previa deben permanecer fuera de la fuente**: Markdown de vista previa protegida solo incluye indicadores de vista previa; Los correos electrónicos de acceso previo pertenecen a listas permitidas de Worker KV de corta duración y enlaces firmados de 24 horas.
-14. **Las herramientas de marketing deben permanecer locales, indexadas o explícitas**: la generación de QR permanece local en el navegador, la atribución de Analytics y los simulacros de Blast utilizan índices de aporte de campaña, los códigos de referencia guardados y los borradores compartidos son mutaciones KV explícitas con alcance de campaña, los borradores compartidos obsoletos fallan en conflictos de revisión y ninguno de estos flujos debe recurrir a escaneos de espacios de nombres.
-
----
+9. **Los enlaces mágicos deben requerir filas de aporte reales**: la validez del token por sí sola no es suficiente; Los registros de aportes faltantes no se cierran.
+10. **Chrome localizado permanece compartido**: los controles de la página de la campaña y la copia de estado que pertenecen a la plataforma, no al creador, fluyen a través del catálogo de configuración regional compartido para que las plantillas públicas, la interfaz de usuario en tiempo de ejecución y los correos electrónicos de los patrocinadores no se separen.
+11. **El trabajo de rendimiento se mantiene estático primero**: prefiera la salida estable de Jekyll, la minificación de activos generados, la carga en tiempo de ejecución diferida y la captación previa conservadora solo pública antes de agregar complejidad al cliente.
+12. **El trabajo del ciclo de vida de los medios permanece respaldado por el repositorio**: las cargas del panel confirman primero los archivos fuente, la automatización del repositorio posee la optimización nativa de imágenes/videos y la limpieza en el momento de la publicación solo elimina los medios de la misma campaña que desaparecieron del contenido de autor y no se mencionan en ningún otro lugar.
+13. **Los datos de acceso a la vista previa permanecen fuera de la fuente**: Markdown de vista previa protegida solo incluye indicadores de vista previa; Los correos electrónicos de acceso previo pertenecen a listas permitidas de corta duración Worker KV y enlaces firmados de 24 horas.
+14. **Las herramientas de marketing permanecen locales, indexadas o explícitas**: la generación de QR permanece local en el navegador, la atribución de Analytics y los simulacros de Blast utilizan índices de aporte de campaña, los códigos de referencia guardados y los borradores compartidos son mutaciones explícitas de KV con alcance de campaña, los borradores compartidos obsoletos fallan en conflictos de revisión y ninguno de estos flujos recurre a escaneos de espacios de nombres.

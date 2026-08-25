@@ -1,7 +1,7 @@
 ---
 title: Revisión de riesgos éticos
 parent: Desarrollo
-nav_order: 11
+nav_order: 12
 render_with_liquid: false
 lang: es
 ---
@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-16 de julio de 2026
+25 de agosto de 2026
 
 Esta guía adapta el Ethical OS Toolkit del Institute for the Future y Omidyar Network a las superficies de crowdfunding, pagos, correo electrónico, administración y uso compartido público de The Pool. Úselo como una revisión práctica de riesgos, no como un reemplazo de la seguridad, accesibilidad, privacidad o revisión legal.
 
@@ -31,7 +31,7 @@ Los cambios en textos pequeños, estilos o solo documentos generalmente no neces
 
 ## Principios operativos
 
-- El consentimiento debe ser explícito cuando se trate de atención, datos o dinero de los patrocinadores.
+- El consentimiento es explícito cuando se trata de atención, datos o dinero de los patrocinadores.
 - El Worker sigue teniendo autoridad para totales, estado, permisos y persistencia; La interfaz de usuario del navegador es una capa de explicación, no un límite de confianza.
 - Recopile solo los datos que el producto actual necesita, guárdelos solo donde estén documentados y mantenga explicable el comportamiento de retención/restauración.
 - Prefiera metadatos públicos honestos y conscientes del estado a trucos de crecimiento, escasez vaga o vistas previas sociales engañosas.
@@ -104,42 +104,17 @@ Trátelos como bloqueadores de liberación hasta que se resuelva explícitamente
 - Cambios en el proceso de pago y pago: comience desde [PAYMENT_PROCESSOR.md](/es/docs/operations/payment-processor/), [WORKFLOWS.md](/es/docs/development/workflows/) y [SECURITY.md](/es/docs/operations/security/). Verifique los totales canónicos, la idempotencia, la comprensión de los patrocinadores y las rutas de recuperación.
 - Correo electrónico y recordatorios: comience desde [EMAIL.md](/es/docs/operations/email-system/). Verifique el consentimiento explícito, el alcance de la audiencia, los ensayos, la copia localizada, el comportamiento de supresión/cancelación de suscripción y la evidencia de no envío.
 - Cambios en el panel de administración: comience desde [DASHBOARD.md](/es/docs/operations/admin-dashboard/). Documente si la característica es de solo lectura, local del navegador, respaldada por KV o respaldada por GitHub, y mantenga el alcance de rol/campaña aplicado por Worker.
-- Uso compartido público, SEO e incrustaciones: comience desde [SEO.md](/es/docs/operations/seo/) y [EMBEDS.md](/es/docs/development/campaign-embeds/). Las vistas previas públicas deben ser veraces, conscientes del estado y nunca filtrar datos de vista previa protegida o tokenizados.
+- Uso compartido público, SEO e incrustaciones: comience desde [SEO.md](/es/docs/operations/seo/) y [EMBEDS.md](/es/docs/development/campaign-embeds/). Las vistas previas públicas son veraces, tienen en cuenta el estado y nunca filtran datos tokenizados o de vistas previas protegidas.
 - Accesibilidad y localización: comience desde [ACCESSIBILITY.md](/es/docs/operations/accessibility/) y [I18N.md](/es/docs/development/internationalization/). Revise quién queda excluido cuando la copia, los controles o la evidencia solo funcionan en un idioma, ventana gráfica, modo de entrada o perfil de habilidad.
-- Rendimiento y captación previa: comience desde [PERFORMANCE.md](/es/docs/operations/performance/). La carga especulativa debe ser solo pública y no debe presionar la acción del usuario ni los flujos privados en segundo plano.
+- Rendimiento y captación previa: comience desde [PERFORMANCE.md](/es/docs/operations/performance/). La carga especulativa sigue siendo solo pública y no presiona la acción del usuario ni los flujos privados en segundo plano.
 - Copias de seguridad, exportaciones y rutas de restauración: clases de datos de documentos, minimización de PII, retención, orden de restauración y riesgos de envío/cobro duplicados antes de agregar un nuevo comportamiento de copia de seguridad.
 
-## Hábitos preparados para el futuro
+## Hábitos de mantenimiento
 
 - Agregue señales de alerta éticas a las relaciones públicas desde el principio, mientras los cambios aún sean fáciles de remodelar.
 - Acepte informes de riesgo ético de la misma manera que el proyecto acepta informes de seguridad o accesibilidad: específicos, reproducibles y vinculados a un daño realista.
 - Mantenga visible el estado de la plataforma a través de evidencia operativa, como envíos fallidos, presión de límite de velocidad, desviación de la proyección, cobertura de accesibilidad, integridad de i18n, preparación del proveedor y pruebas de ruta de abuso.
 - Revise esta guía cuando el producto agregue nuevas audiencias, nuevos usos de datos, nueva automatización o nuevos canales de distribución.
 
-## v1.1.0 Revisar registro
-
-- Característica: precios complementarios específicos de variante más refuerzo de diagnóstico administrativo/calidad de producción
-- Usuarios afectados: patrocinadores que eligen complementos, patrocinadores que modifican aportes, creadores de campañas, superadministradores y operadores
-- Zonas de riesgo relevantes: desigualdad económica/comprensión del usuario, confianza implícita y vigilancia/control de datos
-- Qué podría salir mal: un navegador podría subestimar un precio seleccionado; una edición de catálogo podría modificar silenciosamente el precio de una antigua aporte; una anulación de ceros o espacios en blanco podría interpretarse erróneamente; los diagnósticos de rendimiento podrían retener datos confidenciales de la solicitud; una optimización de la caché pública podría filtrar una respuesta privada
-- Datos recopilados o expuestos: no hay nuevos campos de soporte ni cargas útiles de telemetría; Los diagnósticos aplanan solo los histogramas agregados limitados existentes.
-- Consentimiento, exclusión voluntaria y recurso: los patrocinadores ven el precio de la variante seleccionada antes de realizar el pago y pueden eliminarlo o cambiarlo; los aportes existentes conservan su precio de línea reservada a menos que cambie la variante; Los cambios de precios del administrador utilizan el modelo de vista previa/publicación y auditoría existente.
-- Mitigaciones de abuso/uso indebido: resolución de precios canónica Worker, `unitPrice` histórico persistente, validación no negativa, manejo cero explícito, puertas de caché privadas/sin almacenamiento, resúmenes de tiempo limitados/redactados y sin sistemas de descarga/R2 Store
-- Accesibilidad/impacto de i18n: existen nuevas etiquetas de administración/ayuda en inglés y español; los controles automatizados de ubicación/accesibilidad siguen siendo puertas; el lector de pantalla humano y la revisión en español nativo siguen siendo pruebas opcionales
-- Pruebas o evidencia: utilidad compartida, carrito, gestión de aporte, pago/modificación Worker, validación de administrador/YAML, evaluador de desempeño, política de caché, observabilidad, i18n y cobertura de evidencia de publicación.
-- Se aceptan seguimientos: no se necesita migración de producto; Workers La caché permanece deshabilitada hasta que la evidencia representativa demuestre la mejora configurada de p95
-
-## v1.1.1 Revisar registro
-
-- Característica: flujo de trabajo de medios del creador más liquidación/conciliación Stripe y refuerzo duradero de entrega de correo electrónico
-- Usuarios afectados: patrocinadores cuyas tarjetas se liquidan o cuyo correo electrónico se entrega/suprime, creadores de campañas que seleccionan medios, superadministradores y operadores de recuperación.
-- Zonas de riesgo relevantes: movimiento de dinero, consentimiento/comunicaciones, privacidad/retención, accesibilidad y poder administrativo concentrado
-- Qué podría salir mal: un tiempo de espera ambiguo del procesador podría provocar una carga duplicada; el trabajo de asentamiento obsoleto podría marcarse como completo; un reintento de correo electrónico podría duplicar un mensaje de campaña; los datos de rebote podrían convertirse en un perfil de audiencia en la sombra; un creador podría publicar medios inaccesibles o de gran tamaño; reemplazar podría sobrescribir el activo de otra campaña
-- Datos recopilados o expuestos: los ID, el estado y el momento de Stripe redactados y las cargas útiles de correo electrónico congeladas de corta duración son un nuevo estado operativo; Las filas del diario del procesador excluyen las cargas útiles del proveedor sin procesar y el correo electrónico de los patrocinadores, la evidencia de entrega se minimiza y la campaña/supresión global utiliza hashes de correo electrónico.
-- Consentimiento, exclusión voluntaria y recurso: las actualizaciones de la campaña incluyen la cancelación de la suscripción firmada con un solo clic y verificada inmediatamente antes de la entrega; el correo de pago sigue siendo transaccional; Los creadores marcan explícitamente las imágenes decorativas y ven referencias/advertencias conocidas antes de reemplazarlas.
-- Mitigaciones de abuso/uso indebido: idempotencia determinista, persistencia de liquidación previa a la carga, paradas de atención de necesidades después del horizonte del proveedor, interrupciones de conciliación, sin punto final de carga ambigua manual, reemplazo de medios con alcance de función/campaña/SHA y sin sincronización de contactos/audiencia de transmisión Resend
-- Accesibilidad/impacto i18n: pestañas de tipos de medios accesibles, metadatos de texto con capacidad de búsqueda, texto alternativo significativo requerido, estado decorativo explícito y copia alineada en inglés y español; no se reclama ninguna reseña humana en español
-- Pruebas o evidencia: bloqueo/reanudación de liquidación, errores/idempotencia del cliente Stripe, reintentos de bandeja de salida/supresión/firmas de webhook, conciliación autenticada, manifiesto/selector/editor de medios, 127 pruebas de seguridad, 107 pruebas de navegador y evidencia de publicación completa
-- Se aceptan seguimientos: configurar el webhook de entrega firmado Resend en la implementación; La recuperación de maker/checker permanece deshabilitada hasta que existan dos operadores superadministradores distintos.
-
----
+Los registros de revisión ética específicos de la liberación pertenecen a la correspondiente
+[publicar evidencia](https://github.com/your-org/your-project/tree/main/docs/release-evidence) en lugar de en esta guía del estado actual.

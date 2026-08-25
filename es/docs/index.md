@@ -9,7 +9,7 @@ lang: es
 
 ## Última actualización
 
-16 de julio de 2026
+25 de agosto de 2026
 
 Esta página es la **forma más rápida de orientarse** antes de sumergirse en los documentos completos.
 
@@ -72,4 +72,4 @@ Comience con la sección que coincida con el tipo de trabajo que está realizand
 - [Descripción general](/es/docs/overview/) para contexto público, marco de plataforma y páginas de políticas.
 - [Desarrollo](/es/docs/development/) para la configuración, arquitectura, personalización, incrustaciones, localización, revisión ética y trabajo de extensión de los contribuyentes.
 - [Operaciones](/es/docs/operations/) para Worker y configuración de pagos, correo electrónico, copia de seguridad/recuperación, entornos locales, envío, seguridad, accesibilidad, SEO y preparación para fusión.
-- [Referencia](/es/docs/reference/) para notas de la versión, contexto de la hoja de ruta y plantillas de procesos compartidos.
+- [Referencia](/es/docs/reference/) para notas de la versión, trabajos potenciales, plantillas de procesos compartidos y el mapa fuente de The Pool a marketing.

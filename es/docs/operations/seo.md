@@ -1,7 +1,7 @@
 ---
 title: SEO
 parent: Operaciones
-nav_order: 13
+nav_order: 14
 render_with_liquid: false
 lang: es
 ---
@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-16 de julio de 2026
+25 de agosto de 2026
 
 Este documento describe el modelo SEO actual de The Pool en 2026. Es intencionalmente conservador: las páginas públicas se hacen más fáciles de rastrear y comprender, mientras que los flujos tokenizados y exclusivos para patrocinadores permanecen fuera de la intención del índice. La implementación está diseñada en torno a metadatos reales, páginas públicas reales y datos estructurados honestos en lugar de relleno de contenido o cebo de resultados enriquecidos.
 
@@ -30,7 +30,7 @@ La línea de base actual incluye:
 - metadatos en idiomas alternativos en páginas públicas localizadas y páginas de campaña localizadas
 - URL canónicas en diseños públicos
 - metadatos Open Graph con reconocimiento regional en diseños públicos
-- Las páginas de campaña ahora usan `og:type=article` más marcas de tiempo de publicación/modificación de artículos delimitadas derivadas de las fechas del contenido de la campaña.
+- Las páginas de campaña utilizan `og:type=article` más marcas de tiempo de publicación/modificación de artículos delimitadas derivadas de las fechas del contenido de la campaña.
 - metadatos explícitos de idioma/nombre de aplicación en diseños públicos
 - descripciones a nivel de página sobre rutas públicas principales
 - Metadatos de tarjetas Open Graph y Twitter
@@ -54,7 +54,7 @@ La línea de base actual incluye:
 - conservador `Organization` / `WebSite` JSON-LD
 - contacto de la organización y datos de la política `MerchantReturnNotPermitted` vinculados a la política de Términos visible
 - campaña conservadora `CreativeWork` más ruta de navegación JSON-LD, ambos alineados con el idioma de la página activa donde sea compatible
-- campaña `CreativeWork` JSON-LD ahora también incluye `headline`, `mainEntityOfPage`, `isPartOf` y marcas de tiempo publicadas/modificadas para que las páginas de campaña públicas se parezcan más a páginas de inicio editoriales reales que a blobs anónimos.
+- campaña `CreativeWork` JSON-LD también incluye `headline`, `mainEntityOfPage`, `isPartOf` y marcas de tiempo publicadas/modificadas para que las páginas de campaña públicas se parezcan más a páginas de inicio editoriales reales que a blobs anónimos.
 - un centro comunitario público que enlaza con páginas de campañas públicas en lugar de empujar a los rastreadores a rutas exclusivas para patrocinadores
 - páginas de productos localizadas y de suscripción para la recompensa física destacada de una campaña, con información visible sobre pedidos anticipados, disponibilidad, envío y venta final, además de datos coincidentes de `Product` / `Offer`
 
@@ -233,11 +233,11 @@ Las horquillas se pueden personalizar de forma segura:
 
 - identidad del sitio y metadatos predeterminados
 - enlaces de perfil social de la organización
-- si el centro comunitario público debe seguir siendo indexable
+- si el centro comunitario público sigue siendo indexable
 - Copia descriptiva de página y campaña que ya existe en el modelo de contenido.
 - entradas de vista previa de la campaña que ya existen en el modelo de contenido, como el título de la campaña, el primer bloque de texto de contenido extenso utilizado para las descripciones sociales, la categoría, el creador, una marca `funded: true` para los metadatos posteriores a la campaña exitosos antes de la liquidación y la imagen principal cuadrada utilizada dentro de las tarjetas compartidas generadas.
 
-Las bifurcaciones no deben asumir soporte para:
+El modelo actual no admite:
 
 - matrices de configuración SEO arbitrarias por página
 - taxonomías de esquemas personalizados más allá de la superficie documentada
@@ -265,6 +265,20 @@ Al verificar una implementación manualmente:
 - `npm run test:crawl-endpoints -- --base=https://site.example.com` confirma que ambos formatos de mapas de sitio implementados y que cada URL enviada se puede recuperar directamente sin un intersticial HTML.
 - Las adiciones de metadatos no crean regresiones de accesibilidad o rendimiento.
 
+## No metas
+
+El modelo actual SEO evita explícitamente:
+
+- Contenido de relleno generado por IA
+- páginas de entrada
+- texto oculto o relleno de palabras clave
+- Preguntas frecuentes falsas o esquema de revisión
+- indexación de flujos de acceso exclusivos para patrocinadores, vinculados a sesiones o tokenizados
+- Tratar el panel de administración o las vistas previas de campañas protegidas como páginas de destino públicas, objetivos para compartir o superficies de documentación rastreables.
+
+Los metadatos potenciales, la distribución y el trabajo de Shopping se rastrean en el
+[Hoja de ruta](/es/docs/reference/roadmap/).
+
 ## Notas
 
 Esta implementación se guió por la guía de Google Search Central sobre:
@@ -275,6 +289,4 @@ Esta implementación se guió por la guía de Google Search Central sobre:
 - conceptos básicos de datos estructurados
 - datos estructurados de ruta de navegación
 
-La regla básica sigue siendo simple: los metadatos públicos deben reflejar contenido público visible, y los flujos privados/solo para patrocinadores deben permanecer fuera de la intención de búsqueda.
-
----
+La regla básica sigue siendo simple: los metadatos públicos reflejan contenido público visible y los flujos privados/solo para patrocinadores permanecen fuera de la intención de búsqueda.

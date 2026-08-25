@@ -20,7 +20,7 @@ Debes tener capacidad para celebrar un acuerdo vinculante y proporcionar datos c
 
 ## 2. Aportes de todo o nada
 
-- Un aporte es un compromiso condicionado de apoyo a una campaña. Stripe guarda tu método de pago, pero no se realiza ningún cobro de campaña cuando haces el aporte inicial.
+- Un aporte es un aporte condicionado de apoyo a una campaña. Stripe guarda tu método de pago, pero no se realiza ningún cobro de campaña cuando haces el aporte inicial.
 - Puedes modificar o cancelar el aporte mediante su enlace seguro de gestión mientras la campaña siga abierta.
 - Si la campaña no alcanza su meta antes de la fecha límite, el aporte de campaña no se cobra.
 - Si la campaña alcanza su meta, The Pool puede cobrar el método de pago guardado después de que termine. Los aportes de un mismo correo a la misma campaña exitosa pueden combinarse en un solo cobro; las campañas diferentes se liquidan por separado.
