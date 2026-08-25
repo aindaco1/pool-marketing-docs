@@ -9,7 +9,466 @@ render_with_liquid: false
 
 ## Last Updated
 
-July 16, 2026
+August 25, 2026
+
+## Unreleased
+
+### Production posture
+
+- Disabled Cloudflare Worker preview URLs explicitly and made missing or enabled
+  preview URLs a production-posture failure.
+
+### Documentation
+
+- Separated current behavior, prospective work, and release history across the
+  README, practice guides, roadmap, changelog, and release evidence.
+- Removed dated provider snapshots, completed-work roadmaps, release-specific
+  status ledgers, and duplicate future-work lists from current-state guides.
+- Moved the tax calculator guide into Pool so provider behavior, configuration,
+  troubleshooting, and verification have one upstream documentation source.
+
+## v1.2.20 - 2026-08-06
+
+### Reusable product-video workflow
+
+- Advanced the immutable Platform pin to `v0.32.0`
+  (`85165a16ac6923b438514bdce0a9957c1804db5f`) and adopted
+  Product Video Core `0.1.0`.
+- Replaced the stale local-only worktree engine with a thin Pool adapter that
+  retains Jekyll preview startup, the `smoke-editable` fixture/selectors,
+  capture presentation CSS, editorial timing, optional marketing destination,
+  generated media, and publication authority.
+- Added production-length capture/render commands plus a short real-interface
+  smoke flow, consumer characterization, syntax coverage, and clean-checkout
+  `_config.test.yml` startup.
+
+### Security, performance, and rollback
+
+- Capture stays loopback-only from Pool, same-origin, and declarative; output
+  is confined below `tmp/product-video`, existing runs are preserved, and no
+  recursive caller-selected cleanup remains. FFmpeg/FFprobe run without a
+  shell and capture fails when effective frame rate misses its configured
+  floor. Every completed render must also decode an alpha plane before its
+  FFprobe evidence can report success.
+- Capture CSS is injected only into the local Playwright frame and is not
+  linked from production templates, so the feature adds no production request
+  or browser runtime. Jekyll and the release gate exclude and reject the
+  complete generated `tmp` tree so local frames, renders, and nested previews
+  cannot enter a Pages artifact. Pool can roll back the exact Platform gitlink and local
+  adapter independently without affecting Store, Podcast, or Dust Wave.
+- Playwright web-server startup now preserves the caller-selected rbenv and
+  Node 24 toolchain instead of opening a login shell that could fall back to
+  macOS system Ruby before any browser test ran.
+- Default all-format rendering is covered on macOS Bash 3.2 as well as modern
+  shells; strict-mode empty format lists no longer abort before FFmpeg starts.
+
+## v1.2.19 - 2026-08-06
+
+### Separately versioned Jekyll golden-project contract
+
+- Pinned `dust-wave-jekyll-template` `v0.1.0`
+  (`351281a5aec60fa85653a3d23391e66fb860aae6`) as an independent source-upgrade
+  submodule alongside Platform v0.31.0.
+- Bound 15 exact Liquid includes and two exact Ruby plugins to one manifest,
+  digest, and explicit check/write CLI while preserving Pool's byte-identical
+  checked-in runtime copies.
+- Added pin, version, digest, drift-command, and generated-output exclusion
+  regressions. The complete release gate now fails before build on template
+  drift and fails after build if the source-upgrade submodule is published.
+- The template adds no browser request, deployed byte, route, Worker code, or
+  credential. Pool retains routes, data, localization, content, configuration,
+  tests, deployment authority, and independent one-commit rollback.
+
+### Post-release maintenance and documentation
+
+- Stabilized the dashboard readiness budget so it measures the cold-navigation
+  application request chain through the first summary/settings requests while
+  retaining visible-dashboard, tab-switch, and supporter-table assertions;
+  host-side assertion polling no longer creates a false performance failure.
+- Split cold Podman Worker dependency installation from runtime readiness: a
+  bounded, lock-hash-verified install grace period prevents slow `npm ci`
+  downloads from being killed and restarted by the existing 60-second Worker
+  health budget, while warm volumes continue immediately.
+- Made the static `POOL_CONFIG` browser contract wait for DOM readiness rather
+  than unrelated full-page resource completion, eliminating the only flaky
+  result in the complete 113-test browser gate without weakening its config
+  assertions.
+- Bounded pre-merge Worker/Jekyll process-tree cleanup and added a stubborn
+  child regression, preventing a fully passing hosted gate from remaining
+  alive until the workflow timeout because a server ignored termination.
+- Reconciled the root, Worker, testing, developer, performance, dashboard,
+  i18n, roadmap, and English/Spanish creator-checklist documentation with the
+  active Platform `v0.31.0`, Jekyll Template `v0.1.0`, Pool `v1.2.19`, Node 24,
+  and Wrangler 4.118 contracts without changing creator or deployment
+  authority.
+
+## v1.2.18 - 2026-08-06
+
+### Allowlisted shared-browser asset minification
+
+- Advanced the immutable Platform pin to `v0.31.0`
+  (`5ca8ee6d0ff8912ccfdc27c8459a5ef72f8c0579`) and adopted Build Core `0.2.0`.
+- Extended the generated-asset build step to minify only `_site/assets` and the
+  generated copies of the pinned Site Shell sources through explicit,
+  traversal-safe roots.
+- Added consumer characterization for root selection, untouched Worker source,
+  multi-root output, and the exact write/check commands used by local and Pages
+  builds.
+- The six generated Site Shell scripts fall from 15,573 to 9,531 bytes, saving
+  6,042 raw bytes (38.8%); post-write check mode reports zero further savings
+  across all 32 selected generated assets.
+- This changes no route, request count, global identity, checkout behavior, or
+  source asset. Pool retains budgets, orchestration, deployment authority, and
+  independent one-commit rollback.
+
+## v1.2.17 - 2026-08-06
+
+### Policy-injected shared design foundations
+
+- Advanced the immutable Platform pin to `v0.30.0`
+  (`499e6c1994d79be6049ef204fefd728f22b8093e`) and adopted Design Core `0.2.0`.
+- Removed Pool's local form, layout, and mixin partials. Pool now injects its
+  padding-based centered gutter plus brand-title spacing, animation identity,
+  mobile type scale, and line width before importing neutral shared Sass.
+- Characterized generated output before and after migration: `main.css`
+  remained `d3568877d0f31903ccf02a7b37c82220115146609141457a5ae84969c123ea95`
+  and `admin.css` remained
+  `a398fef8d7d257092f1685dab132e9d98a87bbadba347a90a62fd5c081445e84`
+  byte-for-byte.
+- Added pin and compile-time policy regressions. The extraction adds no browser
+  request or runtime code; Pool retains tokens, import order, templates,
+  content, CSS budgets, deployment, and independent rollback.
+
+## v1.2.16 - 2026-08-06
+
+### Shared Site Shell browser primitives
+
+- Advanced the immutable Platform pin to `v0.29.0`
+  (`7ed3d9b0220b88126235a3b7edfd507f8846f56d`) and adopted Site Shell `0.2.0`.
+- Removed Pool's duplicate cart-icon, deferred-stylesheet, form-control identity,
+  and shipping-option browser implementations. Thin Liquid policy includes keep
+  Pool's cache key, provider and event names, accessible labels, control-ID
+  prefix and dataset priority local.
+- Preserved lazy cart loading and versioned shared URLs, so the extraction adds
+  no eager cart-runtime requests and keeps independent submodule rollback.
+- Added consumer characterization for shipping choices, cart totals and labels,
+  dynamically inserted controls, stylesheet deferral, runtime loading, exact
+  package versions, every consumed shared source path, and explicit size budgets
+  for each deployed Site Shell browser primitive.
+- Stabilized the admin readiness budget around DOM and application readiness so
+  unrelated post-DOM third-party font or media latency cannot mask regressions
+  in Pool's own dashboard initialization path.
+
+## v1.2.15 - 2026-08-06
+
+### Shared release-evidence runtime
+
+- Advanced the immutable Platform pin to `v0.28.0`
+  (`5836ced5129ce3eddb09a035601de23ec58a5737`) and adopted Release Core `0.2.0`.
+- Replaced Pool's duplicate cache-policy audit, Cloudflare admin response-rule
+  client, and assisted screen-reader evidence implementation with thin,
+  import-safe policy adapters.
+- Release Core now bounds origins, paths, rule metadata, command inputs, and
+  diagnostic output; rejects redirects; avoids shell command interpolation;
+  and excludes credentials, customer data, and response bodies from evidence.
+  Pool retains its production targets, route policy, expected phrases,
+  provider credentials, release decisions, deployment, and independent
+  one-commit rollback.
+- Added consumer adapter regressions for Pool-owned origins and policy plus the
+  existing Cloudflare, cache, performance, pin, and release-version coverage.
+
+## v1.2.14 - 2026-08-06
+
+### Shared compile-time design components
+
+- Advanced the immutable Platform pin to `v0.27.0`
+  (`06a9453ed2f310f5acca1a1f864fdce4a45d5f56`) and adopted Design Core `0.1.0`.
+- Removed five byte-identical local Sass partials and resolved their base,
+  button, content-block, modal, and utility components from the pinned Platform
+  load path with byte-equivalent generated CSS.
+- The package adds no browser JavaScript or request-time cost. Pool retains
+  tokens, mixins, import order, templates, focus and responsive policy,
+  content, CSS budgets, Jekyll integration, deployment, and rollback. Liquid
+  includes and Ruby plugins remain local by explicit architecture decision.
+
+## v1.2.13 - 2026-08-06
+
+### Shared test setup and mobile viewport helper
+
+- Advanced the immutable Platform pin to `v0.26.0`
+  (`3063aae3cb1cf80e2f8bc5f9b1e40c814dff47b2`) and adopted Test Core `0.1.0`.
+- Replaced the exact duplicate browser Storage setup and horizontal-overflow
+  helper with tiny Vitest and Playwright adapters; Platform gains no runner or
+  browser-automation dependency.
+- Pool retains fixtures, URLs, viewports, responsive/product expectations, CI,
+  deployment, and rollback. The independent accessibility and media contract
+  tests remain local, and Playwright test discovery covers 113 cases.
+
+## v1.2.12 - 2026-08-06
+
+### Shared durable-outbox mechanics
+
+- Advanced the immutable Platform pin to `v0.25.0`
+  (`4f1c7c042456da1a86116c24c7d346dfaddb21b4`) and Worker Core `0.12.0`.
+- Replaced duplicate canonical job IDs, bounded record/queue creation,
+  due/lease/expiry classification, retry delay, redacted error evidence,
+  email/tag normalization, and Resend event mechanics with shared primitives.
+- Pool retains KV operations, template rendering, global/campaign suppression,
+  provider sends and scheduling, pledge effects, credentials, deployment, and
+  independent rollback. Existing frozen-payload and idempotency tests pass.
+
+## v1.2.11 - 2026-08-06
+
+### Shared bounded tax-provider transport
+
+- Advanced the immutable Platform pin to `v0.24.0`
+  (`16ccc75209f1b07044299a60c0ff26520fe70607`) and Tax Core `0.3.0`.
+- Replaced Pool's duplicate Zip-Tax and New Mexico GRT fetch, address-build,
+  street-parse, and source-normalization code with shared bounded transport.
+- Provider URLs require HTTPS, redirects are rejected, timeouts abort, and
+  request/response data is bounded without returning credentials or raw
+  network errors. Pool retains provider/fallback selection, campaign
+  taxability, quote calculation, checkout effects, deployment, and rollback.
+
+## v1.2.10 - 2026-08-06
+
+### Shared bounded GitHub transport
+
+- Advanced the immutable Platform pin to `v0.23.0`
+  (`a0006c3e0c3f8ab814387491753989956adbbe94`) and Worker Core `0.11.0`.
+- Replaced Pool's duplicate workflow dispatch and Contents API client with a
+  thin adapter while preserving rebuild, media-optimization, campaign-archive,
+  file publication, directory-list, and idempotent delete behavior.
+- Requests now reject redirects, time out, bound paths, refs, workflow inputs,
+  content, and provider responses, and return normalized errors without raw
+  network exceptions or credentials. Pool retains repository defaults,
+  content and workflow policy, logging, authorization, effects, deployment,
+  and independent rollback.
+
+## v1.2.9 - 2026-08-06
+
+### Shared USPS transport and country registry
+
+- Advanced the immutable Platform pin to `v0.22.0`
+  (`514c00932d5fb2fa05ee6f7cebb7ea44d9426d78`) and Shipping Core `0.2.0`.
+- Replaced Pool's duplicate USPS OAuth, rate-search, timeout, token/quote cache,
+  and provider-cooldown implementation with a thin configuration adapter.
+- Made Platform's 95-country YAML the canonical source and added explicit
+  check/write sync commands plus a byte-equality pin regression for Pool's
+  Jekyll snapshot.
+- Provider credentials remain request-only; mail-class/token/cache state is
+  bounded; timeout, 401 refresh, 429/5xx cooldown, fallback, and full shipping
+  behavior remain covered. Pool retains address eligibility, campaign rates,
+  checkout/fulfillment effects, storage, routes, deployment, and rollback.
+
+## v1.2.8 - 2026-08-06
+
+### Shared inventory state mechanics
+
+- Advanced the immutable Platform pin to `v0.21.0`
+  (`98533957456eed4bb2eae6f474b9072a419b64bc`), adopted
+  `@dustwave/inventory-core` `0.1.0`, and Worker Core `0.10.0`.
+- Replaced Pool's duplicate count-map, snapshot-cloning, reservation expiry,
+  and reserved-count helpers with shared pure mechanics while preserving the
+  stored campaign snapshot as authoritative over later bootstrap input.
+- Added an independent pre-move regression for Pool's bootstrap policy. The
+  full coordinator contract continues to cover atomic selection changes,
+  competing claims, reservation confirmation/release, expiry cleanup, and
+  legacy inventory migration.
+- Pool retains all Durable Object transactions, KV writes, campaign/tier
+  labels, checkout and pledge transitions, TTL selection, routes, deployment,
+  and independent rollback.
+
+## v1.2.7 - 2026-08-06
+
+### Shared logging and media-catalog mechanics
+
+- Advanced the immutable Platform pin to `v0.19.0`
+  (`1bfbdd403fc9efafb8d261dd846cedb9d52ed444`), Worker Core `0.9.0`, and
+  Media Core `0.4.0`.
+- Replaced Pool's duplicate scoped-console implementation and site-media
+  catalog mechanics with thin campaign-policy adapters while preserving the
+  existing product/runtime prefixes, severity policy, manifest shape,
+  placement budgets, derivative paths, and public media behavior.
+- Added independent media characterization before migration and fail-closed
+  traversal coverage. Shared labels, scopes, error fields, media paths, and
+  known-path sets are now bounded.
+- Pool retains environment/config parsing, logging policy and destinations,
+  campaign/default scope and slug policy, content, filesystem access,
+  transforms, admin routes, storage, deployment, and rollback.
+
+## v1.2.6 - 2026-08-06
+
+### Shared deterministic shipping mechanics
+
+- Advanced the immutable Platform pin to `v0.18.0`
+  (`3b8bdacc224bda625103718ba0fa8489517ff993`) and adopted
+  `@dustwave/shipping-core` `0.1.0`.
+- Replaced 542 lines of duplicate item-profile, mixed-shipment aggregation,
+  missing-metadata, fallback/free/manual quote, and shipping-option mechanics
+  with thin campaign-policy adapters.
+- Added an independent pre-move consumer contract for mixed tier,
+  support-item, and add-on shipments plus option fallback behavior.
+- Bounded selection, catalog, mail-class, and option arrays before shared
+  loops while preserving the current USPS First-Class flat table and normal
+  quote results.
+- Pool retains campaign fallback/free/configured-option policy, destination
+  validation, USPS credentials and transport, OAuth/cache/backoff/retry,
+  checkout, fulfillment, storage, deployment, and rollback.
+
+## v1.2.5 - 2026-08-06
+
+### Shared session security mechanics
+
+- Advanced the immutable Platform pin to `v0.17.0`
+  (`3a526defd21d692292c73652966a044167f881d7`) and Worker Core `0.8.0`.
+- Replaced Pool's characterized login-token encoding/verification,
+  session-cookie serialization/clearing, and same-origin request checks with
+  bounded shared primitives through thin Pool policy adapters.
+- Preserved the exact secure admin cookie, current missing-origin-header and
+  local unconfigured-origin behavior, 15-minute login TTL, eight-hour session
+  TTL, one-time nonce consumption, fixed session expiry, and independent
+  rollback.
+- Added rejection coverage for extra token segments and retained the existing
+  replay, expiry, CSRF, cross-origin, role/scope, and no-durable-write failure
+  contracts.
+- Pool continues to own secret selection, login/session records, campaign
+  authorization, CSRF tokens and header names, routes, storage, email,
+  credentials, deployment, and rollback.
+
+## v1.2.4 - 2026-08-06
+
+### Shared Resend security and retry mechanics
+
+- Advanced the immutable Platform pin to `v0.16.0`
+  (`d075c3e1a29134d3ba6e4631b76dc63212347d14`) and Worker Core `0.7.0`.
+- Replaced Pool's characterized Resend/Svix HMAC verification copy with the
+  bounded shared raw-body verifier, retaining Pool's existing response adapter
+  and all event parsing, journal, delivery, and suppression effects locally.
+- Replaced Pool's duplicate Resend error class and retryable/ambiguous status
+  rules with shared pure mechanics. Pool still decides attempt budgets,
+  idempotency windows, backoff scheduling, terminal evidence, and whether any
+  retry occurs.
+- Added pre-migration coverage for multiple signature candidates, stale events,
+  malformed secrets, body mismatches, 429 retry timing, and permanent-bounce
+  suppression. Oversized event IDs and fractional timestamps now fail closed.
+
+## v1.2.3 - 2026-08-06
+
+### Shared cryptographic primitives
+
+- Replaced Pool's characterized SHA-256, HMAC-SHA-256, high-entropy token,
+  cookie parsing, email normalization, and constant-work string-comparison
+  copies with the immutable `@dustwave/worker-core` `0.6.0` implementation
+  already pinned by Pool through Platform `v0.15.0`.
+- Kept authentication policy, login-token shape, session and CSRF records,
+  permissions, routes, KV storage, credentials, release, and rollback in Pool;
+  the local HMAC adapter preserves Pool's existing argument order.
+- Raised the obsolete no-`randomUUID` login-history fallback from 8 to 16
+  random bytes so it satisfies Platform's token-entropy contract without
+  changing the normal Workers runtime path.
+- Added consumer contract coverage for the exact digest, URL-safe signature
+  and token shapes, encoded cookies, normalized email, constant-work equality,
+  and rejection of undersized tokens, alongside the existing login replay,
+  session, CSRF, and redacted-history suites.
+
+## v1.2.2 - 2026-08-06
+
+### Shared Platform consolidation
+
+- Advanced the exact `dust-wave-platform` gitlink to immutable `v0.15.0`
+  (`2e79a8d70cb6d30805ea141e53d32f9387441756`), including
+  `@dustwave/worker-core` `0.6.0` and `@dustwave/release-core` `0.1.0`.
+- Replaced Pool's characterized Worker CORS/security response, timezone/date,
+  and Stripe transport copies with thin Pool policy adapters. Pool keeps its
+  private origin, campaign aliases, Stripe API version and provider identity,
+  payment rules, persistence, and deployment authority.
+- Replaced exact Wrangler inventory, KV backup transformation, checksum,
+  command-result, and provider-evidence copies with pinned Platform primitives;
+  Pool continues to own every command, credential, provider call, environment
+  ID, release gate, rollout, and rollback.
+- Expanded consumer tests for private-origin fallback, full JSON security
+  headers, daylight-saving boundaries, Stripe provider identity, missing
+  credentials/object IDs, and the exact Platform package/source pin.
+- Avoided constructing a Stripe client during reconciliation when the indexed
+  pledge batch contains no provider objects, preserving the local-only missing
+  PaymentIntent evidence path and eliminating unnecessary provider setup.
+
+## v1.2.1 - 2026-08-06
+
+Release preparation:
+
+- Migrated the byte-identical header navigation, live announcements, Worker
+  timezone primitives, New Mexico GRT starter snapshot, updater, and generated
+  asset minifier to immutable `dust-wave-platform` `v0.12.0` packages.
+- Removed Pool's duplicate source copies while retaining its templates,
+  localization, scheduling, tax-provider policy, campaign/pledge data, build
+  orchestration, credentials, and independent deployment authority.
+- Preserved the existing consumer characterization suites and added the new
+  shared paths and exact package versions to the executable Platform pin gate.
+
+- Advanced the exact `dust-wave-platform` gitlink through workspace `0.12.0`,
+  including `@dustwave/admin-shell` `0.10.2`, `@dustwave/build-core` `0.1.0`,
+  `@dustwave/site-shell` `0.1.0`, `@dustwave/tax-core` `0.2.0`, and
+  `@dustwave/worker-core` `0.4.0`, while keeping campaign, pledge, payment,
+  storage, and deployment authority within Pool.
+- Added an executable consumer contract for the immutable gitlink, canonical
+  submodule remote, package versions, and every raw shared module Pool serves
+  or imports.
+- Enabled safe local-identifier minification in generated JavaScript while
+  preserving browser globals and the existing production asset budgets.
+- Made the Podman release wrappers clean-checkout safe on macOS by using a
+  portable Playwright image lookup and an ephemeral local Jekyll test config.
+- Replaced single-sample Lighthouse decisions with the median of three runs,
+  preventing one noisy sample from falsely failing or approving a release.
+- Promoted the mutable-pledge fixture inventory check from a warning to a hard
+  release gate, aligned its unit campaign fixture with the built campaign, and
+  normalized both inventory endpoint response shapes before asserting counts.
+- Made deployment setup dry-runs non-interactive around secret planning, so
+  provider values are neither requested nor passed to a CLI during rehearsal.
+- Pinned patched transitive `undici` and `ip-address` releases for local test
+  and deployment tooling, clearing both production and full npm audits.
+- Hardened legacy admin-secret comparison to fixed bounded work and replaced a
+  one-request timing check with alternating median samples on isolated IPs.
+- Preserved the disabled-by-default Podcast benefit bridge and Pool's
+  independently reversible release identity.
+
+## v1.2.0 - 2026-08-05
+
+Release preparation:
+
+- Added the pinned `aindaco1/dust-wave-platform` submodule as the versioned boundary for primitives shared with Store, Dust Wave, and Podcast.
+- Moved the byte-identical Turnstile implementation into `@dustwave/worker-core` while retaining Pool's local import seam and adding a consumer contract test.
+- Advanced the shared boundary to `@dustwave/worker-core` 0.2.0, which adds
+  typed product-neutral crypto and Stripe mechanics for Podcast without moving
+  Pool business rules or changing Pool's existing Turnstile adapter.
+- Kept Pool's campaign, pledge, configuration, session, storage, and deployment authority independent; the submodule contains no Pool data or secrets and can be rolled back by pointer.
+- Advanced `@dustwave/worker-core` to 0.3.0 and added an inert, fail-closed
+  Pool-to-Podcast grant/revoke client with a shared high-entropy one-time-code
+  contract. Product/tier mapping, durable delivery, and supporter issuance
+  remain disabled until their explicit configuration and staging gate.
+- Advanced the shared workspace to 0.6.0 and
+  `@dustwave/admin-shell` 0.2.0, moving Pool and Store's byte-identical QR
+  generator into the pinned shared boundary. Pool still loads the same
+  characterized implementation through its static admin shell; only the
+  source authority and generated path changed.
+- Advanced the pinned shared workspace to 0.8.1 and
+  `@dustwave/admin-shell` 0.7.1. The additive rich-editor `setHtml` API routes
+  restored HTML through the existing allowlist sanitizer; Pool behavior is
+  unchanged until a form opts into it, and rollback remains a one-commit
+  submodule-pointer change.
+- Advanced `@dustwave/admin-shell` to 0.8.0 and replaced Pool's inline browser
+  exit listener with the shared fail-closed unsaved-change lifecycle guard.
+  Pool retains its characterized content, settings, and administrator dirty
+  baselines; Store remains unchanged until its separate editor baselines have a
+  safe aggregate adapter.
+- Advanced `@dustwave/admin-shell` to 0.8.1 and routed Pool's characterized
+  dirty-action class, state attribute, localized label, and clean-state
+  disabling through the shared primitive. Pool retains every editor baseline,
+  force-disabled rule, and focus-ring style.
+- Centralized the Worker provider identity and added a release-contract test
+  that keeps root/Worker packages and locks, canonical config, release label,
+  Stripe, and Resend aligned to v1.2.0.
 
 ## v1.1.2 - 2026-07-14
 

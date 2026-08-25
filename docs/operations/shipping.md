@@ -9,15 +9,16 @@ render_with_liquid: false
 
 ## Last Updated
 
-July 16, 2026
+August 25, 2026
 
-This document describes the current shipping model in The Pool, including its Worker-first pricing flow, fork-facing config surface, USPS integration boundary, and the rule tree the cart, checkout, Manage Pledge, reporting, and emails now follow.
+This document describes The Pool's current Worker-first shipping flow,
+fork-facing config surface, USPS integration boundary, and the rule tree shared
+by cart, checkout, Manage Pledge, reporting, and emails.
 
-Live USPS credentialed verification is now wired into the local workflow. The repo includes a dedicated USPS smoke helper plus automated regressions for the cart, checkout, and Manage Pledge shipping flows.
+The local workflow includes live USPS credential verification, a dedicated USPS
+smoke helper, and automated regressions for cart, checkout, and Manage Pledge.
 
-## Recommended Scope
-
-Current implemented scope:
+## Current Scope
 
 - USPS live rating for **US domestic**
 - USPS live rating for **international**
@@ -28,6 +29,24 @@ Current implemented scope:
 - a shared preset catalog for common physical items
 
 For The Pool, the fallback rate is **$3.00**.
+
+## System Properties
+
+- use carrier-based pricing instead of the previous flat per-campaign fee
+- keep the Worker as the canonical source of shipping totals
+- preserve checkout, pledge-modification, reporting, and email consistency
+- stay safe on USPS quota usage and Cloudflare KV usage
+- make the shipping model configurable and fork-friendly
+- preserve the current security, accessibility, and localization baselines while doing so
+
+## Current Boundaries
+
+- no broad speed-based carrier/service selector
+- no custom packing engine
+- no browser-side shipping calculation from stored USPS tables
+- no label purchasing
+- no multi-carrier abstraction
+- no attempt to solve non-US tax rules as part of shipping
 
 ## Guardrails
 
@@ -41,7 +60,7 @@ The shipping calculator must comply with the current security model:
 - no insecure direct browser calls to USPS
 - no long-lived client storage of sensitive shipping quote state beyond what the current checkout flow already needs
 - USPS failures must degrade to the configured fallback rate rather than creating an unsafe bypass or a broken checkout state
-- any new Worker responses that contain shipping quote internals should follow the current no-store / private response posture where appropriate
+- Worker responses that contain shipping quote internals use the current no-store / private response posture where appropriate
 
 ### Accessibility
 
@@ -51,30 +70,24 @@ The shipping feature must preserve the current accessibility baseline:
 - any new errors or notices must be tied to the relevant fields and live regions appropriately
 - shipping summary updates in checkout and Manage Pledge must remain screen-reader understandable
 - no regressions to the existing dialog/focus/error semantics in checkout or `Update Card`
-- browser-level accessibility coverage should be expanded if new shipping UI states are introduced
+- new shipping UI states require matching browser-level accessibility coverage
 
 ### Internationalization
 
 The shipping feature must fit the current i18n model:
 
-- site-owned shipping labels, fallback messaging, and summary text should come from locale catalogs
-- Worker supporter emails should use localized shipping labels/breakdowns where they already include shipping totals
-- no hardcoded English-only copy should be introduced in checkout, Manage Pledge, result pages, or emails
-- the feature should work correctly on localized routes such as `/es/manage/` and localized checkout entry paths
+- site-owned shipping labels, fallback messaging, and summary text come from locale catalogs
+- Worker supporter emails use localized shipping labels/breakdowns where they include shipping totals
+- checkout, Manage Pledge, result pages, and emails do not add hardcoded English-only shipping copy
+- localized routes such as `/es/manage/` use the same shipping contract
 
 ## Why This Scope Fits
 
 ### USPS risk
 
-USPS pricing APIs appear usable without obvious per-call billing for the basic pricing access, but they are quota-limited and can require manual quota-increase requests.
-
-That means the main operational risk is:
-
-- quota / throttling
-
-not obviously:
-
-- direct USPS per-request charges
+USPS quotas, access requirements, and commercial terms are external provider
+state. Verify them in current USPS documentation. The application treats quota
+and throttling as operational risks and makes no claim about provider pricing.
 
 ### KV risk
 
@@ -85,13 +98,13 @@ The current checkout flow already uses Worker/KV for:
 - stats updates
 - limited-tier reservations
 
-Shipping should not add a large new KV footprint. The safe design is:
+Shipping does not add a large quote-history KV footprint:
 
 - quote shipping only at high-intent points
 - avoid per-quote KV writes
 - persist only the final shipping amount on the pledge
 
-## High-Level Design
+## Design
 
 ### 1. Worker-calculated shipping
 
@@ -132,13 +145,16 @@ Keep the option set intentionally narrow:
   - domestic only
   - only shown when the campaign explicitly enables it
 
-Do not expose speed-based service choices in v1. Crowdfunding rewards often ship long after the pledge date, so delivery speed is not the meaningful customer choice here; delivery confirmation is.
+The interface does not expose speed-based service choices. Crowdfunding rewards
+often ship long after the pledge date, so delivery confirmation is the useful
+supporter choice.
 
 The current cart and Manage Pledge UI therefore expose a narrow delivery-option selector rather than a full mail-class selector. The Worker still picks the underlying cheapest valid shipping class for `Standard`.
 
 ## Config Surface
 
-Add a structured `shipping` section to [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml), for example:
+The structured `shipping` section lives in [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml), for
+example:
 
 ```yml
 shipping:
@@ -240,7 +256,8 @@ shipping:
           - PRIORITY_MAIL
 ```
 
-That config should stay site-driven and auto-mirror any Worker-required values into [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml).
+That config stays site-driven and auto-mirrors Worker-required values into
+[`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml).
 
 Optional preset-level shipping hints can live inside preset metadata too. The current implementation supports:
 
@@ -270,11 +287,11 @@ That means you can encode a conservative “cheapest valid class first” order 
 
 We intentionally do not apply true “letter” or “flat” logic automatically. The current USPS Prices API path we use does not expose domestic First-Class letter/flat rating directly, so flat-mail pricing is handled as an explicit manual table, not a live USPS quote.
 
-## Content Model Changes
+## Content Model
 
 ### Tiers
 
-Add optional shipping metadata to physical tiers:
+Physical tiers accept optional shipping metadata:
 
 ```yml
 tiers:
@@ -330,9 +347,8 @@ The admin dashboard follows the same conditional UI for tiers, support items, pl
 
 ## Packing Strategy
 
-Do not build full cartonization in v1.
-
-Use a simpler heuristic:
+The current implementation uses a bounded heuristic rather than full
+cartonization:
 
 - sum item weights across physical items and quantities
 - add any one-time `packaging_weight_oz` allowance from the selected tier/support-item profiles
@@ -340,7 +356,8 @@ Use a simpler heuristic:
 - use `height_in + stack_height_in * (qty - 1)` for multi-quantity physical tiers
 - pass the resulting parcel to USPS rating
 
-This is approximate, but much more realistic than the current flat fee and far smaller than building a real packing engine.
+This is approximate, but more realistic than the previous flat fee and far
+smaller than a full packing engine.
 
 ## USPS Usage Strategy
 
@@ -355,7 +372,8 @@ For this platform, you do **not** need the Labels APIs to quote shipping. The Po
 
 Those are part of the default USPS app product described in USPS's official getting-started flow.
 
-As of April 14, 2026, the practical setup path is:
+USPS onboarding screens can change independently of this repository. In the
+current portal, the setup path is:
 
 1. Create or sign into a USPS Business Account through the USPS Customer Onboarding Portal (COP).
 2. In COP, open `My Apps` and create an app.
@@ -418,7 +436,8 @@ That helper exercises the real Worker shipping module against a small smoke matr
 - campaign add-on only shipment
 - platform add-on only shipment
 
-USPS also says you can test with your production credentials against the Testing Environment for Mailers by switching the base URL from `apis.usps.com` to `apis-tem.usps.com`.
+The Testing Environment for Mailers uses the `apis-tem.usps.com` base URL in
+place of `apis.usps.com`.
 
 The default USPS app product currently includes the APIs this feature needs:
 
@@ -429,13 +448,13 @@ The default USPS app product currently includes the APIs this feature needs:
 
 If you need additional access or a quota increase, USPS directs developers to submit a service request through their `Email Us` support flow.
 
-What you can safely ignore for this repo right now:
+The current quoting integration does not use:
 
 - Labels APIs
 - Ship / EPA enrollment
 - any return-label or postage-purchase setup
 
-Those are only needed if this project grows from quoting into actual USPS label generation.
+Those belong to label generation, which is outside the current product.
 
 Practical operational note for this platform:
 
@@ -461,9 +480,8 @@ Do not call USPS:
 
 ### Caching
 
-Avoid KV-backed quote-history caching in v1.
-
-If needed, use a short-lived in-memory / platform-cache style cache keyed by:
+The shipping path does not use KV-backed quote-history caching. Short-lived
+in-memory reuse is keyed by:
 
 - origin ZIP
 - origin country
@@ -476,7 +494,7 @@ The important rule is:
 
 - do not turn shipping quotes into a high-write KV subsystem
 
-The checkout country selector is now fed from [`_data/shipping_countries.yml`](https://github.com/your-org/your-project/blob/main/_data/shipping_countries.yml), which keeps USPS destination maintenance in a dedicated source instead of burying it in browser runtime code.
+The checkout country selector is fed from the generated [`_data/shipping_countries.yml`](https://github.com/your-org/your-project/blob/main/_data/shipping_countries.yml) snapshot. Platform owns the canonical registry beside `shipping-core`; use `npm run shipping-countries:sync` after a pin update and `npm run shipping-countries:check` to detect drift.
 
 ## Worker and Frontend Touchpoints
 
@@ -487,7 +505,7 @@ Main logic seams already exist in:
 - [worker/src/index.js](https://github.com/your-org/your-project/blob/main/worker/src/index.js)
 - [worker/src/provider-config.js](https://github.com/your-org/your-project/blob/main/worker/src/provider-config.js)
 
-The current shipping flow now:
+The current shipping flow:
 
 - detects physical items
 - builds a shipment estimate
@@ -496,13 +514,16 @@ The current shipping flow now:
 
 ### Frontend
 
-The cart/manage UI can stay structurally similar:
+The cart and Manage Pledge UI:
 
 - show shipping in summary rows
 - continue collecting shipping address for physical orders
-- no new user-facing carrier UI in v1
+- exposes no broad carrier/service selector
 
-The admin dashboard is an operator-facing frontend for the same shipping metadata. It should not introduce a second shipping model. New dashboard fields must serialize to `shipping_preset`, `shipping_fallback_flat_rate`, `shipping_options`, or the nested `shipping.*` package fields already consumed by the Worker.
+The admin dashboard is an operator-facing frontend for the same shipping
+metadata and does not introduce a second model. New dashboard fields serialize
+to `shipping_preset`, `shipping_fallback_flat_rate`, `shipping_options`, or the
+nested `shipping.*` package fields already consumed by the Worker.
 
 ## Testing Strategy
 
@@ -520,20 +541,6 @@ Current automated coverage includes:
   - modify-pledge shipping recalculation
 - accessibility regression coverage for any new shipping-only UI states
 - localized-path coverage to ensure shipping summaries and errors stay translated on seeded locales
-
-## Documentation and Policy Updates
-
-Current docs that should stay aligned with shipping behavior:
-
-- [README.md](/docs/development/platform-readme/)
-- [docs/CUSTOMIZATION.md](/docs/development/customization-guide/)
-- [docs/DEV_NOTES.md](/docs/development/developer-notes/)
-- [docs/TESTING.md](/docs/operations/testing/)
-- [terms.md](/docs/overview/terms-and-guidelines/)
-
-Terms should stop promising a flat physical shipping fee and instead describe deployment-configured shipping rules, including carrier-rated quotes and fallback rates where applicable.
-
-Privacy wording may also need a small update if destination details are sent to USPS for quote calculation.
 
 ## Current Rule Tree
 
@@ -558,7 +565,7 @@ The Worker skips live USPS when the result is already known:
 - a campaign with an explicit `shipping_fallback_flat_rate` uses that campaign override directly for that campaign shipment
 - qualifying domestic `manual_domestic_rate` presets use the explicit manual table directly
 
-Right now that manual path is used for:
+The manual path is used for:
 
 - `sticker`
 - `signed_script`
@@ -610,13 +617,14 @@ The deployment fallback is still:
 
 - `shipping.fallback_flat_rate: 3.00`
 
-But that fallback should only appear when:
+The fallback appears only when:
 
 - USPS is unavailable
 - USPS returns no usable rate
 - the shipment has no more specific valid override or manual-table path
 
-The platform should not show the `$3.00` fallback as a fake estimate when we simply have not quoted yet.
+The platform does not show the `$3.00` fallback as a fake estimate before a
+quote attempt.
 
 ## Cart and Checkout Behavior
 
@@ -636,7 +644,7 @@ Show the ZIP field when:
 
 ### Estimate mode
 
-When a ZIP is required but has not been fully entered yet, the UI should stay in estimate mode:
+When a ZIP is required but incomplete, the UI stays in estimate mode:
 
 - `Estimated shipping`
 - `--`
@@ -645,11 +653,12 @@ When a ZIP is required but has not been fully entered yet, the UI should stay in
 
 This applies both in the cart sidecar and the hosted/on-site checkout preview.
 
-Partial postal input should also remain in estimate mode. The cart should not briefly flash the flat fallback while the user is still typing.
+Partial postal input remains in estimate mode. The cart does not flash the flat
+fallback while the user is still typing.
 
 ### Known shipping states in the UI
 
-The frontend should distinguish between these states:
+The frontend distinguishes between these states:
 
 - known flat-rate shipment
   - no ZIP field if no live quote is needed
@@ -662,9 +671,7 @@ The frontend should distinguish between these states:
 - USPS failure
   - configured fallback shown instead of blocking checkout
 
-## Current Acceptance State
-
-The shipping implementation is in good shape when:
+## Current Verified Behavior
 
 - domestic and international physical pledges can use USPS live rating through the Worker
 - campaign flat-rate overrides short-circuit USPS for those campaign shipments

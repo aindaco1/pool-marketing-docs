@@ -8,14 +8,14 @@ has_children: true
 
 ## Last Updated
 
-July 16, 2026
+August 25, 2026
 
 Contribution flow, architecture notes, implementation gotchas, and fork-facing extension points live here.
 
 ## Recommended Path
 
 1. [Platform README](/docs/development/platform-readme/) for the current release, features, quick start, test surface, and deployment model.
-2. [Contributing](/docs/development/contributing/) for prerequisites, local setup, GitHub workflow, and the current project status.
+2. [Contributing](/docs/development/contributing/) for prerequisites, local setup, GitHub workflow, and safe working conventions.
 3. [Project Overview](/docs/development/project-overview/) for the system summary, funding flow, campaign lifecycle, and code map.
 4. [Workflows](/docs/development/workflows/) for the pledge state machine, storage model, and Worker route behavior.
 5. [Payment Processor](/docs/operations/payment-processor/) for canonical checkout, Stripe integration, settlement, and reconciliation.
@@ -28,6 +28,7 @@ Contribution flow, architecture notes, implementation gotchas, and fork-facing e
 - [Internationalization](/docs/development/internationalization/) for locale config, routing, translation catalogs, and the language-addition workflow.
 - [Campaign Embeds](/docs/development/campaign-embeds/) for hosted embed routes, resize behavior, and localization rules.
 - [Add-On Products](/docs/development/add-on-products/) for the platform-wide merch catalog, inventory model, runtime contract, and shipping behavior.
+- [Product Video Workflow](/docs/development/product-video-workflow/) for local capture, rendering, verification, and publication boundaries.
 - [Ethical Risk Review](/docs/development/ethical-risk-review/) for evaluating changes involving money, data, messaging, automation, admin power, visibility, and sharing.
 - [Agents & Operator Guide](/docs/development/agents-operator-guide/) for repo invariants, source-of-truth guidance, and safe contributor/LLM workflows.
 

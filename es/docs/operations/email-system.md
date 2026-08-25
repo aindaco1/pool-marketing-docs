@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-16 de julio de 2026
+25 de agosto de 2026
 
 The Pool envía correo electrónico transaccional y de soporte de campaña a través de Resend desde Cloudflare Worker. Las plantillas se encuentran en `worker/src/email.js`, la copia localizada compartida se encuentra en `_data/i18n/*.yml` y la programación/selección de audiencia se encuentra principalmente en `worker/src/index.js`.
 
@@ -216,7 +216,7 @@ Se envía cuando se difunden nuevas entradas del diario de campaña.
 - Utiliza un extracto de texto sin formato generado a partir del contenido del diario.
 - Enlaces al diario de campaña.
 - Realiza un seguimiento de las entradas enviadas en KV para que la misma entrada del diario no se transmita repetidamente.
-- La actualización de los metadatos del diario existente no debería enviar un nuevo correo electrónico cuando el ID de entrada sea estable.
+- La actualización de los metadatos del diario existente no envía un nuevo correo electrónico cuando el ID de entrada es estable.
 
 ### Hito
 
@@ -318,7 +318,7 @@ Los envíos de producción utilizan registros `email-outbox:v1:*`. La persistenc
 - resume los errores del proveedor Resend
 - devuelve reintento normalizado, ambigüedad, estado y tipo de error del proveedor en respuestas que no son correctas
 
-La cola `supporter-email-retry:*` anterior sigue siendo legible durante la migración, pero los reintentos ahora entregan la entrega final a la bandeja de salida compartida. Los enlaces mágicos de inicio de sesión del administrador y los envíos de prueba explícitos siguen siendo inmediatos porque retrasarlos haría que la interacción fuera inutilizable.
+La cola `supporter-email-retry:*` anterior sigue siendo legible durante la migración, pero vuelve a intentar entregar la entrega final a la bandeja de salida compartida. Los enlaces mágicos de inicio de sesión del administrador y los envíos de prueba explícitos siguen siendo inmediatos porque retrasarlos haría que la interacción fuera inutilizable.
 
 El correo de diario, hito y anuncios en vivo incluye una URL `List-Unsubscribe` firmada con alcance de campaña y un encabezado RFC 8058 `List-Unsubscribe-Post`. GET muestra una confirmación humana; POST devuelve un éxito en blanco y escribe una supresión de campaña con hash indefinida. Las preferencias de marketing de campaña no suprimen el correo transaccional de aporte/pago.
 
@@ -326,7 +326,7 @@ Los rebotes permanentes, las quejas y las supresiones de proveedores crean un ma
 
 ## Consentimiento y confianza
 
-Los cambios de correo electrónico deben seguir la [revisión de riesgos éticos](/es/docs/development/ethical-risk-review/) cuando agregan nuevas audiencias, activadores, recordatorios, informes o superficies de marketing.
+Los cambios de correo electrónico siguen la [revisión de riesgos éticos](/es/docs/development/ethical-risk-review/) cuando agregan nuevas audiencias, activadores, recordatorios, informes o superficies de marketing.
 
 Normas:
 
@@ -339,7 +339,7 @@ Normas:
 
 ## Copia y localización
 
-El texto dirigido a personas debe ser breve, directo y localizable.
+El texto dirigido a personas sigue siendo breve, directo y localizable.
 
 Normas:
 
@@ -383,7 +383,7 @@ npm run test:secrets
 npm run release:payment-smoke -- --no-dev-vars
 ```
 
-Para obtener evidencia de publicación que debería generar cargas útiles de correo electrónico sin llamar a Resend, configure `POOL_EMAIL_DRY_RUN=true` o `RESEND_EMAIL_DRY_RUN=true`. La ruta de envío compartida devuelve una identificación de prueba y omite la solicitud del proveedor, lo que permite que las comprobaciones de aporte, informe, recordatorio de lanzamiento, pago abandonado y Blast adyacentes a Blast demuestren la construcción de la carga útil sin enviar correo.
+Para obtener evidencia de publicación que genera cargas útiles de correo electrónico sin llamar a Resend, configure `POOL_EMAIL_DRY_RUN=true` o `RESEND_EMAIL_DRY_RUN=true`. La ruta de envío compartida devuelve una identificación de prueba y omite la solicitud del proveedor, lo que permite que las comprobaciones de aporte, informe, recordatorio de lanzamiento, pago abandonado y Blast adyacentes a Blast demuestren la construcción de la carga útil sin enviar correo.
 
 Humo manual:
 

@@ -1,7 +1,7 @@
 ---
 title: Calculadora de impuestos
 parent: Operaciones
-nav_order: 8
+nav_order: 12
 render_with_liquid: false
 lang: es
 ---
@@ -10,40 +10,51 @@ lang: es
 
 ## Última actualización
 
-21 de abril de 2026
+25 de agosto de 2026
 
-Este documento cubre el modelo actual de cálculo de impuestos en The Pool, incluyendo selección de proveedor, configuración para forks, comportamiento del navegador, endpoints del Worker y las verificaciones que conviene correr antes de publicar cambios relacionados con impuestos.
+Este documento cubre el modelo actual de cálculo de impuestos de The Pool, incluido
+selección de proveedor, configuración orientada a la bifurcación, comportamiento del navegador, Worker
+puntos finales y los controles que los operadores deben realizar antes del envío relacionados con impuestos.
+cambios.
 
-La versión corta: los impuestos ahora son una responsabilidad de primera clase del Worker, no solo una tasa fija configurada en todas partes. Una implementación puede seguir usando una tasa plana, pero también puede cambiar a cálculo por proveedor o por reglas locales sin duplicar la matemática del checkout.
+Los impuestos son una preocupación de primera clase Worker en lugar de una tasa fija configurada
+en todas partes. Una implementación puede permanecer con una tarifa fija o cambiar a una respaldada por el proveedor
+o cálculos de ubicación proporcionados sin bifurcar las matemáticas de pago
+el navegador, Worker, gestión de aportes, correos electrónicos e informes.
 
 ## Qué controla esta capa
 
-La capa de impuestos existe para mantener una sola respuesta consistente entre:
+La capa impositiva mantiene una respuesta consistente en:
 
 - vistas previas del carrito
 - UI de checkout personalizada
 - canonicalización final del checkout
 - recálculo en Manage Pledge
 - totales guardados del pledge
-- emails para supporters
+- correos electrónicos de patrocinadores
 - reportes y exportaciones
 
-En el modelo actual, el Worker sigue siendo la fuente de verdad. El navegador puede pedir vistas previas, pero los totales finales persistidos siguen saliendo del cálculo del Worker.
+El Worker sigue siendo la fuente de la verdad. El navegador puede solicitar vistas previas, pero
+los totales persistentes provienen del cálculo del lado Worker.
 
 ## Modos de proveedor actuales
 
-The Pool soporta hoy cuatro modos de proveedor de impuestos:
+Los modos de proveedor de cara al operador admitidos son:
 
-| Proveedor | Qué hace | Cuándo conviene |
-|----------|----------|-----------------|
-| `flat` | Usa la tasa heredada `pricing.sales_tax_rate` | implementaciones simples que quieren una sola tasa configurada |
-| `offline_rules` | Usa reglas vendorizadas de VAT/GST y fallback a nivel estatal | forks que quieren lógica por ubicación sin depender de una API local para cada cotización |
-| `nm_grt` | Parte del dataset vendorizado de Nuevo México y puede afinar con la API EDAC GRT | implementaciones centradas en Nuevo México que necesitan más precisión local |
-| `zip_tax` | Usa ZIP.TAX para búsquedas jurisdiccionales en EE. UU. y cae en `offline_rules` fuera de US/CA | implementaciones enfocadas en EE. UU. que quieren precisión local apoyada en proveedor |
+|Proveedor|Qué hace|Cuándo conviene|
+| --- | --- | --- |
+|`flat`|Utiliza el `pricing.sales_tax_rate` configurado|Implementaciones simples que requieren una tarifa configurada|
+|`offline_rules`|Usa reglas vendorizadas de VAT/GST y fallback a nivel estatal|Bifurcaciones que desean un comportamiento consciente de la ubicación sin una solicitud de jurisdicción local en vivo para cada cotización|
+|`nm_grt`|Utiliza el conjunto de datos inicial de Nuevo México suministrado y puede refinar direcciones completas de Nuevo México con la API EDAC GRT|implementaciones centradas en Nuevo México que necesitan más precisión local|
+|`zip_tax`|Utiliza ZIP.TAX para búsquedas de jurisdicciones de EE. UU. y Canadá y recurre a `offline_rules` para otros países.|Implementaciones que desean precisión fiscal local respaldada por el proveedor|
+
+Worker todavía acepta el valor del proveedor heredado `external` como alias para
+`zip_tax`, pero las nuevas configuraciones y ediciones del panel deben usar `zip_tax`.
 
 ## Superficie de configuración
 
-La configuración de impuestos para forks vive en la [`Guía de personalización`](/es/docs/development/customization-guide/) bajo `tax`.
+La configuración de impuestos orientada a la bifurcación se encuentra en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) y se describe
+en [PERSONALIZACIÓN.md](/es/docs/development/customization-guide/).
 
 Claves actuales:
 
@@ -64,14 +75,15 @@ tax:
   zip_tax_api_base: https://api.zip-tax.com
 ```
 
-La base de compatibilidad sigue existiendo:
+La línea base de compatibilidad sigue estando disponible:
 
-- `pricing.sales_tax_rate` todavía se usa con `flat`
-- `SALES_TAX_RATE` todavía se refleja al Worker para ese modo heredado
+- `pricing.sales_tax_rate` es utilizado por `flat`
+- `SALES_TAX_RATE` refleja esa tarifa configurada en Worker
 
 ## Espejo del Worker y secretos
 
-La configuración no secreta de impuestos se refleja desde el sitio al entorno del Worker:
+La configuración de impuestos no secreta se refleja desde la configuración del sitio en Worker
+ambiente:
 
 - `TAX_PROVIDER`
 - `TAX_ORIGIN_COUNTRY`
@@ -80,13 +92,11 @@ La configuración no secreta de impuestos se refleja desde el sitio al entorno d
 - `ZIP_TAX_API_BASE`
 - `SALES_TAX_RATE` para `flat`
 
-Si habilitas `zip_tax`, también debes definir:
+Si habilita `zip_tax`, configure también `ZIP_TAX_API_KEY`. Mantenga esa llave fuera de
+`_config.yml`; configúrelo como un secreto Worker o en `worker/.dev.vars` ignorado para
+trabajo local.
 
-- `ZIP_TAX_API_KEY`
-
-Mantén esa clave fuera de `_config.yml`. Debe ir como secreto del Worker o en `worker/.dev.vars` para trabajo local.
-
-Si usas la ruta del dataset inicial de Nuevo México, actualiza el archivo vendorizado con:
+Actualice el conjunto de datos de inicio de Nuevo México suministrado con:
 
 ```bash
 node ./scripts/update-nm-grt-starter.mjs
@@ -94,117 +104,132 @@ node ./scripts/update-nm-grt-starter.mjs
 
 ## Comportamiento del navegador y del checkout
 
-El navegador puede mostrar intencionalmente un estado provisional mientras todavía no tenga suficiente detalle de destino.
+El navegador puede mostrar un estado provisional antes de tener suficiente destino.
+detalle.
 
 Comportamiento actual:
 
 - carrito y checkout pueden mostrar el impuesto como `--`
-- el navegador puede pedir una vista previa con `POST /tax/quote`
-- la canonicalización final sigue ocurriendo en `POST /checkout-intent/start`
-- si el proveedor configurado necesita más detalle de ubicación, el Worker puede devolver un resultado provisional en lugar de adivinar
-- la ruta `nm_grt` es la más precisa incorporada hoy y normalmente necesita una dirección completa a nivel de calle, no solo ZIP/estado
+- el navegador solicita una vista previa a través de `POST /tax/quote`
+- el pago canónico se realiza a través de `POST /checkout-intent/start`
+- un proveedor con reconocimiento de ubicación puede requerir detalles de facturación o destino de envío
+antes de devolver una cotización
+- `nm_grt` prueba la API EDAC solo cuando una dirección de Nuevo México incluye una
+calle analizable más ciudad y código postal; de lo contrario usa el motor de arranque
+conjunto de datos o respaldo plano configurado
 
-Por eso una vista previa de impuestos puede verse incompleta al inicio del checkout y aun así resolverse correctamente cuando ya existen datos de facturación o envío.
+Por lo tanto, una vista previa de impuestos puede quedar incompleta al principio del proceso de pago y resolución.
+una vez que los detalles de facturación o envío estén presentes.
 
 ## Endpoints principales
 
 ### `POST /tax/quote`
 
-Este endpoint devuelve una vista previa de impuestos calculada por el Worker para la UI propia de carrito y checkout.
+Este punto final devuelve una vista previa de impuestos calculada por Worker para el carrito propio.
+y la interfaz de usuario de pago.
 
 Sirve para:
 
 - visualización provisional en carrito
 - resúmenes del checkout personalizado
-- actualización del impuesto cuando cambia el destino
+- recálculo después de cambios de destino
 
-Notas operativas:
+Reglas operativas:
 
-- está protegido por mismo origen
-- tiene rate limiting
-- está pensado para vistas previas de UI propia, no para consumo público de terceros
-- puede devolver un resultado provisional o sin impuesto cuando faltan datos de destino necesarios
+- la solicitud debe provenir del origen del sitio confiable
+- La ruta tiene tarifa limitada y tamaño corporal limitado.
+- la respuesta es privada y no almacenable en caché
+- la ruta es para vistas previas de la interfaz de usuario propias, no para uso público de terceros
+- faltando el detalle de destino requerido devuelve un error en lugar de un supuesto
+resultado de impuestos con reconocimiento de ubicación
 
 ### `POST /checkout-intent/start`
 
-Este sigue siendo el punto de verdad del checkout.
-
-Es el endpoint que:
+Este es el bootstrap de pago autorizado. Él:
 
 - canonicaliza el carrito
 - valida campaña e inventario
-- calcula los totales finales del checkout
-- persiste el snapshot firmado en el que luego se apoyan Stripe y el Worker
+- calcula los totales finales de pago
+- persiste la instantánea de pago firmada utilizada por Stripe y Worker
 
-Si el comportamiento del impuesto se ve mal en el navegador, conviene confirmar primero si el problema existe solo en la vista previa o también en la respuesta canónica de `checkout-intent/start`.
+Si el impuesto del navegador parece incorrecto, determine si el problema afecta únicamente
+Estado de vista previa de `/tax/quote` o también el resultado canónico de `/checkout-intent/start`.
 
-## Notas para desarrollo local
+## Desarrollo Local
 
-Para trabajo diario, conviene usar la ruta con Podman:
+Para trabajos locales normales:
 
 ```bash
 npm run podman:doctor
 ./scripts/dev.sh --podman
 ```
 
-Comportamiento local importante hoy:
+Comportamiento importante:
 
-- cambiar la config de impuestos en `_config.yml` no alcanza por sí solo; hay que reiniciar la pila local para actualizar el espejo del Worker
-- la ruta de smoke para pledges mutables ya es compatible con configuraciones de impuestos por proveedor como `tax.provider: nm_grt`
-- si un fixture local no incluye suficiente información de facturación o envío, un resultado provisional puede ser esperado y no necesariamente un bug
+- reinicie la pila local después de cambiar `_config.yml` para que el espejo Worker sea
+refrescado
+- La cobertura de humo de aporte variable admite configuraciones impulsadas por el proveedor, como
+`tax.provider: nm_grt`
+- un dispositivo sin suficientes detalles de facturación o envío puede producir un resultado esperado
+Estado provisional en lugar de un error del producto.
 
-Consulta también [`Podman Local Dev`](/es/docs/operations/podman-local-dev/), [`Guía de pruebas`](/es/docs/operations/testing/) y [`Pledge Worker`](/es/docs/operations/worker/) para el contexto operativo.
+Consulte [PODMAN.md](/es/docs/operations/podman-local-dev/), [TESTING.md](/es/docs/operations/testing/) y el
+[Worker README](/es/docs/operations/worker/) para el tiempo de ejecución circundante.
 
-## Qué verificar antes de publicar
+## Verificación
 
-Si cambias configuración de impuestos, código de proveedor, manejo de destino en checkout o presentación de precios, conviene verificar todo esto:
+Cuando la configuración de impuestos, el código de proveedor, el manejo del destino de pago o los precios
+cambios en la pantalla, verifique:
 
 - la vista previa del carrito se actualiza cuando cambia el destino
 - el comportamiento provisional `--` aparece solo cuando corresponde
-- `POST /tax/quote` devuelve la forma de respuesta esperada para el proveedor configurado
-- `POST /checkout-intent/start` devuelve totales finales coherentes con las reglas de la implementación
-- el recálculo en Manage Pledge mantiene alineados subtotal, impuesto, envío, propina y total
-- los totales guardados, los emails y los reportes siguen usando la misma respuesta de impuestos
-- el copy localizado relacionado con impuestos sigue leyéndose bien si el cambio tocó la UI del checkout
+- `POST /tax/quote` devuelve la forma esperada para el proveedor configurado
+- `POST /checkout-intent/start` devuelve totales finales que coinciden con las reglas de implementación
+- Manage Pledge mantiene el subtotal, los impuestos, el envío, la propina y el total coherentes
+- los totales de aportes almacenados, los correos electrónicos y los informes utilizan la misma respuesta de impuestos
+- La copia localizada del asistente fiscal sigue siendo correcta.
+- Pases `npx vitest run tests/unit/tax.test.ts`
+- Se superan las pruebas del carrito afectado, de la gestión del aporte, de la lógica empresarial Worker y del panel de control.
 
 ## Solución de problemas
 
 ### El impuesto siempre se ve plano
 
-Revisa:
+Controlar:
 
 - `tax.provider` en `_config.yml`
-- las variables reflejadas del Worker en `worker/wrangler.toml`
+- valores Worker reflejados en `worker/wrangler.toml`
 - si reiniciaste la pila local después de cambiar la configuración
 
 ### El impuesto se queda en `--`
 
-Revisa:
+Controlar:
 
-- si el proveedor elegido necesita más detalle de destino
-- si el navegador está enviando los campos de facturación o envío que ese proveedor realmente usa
-- si el problema aparece solo en modo vista previa o también en `checkout-intent/start`
+- si el proveedor necesita más detalles sobre el destino
+- si el navegador envía los campos de facturación o envío que utiliza el proveedor
+- si el problema afecta solo a la vista previa o también al pago canónico
 
-### La ruta de ZIP.TAX no funciona
+### ZIP.TAX no está disponible
 
-Revisa:
+Controlar:
 
 - `tax.provider: zip_tax`
 - `tax.zip_tax_api_base`
 - `ZIP_TAX_API_KEY`
 
-### Los resultados de Nuevo México son demasiado generales
+### Los resultados de Nuevo México son demasiado amplios
 
-Revisa:
+Controlar:
 
-- si solo se está enviando ZIP/estado en vez de una dirección completa
+- si el destino incluye una calle, ciudad y código postal analizables
 - si hace falta refrescar el dataset inicial
-- si ese fork debería quedarse en `nm_grt` o usar otro modo de proveedor
+- si `nm_grt` es el proveedor adecuado para la implementación
 
-## Documentos relacionados
+## Documentación relacionada
 
-- [`Pledge Worker`](/es/docs/operations/worker/)
-- [`Guía de pruebas`](/es/docs/operations/testing/)
-- [`Podman Local Dev`](/es/docs/operations/podman-local-dev/)
-- [`Guía de personalización`](/es/docs/development/customization-guide/)
-- [`Descripción general del proyecto`](/es/docs/development/project-overview/)
+- [PERSONALIZACIÓN.md](/es/docs/development/customization-guide/)
+- [PAYMENT_PROCESSOR.md](/es/docs/operations/payment-processor/)
+- [PRUEBA.md](/es/docs/operations/testing/)
+- [PODMAN.md](/es/docs/operations/podman-local-dev/)
+- [PROJECT_OVERVIEW.md](/es/docs/development/project-overview/)
+- [trabajador/README.md](/es/docs/operations/worker/)

@@ -9,9 +9,9 @@ render_with_liquid: false
 
 ## Last Updated
 
-July 16, 2026
+August 25, 2026
 
-This document describes the current add-on product system as it actually ships now.
+This document describes the current add-on product system.
 
 The platform supports two add-on scopes that intentionally share the same card UX while behaving differently in accounting, shipping, and fulfillment:
 
@@ -238,7 +238,7 @@ The current catalog is exposed to browser runtime config through [assets/js/pool
 
 That means cart-side and Manage Pledge UI can read one stable `POOL_CONFIG.addOns` source of truth instead of duplicating product data in multiple templates or scripts.
 
-The Worker now also has a matching static catalog source at [/api/add-ons.json](https://github.com/your-org/your-project/blob/main/api/add-ons.json), and pending checkout manifests can carry:
+The Worker also has a matching static catalog source at [/api/add-ons.json](https://github.com/your-org/your-project/blob/main/api/add-ons.json), and pending checkout manifests can carry:
 
 - `bundleAddOns`
 - `bundleAddOnAnchorCampaignSlug`
@@ -269,13 +269,13 @@ That works well for campaign-specific monetary extras, but it is a poor long-ter
 - platform-wide merch
 - fixed-price catalog items
 - structured variants like shirt sizes
-- campaign-owned merch that should share the same product-card UI as platform merch
+- campaign-owned merch that shares the same product-card UI as platform merch
 
 The add-on product catalog is meant to sit beside that system, not replace it.
 
 ## Reporting and Fulfillment
 
-Reports now distinguish between platform and campaign add-ons intentionally.
+Reports distinguish between platform and campaign add-ons intentionally.
 
 In `pledge-report`:
 
@@ -288,3 +288,6 @@ In `fulfillment-report`:
 - campaign add-ons stay attached to the campaign and use the campaign as fulfiller
 
 This keeps operational ownership clear without changing the supporter-facing add-on UI.
+
+Prospective catalog and shared-inventory work is tracked in the
+[Roadmap](/docs/reference/roadmap/).

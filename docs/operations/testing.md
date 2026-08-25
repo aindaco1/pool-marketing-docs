@@ -9,9 +9,53 @@ render_with_liquid: false
 
 ## Last Updated
 
-July 16, 2026
+August 25, 2026
 
 This guide covers the automated test suites, local test infrastructure, and manual verification paths. Weekly synthetic recovery, protected preview drills, and post-restore verification are documented in [BACKUP_RESTORE.md](/docs/operations/backup-restore/).
+
+`npm run jekyll-template:check` verifies that the 17 locally built Jekyll
+integration files still match the exact pinned golden-project template. The
+pre-merge gate runs this check before builds and also rejects the template
+submodule from generated site output. `npm run jekyll-template:sync` is an
+explicit upgrade-branch operation, not a build step.
+
+The repository records Platform and Jekyll Template revisions as exact gitlinks.
+After cloning, switching branches, or reviewing a shared dependency upgrade,
+initialize the recorded commits and run the narrow pin/drift contract before
+broader tests. Use `git submodule status` to inspect the current recorded
+versions instead of copying them into another guide:
+
+```bash
+git submodule update --init --recursive
+npx vitest run tests/unit/platform-pin.test.ts tests/unit/jekyll-template-pin.test.ts
+npm run jekyll-template:check
+```
+
+The local-only product-video adapter has a bounded real-interface smoke path:
+
+```bash
+npm run test:product-video
+```
+
+It builds with the tracked `_config.test.yml`, captures the `smoke-editable`
+campaign/tier/add-on/checkout-preview path through the pinned Platform engine,
+and writes only ignored output below `tmp/product-video`. See
+[PRODUCT_VIDEO_WORKFLOW.md](/docs/development/product-video-workflow/) for render formats,
+host requirements, and cleanup boundaries.
+
+If a host-only Worker suddenly returns `503` while the Podman-backed smoke path
+passes, stop the host dev stack and inspect the ignored local
+`worker/.wrangler/state` directory for a Cloud Drive conflict copy such as
+`v3 2`. Move only that duplicate local-development directory aside and restart
+the Worker; do not change `wrangler.toml`, remote namespaces, or tracked data.
+The Podman wrappers use isolated state and reset it for reproducible runtime
+checks.
+
+The pre-merge gate also owns every Worker and Jekyll process it starts. Cleanup
+signals the complete child tree, waits only for a bounded grace period, then
+force-stops any survivor. A focused regression uses a deliberately stubborn
+child process to ensure a fully passing gate cannot hang until the CI job
+timeout after printing its phase summary.
 
 ## Quick Reference
 
@@ -52,9 +96,9 @@ npm run test:usps          # Live USPS credential + quote sanity check
 npm test                   # Run all tests
 ```
 
-`./scripts/test-e2e.sh --podman` is now the fully automated browser path. Use `./scripts/test-checkout.sh --podman` when you specifically want to drive the checkout manually in a real browser.
+`./scripts/test-e2e.sh --podman` is the fully automated browser path. Use `./scripts/test-checkout.sh --podman` when you specifically want to drive the checkout manually in a real browser.
 
-The local Worker test path now prefers Node 24, matching GitHub Actions. The host scripts fall back to Node 22 if a fork has that installed, but they no longer force Node 20 because Wrangler 4 requires Node 22 or newer.
+The local Worker test path prefers Node 24, matching GitHub Actions. Run `nvm use` from the repository root to select the supported Node 24.15 baseline. The host scripts fall back to Node 22.22.2 or newer if a fork has that installed; unsupported odd-numbered Node releases are rejected by npm so jsdom and the test runner do not silently run outside their declared engine ranges.
 
 For the accessibility-focused browser slice, use:
 
@@ -102,6 +146,8 @@ npm run test:cache-policy
 Lighthouse, deployed cache-policy, and authenticated Worker timing checks follow the Store release-evidence model and are not required on every pull request. Their pure evaluators remain covered by the unit suite, while dashboard readiness/tab/table limits are exercised by the admin browser suite. Human VoiceOver, NVDA, and native-Spanish reviews are optional release evidence; automated accessibility, i18n completeness, and rendered SEO checks remain required.
 
 Provider checks are read-only and use shell credentials first. In CI, the Release Provider Evidence workflow runs `npm run release:providers -- --cloudflare-dns-only --strict --no-dev-vars` with `CLOUDFLARE_DNS_API_TOKEN`, `CLOUDFLARE_ZONE_ID`, and `CLOUDFLARE_ZONE`.
+
+The scheduled production-posture audit also requires `preview_urls = false` to be explicit in `worker/wrangler.toml`. Missing or enabled Worker preview URLs are a release-blocking configuration drift finding.
 
 Set `POOL_EMAIL_DRY_RUN=true` or `RESEND_EMAIL_DRY_RUN=true` for no-send email evidence during local mutation smoke. The payment smoke keeps pledge mutation evidence opt-in through `--local-mutation` / `PAYMENT_SMOKE_ALLOW_MUTATION=1` and refuses production hosts unless explicitly overridden.
 
@@ -184,7 +230,7 @@ This runs:
 - Local smoke scripts against the test-only mutable campaign:
   - `scripts/test-worker.sh` for site/Worker contract checks and malformed `/checkout-intent/start` verification
   - `scripts/smoke-pledge-management.sh` for successful modify/cancel coverage on the local-only mutable campaign, using admin rebuild responses plus read-only projection drift checks as the authoritative stats/inventory source during the smoke
-    The script now rotates its synthetic admin request IPs during those rebuild/check calls so the real admin rate limiter does not create a false negative in local merge gating.
+    The script rotates its synthetic admin request IPs during those rebuild/check calls so the real admin rate limiter does not create a false negative in local merge gating.
 - Full unit suite via `npm run test:unit`
 - Security suite via `npm run test:security` against an auto-started local Worker
 - Podman-backed security suite via `npm run test:security:podman` when you want the site/Worker stack booted and exercised in the same invocation
@@ -192,14 +238,14 @@ This runs:
 - Public-page performance and sharing regressions through unit coverage for intent prefetching, lazy cart-runtime loading, generated asset minification, and campaign share-link behavior
 - Playwright headless E2E via `npm run test:e2e:headless`
 
-The pre-merge script now auto-starts Jekyll with `_config.yml,_config.local.yml` when needed so the local-only `smoke-editable` campaign is available during merge gating, and the Playwright harness uses the same combined config locally.
-That gate now tries the host Bundler/Jekyll path first, including a one-time `bundle install` attempt when Bundler is present but gems are missing. It keeps the lighter host Worker smoke, but runs the mutable-pledge smoke through the Podman-backed stack so the stateful modify/cancel path uses isolated local service state even when the host build path succeeds. If the host Ruby path still cannot build cleanly, it falls back to a Podman-backed Jekyll build plus the remaining Podman-aware smoke/browser helpers instead of failing on host setup alone.
+The pre-merge script auto-starts Jekyll with `_config.yml,_config.local.yml` when needed so the local-only `smoke-editable` campaign is available during merge gating, and the Playwright harness uses the same combined config locally.
+That gate tries the host Bundler/Jekyll path first, including a one-time `bundle install` attempt when Bundler is present but gems are missing. It keeps the lighter host Worker smoke, but runs the mutable-pledge smoke through the Podman-backed stack so the stateful modify/cancel path uses isolated local service state even when the host build path succeeds. If the host Ruby path still cannot build cleanly, it falls back to a Podman-backed Jekyll build plus the remaining Podman-aware smoke/browser helpers instead of failing on host setup alone.
 Both Jekyll helpers fail immediately when their build command fails, so minification and artifact validation cannot accidentally reuse stale `_site` output.
-For headless browser runs, Playwright now builds a static `_site` and serves that output with a lightweight HTTP server instead of using `jekyll serve`, which keeps automated browser checks closer to the real published asset layout.
+For headless browser runs, Playwright builds a static `_site` and serves that output with a lightweight HTTP server instead of using `jekyll serve`, which keeps automated browser checks closer to the real published asset layout.
 
-This branch now defaults to the first-party cart/runtime path in both `_config.yml` and `_config.local.yml`, and the browser path no longer supports the old hosted-cart runtime.
+The repository defaults to the first-party cart/runtime path in both `_config.yml` and `_config.local.yml`; the browser path does not support the old hosted-cart runtime.
 
-Recent security hardening that the gate now covers includes:
+Current security coverage in the gate includes:
 
 - fail-closed `GET /pledge` behavior when a magic-link token exists but the pledge row does not
 - Markdown link-scheme neutralization in long-form content
@@ -214,13 +260,13 @@ npm run media:optimize:check
 npm run media:optimize:check:podman # use when host-native media tools are missing
 ```
 
-The local Worker defaults in [worker/wrangler.toml](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) now match that first-party setup. `./scripts/dev.sh --podman` now auto-generates a local `CHECKOUT_INTENT_SECRET` in `worker/.dev.vars` if it is missing, so fresh local checkout starts do not fail closed on an uninitialized dev secret.
+The local Worker defaults in [worker/wrangler.toml](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) match that first-party setup. `./scripts/dev.sh --podman` auto-generates a local `CHECKOUT_INTENT_SECRET` in `worker/.dev.vars` if it is missing, so fresh local checkout starts do not fail closed on an uninitialized dev secret.
 
 When the merge gate or local security suite uses the placeholder `STRIPE_SECRET_KEY=sk_test_smoke`, `/test/setup` seeds deterministic synthetic Stripe customer IDs instead of calling Stripe. Use a real Stripe test key only when you specifically need payment-method-update smoke coverage against Stripe's API.
 
 For local work, prefer `./scripts/dev.sh --podman`. It starts Jekyll and the Worker in rootless Podman containers while preserving the same ports and local Wrangler state.
 
-[`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml) is now an override-only layer, not a second base config. When you change or add fork-facing settings, prefer [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) unless the value should truly differ only on your local machine.
+[`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml) is an override-only layer, not a second base config. When you change or add fork-facing settings, prefer [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) unless the value differs only on your local machine.
 
 The browser helper scripts support the same mode:
 
@@ -233,20 +279,20 @@ The browser helper scripts support the same mode:
 ./scripts/fulfillment-report.sh --podman --local
 ```
 
-Those helpers still run Playwright and shell smoke logic on the host for now, but they boot the site and Worker through the shared Podman-backed local stack first. The report scripts can now run directly through the Worker container as well. That keeps local testing and exports closer to production-like service boundaries without forcing host Ruby or host Wrangler setup.
+Those helpers run Playwright and shell smoke logic on the host, but they boot the site and Worker through the shared Podman-backed local stack first. The report scripts can run directly through the Worker container as well. That keeps local testing and exports closer to production-like service boundaries without forcing host Ruby or host Wrangler setup.
 
-For host-side commands that need the Podman-backed stack but should not depend on detached stack persistence across separate shells, use [`scripts/podman-stack-run.sh`](https://github.com/your-org/your-project/blob/main/scripts/podman-stack-run.sh). `npm run test:security:podman` uses that wrapper.
+For host-side commands that need the Podman-backed stack without depending on detached stack persistence across separate shells, use [`scripts/podman-stack-run.sh`](https://github.com/your-org/your-project/blob/main/scripts/podman-stack-run.sh). `npm run test:security:podman` uses that wrapper.
 
-For a mostly host-independent browser path, `npm run test:e2e:headless:podman` now runs the automated Playwright suite inside a dedicated Podman container on the same local pod network as the site and Worker.
+For a mostly host-independent browser path, `npm run test:e2e:headless:podman` runs the automated Playwright suite inside a dedicated Podman container on the same local pod network as the site and Worker.
 
-Recent browser coverage also includes dedicated mobile viewport assertions for:
+Browser coverage also includes dedicated mobile viewport assertions for:
 
 - campaign pages and secondary public controls
 - cart / checkout drawers on small phone sizes
 - Manage Pledge and Update Card reachability on short mobile viewports
 - no-horizontal-overflow checks on the main public and pledge-management paths
 
-Recent public-page coverage also now protects more localized campaign chrome, including:
+Public-page coverage also protects localized campaign chrome, including:
 
 - hero video play/loading states
 - supporter-community teaser copy
@@ -260,11 +306,11 @@ The current Podman scope is intentionally narrow:
 
 - included: Jekyll, Worker, local `worker/.dev.vars`, local Wrangler state, optional host Stripe CLI forwarding, Podman-aware `test-checkout.sh`, `test-e2e.sh`, `test-worker.sh`, `smoke-pledge-management.sh`, `pledge-report.sh`, and `fulfillment-report.sh`
 - included too: containerized headless Playwright for the automated browser suite
-- not yet included: a containerized interactive manual checkout browser step
+- current boundary: interactive manual checkout uses the host browser; a containerized alternative is tracked in the [roadmap](/docs/reference/roadmap/)
 
 Use [docs/PODMAN.md](/docs/operations/podman-local-dev/) for the exact setup and current limitations.
 
-If you change `pricing.sales_tax_rate` or `shipping.fallback_flat_rate` in the Jekyll config, the repo now auto-syncs the mirrored Worker values in [worker/wrangler.toml](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) through the main dev/test paths. Restart `./scripts/dev.sh --podman` before testing checkout math so both services pick up the new values.
+If you change `pricing.sales_tax_rate` or `shipping.fallback_flat_rate` in the Jekyll config, the repo auto-syncs the mirrored Worker values in [worker/wrangler.toml](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) through the main dev/test paths. Restart `./scripts/dev.sh --podman` before testing checkout math so both services pick up the new values.
 
 If you tune free-plan read behavior, keep these in sync too:
 
@@ -313,7 +359,7 @@ This dependency-free audit is safe to run in the deploy job after the root build
 
 On GitHub, the same gate runs automatically in the `Merge Smoke` workflow for pull requests targeting `main`.
 
-The merge gate now writes one log file per phase and prints a final PASS/FAIL summary with log paths. If a late Podman-backed phase fails, start with the log directory printed at the end of the run instead of scrolling through the whole transcript.
+The merge gate writes one log file per phase and prints a final PASS/FAIL summary with log paths. If a late Podman-backed phase fails, start with the log directory printed at the end of the run instead of scrolling through the whole transcript.
 
 ### Secret Audit
 
@@ -380,7 +426,7 @@ You can exercise that path end to end with:
 ./scripts/smoke-pledge-management.sh
 ```
 
-When `ADMIN_SECRET` is available, that smoke path now also verifies that the campaign remains projection-clean after setup, modify, and cancel by calling the read-only `POST /stats/:slug/check` endpoint between mutation phases.
+When `ADMIN_SECRET` is available, that smoke path also verifies that the campaign remains projection-clean after setup, modify, and cancel by calling the read-only `POST /stats/:slug/check` endpoint between mutation phases.
 
 For local CSV verification against your actual local Worker state, use:
 
@@ -391,9 +437,9 @@ For local CSV verification against your actual local Worker state, use:
 
 Use `pledge-report.sh` when you want the full ledger, including modify/cancel deltas and tip-change annotations. Use `fulfillment-report.sh` when you want the merged current state for a backer within a campaign.
 
-If the merged fulfillment view and the public site ever disagree for a campaign, treat that as a likely stale stats/inventory projection issue first, not a reporting bug by default. The admin stats and inventory recalc endpoints now repair stale `campaign-pledges:{slug}` indexes while rebuilding the campaign projection state.
+If the merged fulfillment view and the public site ever disagree for a campaign, treat that as a likely stale stats/inventory projection issue first, not a reporting bug by default. The admin stats and inventory recalc endpoints repair stale `campaign-pledges:{slug}` indexes while rebuilding the campaign projection state.
 
-Before you repair a projection, you can now check for drift explicitly:
+Before you repair a projection, check for drift explicitly:
 
 ```bash
 ./scripts/check-projections.sh                 # Check all campaigns
@@ -407,8 +453,8 @@ That script calls the read-only admin drift-check endpoints and exits nonzero wh
 
 When reviewing results, do not flag these as regressions:
 
-- Magic links are now order-scoped instead of email-scoped.
-- `/checkout-intent/start` now reserves scarce limited inventory before payment confirmation, and successful persistence confirms that reservation.
+- Magic links are order-scoped instead of email-scoped.
+- `/checkout-intent/start` reserves scarce limited inventory before payment confirmation, and successful persistence confirms that reservation.
 - Legacy `GET /checkout` is intentionally disabled.
 
 ### Adding Tests
@@ -591,7 +637,7 @@ See [tests/security/README.md](/docs/operations/security-test-suite/) for detail
 
 ## Manual Testing Prerequisites
 
-- [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/install-and-update/) (`npm install -g wrangler`)
+- Repository-locked [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/install-and-update/) via `npm ci` and `npx wrangler`
 - [Stripe CLI](https://stripe.com/docs/stripe-cli) for webhook testing
 - Stripe account (test mode)
 - Resend account (free tier: 3,000 emails/month)
@@ -777,7 +823,7 @@ stripe listen --forward-to 127.0.0.1:8787/webhooks/stripe
    - The client waits for pledge persistence confirmation before treating the flow as successful
    - You are then sent to the success page
 
-4. **Check email**: You should receive the supporter email(s) with magic links
+4. **Check email**: Confirm receipt of the supporter email(s) with magic links
 
 5. **Test community access**:
    - Click the community link in the email
@@ -785,7 +831,7 @@ stripe listen --forward-to 127.0.0.1:8787/webhooks/stripe
 
 6. **Test voting**:
    - Vote on a decision
-   - Refresh page - your vote should persist
+   - Refresh page - the vote persists
 
 ### Stripe Test Cards
 
@@ -899,7 +945,7 @@ wrangler kv:key get "results:hand-relations:poster" --binding VOTES --preview
    ```
    Check Worker logs for "Pledge confirmed" message.
 
-4. **Test invalid signature (should fail):**
+4. **Test invalid signature (expected failure):**
    ```bash
    curl -X POST http://localhost:8787/webhooks/stripe \
      -H "stripe-signature: invalid" \
@@ -937,7 +983,7 @@ After completing a pledge flow:
 
 3. **Verify cancellation:**
    - Check the pledge now reports `pledgeStatus: "cancelled"`
-   - Retry cancel: should get a clean error response
+   - Retry cancel: confirm a clean error response
 
 ### Test Update Payment Method
 

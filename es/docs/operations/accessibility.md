@@ -1,7 +1,7 @@
 ---
 title: Accesibilidad
 parent: Operaciones
-nav_order: 12
+nav_order: 13
 render_with_liquid: false
 lang: es
 ---
@@ -10,9 +10,11 @@ lang: es
 
 ## Última actualización
 
-16 de julio de 2026
+25 de agosto de 2026
 
-Este documento rastrea la línea base de accesibilidad actual de The Pool, las superficies de interacción de mayor riesgo que verificamos activamente y el trabajo de seguimiento restante necesario para pasar de una "postura de accesibilidad fuerte" hacia un cumplimiento de accesibilidad más completo.
+Este documento describe la línea base de accesibilidad actual de The Pool, la
+superficies de interacción de mayor riesgo cubiertas por verificación automática o manual,
+y las restricciones aplicadas a los cambios de interfaz.
 
 ## Prioridades actuales
 
@@ -35,7 +37,7 @@ El sitio ya incluye:
 - anclajes `main-content` estables en los shells públicos principales para que los enlaces de salto y el enfoque del teclado aterricen de manera consistente
 - Etiquetado de activación del carrito que refleja tanto el recuento de artículos como el total mostrado para tecnología de asistencia en lugar de exponer solo el ícono cromado.
 
-El reciente pase de refuerzo de accesibilidad agregó:
+La interfaz actual incluye:
 
 - semántica de diálogo, manejo de escape, captura de enfoque e intentos de restauración de enfoque para:
   - el carrito / sidecar de caja
@@ -83,7 +85,7 @@ El reciente pase de refuerzo de accesibilidad agregó:
 
 ## Superficies críticas
 
-La interfaz de usuario sensible a la accesibilidad más importante en la aplicación en este momento es:
+La interfaz de usuario sensible a la accesibilidad más importante de la aplicación es:
 
 1. Carrito/sidecar de caja
 2. Gestionar aporte confirmar modal
@@ -110,20 +112,20 @@ Los cambios de accesibilidad deben preservar estas limitaciones:
 
 El panel de administración tiene suficiente interfaz de usuario personalizada que necesita sus propias reglas de accesibilidad:
 
-- Utilice la etiqueta de administrador compartida/patrón de ayuda para campos nuevos. Los botones de ayuda deben ubicarse al lado de las etiquetas, no dentro de las etiquetas, y el control editable debe hacer referencia a la información sobre herramientas de ayuda con `aria-describedby`.
+- Utilice la etiqueta de administrador compartida/patrón de ayuda para campos nuevos. Los botones de ayuda deben ubicarse al lado de las etiquetas, no dentro de las etiquetas, y el control editable hace referencia a la información sobre herramientas de ayuda con `aria-describedby`.
 - Utilice controles nativos para texto, fecha/hora, menús de selección, carga de archivos, casillas de verificación y botones, a menos que sea claramente necesario un control personalizado.
 - Los grupos de casillas de verificación deben tener un `legend` real; Las etiquetas repetidas visualmente pueden usar leyendas `sr-only` cuando la etiqueta visible ya aparece encima del grupo.
-- Las pestañas de nivel superior, las pestañas de la barra lateral de Configuración, las pestañas de la barra lateral de Campaña y las subpestañas de Campaña deben mantener sincronizados el comportamiento de `role="tablist"`, `role="tab"`, `role="tabpanel"`, `aria-selected`, `aria-controls` y el itinerante `tabindex`.
-- Los bloques del editor de contenido deben exponer texto editable como `role="textbox"` con etiquetas claras, `aria-multiline` cuando corresponda y botones de formato con `aria-pressed` cuando representan el estado de alternancia.
-- El editor de contenido oculto Chrome no debe permanecer en el orden de pestañas del teclado. La barra de herramientas de un bloque debería ser accesible solo después de que ese bloque esté activo.
-- Los paneles de configuración de medios deben exponer el estado expandido/contraído desde el botón de engranaje y un grupo etiquetado para las configuraciones reveladas.
-- Las cargas de medios del editor de contenido deben utilizar el patrón de control de carga compartido para que la entrada del archivo nativo tenga un nombre accesible, una descripción del estado de carga y el mismo tratamiento de enfoque que otros botones de carga del panel.
-- La configuración del bloque de galería y la configuración de imágenes de galería individuales deben permanecer visual y semánticamente distintas, pero ambas deben reutilizar la etiqueta del campo de administración compartido y los componentes de ayuda.
-- Los derivados generados no deberían aparecer como opciones de selección duplicadas; Las tarjetas de origen exponen el estado derivado en el texto para que los usuarios de tecnología de asistencia reciban el mismo contexto de optimización que los usuarios de miniaturas.
-- Las tablas de administración ordenables deben usar botones reales en los encabezados de las columnas, mantener `aria-sort` y mantener los botones de exportación fuera de las regiones de la tabla desplazables horizontalmente.
-- Los mensajes de estado de Guardar/Publicar deben utilizar regiones de estado educadas; Los errores de validación o bloqueo deben permanecer cerca del campo o flujo de trabajo relevante.
-- Los campos modales Crear/Vista previa deben usar el mismo botón de información de administrador compartido/implementación de ayuda que los campos Configuración y Campaña; Evite la ayuda en línea única que pueda engancharse contra los bordes modales.
-- Los esquemas de enfoque del teclado deben usar el token de enfoque negro compartido, incluidos los campos modales de administrador y las entradas de la lista de correo electrónico.
+- Las pestañas de nivel superior, las pestañas de la barra lateral de Configuración, las pestañas de la barra lateral de Campaña y las subpestañas de Campaña mantienen sincronizados el comportamiento de `role="tablist"`, `role="tab"`, `role="tabpanel"`, `aria-selected`, `aria-controls` y el itinerante `tabindex`.
+- Los bloques del editor de contenido exponen texto editable como `role="textbox"` con etiquetas claras, `aria-multiline` cuando corresponda y botones de formato con `aria-pressed` cuando representan el estado de alternancia.
+- El editor de contenido oculto Chrome no debe permanecer en el orden de pestañas del teclado. La barra de herramientas de un bloque se vuelve accesible solo después de que ese bloque esté activo.
+- Los paneles de configuración de medios exponen el estado expandido/contraído desde el botón de engranaje y un grupo etiquetado para las configuraciones reveladas.
+- Las cargas de medios del editor de contenido utilizan el patrón de control de carga compartido, por lo que la entrada del archivo nativo tiene un nombre accesible, una descripción del estado de carga y el mismo tratamiento de enfoque que otros botones de carga del panel.
+- La configuración del bloque de galería y la configuración de imágenes de galería individuales permanecen visual y semánticamente distintas, mientras que ambas reutilizan la etiqueta del campo de administración compartido y los componentes de ayuda.
+- Los derivados generados no aparecen como opciones de selección duplicadas; Las tarjetas de origen exponen el estado derivado en el texto para que los usuarios de tecnología de asistencia reciban el mismo contexto de optimización que los usuarios de miniaturas.
+- Las tablas de administración ordenables utilizan botones reales en los encabezados de las columnas, mantienen `aria-sort` y mantienen los botones de exportación fuera de las regiones de la tabla desplazables horizontalmente.
+- Los mensajes de estado para guardar/publicar utilizan regiones de estado educadas; Los errores de validación o bloqueo permanecen cerca del campo o flujo de trabajo relevante.
+- Los campos modales Crear/Vista previa utilizan el mismo botón de información de administrador compartido/implementación de ayuda que los campos Configuración y Campaña; La ayuda en línea única puede recortarse contra los bordes modales y no se utiliza.
+- Los esquemas de enfoque del teclado utilizan el token de enfoque negro compartido, incluidos los campos modales de administrador y las entradas de la lista de correo electrónico.
 
 ## Cobertura automatizada
 
@@ -233,7 +235,9 @@ npm run podman:doctor
 
 ## Comprobaciones manuales
 
-Los controles automatizados ayudan. Para esta versión, el pase manual de VoiceOver/NVDA es una prueba opcional en lugar de una puerta de bloqueo; cuando se realice, utilice estas comprobaciones para cambios significativos en la interfaz de usuario:
+Las comprobaciones automatizadas de accesibilidad, configuración regional y páginas renderizadas son puertas de liberación.
+La evidencia manual de VoiceOver/NVDA sigue siendo opcional a menos que se libere explícitamente.
+lo requiere; cuando se realice, utilice estas comprobaciones para cambios significativos en la interfaz de usuario:
 
 - El cajón del carrito se puede abrir, navegar y cerrar solo con el teclado.
 - El disparador del carrito anuncia una etiqueta útil y un estado expandido/contraído para tecnología de asistencia.
@@ -262,3 +266,5 @@ Algunos límites de accesibilidad son inherentes al modelo de seguridad:
 - Los campos de la tarjeta de crédito se muestran dentro de la interfaz de usuario segura propiedad de Stripe.
 - El autocompletado del navegador y la semántica a nivel de campo dentro de los iframes de Stripe están controlados en parte por Stripe, no por The Pool.
 - Podemos mejorar las etiquetas circundantes, el flujo y el manejo de errores, pero no podemos reescribir directamente el DOM interno de Stripe.
+
+Los posibles trabajos de accesibilidad se rastrean en [Roadmap](/es/docs/reference/roadmap/).

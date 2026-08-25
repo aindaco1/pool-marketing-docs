@@ -10,9 +10,23 @@ lang: es
 
 ## Última actualización
 
-16 de julio de 2026
+25 de agosto de 2026
 
 Cloudflare Worker se encarga de la canonicalización de pagos propios, la integración de Stripe, la gestión de aportes, la autenticación de patrocinadores con alcance de pedidos, los recordatorios de lanzamiento de próximas campañas, los recordatorios de pagos abandonados basados ​​en el consentimiento, las explosiones de los patrocinadores de la campaña, las vistas previas de campañas protegidas y las API del panel de administración del navegador privado.
+
+## Límite de plataforma compartida
+
+El Worker consume los `worker-core`, `shipping-core`,
+Paquetes `tax-core`, `inventory-core` y `media-core` para caracteres caracterizados,
+Mecánica neutral en tiempo de ejecución. The Pool conserva todas las rutas, esquemas de solicitud,
+modelo de campaña/aporte, política Durable Object y KV, credencial,
+Política, efectos secundarios, implementación y reversión de Stripe/Resend/Cloudflare
+decisión. El gitlink raíz y `git submodule status` tienen autoridad para el
+versión actual de la plataforma.
+
+La plantilla Dust Wave Jekyll fijada por separado es una actualización del código fuente en tiempo de compilación
+herramientas solamente. Este Worker nunca lo importa y está excluido del
+sitio público generado.
 
 Para el desarrollo local diario, prefiera la ruta Podman de raíz de repositorio:
 
@@ -23,11 +37,11 @@ npm run podman:doctor
 
 Esto inicia el sitio y el trabajador juntos en los puertos locales estándar y es la forma más fácil de ejercer el pago completo en el sitio y los flujos `Update Card` localmente.
 
-La ruta Podman de raíz de repositorio ejecuta el trabajador con el nodo 24, que coincide con las acciones de GitHub. El desarrollo de Worker solo de host también debe utilizar el Nodo 24 cuando sea posible; Wrangler 4 requiere al menos el Nodo 22. La fecha de compatibilidad de Worker se comparte intencionalmente entre entornos locales e implementados para que el comportamiento del tiempo de ejecución de Miniflare/Workers no cambie.
+La ruta repo-root Podman ejecuta Worker con el nodo 24, que coincide con las acciones GitHub. El desarrollo de Worker solo de host utiliza el Nodo 24 cuando es posible; Wrangler 4 requiere al menos el Nodo 22. La fecha de compatibilidad de Worker se comparte intencionalmente entre entornos locales e implementados para que el comportamiento del tiempo de ejecución de Miniflare/Workers no cambie.
 
-Si trabaja específicamente desde el directorio `worker/`, los scripts Worker npm ahora ejecutan automáticamente el espejo de configuración primero para que `worker/wrangler.toml` permanezca alineado con la raíz del repositorio `_config.yml`/`_config.local.yml`.
+Si trabaja específicamente desde el directorio `worker/`, los scripts npm Worker ejecutan automáticamente el espejo de configuración primero para que `worker/wrangler.toml` permanezca alineado con la raíz del repositorio `_config.yml`/`_config.local.yml`.
 
-Trate `_config.local.yml` como un archivo de solo anulación para valores específicos del host local. La configuración canónica de orientación hacia la bifurcación debe residir en la raíz del repositorio `_config.yml`, y el espejo del trabajador seguirá desde allí.
+Trate `_config.local.yml` como un archivo de anulación únicamente para valores específicos del host local. Las configuraciones canónicas de orientación hacia la bifurcación se encuentran en la raíz del repositorio `_config.yml`, y el espejo Worker sigue desde allí.
 
 Utilice [`docs/PAYMENT_PROCESSOR.md`](/es/docs/operations/payment-processor/) para obtener detalles de configuración, pago, webhook, liquidación y conciliación de Stripe. Utilice [`docs/BACKUP_RESTORE.md`](/es/docs/operations/backup-restore/) para instantáneas clasificadas, restauración de vista previa, retención y recuperación ante desastres. Utilice [`docs/EMAIL.md`](/es/docs/operations/email-system/) para la configuración del remitente, los tipos de correo electrónico, la localización y el comportamiento de entrega de Resend. Utilice [`docs/ETHICAL_RISK.md`](/es/docs/development/ethical-risk-review/) antes de agregar el comportamiento Worker que cambia el dinero, la recopilación de datos, la mensajería, la automatización, el intercambio público, el análisis o el poder administrativo.
 
@@ -36,10 +50,10 @@ La entrega de informes de campaña sigue el mismo patrón:
 - Los destinatarios a nivel de campaña viven en el frente de la campaña como `runner_report_emails`.
 - la sincronización de toda la implementación y el comportamiento del correo electrónico/informes se encuentran en `_config.yml` en `reports.campaign_runner`
 - el espejo del trabajador lleva esas configuraciones no secretas a `wrangler.toml`
-- el núcleo de informes compartido en `worker/src/reports.js` ahora impulsa tanto los correos electrónicos de los ejecutores programados como los asistentes de exportación del shell local para que la lógica CSV permanezca en un solo lugar.
+- el núcleo de informes compartido en `worker/src/reports.js` potencia tanto los correos electrónicos de los ejecutores programados como los asistentes de exportación del shell local para que la lógica de CSV permanezca en un solo lugar.
 - el panel del navegador La pestaña Informes ofrece vistas previas y descargas CSV de aporte/cumplimiento sin enviar correos electrónicos ni escribir marcadores de envío
 
-La configuración de Worker reflejada ahora también incluye los indicadores de depuración compartidos:
+La configuración reflejada de Worker incluye los indicadores de depuración compartidos:
 
 - `DEBUG_CONSOLE_LOGGING_ENABLED`
 - `DEBUG_VERBOSE_CONSOLE_LOGGING`
@@ -54,22 +68,31 @@ El espejo Worker también incluye los botones de captación previa de intención
 
 Estos provienen de `performance.intent_prefetch_*` en la configuración de raíz del repositorio y los superadministradores los pueden editar en **Configuración -> Rendimiento avanzado**. Están reflejados para lograr paridad de configuración y visibilidad operativa; el tiempo de ejecución de captación previa real todavía se carga solo en diseños estáticos públicos y rechaza rutas privadas, tokenizadas, de pago, de administración, de soporte y de consultas confidenciales en el navegador.
 
-La protección DoS de ruta de escritura ahora requiere un espacio de nombres KV `RATELIMIT`. Si falta ese enlace, el trabajador no se cierra con `503` en lugar de ejecutarse sin protección contra abusos. Las lecturas públicas de datos en vivo se mantienen intencionalmente amplias para los picos de campaña, mientras que el pago, la gestión de aportes y las mutaciones de administración utilizan los límites más estrictos por IP documentados en [`docs/SECURITY.md`](/es/docs/operations/security/). Ese requisito agrega seguridad, no una nueva suposición de que cada bifurcación debe superar inmediatamente el plan Workers Free.
+El puente de beneficios de Podcast para discapacitados también se refleja desde
+`podcast_benefits.enabled`, `bridge_url` y `bridge_timeout_ms`. su dedicado
+`POOL_PODCAST_BRIDGE_SECRET` debe instalarse de forma independiente en el correspondiente
+The Pool y entornos Podcast. El cliente actual valida el punto final exacto,
+normaliza el contrato de código compartido de alta entropía, firma el cuerpo JSON exacto,
+rechaza redireccionamientos, limita la respuesta y clasifica los errores reintentables. eso
+no está conectado al proceso de pago, liquidación, correo electrónico ni a ningún mapeo de producto/nivel
+hasta que se seleccionen explícitamente ese mapeo y el ciclo de vida de entrega duradero.
 
-Los trabajadores estándar/pagados implementados ahora también configuran `limits.cpu_ms = 100` en [`wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml). Ese límite no se aplica en el desarrollo local y no es una anulación de Workers Free; es un límite conservador de denegación de billetera para implementaciones pagas que aún deja un espacio cómodo por encima de los tiempos de solicitud de ruta rápida observados actualmente en el arnés de la unidad.
+La protección DoS de ruta de escritura requiere un espacio de nombres `RATELIMIT` KV. Si falta ese enlace, Worker no se cierra con `503` en lugar de ejecutarse sin protección contra abusos. Las lecturas públicas de datos en vivo se mantienen intencionalmente amplias para los picos de campaña, mientras que el pago, la gestión de aportes y las mutaciones de administración utilizan los límites más estrictos por IP documentados en [`docs/SECURITY.md`](/es/docs/operations/security/). Ese requisito agrega seguridad, no una nueva suposición de que cada bifurcación debe superar inmediatamente el plan gratuito Workers.
 
-El cálculo de impuestos ahora se dirige a través de una costura de proveedor en `worker/src/tax.js`:
+Workers estándar/de pago implementado establece `limits.cpu_ms = 100` en [`wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml). Ese límite no se aplica en el desarrollo local y no es una anulación gratuita de Workers; es un límite conservador de denegación de billetera para implementaciones pagas que aún deja un espacio cómodo por encima de los tiempos de solicitud de ruta rápida observados actualmente en el arnés de la unidad.
+
+El cálculo de impuestos se realiza a través de una costura de proveedor en `worker/src/tax.js`:
 
 - `TAX_PROVIDER=flat` mantiene el comportamiento de velocidad configurada actual de `SALES_TAX_RATE`
 - `TAX_PROVIDER=offline_rules` utiliza reglas proporcionadas para el IVA/GST internacional y el manejo alternativo a nivel estatal
 - `TAX_PROVIDER=nm_grt` utiliza el conjunto de datos inicial de Nuevo México suministrado y puede refinar las búsquedas de direcciones de calles de Nuevo México con la API gratuita EDAC GRT.
 - `TAX_PROVIDER=zip_tax` agrega búsquedas de EE. UU. a nivel local/jurisdiccional a través de ZIP.TAX y recurre a `offline_rules` para destinos fuera de EE. UU./CA
 
-La configuración del proveedor no secreto se refleja desde la raíz del repositorio `_config.yml` en [`wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) como `TAX_PROVIDER`, `TAX_ORIGIN_COUNTRY`, `TAX_USE_REGIONAL_ORIGIN`, `NM_GRT_API_BASE` y `ZIP_TAX_API_BASE`. Si habilita `zip_tax`, configure también `ZIP_TAX_API_KEY` como secreto de trabajador o en [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars). Actualice el archivo inicial de Nuevo México suministrado con `node ../scripts/update-nm-grt-starter.mjs`.
+La configuración del proveedor no secreto se refleja desde la raíz del repositorio `_config.yml` en [`wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) como `TAX_PROVIDER`, `TAX_ORIGIN_COUNTRY`, `TAX_USE_REGIONAL_ORIGIN`, `NM_GRT_API_BASE` y `ZIP_TAX_API_BASE`. Si habilita `zip_tax`, configure también `ZIP_TAX_API_KEY` como un secreto Worker o en [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars). La instantánea inicial de Nuevo México proporcionada está fijada en `@dustwave/tax-core`; su actualizador requiere una ruta de salida revisada explícita y falla antes de escribir si falla alguna búsqueda.
 
-En el flujo actual del navegador, se permite intencionalmente que las vistas previas de impuestos permanezcan provisionales. Si el carrito o el pago personalizado aún no tiene suficientes datos de ubicación, el sitio muestra `--` y espera a que `/tax/quote` o `/checkout-intent/start` finalicen el resultado del impuesto. Las búsquedas de Nuevo México son la ruta integrada más exacta en este momento y normalmente necesitan datos completos de direcciones a nivel de calle, no solo código postal/estado, antes de que el trabajador pueda devolver un resultado de GRT local confiable.
+En el flujo actual del navegador, se permite intencionalmente que las vistas previas de impuestos permanezcan provisionales. Si el carrito o el pago personalizado aún no tiene suficientes datos de ubicación, el sitio muestra `--` y espera a que `/tax/quote` o `/checkout-intent/start` finalicen el resultado del impuesto. Las búsquedas en Nuevo México son la ruta integrada más exacta y normalmente necesitan datos completos de direcciones a nivel de calle, no solo código postal/estado, antes de que Worker pueda devolver un resultado GRT local confiable.
 
-El trabajador ahora también escribe resúmenes de observabilidad ligeros en `PLEDGES` KV para dos cosas:
+El Worker escribe resúmenes de observabilidad ligeros en `PLEDGES` KV para dos cosas:
 
 - Resultados de entrega del webhook de Stripe e historial de entrega reciente
 - tiempos de reloj de pared muestreados para un pequeño conjunto de rutas de mutación utilizadas para sintonizar la tapa `cpu_ms`
@@ -88,9 +111,9 @@ El SEO público y la validación de rastreo también son una preocupación para 
 
 La frecuencia de muestreo predeterminada es `0.1` y se puede anular con `OBSERVABILITY_SAMPLE_RATE=0.05` (o cualquier valor de `0-1`) si una bifurcación desea menos o más escrituras de tiempo muestreadas.
 
-Las estadísticas del lado de los trabajadores y la reparación de inventario ahora también tratan a `campaign-pledges:{slug}` como un estado de proyección en lugar de una verdad permanente. Si el índice de una campaña se desvía de los registros de aporte activos subyacentes, las rutas de recálculo lo reparan automáticamente mientras reconstruyen los totales de la campaña y el inventario de nivel limitado.
+Las estadísticas del lado Worker y la reparación de inventario tratan a `campaign-pledges:{slug}` como un estado de proyección en lugar de una verdad permanente. Si el índice de una campaña se desvía de los registros de aporte activos subyacentes, las rutas de recálculo lo reparan automáticamente mientras reconstruyen los totales de la campaña y el inventario de nivel limitado.
 
-Antes de mutar algo, los operadores ahora pueden ejecutar comprobaciones de deriva de solo lectura a través de:
+Antes de mutar algo, los operadores pueden ejecutar comprobaciones de deriva de solo lectura a través de:
 
 - `POST /stats/:slug/check`
 - `POST /admin/projections/check`
@@ -98,7 +121,7 @@ Antes de mutar algo, los operadores ahora pueden ejecutar comprobaciones de deri
 
 Esas comprobaciones comparan las proyecciones almacenadas `campaign-pledges:{slug}`, `stats:{slug}` y `tier-inventory:{slug}` con la verdad del aporte activo y devuelven una diferencia estructurada en lugar de un estado de reparación silenciosa.
 
-La misma regla de "verdad guardada sobre el estado del borrador" ahora se aplica a los complementos de la plataforma: `_config.yml` define la línea base de inventario inicial para cada producto o variante, mientras que Worker almacena recuentos vendidos en `add-on-inventory-sold:v1`, actualiza esa proyección después de los eventos de creación, modificación o cancelación de aportes, y evita escaneos repetidos del espacio de nombres de aportes para lecturas normales de inventario después del arranque de la proyección inicial.
+La misma regla de "verdad guardada sobre el estado del borrador" se aplica a los complementos de la plataforma: `_config.yml` define la línea base de inventario inicial para cada producto o variante, mientras que las tiendas Worker vendidas cuentan en `add-on-inventory-sold:v1`, actualiza esa proyección después de los eventos de creación, modificación o cancelación del aporte, y evita escaneos repetidos del espacio de nombres del aporte para lecturas normales de inventario después del arranque de la proyección inicial.
 
 ## Configuración
 
@@ -669,7 +692,7 @@ curl -X POST https://worker.example.com/test/email \
 |`USPS_RATE_LIMIT_COOLDOWN_SECONDS`|Enfriamiento después de las respuestas de USPS `429`|
 |`DEFAULT_PLATFORM_TIP_PERCENT`|Porcentaje de propina de plataforma predeterminado reflejado desde `pricing.default_tip_percent`|
 |`MAX_PLATFORM_TIP_PERCENT`|Porcentaje máximo de propina de plataforma reflejado desde `pricing.max_tip_percent`|
-|`APP_MODE`|`"test"` o `"live"`: determina qué claves API utilizar. Las implementaciones de producción deben utilizar `"live"`; `dev` local usa `"test"`.|
+|`APP_MODE`|`"test"` o `"live"`: determina qué claves API utilizar. Las implementaciones de producción utilizan `"live"`; `dev` local usa `"test"`.|
 |`ADMIN_LOCAL_REPO_WRITES_ENABLED`|Protección solo para desarrolladores que permite a `APP_MODE=test` crear archivos de campaña de solo vista previa y archivar fuentes/medios de campaña en el repositorio local montado. No habilitar en trabajadores desplegados.|
 |`ADMIN_LOCAL_REPO_SERVICE`|URL de ayuda local solo para desarrolladores utilizada por Wrangler/Podman porque el tiempo de ejecución del trabajador no puede escribir archivos directamente. El valor predeterminado es `http://127.0.0.1:8799` en `env.dev`.|
 |`CORS_ALLOWED_ORIGIN`|El origen del navegador permite llamar al trabajador desde el panel/sitio|
@@ -706,13 +729,13 @@ Cuando `SITE_BASE` apunta al desarrollador local (`localhost` / `127.0.0.1`), la
 
 El correo electrónico de producción utiliza la bandeja de salida compartida duradera en `worker/src/email-outbox.js`: congela la carga útil renderizada, envía con una clave de idempotencia determinista Resend, reintenta fallas de proveedor limitadas y verifica la supresión local inmediatamente antes de la entrega. Mantenga nuevos flujos de trabajo en `queuePoolEmail` / `enqueueEmailOutbox` más las plantillas compartidas de `worker/src/email.js` para que la identidad del remitente, la localización, la marca, el consentimiento y el comportamiento del proveedor no se desvíen. El inicio de sesión de administrador y los envíos de prueba explícitos siguen siendo inmediatos.
 
-Nota de bifurcación: trate esas variables de identidad, marca de correo electrónico, precios y envío como espejos de la configuración estructurada del sitio en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml), especialmente las secciones `platform`, `design`, `pricing` y `shipping`. El carrito/tiempo de ejecución propios y la interfaz de usuario de pago en el sitio personalizada son comportamientos integrados de la plataforma ahora, no opciones de entorno de trabajo que normalmente debería personalizar directamente.
+Nota de bifurcación: trate esas variables de identidad, marca de correo electrónico, precios y envío como espejos de la configuración estructurada del sitio en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml), especialmente las secciones `platform`, `design`, `pricing` y `shipping`. El carrito/tiempo de ejecución propio y la interfaz de usuario personalizada de pago en el sitio son comportamientos integrados en la plataforma, no cambios de entorno Worker para personalización directa.
 
 Mantenga `USPS_CLIENT_SECRET` fuera de la configuración del sitio. Pertenece a los secretos del trabajador o [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars).
 
-Nota de localización: el trabajador ahora localiza los asuntos/el cuerpo del correo electrónico dirigidos a los patrocinadores y los enlaces `/manage/` / `/community/:slug/` localizados desde el catálogo de configuración regional del sitio compartido. En funcionamiento normal, recupera ese catálogo de `SITE_BASE/assets/i18n.json`; las pruebas y las implementaciones avanzadas pueden inyectar `I18N_CATALOG_JSON` en su lugar. Eso significa que los correos electrónicos de soporte localizados y las rutas localizadas como `/es/manage/` o `/es/community/:slug/` permanecen alineadas con el modelo local del sitio cuando una implementación agrega esas rutas.
+Nota de localización: Worker localiza los asuntos/el cuerpo del correo electrónico dirigidos a los patrocinadores y los enlaces `/manage/` / `/community/:slug/` localizados desde el catálogo de configuración regional del sitio compartido. En funcionamiento normal, recupera ese catálogo de `SITE_BASE/assets/i18n.json`; las pruebas y las implementaciones avanzadas pueden inyectar `I18N_CATALOG_JSON` en su lugar. Eso significa que los correos electrónicos de soporte localizados y las rutas localizadas como `/es/manage/` o `/es/community/:slug/` permanecen alineadas con el modelo local del sitio cuando una implementación agrega esas rutas.
 
-The Worker también ofrece vistas previas localizadas de tarjetas compartidas de campaña en `GET /share/campaign/:slug.png` con una consulta opcional `?lang=es`. El PNG generado refleja el lenguaje de estado/progreso de la campaña insertada y utiliza la campaña cuadrada `hero_image` dentro de la tarjeta. La ruta SVG permanece disponible en `GET /share/campaign/:slug.svg` para herramientas internas de vista previa/depuración, pero los metadatos públicos de `og:image` deben usar PNG u otra imagen rasterizada estática porque no todos los rastreadores externos aceptan imágenes SVG.
+Worker también ofrece vistas previas localizadas de tarjetas compartidas de campaña en `GET /share/campaign/:slug.png` con una consulta `?lang=es` opcional. El PNG generado refleja el lenguaje de estado/progreso de la campaña insertada y utiliza la campaña cuadrada `hero_image` dentro de la tarjeta. La ruta SVG permanece disponible en `GET /share/campaign/:slug.svg` para herramientas internas de vista previa/depuración, pero los metadatos públicos de `og:image` utilizan PNG u otra imagen rasterizada estática porque no todos los rastreadores externos aceptan imágenes SVG.
 
 ## Flujo de datos
 
@@ -751,7 +774,7 @@ npm run podman:doctor
 
 Eso inicia el sitio y el Trabajador juntos, y el Trabajador todavía se ejecuta con `--env dev` bajo el capó.
 
-La ruta más amplia del navegador automatizado ahora crea y ofrece un `_site` estático, por lo que las comprobaciones locales sin cabeza utilizan el mismo diseño de recursos de estilo publicado que el sitio creado en lugar de depender de `jekyll serve`.
+La ruta más amplia del navegador automatizado crea y ofrece un `_site` estático, por lo que las comprobaciones locales sin cabeza utilizan el mismo diseño de recursos de estilo publicado que el sitio creado en lugar de depender de `jekyll serve`.
 
 Si necesita específicamente el respaldo solo para trabajadores:
 
@@ -787,6 +810,6 @@ Las entradas del diario se transmiten automáticamente a los patrocinadores cuan
 3. Las nuevas entradas se transmiten a todos los patrocinadores de la campaña por correo electrónico.
 4. Las entradas enviadas se rastrean en KV (`diary-sent:{campaignSlug}`) para evitar correos electrónicos duplicados
 
-Las entradas del diario deben tener valores `id` estables. El panel conserva los ID existentes y el trabajador obtiene ID basados ​​en títulos al publicar entradas que aún no tienen uno. Las transmisiones automáticas rastrean los marcadores `id:{entryId}` y aún reconocen los marcadores de fecha heredados, incluidas las cadenas de fecha que solo difieren en el formato de segundos `:00`. La actualización del título de una entrada del diario, visualización de fecha, fase o contenido existente no debería enviar otro correo electrónico automático.
+Las entradas del diario requieren valores `id` estables. El panel conserva los ID existentes y Worker deriva ID basados ​​en títulos al publicar entradas que aún no tienen uno. Las transmisiones automáticas rastrean los marcadores `id:{entryId}` y aún reconocen los marcadores de fecha heredados, incluidas las cadenas de fecha que solo difieren en el formato de segundos `:00`. La actualización del título de una entrada del diario, visualización de fecha, fase o contenido existente no envía otro correo electrónico automático.
 
 **Configuración:** Asegúrese de que `ADMIN_SECRET` esté configurado como secreto del repositorio de GitHub para que la acción de implementación se autentique, o configure `ADMIN_BROADCAST_SECRET` tanto en los secretos de Cloudflare Worker como en los secretos del repositorio de GitHub cuando use credenciales de transmisión con alcance. Si la verificación posterior a la implementación recibe una página de desafío de Cloudflare, configure también `DIARY_CHECK_BYPASS_SECRET` más la regla de omisión de WAF correspondiente descrita anteriormente.

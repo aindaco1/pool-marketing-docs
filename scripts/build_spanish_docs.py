@@ -2,16 +2,18 @@
 
 from __future__ import annotations
 
-import re
 import os
+import re
 import subprocess
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from json import loads
+from json import dumps, loads
 from pathlib import Path
+from threading import Lock
+from urllib.error import HTTPError
 from urllib.parse import urlencode
-from urllib.request import urlopen
+from urllib.request import Request, urlopen
 
 import yaml
 
@@ -66,6 +68,9 @@ TITLE_OVERRIDES = {
     "Backup, Restore, and Recovery": "Copias de seguridad, restauración y recuperación",
     "Ethical Risk Review": "Revisión de riesgos éticos",
     "Platform README": "README de la plataforma",
+    "Product Video Workflow": "Flujo de trabajo de video de producto",
+    "Source Map": "Mapa de fuentes",
+    "Tax Calculator": "Calculadora de impuestos",
 }
 
 BODY_OVERRIDES = {
@@ -80,6 +85,7 @@ BODY_OVERRIDES = {
     "# Email System": "# Sistema de correo electrónico",
     "# Ethical Risk Review": "# Revisión de riesgos éticos",
     "**Open-source crowdfunding platform starter**": "**Base de plataforma de crowdfunding de código abierto**",
+    "This document contains prospective work only.": "Este documento contiene únicamente trabajo prospectivo.",
     "A static Jekyll + first-party cart site for all-or-nothing creative crowdfunding. Backers build a pledge in The Pool’s browser-owned cart, the Cloudflare Worker canonicalizes the contribution via `/checkout-intent/start`, and Stripe collects and saves card details through a secure on-site payment step so cards are only charged after a successful campaign reaches its deadline. A single checkout can include items from multiple campaigns; after webhook confirmation, the Worker fans that bundle out into separate campaign-scoped pledge records. If funded, the Worker scheduler dispatches batched settlement and charges pledges off-session. Supporters can optionally add a platform tip, manage pledges through order-scoped magic links, and revisit a desktop-friendly Manage Pledge dashboard with Active / Closed sections.": "Un sitio estático de Jekyll con un carrito propio para crowdfunding creativo de todo o nada. Los patrocinadores crean un aporte en el carrito de The Pool, el Worker de Cloudflare valida la contribución mediante `/checkout-intent/start` y Stripe recopila y guarda los datos de la tarjeta en un paso de pago seguro dentro del sitio, de modo que la tarjeta solo se cobra si una campaña exitosa alcanza su fecha límite. Una sola sesión de pago puede incluir artículos de varias campañas; tras la confirmación del webhook, el Worker distribuye ese paquete en registros de aporte separados por campaña. Si la campaña se financia, el programador del Worker envía la liquidación por lotes y cobra los aportes fuera de sesión. Los patrocinadores pueden añadir una propina opcional para la plataforma, gestionar sus aportes mediante enlaces mágicos limitados al pedido y volver a un panel de gestión de aportes optimizado para escritorio con secciones Activos y Cerrados.",
     "## Last Updated": "## Última actualización",
 }
@@ -99,11 +105,123 @@ MONTH_OVERRIDES = {
     "December": "diciembre",
 }
 
-cache: dict[str, str] = {}
+ANCHOR_OVERRIDES = {
+    "#cloudflare-plan-guidance-for-forks": "#cloudflare-guía-de-planificación-para-horquillas",
+}
+
+CACHE_DIR = ROOT / ".translation-cache"
+CACHE_PATH = CACHE_DIR / "spanish-docs.json"
 TRANSLATE_SEPARATOR = "\nZXQZXQPOOLBREAKZXQZXQ\n"
 TRANSLATE_MAX_CHARS = int(os.environ.get("POOL_TRANSLATE_MAX_CHARS", "1200"))
 TRANSLATE_TIMEOUT_SECONDS = float(os.environ.get("POOL_TRANSLATE_TIMEOUT_SECONDS", "15"))
-TRANSLATE_RETRIES = int(os.environ.get("POOL_TRANSLATE_RETRIES", "3"))
+TRANSLATE_RETRIES = int(os.environ.get("POOL_TRANSLATE_RETRIES", "8"))
+TRANSLATE_REQUEST_DELAY_SECONDS = float(
+    os.environ.get("POOL_TRANSLATE_REQUEST_DELAY_SECONDS", "1")
+)
+TRANSLATE_RETRY_MAX_DELAY_SECONDS = float(
+    os.environ.get("POOL_TRANSLATE_RETRY_MAX_DELAY_SECONDS", "60")
+)
+TRANSLATE_ENDPOINTS = [
+    (
+        os.environ.get(
+            "POOL_TRANSLATE_PRIMARY_URL",
+            "https://translate.googleapis.com/translate_a/single",
+        ),
+        "gtx",
+    ),
+    (
+        os.environ.get(
+            "POOL_TRANSLATE_FALLBACK_URL",
+            "https://clients5.google.com/translate_a/t",
+        ),
+        "dict-chrome-ex",
+    ),
+]
+cache_lock = Lock()
+
+
+def load_translation_cache() -> dict[str, str]:
+    if not CACHE_PATH.exists():
+        return {}
+    try:
+        value = loads(CACHE_PATH.read_text())
+    except (OSError, ValueError):
+        return {}
+    if not isinstance(value, dict):
+        return {}
+    return {str(key): str(item) for key, item in value.items()}
+
+
+def save_translation_cache_unlocked() -> None:
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    temporary = CACHE_PATH.with_suffix(".tmp")
+    temporary.write_text(dumps(cache, ensure_ascii=False, sort_keys=True))
+    temporary.replace(CACHE_PATH)
+
+
+cache: dict[str, str] = load_translation_cache()
+
+
+def decode_translation_payload(payload) -> str:
+    if isinstance(payload, list) and payload and all(isinstance(item, str) for item in payload):
+        return "".join(payload)
+    if (
+        isinstance(payload, list)
+        and payload
+        and isinstance(payload[0], list)
+    ):
+        return "".join(
+            str(part[0])
+            for part in payload[0]
+            if isinstance(part, list) and part
+        )
+    raise RuntimeError("Spanish docs translation returned an unexpected payload")
+
+
+def request_translation(text: str) -> str:
+    last_error: Exception | None = None
+
+    for attempt in range(TRANSLATE_RETRIES):
+        for endpoint, client in TRANSLATE_ENDPOINTS:
+            params = [
+                ("client", client),
+                ("sl", "en"),
+                ("tl", "es"),
+            ]
+            if client == "gtx":
+                params.append(("dt", "t"))
+            params.append(("q", text))
+            url = f"{endpoint}?{urlencode(params)}"
+
+            try:
+                request = Request(url, headers={"User-Agent": "Mozilla/5.0"})
+                with urlopen(request, timeout=TRANSLATE_TIMEOUT_SECONDS) as response:
+                    translated = decode_translation_payload(loads(response.read().decode("utf-8")))
+                if TRANSLATE_REQUEST_DELAY_SECONDS > 0:
+                    time.sleep(TRANSLATE_REQUEST_DELAY_SECONDS)
+                return translated
+            except Exception as error:  # noqa: BLE001
+                last_error = error
+
+        if attempt == TRANSLATE_RETRIES - 1:
+            break
+
+        delay = min(2**attempt, TRANSLATE_RETRY_MAX_DELAY_SECONDS)
+        if isinstance(last_error, HTTPError) and last_error.code == 429:
+            retry_after = last_error.headers.get("Retry-After")
+            if retry_after:
+                try:
+                    delay = min(
+                        max(delay, float(retry_after)),
+                        TRANSLATE_RETRY_MAX_DELAY_SECONDS,
+                    )
+                except ValueError:
+                    pass
+        time.sleep(delay)
+
+    if last_error is not None:
+        raise last_error
+    raise RuntimeError("Spanish docs translation did not return a result")
 
 
 def protect_text(text: str) -> tuple[str, list[str]]:
@@ -294,8 +412,10 @@ def translate_texts(texts: list[str]) -> list[str]:
             translated[index] = SECTION_TITLES[stripped]
             continue
 
-        if stripped in cache:
-            translated[index] = restore_text(cache[stripped], [])
+        with cache_lock:
+            cached = cache.get(stripped)
+        if cached is not None:
+            translated[index] = restore_text(cached, [])
             continue
 
         protected, placeholders = protect_text(stripped)
@@ -319,43 +439,21 @@ def translate_texts(texts: list[str]) -> list[str]:
             chunk_values = pending_values[start:end]
             chunk_meta = pending_meta[start:end]
             joined = TRANSLATE_SEPARATOR.join(chunk_values)
-            params = urlencode(
-                [
-                    ("client", "gtx"),
-                    ("sl", "en"),
-                    ("tl", "es"),
-                    ("dt", "t"),
-                    ("q", joined),
-                ]
-            )
-            url = f"https://translate.googleapis.com/translate_a/single?{params}"
-
-            last_error = None
-            payload = None
-            for attempt in range(TRANSLATE_RETRIES):
-                try:
-                    with urlopen(url, timeout=TRANSLATE_TIMEOUT_SECONDS) as response:
-                        payload = loads(response.read().decode("utf-8"))
-                    break
-                except Exception as error:  # noqa: BLE001
-                    last_error = error
-                    if attempt == TRANSLATE_RETRIES - 1:
-                        raise
-                    time.sleep(min(2**attempt, 5))
-
-            if payload is None and last_error is not None:
-                raise last_error
-
-            translated_joined = "".join(part[0] for part in payload[0])
+            translated_joined = request_translation(joined)
             batch = translated_joined.split(TRANSLATE_SEPARATOR)
 
             if len(batch) != len(chunk_values):
                 raise RuntimeError("Spanish docs translation batch returned an unexpected segment count")
 
+            cache_updates: dict[str, str] = {}
             for (index, stripped, placeholders), value in zip(chunk_meta, batch):
                 restored = restore_text(value, placeholders)
                 translated[index] = restored
-                cache[stripped] = restored
+                cache_updates[stripped] = restored
+
+            with cache_lock:
+                cache.update(cache_updates)
+                save_translation_cache_unlocked()
 
             start = end
 
@@ -388,6 +486,8 @@ def rewrite_docs_links(text: str) -> str:
     text = text.replace('href="/docs/', 'href="/es/docs/')
     text = text.replace('"/docs/', '"/es/docs/')
     text = text.replace(" /docs/", " /es/docs/")
+    for source, target in ANCHOR_OVERRIDES.items():
+        text = text.replace(source, target)
     return text
 
 
@@ -656,6 +756,9 @@ def seed_cache_from_committed_docs() -> None:
             if not paired:
                 cache_translation_pair(source_line, target_line)
 
+    with cache_lock:
+        save_translation_cache_unlocked()
+
 
 def translate_page(path: Path) -> None:
     relative_path = path.relative_to(SOURCE_DIR)
@@ -696,7 +799,7 @@ def main() -> int:
         if value.strip()
     }
 
-    paths = sorted(SOURCE_DIR.rglob("*.md"))
+    paths = list(SOURCE_DIR.rglob("*.md"))
     if requested_files:
         paths = [
             path
@@ -705,12 +808,26 @@ def main() -> int:
             or str(path.relative_to(SOURCE_DIR)) in requested_files
         ]
 
+    paths.sort(key=lambda path: (path.stat().st_size, str(path)))
+
     max_workers = max(1, int(os.environ.get("POOL_TRANSLATION_WORKERS", "1")))
 
-    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+    if max_workers == 1:
+        for path in paths:
+            translate_page(path)
+    else:
+        executor = ThreadPoolExecutor(max_workers=max_workers)
         futures = {executor.submit(translate_page, path): path for path in paths}
-        for future in as_completed(futures):
-            future.result()
+        try:
+            for future in as_completed(futures):
+                future.result()
+        except Exception:
+            for future in futures:
+                future.cancel()
+            executor.shutdown(wait=False, cancel_futures=True)
+            raise
+        else:
+            executor.shutdown()
 
     print(f"Built Spanish docs in {TARGET_DIR}")
     return 0

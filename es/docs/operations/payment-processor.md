@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-16 de julio de 2026
+25 de agosto de 2026
 
 The Pool utiliza Stripe como procesador de pagos, con Cloudflare Worker como límite canónico de pago, aporte, webhook y liquidación. El sitio público puede recopilar la intención del carrito, pero Worker reconstruye la forma del dinero, crea sesiones Stripe, mantiene los aportes y luego cobra los métodos de pago guardados solo cuando una campaña de todo o nada tiene éxito.
 
@@ -31,11 +31,11 @@ Stripe posee datos de tarjetas y campos de pago sensibles a PCI. The Pool posee 
 
 ## Principios de ingeniería
 
-El código de pago debe optimizarse para lograr una corrección aburrida sobre la inteligencia.
+El código de pago optimiza la aburrida corrección sobre la inteligencia.
 
 ### Sin dinero inventado
 
-Los valores monetarios en tiempo de ejecución que ingresan al almacenamiento de aportes, informes, correos electrónicos y solicitudes Stripe se representan como centavos enteros. Los autores de campañas y los archivos de configuración pueden usar dólares o tarifas por usabilidad, pero los registros Worker y las llamadas al procesador deben usar centavos en el límite.
+Los valores monetarios en tiempo de ejecución que ingresan al almacenamiento de aportes, informes, correos electrónicos y solicitudes Stripe se representan como centavos enteros. Los autores de campañas y los archivos de configuración pueden usar dólares o tarifas por usabilidad, pero los registros Worker y las llamadas al procesador usan centavos en el límite.
 
 Reglas para un nuevo código de pago:
 
@@ -453,7 +453,7 @@ Para aportes cargados más antiguas a las que les faltan detalles de transacció
 POST /admin/analytics/stripe-financials/backfill
 ```
 
-El relleno utiliza índices de aportes de campaña y búsquedas agrupadas de Stripe PaymentIntent. No debería escanear todo el espacio de nombres KV durante el funcionamiento normal.
+El relleno utiliza índices de aportes de campaña y búsquedas agrupadas de Stripe PaymentIntent. No escanea todo el espacio de nombres KV durante el funcionamiento normal.
 
 ### Lista de verificación de reconciliación
 

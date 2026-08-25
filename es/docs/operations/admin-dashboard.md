@@ -10,9 +10,11 @@ lang: es
 
 ## Última actualización
 
-16 de julio de 2026
+25 de agosto de 2026
 
-Este documento es la referencia del operador para el panel de administración privado de The Pool y debe ser tratado como la fuente de verdad para la edición de campañas, informes, análisis, enlaces de marketing, complementos y administración de usuarios basados ​​en el panel.
+Este documento es la referencia del operador y la fuente de verdad para The Pool.
+edición de campañas, informes, análisis y marketing privados basados en paneles de control
+enlaces, complementos y gestión de usuarios.
 
 ## Audiencia
 
@@ -31,7 +33,7 @@ El panel está disponible en:
 
 Los administradores inician sesión con un enlace mágico de correo electrónico. Workers implementado envía por correo electrónico el enlace a través de Resend y no lo devuelve en la respuesta del navegador. El desarrollo local puede exponer el enlace solo cuando el sitio/base Worker es localhost o cuando `ADMIN_EXPOSE_LOGIN_LINK=true` está configurado explícitamente; cuando se expone, el estado de inicio de sesión presenta un enlace **Abrir administrador** localizado en lugar de imprimir la URL tokenizada como texto. El desarrollo local otorga acceso de superadministrador de arranque a través de `ADMIN_BOOTSTRAP_EMAILS` en `worker/.dev.vars` ignorado; Los usuarios de semilla/recuperación de producción provienen de `_config.yml` `admin.users` o `ADMIN_USERS_JSON` implementados.
 
-El inicio de sesión de administrador puede requerir Cloudflare Turnstile. Configure la clave del widget público en `_config.yml` como `admin.turnstile_site_key` y almacene el `TURNSTILE_SECRET_KEY` coincidente como un secreto de trabajador. Cuando se configura el secreto, `POST /admin/auth/start` verifica el token de desafío antes de las escrituras con límite de velocidad, las escrituras sin inicio de sesión o la entrega de correo electrónico con enlace mágico. `ADMIN_TURNSTILE_BYPASS=true` está disponible solo para automatización local/de prueba y no debe habilitarse en trabajadores implementados.
+El inicio de sesión de administrador puede requerir Cloudflare Turnstile. Configure la clave del widget público en `_config.yml` como `admin.turnstile_site_key` y almacene el `TURNSTILE_SECRET_KEY` coincidente como un secreto Worker. Cuando se configura el secreto, `POST /admin/auth/start` verifica el token de desafío antes de las escrituras con límite de velocidad, las escrituras sin inicio de sesión o la entrega de correo electrónico con enlace mágico. `ADMIN_TURNSTILE_BYPASS=true` está disponible solo para automatización local/de prueba y no debe habilitarse en Workers implementado.
 
 Los usuarios administradores tienen dos roles:
 
@@ -72,7 +74,7 @@ El panel separa intencionalmente la navegación de solo lectura, los borradores 
 
 |acción|Almacenamiento/efecto secundario|
 |--------|------------------------|
-|Resumen del panel, análisis, informes, patrocinadores, filtrado de tablas y vista previa del contenido|Sólo lectura; debería agregar cero escrituras KV|
+|Resumen del panel, análisis, informes, patrocinadores, filtrado de tablas y vista previa del contenido|Sólo lectura; agrega cero escrituras KV|
 |Restauración de pestaña/subpestaña del panel|Solo estado de la interfaz de usuario local del navegador; recuerda la última pestaña de nivel superior permitida, la sección Configuración, la campaña Campañas seleccionada y la subpestaña Campañas sin escrituras de Worker, KV o GitHub|
 |Editor de contenido **Guardar borrador**|Solo borrador local del navegador|
 |Publicación del contenido/configuración de la campaña|El trabajador valida la entrada, escribe en archivos respaldados por GitHub, activa la ruta normal de reconstrucción/implementación y registra un evento de auditoría.|
@@ -91,7 +93,7 @@ El panel separa intencionalmente la navegación de solo lectura, los borradores 
 
 Las lecturas normales del tablero deben permanecer dentro del presupuesto de escritura KV descrito en `worker/README.md` y cubierto por pruebas.
 
-Las acciones de publicación respaldadas por GitHub requieren que el trabajador implementado tenga configurado `GITHUB_TOKEN` más las variables de metadatos del repositorio. Sin ese token, el panel aún puede explorar, redactar, obtener una vista previa, administrar usuarios en tiempo de ejecución y guardar códigos de referencia, pero las acciones de publicación fallarán con un mensaje de configuración de GitHub. Las acciones de publicación exitosas deberían dejar el botón Publicar desactivado nuevamente una vez que el estado del servidor guardado coincida con el estado del formulario local.
+Las acciones de publicación respaldadas por GitHub requieren que el Worker implementado tenga `GITHUB_TOKEN` más las variables de metadatos del repositorio configurados. Sin ese token, el panel aún puede explorar, redactar, obtener una vista previa, administrar usuarios en tiempo de ejecución y guardar códigos de referencia, pero las acciones de publicación fallarán con un mensaje de configuración GitHub. Las acciones de publicación exitosas dejan el botón Publicar desactivado nuevamente una vez que el estado del servidor guardado coincide con el estado del formulario local.
 
 ## Pestañas de nivel superior
 
@@ -111,7 +113,13 @@ Al recargar, el panel restaura la última pestaña de nivel superior permitida d
 
 Las configuraciones están agrupadas en una barra lateral izquierda. Los superadministradores pueden editar secciones de configuración publicables y guardar la administración de usuarios solo en tiempo de ejecución por separado.
 
-La barra lateral conserva el orden de Store v1.0.8 para cada sección compartida. The Pool pliega los campos separados de **URL canónicas** de Store en **Plataforma** y utiliza **Informes de ejecución de campaña** en el punto donde Store tiene sus valores predeterminados globales de **Marketing**. El esquema Worker mantiene los **Complementos de plataforma** en la posición **Preparación** Store específica del producto de Store, pero el navegador lo dirige a la pestaña **Complementos** de nivel superior de The Pool en lugar de duplicarlo en la barra lateral de Configuración. El orden de configuración visible resultante está cubierto por la automatización del navegador, mientras que el orden Worker completo está cubierto por la prueba del contrato de configuración:
+La barra lateral utiliza el orden compartido entre proyectos donde los productos se superponen.
+The Pool pliega los campos separados **URL canónicas** en **Plataforma** y utiliza
+**Informes del corredor de campaña** en la costura de marketing global. El esquema Worker
+mantiene **Complementos de plataforma** en el punto de preparación, mientras que el navegador los dirige a
+La pestaña **Complementos** de nivel superior de The Pool en lugar de duplicarla en Configuración
+barra lateral. La automatización del navegador cubre el orden visible y el contrato de configuración.
+La prueba cubre el pedido Worker completo:
 
 1. Plataforma
 2. Marca y SEO
@@ -142,7 +150,7 @@ El campo de zona horaria predeterminado es un menú de selección respaldado por
 
 Los campos de marca y búsqueda incluyen logotipo, logotipo de pie de página, favicon, imagen social predeterminada, identificador X, texto alternativo de imagen social predeterminada, enlaces iguales, país de política de devolución del comerciante y si el centro de la comunidad pública es indexable.
 
-The Pool v1.1.2 publica una política de no devoluciones tanto en los Términos públicos como en los datos estructurados de Shopping. El país se puede editar desde Brand & SEO y sigue siendo canónico en `_config.yml`; el tipo de póliza es de solo lectura como **Devoluciones no permitidas**. No exponga un control de política de devolución finito o ilimitado hasta que los términos públicos, los campos JSON-LD, la validación y las operaciones de cumplimiento admitan ese modelo en conjunto.
+The Pool publica una política de no devoluciones tanto en los Términos públicos como en los datos estructurados de Shopping. El país se puede editar desde Brand & SEO y sigue siendo canónico en `_config.yml`; el tipo de póliza es de solo lectura como **Devoluciones no permitidas**. No exponga un control de política de devolución finito o ilimitado hasta que los términos públicos, los campos JSON-LD, la validación y las operaciones de cumplimiento admitan ese modelo en conjunto.
 
 Utilice una URL igual por línea. Utilice URL de perfil público canónico, por ejemplo:
 
@@ -151,7 +159,7 @@ https://www.instagram.com/example
 https://www.imdb.com/name/nm0000000/
 ```
 
-El panel envía el idioma preferido actual al cargar la configuración. La normalización de filas del lado del navegador aún posee la mayor parte de la localización de etiquetas de administrador del grupo, pero la solicitud mantiene el esquema de configuración del trabajador listo para futuras etiquetas de campo y texto de opción localizados en el servidor.
+El panel envía el idioma preferido actual al cargar la configuración. La normalización de filas del lado del navegador posee la mayor parte de la localización de etiquetas de administración de The Pool, mientras que la solicitud mantiene el esquema de configuración de Worker compatible con las etiquetas de campo y el texto de opción localizados en el servidor.
 
 La pila local puede anular `SITE_BASE` y `WORKER_BASE` de `_config.local.yml`, pero `scripts/sync-worker-config.rb` mantiene `CANONICAL_SITE_BASE` y `CANONICAL_WORKER_BASE` fijados a los valores de producción de `_config.yml`. Eso permite que el panel local muestre los objetivos de publicación de producción sin interrumpir las solicitudes de localhost.
 
@@ -161,7 +169,7 @@ El proceso de pago expone la clave publicable Stripe utilizada por la interfaz d
 
 ### Precios, impuestos y envío
 
-Los precios cubren los valores de propinas de plataforma no secretas y tarifas fijas predeterminadas. Las secciones de impuestos y envío eligen proveedores y configuraciones de tiempo de ejecución no secretas. Los campos específicos del proveedor son condicionales; por ejemplo, los campos ZIP.TAX deben aparecer solo cuando se selecciona ZIP.TAX, y los campos USPS deben aparecer solo cuando USPS está habilitado.
+Los precios cubren los valores de propinas de plataforma no secretas y tarifas fijas predeterminadas. Las secciones de impuestos y envío eligen proveedores y configuraciones de tiempo de ejecución no secretas. Los campos específicos del proveedor son condicionales; por ejemplo, los campos ZIP.TAX aparecen solo cuando se selecciona ZIP.TAX y los campos USPS aparecen solo cuando USPS está habilitado.
 
 No almacene claves API ni secretos de proveedores en Configuración. Utilice secretos de trabajador o `.dev.vars` local ignorado.
 
@@ -191,7 +199,7 @@ El uso del plan es una sección de solo lectura exclusiva para superadministrado
 
 El trabajador llama a Cloudflare y Resend con credenciales del lado del servidor y devuelve nombres de planes, números de uso, límites, gravedad y enlaces de proveedores desinfectados. Los tokens del proveedor nunca llegan al navegador y el punto final no escribe KV ni enumera los espacios de nombres de KV.
 
-El uso de Cloudflare utiliza `CLOUDFLARE_USAGE_API_TOKEN` o `CLOUDFLARE_ANALYTICS_API_TOKEN` más `CLOUDFLARE_ACCOUNT_ID`. Agregue lectura de facturación al token de uso si la detección automática del plan de trabajadores debería funcionar; de lo contrario, establezca `PLAN_USAGE_CLOUDFLARE_PLAN`. El uso de Resend utiliza `RESEND_API_KEY`; Existen anulaciones de límites/plan opcionales porque las sondas Resend seguras pueden exponer encabezados de límite de velocidad sin encabezados de uso enviado mensualmente.
+El uso de Cloudflare utiliza `CLOUDFLARE_USAGE_API_TOKEN` o `CLOUDFLARE_ANALYTICS_API_TOKEN` más `CLOUDFLARE_ACCOUNT_ID`. Agregue lectura de facturación al token de uso para habilitar la detección automática del plan Workers; de lo contrario, establezca `PLAN_USAGE_CLOUDFLARE_PLAN`. El uso de Resend utiliza `RESEND_API_KEY`; Existen anulaciones de límites/plan opcionales porque las sondas Resend seguras pueden exponer encabezados de límite de velocidad sin encabezados de uso enviado mensualmente.
 
 ### Sesiones de administración
 
@@ -201,7 +209,7 @@ La sesión actual está etiquetada y no se puede revocar desde su propia fila. C
 
 ### Registro de auditoría
 
-El registro de auditoría es un historial operativo exclusivo para superadministradores. Se carga cuando se abre **Configuración -> Registro de auditoría** y admite filtros de fecha, acción, correo electrónico exacto del administrador, campaña y texto delimitado. La guía de fecha, acción, correo electrónico, campaña, búsqueda y estado/cambio utiliza la información sobre herramientas localizada compartida del botón de información del panel; Los filtros de acción y campaña utilizan opciones legibles al enviar sus identificadores internos canónicos. Las filas del navegador exponen solo la proyección de auditoría minimizada: hora, acción, administrador, campaña/pedido/producto/fuente objetivo, estado y nombres de campos modificados. Los identificadores de acciones internas conocidas se presentan como descripciones localizadas en lenguaje sencillo; Los identificadores futuros reciben un respaldo legible y sin puntuación. Los objetivos también resuelven títulos de campaña y describen pedidos, productos, superficies de plataforma u fuentes de eventos conservando el valor interno en el título de diagnóstico de la celda. Los slugs de campaña `local-no-user-<timestamp>` generados se muestran como **Campaña de prueba local (no asignada)** en lugar de exponer su marca de tiempo de implementación. Los identificadores sin procesar siguen siendo autorizados para el filtrado y la exportación CSV.
+El registro de auditoría es un historial operativo exclusivo para superadministradores. Se carga cuando se abre **Configuración -> Registro de auditoría** y admite filtros de fecha, acción, correo electrónico exacto del administrador, campaña y texto delimitado. La guía de fecha, acción, correo electrónico, campaña, búsqueda y estado/cambio utiliza la información sobre herramientas localizada compartida del botón de información del panel; Los filtros de acción y campaña utilizan opciones legibles al enviar sus identificadores internos canónicos. Las filas del navegador exponen solo la proyección de auditoría minimizada: hora, acción, administrador, campaña/pedido/producto/fuente objetivo, estado y nombres de campos modificados. Los identificadores de acciones internas conocidas se presentan como descripciones localizadas en lenguaje sencillo; Los identificadores desconocidos reciben un respaldo legible y sin puntuación. Los objetivos también resuelven títulos de campaña y describen pedidos, productos, superficies de plataforma u fuentes de eventos conservando el valor interno en el título de diagnóstico de la celda. Los slugs de campaña `local-no-user-<timestamp>` generados se muestran como **Campaña de prueba local (no asignada)** en lugar de exponer su marca de tiempo de implementación. Los identificadores sin procesar siguen siendo autorizados para el filtrado y la exportación CSV.
 
 **Estado/cambios** explica el resultado que reportó un evento y nombra los campos que cambió. No es necesario que los eventos informen ninguno de los valores, por lo que **Sin detalles adicionales** es un resultado válido en lugar de un error de carga. El resultado interno `empty` del adaptador de resumen Film Stripe se muestra como **No hay datos de resumen coincidentes**: la lectura se completó, pero ninguna de sus referencias asignadas de Film Stripe tenía métricas de resumen The Pool coincidentes.
 
@@ -230,15 +238,16 @@ Normas:
 
 Esta sección informa el estado configurado/faltante para las credenciales de tiempo de ejecución únicamente. No debe mostrar ni editar valores secretos.
 
-## Revisión de transferencia del panel de control Store v1.0.8
+## Límite del panel de control entre proyectos
 
-El panel Store es una fuente de patrones operativos reutilizables, no un segundo modelo de producto. La revisión v1.0.8 produjo este mapeo:
+El panel Store es una fuente de patrones operativos reutilizables, no un segundo
+modelo de producto. El mapeo The Pool actual es:
 
 |Superficie Store|Decisión The Pool|
 | --- | --- |
 |Sesiones de administración|Transferido al exponer las API de revisión/revocación de privacidad minimizada existentes de The Pool en Configuración|
 |Registro de auditoría y filtrado CSV|Se transfiere al exponer las API de auditoría con capacidad de búsqueda existentes de The Pool, con un filtro de campaña y campos de destino específicos de The Pool.|
-|Orden de la sección de configuración|Las secciones de la barra lateral compartidas coinciden con Store v1.0.8; Los informes del ejecutor The Pool ocupan la costura de marketing, mientras que el esquema de complementos de la plataforma de costura de preparación se dirige a la pestaña Complementos de nivel superior de The Pool.|
+|Orden de la sección de configuración|Las secciones de la barra lateral compartidas utilizan el orden entre proyectos; Los informes del ejecutor The Pool ocupan la costura de marketing, mientras que el esquema de complementos de la plataforma de costura de preparación se dirige a la pestaña Complementos de nivel superior de The Pool.|
 |Controles de la política de devolución del comerciante|Adaptado a la política actual de no devoluciones de The Pool: país editable más tipo de póliza de solo lectura; Los campos de retorno finito no admitidos permanecen ausentes.|
 |URL canónicas|Ya presente en Configuración -> Plataforma; ninguna sección duplicada|
 |Uso del plan, secretos, diagnósticos en tiempo de ejecución, configuración de rendimiento, usuarios|Ya presente en The Pool y retenido|
@@ -247,7 +256,9 @@ El panel Store es una fuente de patrones operativos reutilizables, no un segundo
 |Valores predeterminados de marketing globales de Store|No copiado: The Pool ya tiene enlaces de marketing relacionados con la campaña, borradores compartidos, referencias, códigos QR, incrustaciones y controles de recordatorio.|
 |Productos, cupones, descargas, boletos, pedidos y UI de conciliación|No copiado: los equivalentes admitidos de The Pool son campañas, complementos, patrocinadores, informes, liquidación y conciliación de aportes.|
 
-Las transferencias futuras deberían continuar reutilizando los asistentes de autenticación, solicitud, estado, tabla, localización, configuración y prueba existentes de The Pool en lugar de introducir almacenamiento con nombre Store o fuentes de verdad exclusivas del navegador.
+Al reutilizar otro patrón de administración de Dust Wave, use la autenticación, solicitud y autenticación existentes de The Pool.
+ayudantes de estado, tabla, localización, configuración y prueba; no introducir
+Almacenamiento con nombre Store o fuentes de verdad exclusivas del navegador.
 
 ## Complementos de plataforma
 
@@ -404,7 +415,7 @@ La pestaña Patrocinadores muestra filas de patrocinadores con alcance de rol co
 
 ## Analítica
 
-Los análisis se derivan de índices de aportes y resúmenes de campañas existentes. No debería crear escrituras KV específicas de análisis en la vista.
+Los análisis se derivan de índices de aportes y resúmenes de campañas existentes. No crea escrituras KV específicas de análisis en la vista.
 
 El panel muestra tarjetas para los totales de aportes, categorías de ingresos, ingresos netos después de las tarifas de procesador asignadas, impuestos, envío, tarifas de Stripe, estado del aporte, patrocinadores, aporte promedio, complementos de campaña, atribución de referencia, fuente/medio/campaña/contenido UTM, tipo de cumplimiento, idioma y otros desgloses derivados del aporte. Los valores monetarios muestran centavos exactos.
 
@@ -491,10 +502,10 @@ El panel sigue estas reglas del proyecto:
 - El alcance de las funciones y las campañas se aplica en el lado del servidor.
 - Los secretos nunca se almacenan en `_config.yml`, campaña YAML, borradores de paneles, registros de usuarios de KV o confirmaciones de GitHub.
 - Los correos electrónicos de acceso a vista previa se almacenan solo en listas permitidas de Worker KV de corta duración, no en Markdown de campaña, JSON público, salida de mapa del sitio ni metadatos de página generados.
-- Los cambios que agregan mensajes masivos, distribución de marketing, análisis, cambios de roles, visibilidad pública o retención de nuevos datos deben incluir la [revisión de riesgos éticos](/es/docs/development/ethical-risk-review/).
-- Se deben utilizar componentes de ayuda/etiqueta de administrador compartidos para los campos nuevos.
-- El editor oculto Chrome no debería ser accesible mediante el teclado.
-- Las tablas ordenables deben exponer `aria-sort`.
+- Los cambios que agregan mensajes masivos, distribución de marketing, análisis, cambios de roles, visibilidad pública o retención de nuevos datos requieren la [revisión de riesgos éticos](/es/docs/development/ethical-risk-review/).
+- Utilice etiquetas de administración compartidas/componentes de ayuda para nuevos campos.
+- El editor oculto Chrome no es accesible mediante el teclado.
+- Las tablas ordenables exponen `aria-sort`.
 
 Consulte `docs/SECURITY.md` y `docs/ACCESSIBILITY.md` para conocer los estándares detallados.
 
@@ -547,5 +558,3 @@ Consulte la portada de Markdown de la campaña y la respuesta de Configuración 
 ### Los informes, los patrocinadores o los análisis muestran mensajes de índice que faltan
 
 Los puntos finales de lectura del panel se basan en índices `campaign-pledges:{slug}` e intencionalmente no recurren a costosos escaneos de espacios de nombres. Ejecute las herramientas de reparación/reconstrucción de proyección explícitamente cuando a una campaña antigua le falte su índice.
-
----

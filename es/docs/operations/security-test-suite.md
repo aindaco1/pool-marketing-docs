@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-16 de julio de 2026
+25 de agosto de 2026
 
 Este directorio contiene pruebas centradas en la seguridad para la API de trabajador. Ejecútelos antes de implementarlos en producción.
 
@@ -35,7 +35,7 @@ WORKER_URL=https://worker.example.com PROD_MODE=true npm run test:security
 
 ## Configuración de desarrollo local
 
-Para las comprobaciones del webhook del trabajador en vivo, el secreto del webhook de Stripe debe configurarse localmente.
+Para las comprobaciones del webhook del trabajador en vivo, configure el secreto del webhook Stripe localmente.
 
 - `STRIPE_WEBHOOK_SECRET`
 
@@ -51,9 +51,9 @@ o la puerta de fusión:
 npm run test:premerge
 ```
 
-`npm run test:premerge` ahora incluye la auditoría secreta automáticamente ante las suites Worker, Smoke y Browser.
+`npm run test:premerge` incluye la auditoría secreta automáticamente antes de las suites Worker, smoke y browser.
 
-Para que las pruebas de limitación de velocidad funcionen localmente, asegúrese de que el espacio de nombres `RATELIMIT` KV esté configurado en `wrangler.toml`. El Trabajador ahora trata esa vinculación como se requiere:
+Para que las pruebas de limitación de velocidad funcionen localmente, asegúrese de que el espacio de nombres `RATELIMIT` KV esté configurado en `wrangler.toml`. El Worker trata esa vinculación según sea necesario:
 
 ```toml
 # In [[kv_namespaces]] section (production)
@@ -98,12 +98,12 @@ preview_id = "YOUR_RATELIMIT_PREVIEW_ID"
 - Cargas útiles XSS en campos de usuario
 
 ### 5. Limitación de tasa (`rate-limiting.test.ts`)
-- Las ráfagas públicas de `/stats/:slug` deben permanecer sin límites para que la viralidad de la campaña no se trate como abuso
-- Las solicitudes de ráfaga a `/checkout-intent/start` deberían llegar al depósito de escritura obligatorio
-- Las lecturas y escrituras de Manage Pledge deberían alcanzar sus propios niveles más altos pero obligatorios.
+- Las ráfagas públicas de `/stats/:slug` permanecen sin límites para que la viralidad de la campaña no se trate como abuso
+- Las solicitudes de ráfaga a `/checkout-intent/start` llegan al depósito de escritura obligatorio
+- Las lecturas y escrituras de Manage Pledge alcanzan sus propios niveles superiores pero obligatorios
 - Votar intentos de spam (límite de 45 solicitudes/min)
 - Simulación de fuerza bruta del administrador (límite de 5 solicitudes/min)
-- La prevención del agotamiento de recursos debería rechazar los cuerpos de caja de gran tamaño con `413`
+- La prevención del agotamiento de recursos rechaza los cuerpos de caja de gran tamaño con `413`
 - Resiliencia DoS y seguridad de operaciones concurrentes
 - Seguridad de operación concurrente
 
@@ -145,13 +145,13 @@ import { test, expect, describe } from 'vitest';
 import { securityFetch, expectUnauthorized } from './helpers';
 
 describe('My Security Test', () => {
-  test('should reject invalid input', async () => {
+  test('rejects invalid input', async () => {
     const res = await securityFetch('/endpoint', {
       method: 'POST',
       body: JSON.stringify({ malicious: '<script>alert(1)</script>' })
     });
 
-    // Test should pass if properly rejected
+    // The test passes when the request is rejected.
     expect(res.status).toBe(400);
   });
 });

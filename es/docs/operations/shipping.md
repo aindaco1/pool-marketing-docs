@@ -10,15 +10,16 @@ lang: es
 
 ## Última actualización
 
-16 de julio de 2026
+25 de agosto de 2026
 
-Este documento describe el modelo de envío actual en The Pool, incluido su flujo de precios centrado en el trabajador, la superficie de configuración orientada a la bifurcación, el límite de integración de USPS y el árbol de reglas que ahora siguen el carrito, el pago, la gestión de aportes, los informes y los correos electrónicos.
+Este documento describe el flujo de envío actual de The Pool-first,
+superficie de configuración orientada a la bifurcación, límite de integración USPS y árbol de reglas compartido
+por carrito, pago, gestión de aporte, informes y correos electrónicos.
 
-La verificación en vivo de credenciales de USPS ahora está conectada al flujo de trabajo local. El repositorio incluye un asistente de humo de USPS dedicado además de regresiones automatizadas para los flujos de envío del carrito, el pago y la gestión de aportes.
+El flujo de trabajo local incluye verificación de credenciales USPS en vivo, un USPS dedicado
+ayudante de humo y regresiones automatizadas para carrito, pago y gestión de aporte.
 
-## Alcance recomendado
-
-Alcance implementado actualmente:
+## Alcance actual
 
 - Clasificación en vivo de USPS para **nacionales de EE. UU.**
 - Clasificación en vivo de USPS para **internacional**
@@ -29,6 +30,24 @@ Alcance implementado actualmente:
 - un catálogo preestablecido compartido para artículos físicos comunes
 
 Para The Pool, la tarifa alternativa es **$3,00**.
+
+## Propiedades del sistema
+
+- utilizar precios basados en el operador en lugar de la tarifa fija por campaña anterior
+- mantener el Worker como fuente canónica de totales de envío
+- preservar la coherencia en el proceso de pago, modificación de aportes, informes y correo electrónico
+- manténgase seguro en el uso de cuotas USPS y el uso de Cloudflare KV
+- hacer que el modelo de envío sea configurable y compatible con fork
+- preservar las líneas base actuales de seguridad, accesibilidad y localización mientras lo hace
+
+## Límites actuales
+
+- sin selector amplio de operador/servicio basado en la velocidad
+- sin motor de embalaje personalizado
+- sin cálculo de envío del lado del navegador a partir de tablas USPS almacenadas
+- compra sin etiqueta
+- sin abstracción multiportadora
+- ningún intento de resolver las reglas fiscales fuera de los EE. UU. como parte del envío
 
 ## Barandillas
 
@@ -42,7 +61,7 @@ La calculadora de envíos debe cumplir con el modelo de seguridad vigente:
 - sin llamadas directas inseguras del navegador a USPS
 - no hay almacenamiento de larga duración para el cliente del estado de cotización de envío sensible más allá de lo que el flujo de pago actual ya necesita
 - Las fallas de USPS deben degradarse a la tasa de respaldo configurada en lugar de crear una derivación insegura o un estado de pago roto
-- Cualquier respuesta nueva de los trabajadores que contenga información interna sobre cotizaciones de envío debe seguir la postura actual de respuesta privada o sin tienda, cuando corresponda.
+- Las respuestas Worker que contienen información interna sobre cotizaciones de envío utilizan la postura actual de respuesta privada/sin tienda cuando corresponda.
 
 ### Accesibilidad
 
@@ -52,30 +71,24 @@ La función de envío debe preservar la línea base de accesibilidad actual:
 - Cualquier nuevo error o aviso debe vincularse a los campos relevantes y a las regiones en vivo de manera adecuada.
 - Las actualizaciones del resumen de envío en el proceso de pago y en Administrar aporte deben seguir siendo comprensibles para el lector de pantalla.
 - no hay regresiones a la semántica de diálogo/enfoque/error existente en checkout o `Update Card`
-- La cobertura de accesibilidad a nivel del navegador debe ampliarse si se introducen nuevos estados de la interfaz de usuario de envío.
+- Los nuevos estados de la interfaz de usuario de envío requieren una cobertura de accesibilidad coincidente a nivel del navegador.
 
 ### Internacionalización
 
 La característica de envío debe ajustarse al modelo i18n actual:
 
-- Las etiquetas de envío propiedad del sitio, los mensajes alternativos y el texto de resumen deben provenir de catálogos locales.
-- Los correos electrónicos de apoyo a los trabajadores deben utilizar etiquetas/desgloses de envío localizados donde ya incluyan los totales de envío.
-- no se debe introducir ninguna copia codificada únicamente en inglés en el proceso de pago, en la gestión de aportes, en las páginas de resultados o en los correos electrónicos.
-- la característica debería funcionar correctamente en rutas localizadas como `/es/manage/` y rutas de entrada de pago localizadas
+- Las etiquetas de envío propiedad del sitio, los mensajes alternativos y el texto de resumen provienen de catálogos locales.
+- Los correos electrónicos de soporte de Worker utilizan etiquetas/desgloses de envío localizados donde incluyen los totales de envío
+- el pago, la gestión del aporte, las páginas de resultados y los correos electrónicos no agregan una copia de envío codificada solo en inglés
+- rutas localizadas como `/es/manage/` utilizan el mismo contrato de envío
 
 ## Por qué encaja este alcance
 
 ### riesgo de USPS
 
-Las API de precios de USPS parecen utilizables sin una facturación obvia por llamada para el acceso a precios básicos, pero tienen una cuota limitada y pueden requerir solicitudes manuales de aumento de cuota.
-
-Eso significa que el principal riesgo operativo es:
-
-- cuota / limitación
-
-no obviamente:
-
-- cargos directos de USPS por solicitud
+Las cuotas USPS, los requisitos de acceso y los términos comerciales son de proveedor externo.
+estado. Verifíquelos en la documentación actual de USPS. La aplicación trata la cuota.
+y limitación como riesgos operativos y no hace ningún reclamo sobre los precios del proveedor.
 
 ### riesgo KV
 
@@ -86,13 +99,13 @@ El flujo de pago actual ya utiliza Trabajador/KV para:
 - actualizaciones de estadísticas
 - reservas de nivel limitado
 
-El envío no debería agregar una huella KV nueva y grande. El diseño seguro es:
+El envío no agrega una gran huella de historial de cotizaciones KV:
 
 - cotizar el envío solo en puntos de alta intención
 - Evite escrituras KV por cotización
 - persistir solo el monto de envío final en el aporte
 
-## Diseño de alto nivel
+## Diseño
 
 ### 1. Envío calculado por el trabajador
 
@@ -133,13 +146,16 @@ Mantenga la opción establecida intencionalmente limitada:
   - solo nacional
   - Solo se muestra cuando la campaña lo habilita explícitamente.
 
-No exponga opciones de servicios basados ​​en la velocidad en v1. Las recompensas de crowdfunding a menudo se envían mucho después de la fecha de aporte, por lo que la velocidad de entrega no es la opción más importante para el cliente en este caso; la confirmación de entrega es.
+La interfaz no expone opciones de servicios basadas en la velocidad. Recompensas de financiación colectiva
+a menudo se envían mucho después de la fecha de aporte, por lo que la confirmación de entrega es útil
+elección del patrocinador.
 
 Por lo tanto, el carrito actual y la interfaz de usuario de Manage Pledge exponen un selector de opciones de entrega limitado en lugar de un selector de clase de correo completo. El Trabajador aún elige la clase de envío válida subyacente más barata para `Standard`.
 
 ## Superficie de configuración
 
-Agregue una sección estructurada `shipping` a [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml), por ejemplo:
+La sección estructurada `shipping` se encuentra en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml), por
+ejemplo:
 
 ```yml
 shipping:
@@ -241,7 +257,8 @@ shipping:
           - PRIORITY_MAIL
 ```
 
-Esa configuración debe permanecer controlada por el sitio y reflejar automáticamente cualquier valor requerido por el trabajador en [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml).
+Esa configuración permanece basada en el sitio y refleja automáticamente los valores requeridos por Worker en
+[`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml).
 
 Las sugerencias de envío opcionales de nivel preestablecido también pueden incluirse dentro de los metadatos preestablecidos. La implementación actual admite:
 
@@ -271,11 +288,11 @@ Eso significa que puede codificar un orden conservador de “clase válida más 
 
 Intencionalmente no aplicamos automáticamente la verdadera lógica de "letra" o "plana". La ruta API de precios de USPS actual que utilizamos no expone directamente la calificación plana o de cartas de primera clase nacionales, por lo que los precios de correo plano se manejan como una tabla manual explícita, no como una cotización de USPS en vivo.
 
-## Cambios en el modelo de contenido
+## Modelo de contenido
 
 ### Niveles
 
-Agregue metadatos de envío opcionales a los niveles físicos:
+Los niveles físicos aceptan metadatos de envío opcionales:
 
 ```yml
 tiers:
@@ -331,9 +348,8 @@ El panel de administración sigue la misma interfaz de usuario condicional para 
 
 ## Estrategia de embalaje
 
-No cree una cartonización completa en v1.
-
-Utilice una heurística más simple:
+La implementación actual utiliza una heurística limitada en lugar de una completa.
+cartonización:
 
 - sumar los pesos de los artículos entre artículos físicos y cantidades
 - agregar cualquier asignación única `packaging_weight_oz` de los perfiles de nivel/elemento de soporte seleccionados
@@ -341,7 +357,8 @@ Utilice una heurística más simple:
 - use `height_in + stack_height_in * (qty - 1)` para niveles físicos de múltiples cantidades
 - pasar el paquete resultante a la calificación de USPS
 
-Esto es aproximado, pero mucho más realista que la tarifa fija actual y mucho menor que construir un motor de embalaje real.
+Esto es aproximado, pero más realista que la tarifa plana anterior y está lejos
+más pequeño que un motor de embalaje completo.
 
 ## Estrategia de uso de USPS
 
@@ -356,7 +373,8 @@ Para esta plataforma, **no** necesitas las API de etiquetas para cotizar el env�
 
 Estos son parte del producto de aplicación predeterminado de USPS que se describe en el flujo de introducción oficial de USPS.
 
-A partir del 14 de abril de 2026, la ruta práctica de configuración es:
+Las pantallas de incorporación de USPS pueden cambiar independientemente de este repositorio. en el
+portal actual, la ruta de configuración es:
 
 1. Cree o inicie sesión en una cuenta comercial de USPS a través del Portal de incorporación de clientes (COP) de USPS.
 2. En COP, abra `My Apps` y cree una aplicación.
@@ -419,7 +437,8 @@ Ese ayudante ejercita el módulo de envío de trabajadores real contra una peque
 - envío solo del complemento de la campaña
 - Envío solo de complemento de plataforma
 
-USPS también dice que puede realizar pruebas con sus credenciales de producción en el entorno de prueba para anuncios publicitarios cambiando la URL base de `apis.usps.com` a `apis-tem.usps.com`.
+El entorno de prueba para anuncios publicitarios utiliza la URL base `apis-tem.usps.com` en
+lugar de `apis.usps.com`.
 
 El producto de aplicación USPS predeterminado actualmente incluye las API que necesita esta función:
 
@@ -430,13 +449,13 @@ El producto de aplicación USPS predeterminado actualmente incluye las API que n
 
 Si necesita acceso adicional o un aumento de cuota, USPS indica a los desarrolladores que envíen una solicitud de servicio a través de su flujo de soporte `Email Us`.
 
-Lo que puedes ignorar con seguridad para este repositorio ahora mismo:
+La integración de cotización actual no utiliza:
 
 - API de etiquetas
 - Inscripción de barco/EPA
 - cualquier configuración de etiqueta de devolución o franqueo de compra
 
-Estos solo son necesarios si este proyecto pasa de cotizar a generar etiquetas USPS reales.
+Estos pertenecen a la generación de etiquetas, que está fuera del producto actual.
 
 Nota operativa práctica para esta plataforma:
 
@@ -462,9 +481,8 @@ No llame a USPS:
 
 ### Almacenamiento en caché
 
-Evite el almacenamiento en caché del historial de cotizaciones respaldado por KV en v1.
-
-Si es necesario, utilice un caché de estilo de caché de plataforma/en memoria de corta duración codificado por:
+La ruta de envío no utiliza el almacenamiento en caché del historial de cotizaciones respaldado por KV. De corta duración
+La reutilización en memoria está determinada por:
 
 - origen ZIP
 - país de origen
@@ -477,7 +495,7 @@ La regla importante es:
 
 - no convierta las cotizaciones de envío en un subsistema KV de alta escritura
 
-El selector de país de pago ahora se alimenta desde [`_data/shipping_countries.yml`](https://github.com/your-org/your-project/blob/main/_data/shipping_countries.yml), lo que mantiene el mantenimiento del destino de USPS en una fuente dedicada en lugar de ocultarlo en el código de ejecución del navegador.
+El selector de país de pago se alimenta de la instantánea [`_data/shipping_countries.yml`](https://github.com/your-org/your-project/blob/main/_data/shipping_countries.yml) generada. La plataforma posee el registro canónico junto a `shipping-core`; use `npm run shipping-countries:sync` después de una actualización de pin y `npm run shipping-countries:check` para detectar deriva.
 
 ## Puntos de contacto entre trabajadores y frontend
 
@@ -488,7 +506,7 @@ Las costuras lógicas principales ya existen en:
 - [trabajador/src/index.js](https://github.com/your-org/your-project/blob/main/worker/src/index.js)
 - [trabajador/src/proveedor-config.js](https://github.com/your-org/your-project/blob/main/worker/src/provider-config.js)
 
-El flujo de envío actual ahora:
+El flujo de envío actual:
 
 - detecta elementos físicos
 - construye una estimación de envío
@@ -497,13 +515,16 @@ El flujo de envío actual ahora:
 
 ### Interfaz
 
-La interfaz de usuario de carrito/administración puede permanecer estructuralmente similar:
+El carrito y la interfaz de usuario para administrar aportes:
 
 - mostrar el envío en filas de resumen
 - Continuar recopilando la dirección de envío para pedidos físicos.
-- no hay nueva interfaz de usuario del operador orientada al usuario en v1
+- no expone ningún selector amplio de operador/servicio
 
-El panel de administración es una interfaz orientada al operador para los mismos metadatos de envío. No debería introducir un segundo modelo de envío. Los nuevos campos del panel deben serializarse en `shipping_preset`, `shipping_fallback_flat_rate`, `shipping_options` o los campos del paquete anidado `shipping.*` que ya consume el trabajador.
+El panel de administración es una interfaz orientada al operador para el mismo envío.
+metadatos y no introduce un segundo modelo. Los nuevos campos del panel se serializan
+a `shipping_preset`, `shipping_fallback_flat_rate`, `shipping_options` o el
+campos del paquete `shipping.*` anidados ya consumidos por Worker.
 
 ## Estrategia de prueba
 
@@ -521,20 +542,6 @@ La cobertura automatizada actual incluye:
   - recálculo de envío de aporte de modificación
 - Cobertura de regresión de accesibilidad para cualquier nuevo estado de UI de solo envío
 - Cobertura de ruta localizada para garantizar que los resúmenes de envío y los errores permanezcan traducidos en las configuraciones regionales iniciales.
-
-## Actualizaciones de documentación y políticas
-
-Documentos actuales que deberían mantenerse alineados con el comportamiento de envío:
-
-- [README.md](/es/docs/development/platform-readme/)
-- [docs/PERSONALIZACIÓN.md](/es/docs/development/customization-guide/)
-- [docs/DEV_NOTES.md](/es/docs/development/developer-notes/)
-- [docs/TESTING.md](/es/docs/operations/testing/)
-- [términos.md](/es/docs/overview/terms-and-guidelines/)
-
-Los términos deberían dejar de prometer una tarifa fija de envío físico y, en su lugar, describir las reglas de envío configuradas para la implementación, incluidas cotizaciones calificadas por el transportista y tarifas alternativas cuando corresponda.
-
-Es posible que la redacción de privacidad también necesite una pequeña actualización si los detalles del destino se envían a USPS para el cálculo de la cotización.
 
 ## Árbol de reglas actual
 
@@ -559,7 +566,7 @@ El Trabajador se salta el USPS en vivo cuando ya se conoce el resultado:
 - una campaña con un `shipping_fallback_flat_rate` explícito utiliza esa anulación de campaña directamente para el envío de esa campaña.
 - Los ajustes preestablecidos nacionales `manual_domestic_rate` calificados utilizan la tabla manual explícita directamente
 
-En este momento esa ruta manual se usa para:
+La ruta manual se utiliza para:
 
 - `sticker`
 - `signed_script`
@@ -611,13 +618,14 @@ El respaldo de implementación sigue siendo:
 
 - `shipping.fallback_flat_rate: 3.00`
 
-Pero ese respaldo sólo debería aparecer cuando:
+El respaldo aparece solo cuando:
 
 - USPS no está disponible
 - USPS no devuelve ninguna tarifa utilizable
 - el envío no tiene una anulación válida más específica o una ruta de tabla manual
 
-La plataforma no debería mostrar el respaldo `$3.00` como una estimación falsa cuando simplemente aún no lo hemos cotizado.
+La plataforma no muestra el respaldo `$3.00` como una estimación falsa antes de una
+intento de cotización.
 
 ## Comportamiento del carrito y del pago
 
@@ -637,7 +645,7 @@ Muestra el campo ZIP cuando:
 
 ### Modo de estimación
 
-Cuando se requiere un ZIP pero aún no se ha ingresado completamente, la interfaz de usuario debe permanecer en modo de estimación:
+Cuando se requiere un ZIP pero está incompleto, la interfaz de usuario permanece en modo de estimación:
 
 - `Estimated shipping`
 - `--`
@@ -646,11 +654,12 @@ Cuando se requiere un ZIP pero aún no se ha ingresado completamente, la interfa
 
 Esto se aplica tanto en el sidecar del carrito como en la vista previa de pago alojada/en el sitio.
 
-La entrada postal parcial también debería permanecer en modo estimación. El carrito no debe mostrar brevemente el respaldo plano mientras el usuario todavía está escribiendo.
+La entrada postal parcial permanece en modo estimación. El carro no muestra el piso.
+respaldo mientras el usuario todavía está escribiendo.
 
 ### Estados de envío conocidos en la interfaz de usuario
 
-La interfaz debe distinguir entre estos estados:
+La interfaz distingue entre estos estados:
 
 - envío a tanto alzado conocido
   - sin campo ZIP si no se necesita cotización en vivo
@@ -663,9 +672,7 @@ La interfaz debe distinguir entre estos estados:
 - falla de USPS
   - Se muestra el respaldo configurado en lugar de bloquear el proceso de pago.
 
-## Estado de aceptación actual
-
-La implementación del envío está en buen estado cuando:
+## Comportamiento verificado actual
 
 - los aportes físicas nacionales e internacionales pueden usar la calificación en vivo de USPS a través del Trabajador
 - La tarifa plana de campaña anula el cortocircuito de USPS para esos envíos de campaña.

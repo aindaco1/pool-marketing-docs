@@ -15,7 +15,7 @@ Utilice esta sección para comprender qué es The Pool, qué promete públicamen
 
 ## Lea estos primero
 
-- [Acerca de The Pool](/es/docs/overview/about-the-pool/) para la explicación pública, la experiencia de los seguidores, las herramientas para creadores, la arquitectura, el modelo de alojamiento y el contexto de despliegue.
+- [Acerca de The Pool](/es/docs/overview/about-the-pool/) para la explicación pública, la experiencia de los patrocinadores, las herramientas para creadores, la arquitectura, el modelo de alojamiento y el contexto de despliegue.
 - [Términos y pautas creativas](/es/docs/overview/terms-and-guidelines/) para conocer las expectativas de políticas, manejo de pagos, cumplimiento, reembolsos y lenguaje de privacidad.
 
 ## Cuándo abandonar esta sección

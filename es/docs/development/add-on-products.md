@@ -10,9 +10,9 @@ lang: es
 
 ## Última actualización
 
-16 de julio de 2026
+25 de agosto de 2026
 
-Este documento describe el sistema de producto complementario actual tal como se envía actualmente.
+Este documento describe el sistema de producto complementario actual.
 
 La plataforma admite dos ámbitos complementarios que comparten intencionalmente la misma experiencia de usuario de la tarjeta y al mismo tiempo se comportan de manera diferente en contabilidad, envío y cumplimiento:
 
@@ -239,7 +239,7 @@ El catálogo actual está expuesto a la configuración del tiempo de ejecución 
 
 Eso significa que la interfaz de usuario del lado del carrito y de Manage Pledge puede leer una fuente de verdad estable `POOL_CONFIG.addOns` en lugar de duplicar los datos del producto en múltiples plantillas o scripts.
 
-El trabajador ahora también tiene una fuente de catálogo estática coincidente en [/api/add-ons.json](https://github.com/your-org/your-project/blob/main/api/add-ons.json), y los manifiestos de pago pendientes pueden contener:
+Worker también tiene una fuente de catálogo estática coincidente en [/api/add-ons.json](https://github.com/your-org/your-project/blob/main/api/add-ons.json), y los manifiestos de pago pendientes pueden contener:
 
 - `bundleAddOns`
 - `bundleAddOnAnchorCampaignSlug`
@@ -270,13 +270,13 @@ Esto funciona bien para extras monetarios específicos de la campaña, pero no e
 - merchandising en toda la plataforma
 - artículos del catálogo de precio fijo
 - variantes estructuradas como tallas de camisa
-- Mercancía propiedad de la campaña que debe compartir la misma interfaz de usuario de tarjeta de producto que la mercancía de la plataforma.
+- Mercancía propiedad de la campaña que comparte la misma interfaz de usuario de tarjeta de producto que la mercancía de la plataforma.
 
 El catálogo de productos complementarios está destinado a ubicarse junto a ese sistema, no a reemplazarlo.
 
 ## Informes y cumplimiento
 
-Los informes ahora distinguen intencionalmente entre complementos de plataforma y campaña.
+Los informes distinguen intencionalmente entre complementos de plataforma y campaña.
 
 En `pledge-report`:
 
@@ -289,3 +289,6 @@ En `fulfillment-report`:
 - Los complementos de la campaña permanecen adjuntos a la campaña y la utilizan como cumplimiento.
 
 Esto mantiene clara la propiedad operativa sin cambiar la interfaz de usuario del complemento orientada a los patrocinadores.
+
+El catálogo prospectivo y el trabajo de inventario compartido se rastrean en el
+[Hoja de ruta](/es/docs/reference/roadmap/).
