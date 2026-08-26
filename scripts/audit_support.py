@@ -59,6 +59,10 @@ def audit_page(rel: str, source: str, cadences: set[str], errors: list[str]) -> 
     html = path.read_text(errors="replace")
     if "Meet Dust Wave" in html or "Conoce a Dust Wave" in html:
         errors.append(f"{label}: redundant standalone Dust Wave link returned")
+    if "Both options continue to a secure Stripe checkout" in html:
+        errors.append(f"{label}: redundant Stripe checkout explainer returned")
+    if "Ambas opciones continúan a un checkout seguro de Stripe" in html:
+        errors.append(f"{label}: redundant Stripe checkout explainer returned")
 
     found_cadences = {link.get("data-support-cadence", "") for link in parser.links}
     if len(parser.links) != len(cadences) or found_cadences != cadences:
