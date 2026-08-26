@@ -460,7 +460,6 @@ summary:focus-visible,
   text-transform: uppercase;
 }
 
-.support-page__brand-link,
 .support-payment__header p,
 .support-payment__provider-note,
 .support-option p,
@@ -468,7 +467,6 @@ summary:focus-visible,
   margin: 0;
 }
 
-.support-page__brand-link a,
 .support-note a {
   font-weight: 800;
 }
@@ -544,6 +542,9 @@ summary:focus-visible,
 }
 
 .support-note {
+  display: grid;
+  align-content: start;
+  gap: 0.8rem;
   padding: 1.25rem;
 }
 
