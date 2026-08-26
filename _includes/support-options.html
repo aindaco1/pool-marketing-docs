@@ -1,0 +1,41 @@
+{% assign support_config = site.data.support %}
+<section class="support-payment" aria-labelledby="support-options-title">
+  <div class="support-payment__header">
+    <p class="support-payment__eyebrow" data-i18n="support.options_eyebrow">Support options</p>
+    <h2 id="support-options-title" data-i18n="support.options_title">Choose how you want to help</h2>
+    <p data-i18n="support.options_intro">Both options continue to a secure Stripe checkout. One-time support lets you choose the amount.</p>
+  </div>
+
+  <div class="support-options" data-support-contract="{{ support_config.contract_version }}">
+    {% for option in support_config.options %}
+      {% assign checkout_link = option.links.default %}
+      <article class="support-option support-option--{{ option.key }}">
+        <p class="support-option__cadence" data-i18n="support.{{ option.key }}_eyebrow">
+          {% if option.key == 'one_time' %}One-time support{% else %}Monthly support{% endif %}
+        </p>
+        <h3 data-i18n="support.{{ option.key }}_title">
+          {% if option.key == 'one_time' %}Choose your amount{% else %}Keep the work moving{% endif %}
+        </h3>
+        <p data-i18n="support.{{ option.key }}_body">
+          {% if option.key == 'one_time' %}Give once at the amount that works for you.{% else %}Provide steady support for maintenance, releases, and documentation.{% endif %}
+        </p>
+        <p class="support-option__amount" data-i18n="support.{{ option.key }}_amount">
+          {% if option.key == 'one_time' %}$10 suggested · choose any amount{% else %}$5 per month{% endif %}
+        </p>
+        <div class="support-option__cta">
+          <a
+            class="pool-button {% if option.key == 'one_time' %}pool-button--primary{% else %}pool-button--secondary{% endif %}"
+            href="{{ checkout_link.url }}"
+            data-payment-link-id="{{ checkout_link.payment_link_id }}"
+            data-support-cadence="{{ option.cadence }}"
+            data-i18n="support.{{ option.key }}_cta"
+          >
+            {% if option.key == 'one_time' %}Choose a one-time amount{% else %}Support for $5 monthly{% endif %}
+          </a>
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+
+  <p class="support-payment__provider-note" data-i18n="support.provider_note">Payments are processed securely by Stripe. Dust Wave support is not represented as a tax-deductible charitable donation.</p>
+</section>
