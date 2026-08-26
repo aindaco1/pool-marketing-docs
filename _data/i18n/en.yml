@@ -97,7 +97,6 @@ support:
   body_suffix: ". Your support gives the project more time for careful development, reliable releases, and useful documentation."
   options_eyebrow: Support options
   options_title: Choose how you want to help
-  options_intro: Both options continue to a secure Stripe checkout. One-time support lets you choose the amount.
   one_time_eyebrow: One-time support
   one_time_title: Choose your amount
   one_time_body: Give once at the amount that works for you.

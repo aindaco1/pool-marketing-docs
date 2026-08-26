@@ -97,7 +97,6 @@ support:
   body_suffix: ". Tu apoyo da al proyecto más tiempo para un desarrollo cuidadoso, lanzamientos confiables y documentación útil."
   options_eyebrow: Opciones de apoyo
   options_title: Elige cómo quieres ayudar
-  options_intro: Ambas opciones continúan a un checkout seguro de Stripe. El apoyo único te permite elegir la cantidad.
   one_time_eyebrow: Apoyo único
   one_time_title: Elige tu cantidad
   one_time_body: Apoya una vez con la cantidad que funcione para ti.

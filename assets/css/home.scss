@@ -406,7 +406,7 @@ summary:focus-visible,
 
 .support-page {
   width: calc(100% - 2rem);
-  max-width: 78rem;
+  max-width: none;
   margin: 0 auto;
   display: grid;
   gap: 1.5rem;
@@ -460,7 +460,6 @@ summary:focus-visible,
   text-transform: uppercase;
 }
 
-.support-payment__header p,
 .support-payment__provider-note,
 .support-option p,
 .support-note p {
