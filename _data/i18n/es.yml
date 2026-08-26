@@ -92,8 +92,9 @@ home:
 support:
   title: Apoya a The Pool
   eyebrow: Apoyo a Dust Wave
-  body: The Pool es infraestructura gratuita y de código abierto mantenida por Dust Wave. Tu apoyo da al proyecto más tiempo para un desarrollo cuidadoso, lanzamientos confiables y documentación útil.
-  brand_link: Conoce a Dust Wave
+  body_prefix: "The Pool es infraestructura gratuita y de código abierto mantenida por "
+  body_link: Dust Wave
+  body_suffix: ". Tu apoyo da al proyecto más tiempo para un desarrollo cuidadoso, lanzamientos confiables y documentación útil."
   options_eyebrow: Opciones de apoyo
   options_title: Elige cómo quieres ayudar
   options_intro: Ambas opciones continúan a un checkout seguro de Stripe. El apoyo único te permite elegir la cantidad.

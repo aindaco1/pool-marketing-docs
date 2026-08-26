@@ -22,6 +22,7 @@ class SupportParser(HTMLParser):
         self.links: list[dict[str, str]] = []
         self.forbidden_tags: list[str] = []
         self.script_sources: list[str] = []
+        self.has_dust_wave_link = False
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         data = {key: value or "" for key, value in attrs}
@@ -33,6 +34,8 @@ class SupportParser(HTMLParser):
             self.forbidden_tags.append(tag)
         if tag == "script" and data.get("src"):
             self.script_sources.append(data["src"])
+        if tag == "a" and data.get("href") == "https://dustwave.xyz":
+            self.has_dust_wave_link = True
 
 
 def audit_page(rel: str, source: str, cadences: set[str], errors: list[str]) -> None:
@@ -50,6 +53,12 @@ def audit_page(rel: str, source: str, cadences: set[str], errors: list[str]) -> 
         errors.append(f"{label}: embedded Stripe Buy Button is forbidden")
     if any("js.stripe.com/v3/buy-button.js" in src for src in parser.script_sources):
         errors.append(f"{label}: obsolete Stripe Buy Button loader is present")
+    if not parser.has_dust_wave_link:
+        errors.append(f"{label}: maintainer attribution does not link to Dust Wave")
+
+    html = path.read_text(errors="replace")
+    if "Meet Dust Wave" in html or "Conoce a Dust Wave" in html:
+        errors.append(f"{label}: redundant standalone Dust Wave link returned")
 
     found_cadences = {link.get("data-support-cadence", "") for link in parser.links}
     if len(parser.links) != len(cadences) or found_cadences != cadences:

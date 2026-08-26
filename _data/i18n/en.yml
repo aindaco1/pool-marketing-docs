@@ -92,8 +92,9 @@ home:
 support:
   eyebrow: Support The Pool
   title: Support The Pool
-  body: The Pool is free, open-source infrastructure maintained by Dust Wave. Your support gives the project more time for careful development, reliable releases, and useful documentation.
-  brand_link: Meet Dust Wave
+  body_prefix: "The Pool is free, open-source infrastructure maintained by "
+  body_link: Dust Wave
+  body_suffix: ". Your support gives the project more time for careful development, reliable releases, and useful documentation."
   options_eyebrow: Support options
   options_title: Choose how you want to help
   options_intro: Both options continue to a secure Stripe checkout. One-time support lets you choose the amount.
