@@ -92,14 +92,29 @@ home:
 support:
   eyebrow: Support The Pool
   title: Support The Pool
-  body_prefix: "The Pool is <strong>supported and maintained</strong> by the kind folks at "
-  body_link: Dust Wave
-  body_suffix: ". If you get value out of the project, please consider <strong>supporting the platform's ongoing development</strong>."
-  dust_wave_prefix: "If you'd like to support Dust Wave directly, you can also back a project on Dust Wave's own implementation of The Pool at "
-  dust_wave_link: pool.dustwave.xyz
-  dust_wave_suffix: "."
-  one_off_cta: Support The Pool!
-  monthly_cta: Support The Pool monthly!
+  body: The Pool is free, open-source infrastructure maintained by Dust Wave. Your support gives the project more time for careful development, reliable releases, and useful documentation.
+  brand_link: Meet Dust Wave
+  options_eyebrow: Support options
+  options_title: Choose how you want to help
+  options_intro: Both options continue to a secure Stripe checkout. One-time support lets you choose the amount.
+  one_time_eyebrow: One-time support
+  one_time_title: Choose your amount
+  one_time_body: Give once at the amount that works for you.
+  one_time_amount: "$10 suggested · choose any amount"
+  one_time_cta: Choose a one-time amount
+  monthly_eyebrow: Monthly support
+  monthly_title: Keep the work moving
+  monthly_body: Provide steady support for maintenance, releases, and documentation.
+  monthly_amount: $5 per month
+  monthly_cta: Support for $5 monthly
+  provider_note: Payments are processed securely by Stripe. Dust Wave support is not represented as a tax-deductible charitable donation.
+  funds_title: What support funds
+  funds_development: Ongoing platform development and maintenance
+  funds_docs: Clear documentation and examples
+  funds_releases: Release, accessibility, and compatibility work
+  other_title: Other ways to help
+  other_body: If financial support is not right for you, sharing The Pool, testing releases, and filing precise issues all help the project.
+  other_cta: Visit The Pool on GitHub
 
 footer:
   copyright: "(ɔ) 2026 DUST WAVE"

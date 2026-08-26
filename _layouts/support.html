@@ -1,31 +1,7 @@
 <!DOCTYPE html>
 <html lang="{{ site.lang | default: 'en' }}" data-default-lang="{{ site.lang | default: 'en' }}" data-page-lang="{{ site.lang | default: 'en' }}">
 <head>
-  {% include marketing_page_head.html include_stripe=true %}
-  <style>
-    @media (max-width: 900px) {
-      .support-options--support-page {
-        grid-template-columns: minmax(0, 1fr);
-        justify-items: center;
-      }
-
-      .support-options--support-page > stripe-buy-button,
-      .support-options--support-page > .pool-button {
-        justify-self: center !important;
-        width: auto !important;
-        max-width: 100% !important;
-        margin-inline: auto !important;
-        overflow: visible !important;
-        transform: none !important;
-        box-sizing: content-box !important;
-        padding-bottom: 24px !important;
-      }
-
-      .support-options--support-page > stripe-buy-button::part(iframe) {
-        min-height: 430px !important;
-      }
-    }
-  </style>
+  {% include marketing_page_head.html %}
 </head>
 <body class="pool-homepage pool-homepage--support" data-page-title-key="pages.support.title" data-page-description-key="pages.support.description">
   <a class="skip-link" href="#main-content" data-i18n="ui.skip_to_content">Skip to main content</a>
@@ -34,41 +10,39 @@
   {% include site-header.html %}
 
   <main id="main-content">
-    <section class="support-page" aria-labelledby="support-title">
-      <div class="confirmation-panel support-page__intro">
-        <h1 id="support-title" data-i18n="support.title">Support The Pool</h1>
-        <p class="confirmation-panel__lede">
-          <span data-i18n-html="support.body_prefix">The Pool is <strong>supported and maintained</strong> by the kind folks at </span><a href="https://dustwave.xyz" target="_blank" rel="noopener noreferrer" data-i18n="support.body_link">Dust Wave</a><span data-i18n-html="support.body_suffix">. If you get value out of the project, please consider <strong>supporting the platform's ongoing development</strong>.</span>
-        </p>
-        <p class="confirmation-panel__lede">
-          <span data-i18n="support.dust_wave_prefix">If you'd like to support Dust Wave directly, you can also support a project on Dust Wave's own implementation of The Pool at </span><a href="https://pool.dustwave.xyz" target="_blank" rel="noopener noreferrer" data-i18n="support.dust_wave_link">pool.dustwave.xyz</a><span data-i18n="support.dust_wave_suffix">.</span>
-        </p>
-      </div>
+    <div class="support-page">
+      <section class="confirmation-panel support-page__intro" aria-labelledby="support-title">
+        <div class="support-page__identity" aria-hidden="true">
+          <img src="{{ site.data.support.brand.logo | relative_url }}" alt="" width="160" height="146">
+        </div>
+        <div class="support-page__intro-copy">
+          <p class="support-page__eyebrow" data-i18n="support.eyebrow">Dust Wave Support</p>
+          <h1 id="support-title" data-i18n="support.title">Support The Pool</h1>
+          <p class="confirmation-panel__lede" data-i18n="support.body">The Pool is free, open-source infrastructure maintained by Dust Wave. Your support gives the project more time for careful development, reliable releases, and useful documentation.</p>
+          <p class="support-page__brand-link">
+            <a href="{{ site.data.support.brand.url }}" target="_blank" rel="noopener noreferrer" data-i18n="support.brand_link">Meet Dust Wave</a>
+          </p>
+        </div>
+      </section>
 
-      <div class="support-options support-options--support-page{% if site.support_one_off_payment_link_url == '' and site.support_one_off_buy_button_id == '' %} support-strip--single{% endif %}">
-        {% if site.support_one_off_buy_button_id != "" or site.support_one_off_payment_link_url != "" %}
-        {% if site.support_one_off_buy_button_id != "" and site.support_publishable_key != "" %}
-        <stripe-buy-button
-          buy-button-id="{{ site.support_one_off_buy_button_id }}"
-          publishable-key="{{ site.support_publishable_key }}"
-        >
-        </stripe-buy-button>
-        {% else %}
-        <a class="pool-button pool-button--primary" href="{{ site.support_one_off_payment_link_url }}" target="_blank" rel="noopener" data-i18n="support.one_off_cta">Support The Pool!</a>
-        {% endif %}
-        {% endif %}
+      {% include support-options.html %}
 
-        {% if site.support_monthly_buy_button_id != "" and site.support_publishable_key != "" %}
-        <stripe-buy-button
-          buy-button-id="{{ site.support_monthly_buy_button_id }}"
-          publishable-key="{{ site.support_publishable_key }}"
-        >
-        </stripe-buy-button>
-        {% else %}
-        <a class="pool-button pool-button--secondary" href="{{ site.support_monthly_payment_link_url }}" target="_blank" rel="noopener" data-i18n="support.monthly_cta">Support The Pool monthly!</a>
-        {% endif %}
-      </div>
-    </section>
+      <section class="support-details" aria-label="More ways to support The Pool">
+        <article class="support-note">
+          <h2 data-i18n="support.funds_title">What support funds</h2>
+          <ul>
+            <li data-i18n="support.funds_development">Ongoing platform development and maintenance</li>
+            <li data-i18n="support.funds_docs">Clear documentation and examples</li>
+            <li data-i18n="support.funds_releases">Release, accessibility, and compatibility work</li>
+          </ul>
+        </article>
+        <article class="support-note">
+          <h2 data-i18n="support.other_title">Other ways to help</h2>
+          <p data-i18n="support.other_body">If financial support is not right for you, sharing The Pool, testing releases, and filing precise issues all help the project.</p>
+          <a href="https://github.com/aindaco1/pool" target="_blank" rel="noopener" data-i18n="support.other_cta">Visit The Pool on GitHub</a>
+        </article>
+      </section>
+    </div>
   </main>
 
   {% include site-footer.html %}

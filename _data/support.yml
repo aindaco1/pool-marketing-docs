@@ -1,0 +1,23 @@
+contract_version: dust_wave_support_v1
+brand:
+  name: Dust Wave Support
+  url: https://dustwave.xyz
+  logo: /assets/images/defaults/dust-wave-square.png
+provider: stripe
+options:
+  - key: one_time
+    cadence: one_time
+    amount_type: customer_choice
+    suggested_amount_usd: 10
+    links:
+      default:
+        payment_link_id: plink_1U8W5CK9nUOzi4tvScDDfHrl
+        url: https://buy.stripe.com/fZu9AU3xbeMmdaTaeY1oI0f?utm_source=thepool&utm_medium=website&utm_campaign=dust_wave_support&utm_content=one_time
+  - key: monthly
+    cadence: monthly
+    amount_type: fixed
+    amount_usd: 5
+    links:
+      default:
+        payment_link_id: plink_1U8W9kK9nUOzi4tvxZdSMySG
+        url: https://buy.stripe.com/28E6oI5Fj47I9YHfzi1oI0i?utm_source=thepool&utm_medium=website&utm_campaign=dust_wave_support&utm_content=monthly

@@ -91,14 +91,30 @@ home:
     operations_link: Revisar documentación de operaciones
 support:
   title: Apoya a The Pool
-  body_prefix: "The Pool es <strong>apoyado y mantenido</strong> por la buena gente de "
-  body_link: Dust Wave
-  body_suffix: ". Si el proyecto te aporta valor, por favor considera <strong>apoyar el desarrollo continuo de la plataforma</strong>."
-  dust_wave_prefix: "Si quieres apoyar directamente a Dust Wave, también puedes respaldar un proyecto en la propia implementación de The Pool de Dust Wave en "
-  dust_wave_link: pool.dustwave.xyz
-  dust_wave_suffix: "."
-  one_off_cta: Apoya a The Pool!
-  monthly_cta: Apoya a The Pool mensualmente!
+  eyebrow: Apoyo a Dust Wave
+  body: The Pool es infraestructura gratuita y de código abierto mantenida por Dust Wave. Tu apoyo da al proyecto más tiempo para un desarrollo cuidadoso, lanzamientos confiables y documentación útil.
+  brand_link: Conoce a Dust Wave
+  options_eyebrow: Opciones de apoyo
+  options_title: Elige cómo quieres ayudar
+  options_intro: Ambas opciones continúan a un checkout seguro de Stripe. El apoyo único te permite elegir la cantidad.
+  one_time_eyebrow: Apoyo único
+  one_time_title: Elige tu cantidad
+  one_time_body: Apoya una vez con la cantidad que funcione para ti.
+  one_time_amount: "$10 sugeridos · elige cualquier cantidad"
+  one_time_cta: Elegir una cantidad única
+  monthly_eyebrow: Apoyo mensual
+  monthly_title: Mantén el trabajo en movimiento
+  monthly_body: Da apoyo constante para mantenimiento, lanzamientos y documentación.
+  monthly_amount: $5 al mes
+  monthly_cta: Apoyar con $5 al mes
+  provider_note: Los pagos se procesan de forma segura mediante Stripe. El apoyo a Dust Wave no se presenta como una donación benéfica deducible de impuestos.
+  funds_title: Qué financia tu apoyo
+  funds_development: Desarrollo y mantenimiento continuo de la plataforma
+  funds_docs: Documentación y ejemplos claros
+  funds_releases: Trabajo de lanzamientos, accesibilidad y compatibilidad
+  other_title: Otras formas de ayudar
+  other_body: Si el apoyo financiero no es adecuado para ti, compartir The Pool, probar lanzamientos y reportar problemas precisos también ayuda al proyecto.
+  other_cta: Visita The Pool en GitHub
 
 footer:
   copyright: "(ɔ) 2026 DUST WAVE"
