@@ -10,167 +10,94 @@ lang: es
 
 ## Última actualización
 
-25 de agosto de 2026
+6 de septiembre de 2026
 
-## Empezando
+Esta guía cubre la incorporación, el flujo de trabajo de contribución y los patrones de desarrollo compartidos. Comience con [AGENTS](/es/docs/development/agents-operator-guide/) y el [índice de documentación](/es/docs/development/) para identificar la guía propietaria de su cambio.
 
-### Requisitos previos
-- Podman para la ruta local recomendada, o:
-- Ruby + Bundler (para el anfitrión Jekyll)
-- Se prefiere Node.js 24, Node.js 22 mínimo para Wrangler 4 (para scripts Worker +)
-- [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/) (para el desarrollo del trabajador anfitrión)
-- opcional: [Stripe CLI](https://stripe.com/docs/stripe-cli) (para pruebas de webhook)
+## Configuración de desarrollo
 
-### Desarrollo Local
+Utilice la versión de Node.js en [.nvmrc](https://github.com/aindaco1/pool/blob/main/.nvmrc), Git y Podman para la ruta local estándar. El host Jekyll también necesita Ruby y Bundler; Stripe CLI es opcional para el reenvío de webhooks en modo de prueba real.
+
+Desde la raíz del repositorio:
 
 ```bash
+git submodule update --init --recursive
+npm ci
+npm run setup:deploy -- --mode=local
 npm run podman:doctor
 ./scripts/dev.sh --podman
 ```
 
-Ése es el camino predeterminado para el desarrollo local. Mantiene los puertos locales estándar y los archivos de estado locales, pero ejecuta Jekyll y Wrangler dentro de contenedores, por lo que las nuevas bifurcaciones no necesitan alojar Ruby o Wrangler solo para iniciar la aplicación.
+Consulte [Podman](/es/docs/operations/podman-local-dev/) para conocer la configuración del contenedor, los hosts admitidos, la supervisión del servicio, los requisitos de recursos y los registros. Utilice [Testing](/es/docs/operations/testing/) para la carga de datos de prueba, el pago manual y las pruebas del navegador; el arnés del navegador automatizado sirve a un sitio estático creado.
 
-El contenedor Podman Worker ejecuta el nodo 24, que coincide con las acciones GitHub. El desarrollo de Worker solo de host utiliza el Nodo 24 cuando es posible; El nodo 22 es el tiempo de ejecución mínimo admitido para Wrangler 4.
+`npm run secrets:dev` crea/actualiza `worker/.dev.vars` ignorado en el ejemplo, genera secretos de sesión/firma local y solicita claves de proveedor opcionales sin imprimirlas. El acceso de arranque del administrador local utiliza `ADMIN_BOOTSTRAP_EMAILS`; el panel muestra solo el estado de las credenciales. [Security](/es/docs/operations/security/) define límites secretos y [Deployment](/es/docs/operations/deployment/) posee la configuración del espacio de nombres/cuenta alojada.
 
-Si en su lugar necesita la ruta de solo host:
+La configuración canónica pertenece a `_config.yml`. `_config.local.yml` solo realiza anulaciones locales. Los scripts de desarrollo/prueba compatibles sincronizan `worker/wrangler.toml`; después de cambios de configuración directos, reinicie la pila o ejecute `npm run sync:worker-config`. Consulte [Personalización](/es/docs/development/customization-guide/).
+
+### Alternativa en el host
+
+Instale las dependencias del host bloqueado desde la raíz del repositorio:
 
 ```bash
 bundle install
-bundle exec jekyll serve --config _config.yml,_config.local.yml
+npm ci --prefix worker
 ```
 
-Si desea ejecutar el asistente de pago o el paquete de navegador en la misma pila respaldada por Podman:
+Luego use el lanzador existente:
 
 ```bash
-./scripts/test-checkout.sh --podman
-./scripts/test-e2e.sh --podman
-./scripts/test-worker.sh --podman
-./scripts/smoke-pledge-management.sh --podman
-./scripts/pledge-report.sh --podman --local
-./scripts/fulfillment-report.sh --podman --local
-npm run test:e2e:headless:podman
-npm run podman:doctor
-npm run podman:self-check
+./scripts/dev.sh
 ```
 
-`./scripts/test-e2e.sh --podman` es una cobertura de navegador totalmente automatizada. `./scripts/test-checkout.sh --podman` sigue siendo el asistente interactivo manual cuando desea realizar un pago real en su propio navegador.
+Para el inicio manual del servicio, ejecútelos en terminales independientes desde la raíz del repositorio:
 
-Borre el caché si los estilos no se actualizan:
 ```bash
-bundle exec jekyll clean
+bundle exec jekyll serve --config _config.yml,_config.local.yml --port 4000
 ```
 
-### Lea los documentos (en orden)
+```bash
+npm --prefix worker run dev
+```
 
-1. Root `README.md`: propósito y arquitectura de alto nivel
-2. `docs/PROJECT_OVERVIEW.md` — Cómo encajan todas las piezas
-3. `docs/WORKFLOWS.md`: ciclo de vida del aporte, enlaces mágicos y flujo de carga
-4. `docs/PAYMENT_PROCESSOR.md`: configuración, pago, webhooks, liquidación y conciliación de Stripe
-5. `docs/EMAIL.md`: configuración de Resend, tipos de correo electrónico, localización y comportamiento de entrega
-6. `docs/ETHICAL_RISK.md`: Solicitudes de revisión de riesgos éticos para datos, dinero, mensajería, automatización, uso compartido público y poder administrativo
-7. `docs/DEV_NOTES.md`: notas de integración, modelo de contenido y errores
-8. `docs/TESTING.md`: guía de prueba completa (incluye configuración de secretos)
-9. `docs/ROADMAP.md`: solo trabajo prospectivo
-10. `docs/DASHBOARD.md` — Operaciones y edición del panel de administración
+Configure un único oyente Stripe y su secreto de webhook local correspondiente mediante [Payment Processor](/es/docs/operations/payment-processor/). La configuración del proveedor es opcional para verificaciones basadas en dispositivos; Los pagos en modo de prueba real necesitan las credenciales de prueba correspondientes. Si los estilos están obsoletos, `bundle exec jekyll clean` borra el sitio/caché generado.
 
-Para cambios en la interfaz de usuario del tablero, lea también `docs/ACCESSIBILITY.md`, `docs/I18N.md`, `docs/SECURITY.md` y `docs/SEO.md`; el shell de administración tiene requisitos explícitos para el acceso al teclado, cadenas en español, normalización de entrada y `noindex`.
+## Flujo de trabajo de contribución
 
-### Configuración de páginas de GitHub
+1. Inspeccionar `git status`; preservar las ediciones no relacionadas e inicializar las dependencias compartidas registradas.
+2. Lea la implementación, las pruebas cercanas, [Arquitectura](/es/docs/development/architecture/) y la guía de dominio relevante antes de cambiar el comportamiento.
+3. Utilice las rutas de persistencia, validación, representación y configuración compartidas existentes.
+4. Ejecute la verificación significativa más limitada y luego la puerta `npm run test:premerge` completa para cambios sustanciales o de lanzamiento. [Testing](/es/docs/operations/testing/) posee los comandos y [Merge Smoke](/es/docs/operations/merge-smoke-checklist/) posee la aprobación del operador.
+5. Actualice la guía autorizada cuando cambie el comportamiento, registre los cambios completados en No publicado en [Changelog](/es/docs/reference/changelog/) y mantenga el trabajo potencial en [Roadmap](/es/docs/reference/roadmap/).
+6. Abra un PR enfocado usando la [plantilla de PR](/es/docs/reference/pull-request-template/), con información relevante de validación y reversión.
 
-1. Crear repositorio y agregar archivos
-2. Agregue un archivo `CNAME` para el dominio de su sitio público
-3. DNS (Cloudflare):
+Utilice nombres de rama `feat/`, `fix/` o `docs/` y prefijos de confirmación convencionales como `feat`, `fix`, `docs`, `chore` o `infra`. Problemas relacionados con enlaces. Incluya capturas de pantalla renderizadas para cambios en la interfaz de usuario, incluidas vistas de escritorio/tableta/móvil y de administrador en español cuando esas superficies cambien.
 
-|Tipo|Nombre|Valor|
-|------|------|--------|
-|CNOMBRE|piscina|`<username>.github.io`|
+Revise [Ethical Risk](/es/docs/development/ethical-risk-review/) para conocer cambios en el dinero, los datos de los patrocinadores, los mensajes, los análisis, el poder administrativo, la visibilidad o la automatización. El trabajo del panel también requiere los contratos pertinentes de [Accesibilidad](/es/docs/operations/accessibility/), [I18N](/es/docs/development/internationalization/), [Seguridad](/es/docs/operations/security/) y [SEO](/es/docs/operations/seo/).
 
-4. Habilite HTTPS en la configuración del repositorio
-5. Verificar las cargas de carritos propios y el procesamiento de las campañas
-6. Verifique que la configuración de inicio de pago respaldada por el trabajador esté presente
+## Patrones de desarrollo
 
----
+El tema y la marca de correo electrónico/pago utilizan la superficie `design.*` / `platform.*` en [Personalización](/es/docs/development/customization-guide/). Jekyll compila `assets/main.scss` y los parciales The Pool bajo `assets/partials/` más los estilos de diseño de plataforma anclados; agregue estilos al componente existente o a la página parcial. Las hojas de estilo de fuentes se cargan desde el encabezado del documento. La minificación de activos generados pertenece a [Performance](/es/docs/operations/performance/).
 
-## Estado actual del proyecto
+### Liquid Incluye y colecciones
 
-El [README](/es/docs/development/platform-readme/) describe la situación operativa y de cara al usuario actual.
-línea de base. Los [Changelog](/es/docs/reference/changelog/) registros completos e inéditos
-cambios, mientras que [Roadmap](/es/docs/reference/roadmap/) contiene trabajos potenciales. no
-Mantenga una segunda lista de capacidades o enfoque activo fechada en esta guía.
+Dentro de una inclusión, lea los valores pasados ​​a través de `include`, por ejemplo `{{ include.pledged }}` para `{% include progress.html pledged=campaign.pledged_amount %}`. Una matriz YAML vacía es verdadera en Liquid; use una verificación de tamaño:
 
----
+```liquid
+{% if page.support_items and page.support_items.size > 0 %}
+  <!-- Render the collection -->
+{% endif %}
+```
 
-## Ramificación y relaciones públicas
+Cite cadenas YAML que contengan caracteres especiales y guarde la división por cero antes de calcular el progreso. [El modelo de contenido](/es/docs/development/content-model/) posee ejemplos de campos de campaña y límites de cuenta regresiva.
 
-### Nomenclatura de sucursales
-- Ramas de funciones: `feat/<short-name>` (p. ej., `feat/pledge-hook`)
-- Arreglar ramas: `fix/<short-name>`
-- Ramas de documentos: `docs/<short-name>`
+### Carro y capas móviles
 
-### Estilo de confirmación
-- Prefijos convencionales: `feat`, `fix`, `docs`, `chore`, `infra`
+La interfaz de usuario compartida se comunica con `window.PoolCartProvider` a través de scripts e inclusiones de tiempo de ejecución del carrito existentes. Stripe es propietario del iframe de pago. No introduzca una segunda ruta de carrito ni parches DOM de carrito alojado.
 
-### Solicitudes de extracción
-- Mantenga las relaciones públicas enfocadas y por debajo de ~300 líneas cuando sea posible
-- Complete la plantilla de relaciones públicas, incluya capturas de pantalla para los cambios en la interfaz de usuario e incluya capturas de pantalla de escritorio/tableta/móvil para los cambios en el diseño del panel de administración.
-- Incluya una revisión de riesgo ético cuando un RP cambie dinero, recopilación de datos, mensajes de apoyo, acceso de administrador, intercambio público, automatización, análisis o mecanismos de participación.
-- Problemas de enlace con `Closes #123`
+El menú móvil para alternar obtiene un apilamiento elevado solo mientras `.is-open`; su estado cerrado debe permanecer debajo de la superposición del carrito. Reutilice `_includes/header.html` y el patrón anclado de Plataforma `shared/dust-wave-platform/packages/design-core/styles/_layout.scss` al cambiar la navegación o los cuadros de diálogo. Las actualizaciones de código compartido siguen los límites inmutables de la Plataforma; no parchee el submódulo en su lugar.
 
-### Etiquetas
-- `feature`, `bug`, `task`, `infra`, `docs`, `security`
+### Ayudantes de accesibilidad y localización
 
----
+Utilice `.sr-only` para admitir texto, controles etiquetados, estado SVG decorativo y el comportamiento de enfoque/regiones en vivo existentes. `_includes/a11y.html` suministra los patrones `sr-text` y `external-link`. Las imágenes significativas requieren texto alternativo; Las imágenes decorativas intencionadas utilizan el estado decorativo explícito.
 
-## Lista de verificación de la primera contribución
-
-- [ ] Clonar repositorio, ejecutar `npm run podman:doctor`
-- [ ] Inicie el desarrollo local con `./scripts/dev.sh --podman`
-- [ ] Confirme que el desarrollo local del trabajador se esté ejecutando en el nodo 24 a través de la ruta Podman
-- [ ] Utilice únicamente la ruta Jekyll/Wrangler de host exclusivo si la necesita intencionalmente
-- [ ] Hojee `_layouts/` y `_includes/` para ver la integración del carrito propio
-- [ ] Revisar los scripts de carrito y aporte de `assets/js/`
-- [ ] Lea `worker/src/` para comprender el backend (almacenamiento de aportes, estadísticas, carga)
-- [ ] Abra `/admin/` localmente con la ruta de correo electrónico predeterminada del administrador de desarrollo y comprenda la división de publicación del panel versus KV-save
-- [] Lea `docs/ETHICAL_RISK.md` antes de cambiar el pago, los correos electrónicos, los análisis, el poder administrativo, la visibilidad pública o la retención de datos.
-- [ ] Verifique que `CNAME` esté configurado en el dominio de su sitio público
-
----
-
-## Secretos y configuración (primero en modo de prueba)
-
-- **Acciones de GitHub**: Agregar prueba `STRIPE_SECRET_KEY` + `CHECKOUT_INTENT_SECRET`
-- **Cloudflare Worker**: Los mismos secretos que env vars; establecer `SITE_BASE`
-- **Stripe**: para entornos alojados, cree un webhook para `https://worker.example.com/webhooks/stripe`
-- **Pago personalizado local**: agregue `STRIPE_PUBLISHABLE_KEY_TEST` a `worker/.dev.vars`
-- **Panel de administración**: el desarrollador local otorga acceso de superadministrador de arranque a través de `ADMIN_BOOTSTRAP_EMAILS` en `worker/.dev.vars` ignorado; Los administradores de la bifurcación colocan el acceso de producción en `_config.yml` `admin.users`, `ADMIN_USERS_JSON` o en la pantalla de usuarios del panel. La pantalla de usuarios se guarda en KV, no en GitHub.
-
-Consulte [PAYMENT_PROCESSOR.md](/es/docs/operations/payment-processor/), [EMAIL.md](/es/docs/operations/email-system/) y [TESTING.md](/es/docs/operations/testing/) para obtener las referencias completas sobre pagos, correos electrónicos y secretos.
-
----
-
-## Notas de seguridad
-
-- Los secretos solo se encuentran en GitHub Actions + Cloudflare vars; nunca en repositorio
-- La sección **Secretos y credenciales** del panel de control tiene un estado de solo lectura. No agregue edición secreta ni persistencia secreta a `_config.yml`, campaña YAML, registros de usuarios de KV o borradores del panel.
-- Validar firmas de webhooks de Stripe
-- Mantenga los dominios de remitente Resend alineados con `PLEDGES_EMAIL_FROM` y `UPDATES_EMAIL_FROM`
-- Nunca confirmes claves o tokens API
-
----
-
-## Glosario
-
-|Término|Definición|
-|------|------------|
-|**Aporte**|Pedido realizado sin cargo inmediato; tarjeta guardada a través de Stripe SetupIntent|
-|**Todo o nada**|Tarjetas cargadas solo si `pledged_amount >= goal_amount` en la fecha límite|
-|**Intención de configuración**|Stripe se opone a guardar un método de pago para cargos posteriores fuera de la sesión|
-|**Enlace mágico**|URL firmada por HMAC enviada por correo electrónico para la gestión de aportes sin cuenta|
-|**The Pool**|Nombre de la plataforma para el sitio de crowdfunding|
-|**Operador de plataforma**|Nombre de la empresa o estudio para su implementación|
-
----
-
-## Contacto y propiedad
-
-Utilice los documentos del proyecto y el historial de Git existente como contexto, y mantenga el alcance de los cambios y bien probados antes de abrir un PR.
+Las cadenas compartidas utilizan `_includes/t.html`, con interpolación y reserva de configuración regional. Los enlaces públicos utilizan los ayudantes locales; La preservación de token/consulta/hash es parte del contrato de esos ayudantes. Consulte [Accessibility](/es/docs/operations/accessibility/) y [I18N](/es/docs/development/internationalization/) para conocer los requisitos de verificación y comportamiento mantenido.

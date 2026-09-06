@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-July 16, 2026
+September 6, 2026
 
 This is the canonical operator runbook for Pool-owned state that cannot be recreated by a normal deploy. It covers Git history, Cloudflare KV, provider metadata, restore ordering, retention, and recovery evidence. It never treats secret values as backup content.
 
@@ -25,7 +25,7 @@ Pool uses these approved objectives:
 
 Retention is 7 daily, 5 weekly, 12 monthly, and every release snapshot. Keep at least one encrypted copy outside the primary account or device. Verify encryption and checksums before counting a snapshot as recoverable.
 
-The machine-readable classification and policy live in [`config/pool-data-inventory.json`](https://github.com/your-org/your-project/blob/main/config/pool-data-inventory.json). Audit it after any new KV prefix, Durable Object, queue, idempotency marker, or payment workflow:
+The machine-readable classification and policy live in [`config/pool-data-inventory.json`](https://github.com/aindaco1/pool/blob/main/config/pool-data-inventory.json). Audit it after any new KV prefix, Durable Object, queue, idempotency marker, or payment workflow:
 
 ```bash
 npm run backup:inventory:audit

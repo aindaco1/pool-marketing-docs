@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-25 de agosto de 2026
+6 de septiembre de 2026
 
 Este repositorio incluye una ruta de desarrollo local sin raíz respaldada por Podman para los dos servicios que normalmente crean la mayor rotación de configuración de host:
 
@@ -43,8 +43,7 @@ Límites actuales:
 - un paso del navegador de pago manual en contenedores
 - verdadera validación de host para Linux y Windows en este hilo de repositorio
 
-El alcance actual mejora la incorporación y la paridad local sin mover cada
-alojar el flujo de trabajo en un contenedor.
+El alcance actual mejora la incorporación y la paridad local sin mover cada flujo de trabajo del host a un contenedor.
 
 ## Por qué existe este camino
 
@@ -218,7 +217,7 @@ npm run test:e2e:headless:podman -- tests/e2e/admin-dashboard.spec.ts --project=
 
 Esa suite enfocada es la verificación del navegador local preferida para cambios en la interfaz de usuario del administrador, como Crear nueva campaña, publicación de vista previa protegida, botón de información compartido/comportamiento de ayuda y diseño de barra lateral de Campañas responsiva.
 
-Para comandos del lado del host que necesitan un sitio/trabajador respaldado por Podman sin asumir persistencia de pila separada, use [`scripts/podman-stack-run.sh`](https://github.com/your-org/your-project/blob/main/scripts/podman-stack-run.sh). `npm run test:security:podman` usa ese contenedor para iniciar la pila, ejecutar el paquete de seguridad y derribar la pila en una sola invocación.
+Para los comandos del lado del host que necesitan un sitio respaldado por Podman/Worker sin asumir persistencia de pila separada, use [`scripts/podman-stack-run.sh`](https://github.com/aindaco1/pool/blob/main/scripts/podman-stack-run.sh). `npm run test:security:podman` usa ese contenedor para iniciar la pila, ejecutar el paquete de seguridad y derribar la pila en una sola invocación.
 
 El contenedor Worker por defecto es `node:24-bookworm-slim`. Si la extracción de una imagen Podman local se detiene pero la imagen Playwright fijada en `Containerfile.playwright.dev` ya está almacenada en caché, el iniciador puede reutilizar esa base exacta del Nodo 24 para que el desarrollo aún coincida con el tiempo de ejecución del Nodo 24 de acciones GitHub. Utilice `nvm use` desde la raíz del repositorio para seleccionar la línea base del Nodo 24.15 compatible antes de ejecutar los comandos npm del lado del host.
 
@@ -318,5 +317,4 @@ El modo Podman no pretende clonar perfectamente la producción de Cloudflare, pe
 - el mismo carrito propio y ruta de pago
 - la misma ruta del navegador de compilación estática utilizada por el arnés sin cabeza del host
 
-El trabajo de validación prospectivo de Podman y multiplataforma se rastrea en el
-[Hoja de ruta](/es/docs/reference/roadmap/).
+El trabajo prospectivo de Podman y de validación multiplataforma se rastrea en [Roadmap](/es/docs/reference/roadmap/).

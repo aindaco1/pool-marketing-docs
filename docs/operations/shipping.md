@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-August 25, 2026
+September 6, 2026
 
 This document describes The Pool's current Worker-first shipping flow,
 fork-facing config surface, USPS integration boundary, and the rule tree shared
@@ -153,7 +153,7 @@ The current cart and Manage Pledge UI therefore expose a narrow delivery-option 
 
 ## Config Surface
 
-The structured `shipping` section lives in [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml), for
+The structured `shipping` section lives in [`_config.yml`](https://github.com/aindaco1/pool/blob/main/_config.yml), for
 example:
 
 ```yml
@@ -257,7 +257,7 @@ shipping:
 ```
 
 That config stays site-driven and auto-mirrors Worker-required values into
-[`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml).
+[`worker/wrangler.toml`](https://github.com/aindaco1/pool/blob/main/worker/wrangler.toml).
 
 Optional preset-level shipping hints can live inside preset metadata too. The current implementation supports:
 
@@ -386,7 +386,7 @@ current portal, the setup path is:
 
 In this repo, that maps to:
 
-- [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml)
+- [`_config.yml`](https://github.com/aindaco1/pool/blob/main/_config.yml)
   - `shipping.usps.client_id`
   - `shipping.usps.enabled`
   - optional `shipping.usps.api_base` if you need to point at TEM explicitly
@@ -399,10 +399,10 @@ Do **not** commit the USPS client secret into Jekyll config.
 
 For a normal production-style local setup, the minimum values this repo needs are:
 
-- [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) or [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml)
+- [`_config.yml`](https://github.com/aindaco1/pool/blob/main/_config.yml) or `_config.local.yml`
   - `shipping.usps.enabled: true`
   - `shipping.usps.client_id: "<your Consumer Key>"`
-- [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars)
+- `worker/.dev.vars`
   - `USPS_CLIENT_SECRET=<your Consumer Secret>`
 
 If you want to test against USPS TEM with the same production credentials USPS describes, also set:
@@ -413,8 +413,8 @@ If you want to test against USPS TEM with the same production credentials USPS d
 
 For local testing:
 
-- set `shipping.usps.client_id` in [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) or your local override path
-- set `USPS_CLIENT_SECRET=...` in [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars)
+- set `shipping.usps.client_id` in [`_config.yml`](https://github.com/aindaco1/pool/blob/main/_config.yml) or your local override path
+- set `USPS_CLIENT_SECRET=...` in `worker/.dev.vars`
 - run:
 
 ```bash
@@ -494,7 +494,7 @@ The important rule is:
 
 - do not turn shipping quotes into a high-write KV subsystem
 
-The checkout country selector is fed from the generated [`_data/shipping_countries.yml`](https://github.com/your-org/your-project/blob/main/_data/shipping_countries.yml) snapshot. Platform owns the canonical registry beside `shipping-core`; use `npm run shipping-countries:sync` after a pin update and `npm run shipping-countries:check` to detect drift.
+The checkout country selector is fed from the generated [`_data/shipping_countries.yml`](https://github.com/aindaco1/pool/blob/main/_data/shipping_countries.yml) snapshot. Platform owns the canonical registry beside `shipping-core`; use `npm run shipping-countries:sync` after a pin update and `npm run shipping-countries:check` to detect drift.
 
 ## Worker and Frontend Touchpoints
 
@@ -502,8 +502,8 @@ The checkout country selector is fed from the generated [`_data/shipping_countri
 
 Main logic seams already exist in:
 
-- [worker/src/index.js](https://github.com/your-org/your-project/blob/main/worker/src/index.js)
-- [worker/src/provider-config.js](https://github.com/your-org/your-project/blob/main/worker/src/provider-config.js)
+- [worker/src/index.js](https://github.com/aindaco1/pool/blob/main/worker/src/index.js)
+- [worker/src/provider-config.js](https://github.com/aindaco1/pool/blob/main/worker/src/provider-config.js)
 
 The current shipping flow:
 

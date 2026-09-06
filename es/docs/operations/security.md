@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-25 de agosto de 2026
+6 de septiembre de 2026
 
 Este documento cubre la arquitectura de seguridad, los riesgos conocidos, las medidas de refuerzo aplicadas, las compensaciones aceptadas y los procedimientos de prueba de penetración para la plataforma de financiación colectiva The Pool. Los límites de copia de seguridad cifrada, el estado de límite de velocidad/sesión en cuarentena, el manejo fuera del dispositivo y las aprobaciones de restauración de producción se definen en [BACKUP_RESTORE.md](/es/docs/operations/backup-restore/).
 
@@ -219,21 +219,13 @@ controles antes de la entrega.
 
 ### Comportamiento de falla del webhook Stripe
 
-El Worker comprueba el modo de evento antes de aplicar un webhook Stripe. Un secreto perdido
-para el modo seleccionado se reconoce con un resultado omitido, por lo que Stripe no
-Vuelva a intentarlo indefinidamente, pero el evento no se analiza en estado de aporte ni
-aplicado. Las firmas no válidas devuelven `401`. La postura de producción trata una falta
-El secreto del webhook en vivo es un defecto de implementación.
+El Worker comprueba el modo de evento antes de aplicar un webhook Stripe. Un secreto faltante para el modo seleccionado se reconoce con un resultado omitido, por lo que Stripe no vuelve a intentarlo indefinidamente, pero el evento no se analiza en estado de aporte ni se aplica. Las firmas no válidas devuelven `401`. La postura de producción trata un secreto de webhook activo faltante como un defecto de implementación.
 
-El procesamiento de webhooks utiliza un contrato de arrendamiento, marcadores procesados, tamaño corporal limitado,
-observabilidad redactada y operaciones de pago idempotentes. Aporte canónica
-El estado no retrocede cuando falla un correo electrónico u otro efecto secundario de notificación.
+El procesamiento de webhook utiliza arrendamiento, marcadores procesados, tamaño corporal limitado, observabilidad redactada y operaciones de pago idempotentes. El estado de aporte canónico no se revierte cuando falla un correo electrónico u otro efecto secundario de notificación.
 
 ### Límites de tarifas y controles de denegación de billetera
 
-Se requiere `RATELIMIT`. Un enlace faltante o no disponible falla al cerrarse con
-`503`; Las solicitudes bloqueadas repetidas en la misma ventana no reescriben lo mismo.
-contador.
+Se requiere `RATELIMIT`. Un enlace faltante o no disponible falla al cerrarse con `503`; Las solicitudes bloqueadas repetidas en la misma ventana no reescriben el mismo contador.
 
 |Clase de punto final|Límite|ventana|Llave|
 | --- | ---: | ---: | --- |
@@ -249,34 +241,19 @@ contador.
 |Operaciones de administración|5|60 segundos|IP|
 |Adaptador de resumen de película Stripe|30|60 segundos|IP|
 
-Las lecturas públicas `/live/:slug`, `/stats/:slug` y `/inventory/:slug` permanecen
-sin límite para el tráfico legítimo de la campaña. Los webhooks Stripe se basan en la firma
-verificación, idempotencia y límites corporales en lugar de un límite estricto de IP compartida.
-El Workers estándar/pago implementado también declara `limits.cpu_ms = 100` como
-techo de denegación de cartera; el desarrollo local no hace cumplir eso Cloudflare
-límite.
+Las lecturas públicas de `/live/:slug`, `/stats/:slug` y `/inventory/:slug` permanecen sin límite para el tráfico de campaña legítimo. Los webhooks Stripe se basan en la verificación de firmas, la idempotencia y los límites del cuerpo en lugar de un límite estricto de IP compartida. El Workers estándar/pago implementado también declara `limits.cpu_ms = 100` como un límite máximo de denegación de billetera; el desarrollo local no impone ese límite de Cloudflare.
 
-Utilice `GET /admin/observability/webhooks`,
-`GET /admin/observability/performance`, y
-[`scripts/check-observability.sh`](https://github.com/your-org/your-project/blob/main/scripts/check-observability.sh) para revisar
-resúmenes de entrega y tiempos limitados sin exponer cargas útiles de solicitudes sin procesar.
+Utilice `GET /admin/observability/webhooks`, `GET /admin/observability/performance` y [`scripts/check-observability.sh`](https://github.com/aindaco1/pool/blob/main/scripts/check-observability.sh) para revisar resúmenes de tiempos y entregas limitadas sin exponer cargas útiles de solicitudes sin procesar.
 
 ### Comparación y alcance de credenciales
 
-Valores de portador de administrador, secretos de administrador con alcance, tokens CSRF, firmas de pago,
-las firmas de enlace mágico y los hashes de ejecución en seco utilizan ayudas de comparación seguras en el tiempo.
-Las credenciales de administrador que faltan fallan al cerrarse. Acuerdo de alcance, transmisión y
-Las rutas de mantenimiento prefieren su credencial dedicada y rechazan la más amplia.
-reserva cuando se configura el secreto de ámbito.
+Los valores del portador del administrador, los secretos de administración con alcance, los tokens CSRF, las firmas de pago, las firmas de enlace mágico y los hashes de prueba utilizan ayudas de comparación seguras en el tiempo. Las credenciales de administrador que faltan fallan al cerrarse. Las rutas de liquidación, difusión y mantenimiento con alcance prefieren su credencial dedicada y rechazan el respaldo más amplio cuando se configura el secreto con alcance.
 
-### Seguridad de dependencia y liberación
+### Seguridad de dependencias y versiones
 
-Tanto `npm audit --omit=dev --audit-level=moderate` como el completo
-`npm audit --audit-level=moderate` son comprobaciones de liberación. Hallazgos de producción
-liberación del bloque. Los hallazgos exclusivos para desarrolladores en las herramientas de compilación o lanzamiento requieren eliminación, una
-pasador limpio y compatible o un registro de aceptación con alcance explícito. la corriente
-El pin del faro se registra en el archivo de bloqueo; el registro de cambios y la evidencia de publicación,
-no en esta guía, conserve el historial de resolución específico de la versión.
+Tanto `npm audit --omit=dev --audit-level=moderate` como el `npm audit --audit-level=moderate` completo son comprobaciones de versión. Publicación del bloque de hallazgos de producción. Los hallazgos exclusivos para desarrolladores en herramientas de compilación o lanzamiento requieren eliminación, un pin compatible limpio o un registro de aceptación de alcance explícito. El pin actual de Lighthouse se registra en el archivo de bloqueo; El registro de cambios y la evidencia de la versión, no esta guía, conservan el historial de resolución específico de la versión.
+
+`npm run test:dependencies` ejecuta ambos ámbitos en ambos archivos de bloqueo con reintentos transitorios limitados. Merge Smoke expone las cuatro auditorías independientemente de la instalación de dependencias y las pruebas de aplicación. La falta de evidencia de auditoría es una verificación fallida, no un riesgo aceptado ni un resultado limpio; Una interrupción del servicio npm no debe descartarse como un hallazgo exclusivo de los desarrolladores. El umbral automatizado sigue siendo moderado y cualquier hallazgo de menor gravedad permanece en el resultado para una revisión específica. Consulte la [Guía de pruebas](/es/docs/operations/testing/#auditorías-de-dependencias) para conocer las fechas límite y volver a ejecutar comandos.
 
 ### Riesgos aceptados
 
@@ -289,8 +266,7 @@ aporte de respaldo.
 el alcance, la política de caché privada y la exclusión de la indexación/búsqueda previa reducen
 riesgo de fuga.
 
-Los enlaces potenciales de menor duración y el intercambio único de tokens de URL se rastrean en
-la [Hoja de ruta](/es/docs/reference/roadmap/).
+Los enlaces potenciales de menor duración y el intercambio único de tokens de URL se rastrean en el [Roadmap](/es/docs/reference/roadmap/).
 
 
 ## Lista de verificación de secretos
@@ -305,6 +281,7 @@ La configuración específica del pago está documentada en [PAYMENT_PROCESSOR.m
 |Secreto del webhook de Stripe|`STRIPE_WEBHOOK_SECRET_LIVE`|32+ caracteres|
 |Secreto de intención de pago|`CHECKOUT_INTENT_SECRET`|32+ caracteres|
 |Secreto del enlace mágico|`MAGIC_LINK_SECRET`|32+ caracteres|
+|Secreto de vista previa de campaña|Opcional `CAMPAIGN_PREVIEW_SECRET`; recurre a `MAGIC_LINK_SECRET`, luego los secretos de firma del administrador|32+ caracteres|
 |Secreto del token de recordatorio de lanzamiento|Reserva `LAUNCH_REMINDER_TOKEN_SECRET` o `MAGIC_LINK_SECRET`|32+ caracteres|
 |Secreto del token de pago abandonado|Reserva `ABANDONED_CART_TOKEN_SECRET` o `MAGIC_LINK_SECRET` para enlaces de recordatorio para cancelar/reanudar suscripción|32+ caracteres|
 |Secreto de sesión de administrador|`ADMIN_SESSION_SECRET`|32+ caracteres|
@@ -340,11 +317,7 @@ npm audit --omit=dev --audit-level=moderate
 npm audit --audit-level=moderate
 ```
 
-`npm run test:premerge` incluye la auditoría secreta, por lo que la activación de combinación local verifica tanto el comportamiento de seguridad como la exposición accidental de credenciales.
-El comando es un adaptador de política delgado The Pool sobre el escáner Dust Wave compartido:
-conserva el `worker/.dev.vars` ignorado y las reglas de accesorios de prueba, escanea
-formularios de credenciales rastreados más valores locales exactos en el árbol de trabajo/historial, y
-nunca imprime ni enmascara parcialmente un valor coincidente.
+`npm run test:premerge` incluye la auditoría secreta, por lo que la activación de combinación local verifica tanto el comportamiento de seguridad como la exposición accidental de credenciales. El comando es un ligero adaptador de política The Pool sobre el escáner Dust Wave compartido: conserva las reglas `worker/.dev.vars` y de accesorios de prueba ignoradas, escanea formularios de credenciales rastreadas más valores locales exactos en el árbol de trabajo/historial, y nunca imprime ni enmascara parcialmente un valor coincidente.
 
 Para ejecuciones locales, mantenga configurado `CHECKOUT_INTENT_SECRET` si desea que la suite de inicio de pago y pago del trabajador en vivo ejerza la ruta de firma propia real.
 

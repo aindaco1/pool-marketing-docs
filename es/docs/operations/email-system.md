@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-25 de agosto de 2026
+6 de septiembre de 2026
 
 The Pool envía correo electrónico transaccional y de soporte de campaña a través de Resend desde Cloudflare Worker. Las plantillas se encuentran en `worker/src/email.js`, la copia localizada compartida se encuentra en `_data/i18n/*.yml` y la programación/selección de audiencia se encuentra principalmente en `worker/src/index.js`.
 
@@ -300,7 +300,7 @@ Comportamiento actual:
 
 ## Entrega y reintento
 
-Los envíos de producción utilizan registros `email-outbox:v1:*`. La persistencia ocurre antes del efecto secundario Resend y el programador de minutos drena lotes limitados. Cada trabajo:
+Los envíos de producción utilizan registros `email-outbox:v1:*`. La configuración canónica `email.outbox_enabled` se refleja en `EMAIL_OUTBOX_ENABLED`; manténgalo habilitado para la entrega de producción. El modo de prueba puede utilizar envíos inmediatos de dispositivos a menos que la bandeja de salida esté habilitada explícitamente. La persistencia ocurre antes del efecto secundario Resend y el programador de minutos drena lotes limitados. Cada trabajo:
 
 - tiene un ID de trabajo determinista The Pool y Resend `Idempotency-Key`
 - se procesa una vez, congela la carga útil exacta del proveedor y registra un hash de contenido
@@ -360,6 +360,10 @@ El contenido del correo electrónico tiene restricciones más estrictas que el c
 - Convierta contenido de YouTube y Vimeo en enlaces/botones, no incrustados.
 - Evite los archivos adjuntos SVG y los patrones de archivos adjuntos de contenido activo.
 - Mantenga los enlaces tokenizados con alcance, firmada y duración limitada siempre que sea posible.
+
+## Anulaciones del tiempo de ejecución del recordatorio
+
+`LAUNCH_REMINDER_TURNSTILE_REQUIRED` no se cierra cuando se espera un widget de recordatorio pero su configuración de verificación no está disponible. `LAUNCH_REMINDER_DISPATCH_BATCH_SIZE` y `LAUNCH_REMINDER_DISPATCH_JOB_LIMIT` limitan el tamaño del lote de envío y los trabajos procesados ​​por tick programado. Estas son anulaciones avanzadas de Worker; use la configuración canónica de recordatorio de inicio en [Personalización](/es/docs/development/customization-guide/) para la configuración de bifurcación de rutina.
 
 ## Pruebas
 
@@ -421,7 +425,7 @@ Si falta una copia localizada:
 ## Documentos relacionados
 
 - [PAYMENT_PROCESSOR.md](/es/docs/operations/payment-processor/)
-- [FLUJOS DE TRABAJO.md](/es/docs/development/workflows/)
+- [ARQUITECTURA.md](/es/docs/development/architecture/)
 - [PERSONALIZACIÓN.md](/es/docs/development/customization-guide/)
 - [PANEL.md](/es/docs/operations/admin-dashboard/)
 - [SEGURIDAD.md](/es/docs/operations/security/)

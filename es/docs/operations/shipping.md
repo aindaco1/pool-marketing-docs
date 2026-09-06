@@ -10,14 +10,11 @@ lang: es
 
 ## Última actualización
 
-25 de agosto de 2026
+6 de septiembre de 2026
 
-Este documento describe el flujo de envío actual de The Pool-first,
-superficie de configuración orientada a la bifurcación, límite de integración USPS y árbol de reglas compartido
-por carrito, pago, gestión de aporte, informes y correos electrónicos.
+Este documento describe el flujo de envío actual de The Pool, la superficie de configuración orientada hacia la bifurcación, el límite de integración de USPS y el árbol de reglas compartido por carrito, pago, gestión de aporte, informes y correos electrónicos.
 
-El flujo de trabajo local incluye verificación de credenciales USPS en vivo, un USPS dedicado
-ayudante de humo y regresiones automatizadas para carrito, pago y gestión de aporte.
+El flujo de trabajo local incluye verificación de credenciales USPS en vivo, un asistente de humo USPS dedicado y regresiones automatizadas para carrito, pago y gestión de aporte.
 
 ## Alcance actual
 
@@ -86,9 +83,7 @@ La característica de envío debe ajustarse al modelo i18n actual:
 
 ### riesgo de USPS
 
-Las cuotas USPS, los requisitos de acceso y los términos comerciales son de proveedor externo.
-estado. Verifíquelos en la documentación actual de USPS. La aplicación trata la cuota.
-y limitación como riesgos operativos y no hace ningún reclamo sobre los precios del proveedor.
+Las cuotas USPS, los requisitos de acceso y los términos comerciales son estatales del proveedor externo. Verifíquelos en la documentación actual de USPS. La aplicación trata la cuota y la limitación como riesgos operativos y no hace ningún reclamo sobre los precios del proveedor.
 
 ### riesgo KV
 
@@ -146,16 +141,13 @@ Mantenga la opción establecida intencionalmente limitada:
   - solo nacional
   - Solo se muestra cuando la campaña lo habilita explícitamente.
 
-La interfaz no expone opciones de servicios basadas en la velocidad. Recompensas de financiación colectiva
-a menudo se envían mucho después de la fecha de aporte, por lo que la confirmación de entrega es útil
-elección del patrocinador.
+La interfaz no expone opciones de servicios basadas en la velocidad. Las recompensas del crowdfunding a menudo se envían mucho después de la fecha de aporte, por lo que la confirmación de entrega es una opción útil para los patrocinadores.
 
 Por lo tanto, el carrito actual y la interfaz de usuario de Manage Pledge exponen un selector de opciones de entrega limitado en lugar de un selector de clase de correo completo. El Trabajador aún elige la clase de envío válida subyacente más barata para `Standard`.
 
 ## Superficie de configuración
 
-La sección estructurada `shipping` se encuentra en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml), por
-ejemplo:
+La sección estructurada `shipping` se encuentra en [`_config.yml`](https://github.com/aindaco1/pool/blob/main/_config.yml), por ejemplo:
 
 ```yml
 shipping:
@@ -257,8 +249,7 @@ shipping:
           - PRIORITY_MAIL
 ```
 
-Esa configuración permanece basada en el sitio y refleja automáticamente los valores requeridos por Worker en
-[`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml).
+Esa configuración permanece controlada por el sitio y refleja automáticamente los valores requeridos por Worker en [`worker/wrangler.toml`](https://github.com/aindaco1/pool/blob/main/worker/wrangler.toml).
 
 Las sugerencias de envío opcionales de nivel preestablecido también pueden incluirse dentro de los metadatos preestablecidos. La implementación actual admite:
 
@@ -348,8 +339,7 @@ El panel de administración sigue la misma interfaz de usuario condicional para 
 
 ## Estrategia de embalaje
 
-La implementación actual utiliza una heurística limitada en lugar de una completa.
-cartonización:
+La implementación actual utiliza una heurística limitada en lugar de una cartonización completa:
 
 - sumar los pesos de los artículos entre artículos físicos y cantidades
 - agregar cualquier asignación única `packaging_weight_oz` de los perfiles de nivel/elemento de soporte seleccionados
@@ -357,8 +347,7 @@ cartonización:
 - use `height_in + stack_height_in * (qty - 1)` para niveles físicos de múltiples cantidades
 - pasar el paquete resultante a la calificación de USPS
 
-Esto es aproximado, pero más realista que la tarifa plana anterior y está lejos
-más pequeño que un motor de embalaje completo.
+Esto es aproximado, pero más realista que la tarifa fija anterior y mucho más pequeño que un motor completo.
 
 ## Estrategia de uso de USPS
 
@@ -373,8 +362,7 @@ Para esta plataforma, **no** necesitas las API de etiquetas para cotizar el env�
 
 Estos son parte del producto de aplicación predeterminado de USPS que se describe en el flujo de introducción oficial de USPS.
 
-Las pantallas de incorporación de USPS pueden cambiar independientemente de este repositorio. en el
-portal actual, la ruta de configuración es:
+Las pantallas de incorporación de USPS pueden cambiar independientemente de este repositorio. En el portal actual, la ruta de configuración es:
 
 1. Cree o inicie sesión en una cuenta comercial de USPS a través del Portal de incorporación de clientes (COP) de USPS.
 2. En COP, abra `My Apps` y cree una aplicación.
@@ -387,7 +375,7 @@ portal actual, la ruta de configuración es:
 
 En este repositorio, eso se asigna a:
 
-- [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml)
+- [`_config.yml`](https://github.com/aindaco1/pool/blob/main/_config.yml)
   - `shipping.usps.client_id`
   - `shipping.usps.enabled`
   - opcional `shipping.usps.api_base` si necesita apuntar explícitamente a TEM
@@ -400,10 +388,10 @@ En este repositorio, eso se asigna a:
 
 Para una configuración local de estilo de producción normal, los valores mínimos que necesita este repositorio son:
 
-- [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) o [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml)
+- [`_config.yml`](https://github.com/aindaco1/pool/blob/main/_config.yml) o `_config.local.yml`
   - `shipping.usps.enabled: true`
   - `shipping.usps.client_id: "<your Consumer Key>"`
-- [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars)
+- `worker/.dev.vars`
   - `USPS_CLIENT_SECRET=<your Consumer Secret>`
 
 Si desea realizar pruebas con USPS TEM con las mismas credenciales de producción que describe USPS, configure también:
@@ -414,8 +402,8 @@ o
 
 Para pruebas locales:
 
-- configure `shipping.usps.client_id` en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) o su ruta de anulación local
-- establezca `USPS_CLIENT_SECRET=...` en [`worker/.dev.vars`](https://github.com/your-org/your-project/blob/main/worker/.dev.vars)
+- configure `shipping.usps.client_id` en [`_config.yml`](https://github.com/aindaco1/pool/blob/main/_config.yml) o su ruta de anulación local
+- establecer `USPS_CLIENT_SECRET=...` en `worker/.dev.vars`
 - ejecutar:
 
 ```bash
@@ -437,8 +425,7 @@ Ese ayudante ejercita el módulo de envío de trabajadores real contra una peque
 - envío solo del complemento de la campaña
 - Envío solo de complemento de plataforma
 
-El entorno de prueba para anuncios publicitarios utiliza la URL base `apis-tem.usps.com` en
-lugar de `apis.usps.com`.
+El entorno de prueba para anuncios publicitarios utiliza la URL base `apis-tem.usps.com` en lugar de `apis.usps.com`.
 
 El producto de aplicación USPS predeterminado actualmente incluye las API que necesita esta función:
 
@@ -481,8 +468,7 @@ No llame a USPS:
 
 ### Almacenamiento en caché
 
-La ruta de envío no utiliza el almacenamiento en caché del historial de cotizaciones respaldado por KV. De corta duración
-La reutilización en memoria está determinada por:
+La ruta de envío no utiliza el almacenamiento en caché del historial de cotizaciones respaldado por KV. La reutilización en memoria de corta duración está determinada por:
 
 - origen ZIP
 - país de origen
@@ -495,7 +481,7 @@ La regla importante es:
 
 - no convierta las cotizaciones de envío en un subsistema KV de alta escritura
 
-El selector de país de pago se alimenta de la instantánea [`_data/shipping_countries.yml`](https://github.com/your-org/your-project/blob/main/_data/shipping_countries.yml) generada. La plataforma posee el registro canónico junto a `shipping-core`; use `npm run shipping-countries:sync` después de una actualización de pin y `npm run shipping-countries:check` para detectar deriva.
+El selector de país de pago se alimenta de la instantánea [`_data/shipping_countries.yml`](https://github.com/aindaco1/pool/blob/main/_data/shipping_countries.yml) generada. La plataforma posee el registro canónico junto a `shipping-core`; use `npm run shipping-countries:sync` después de una actualización de pin y `npm run shipping-countries:check` para detectar deriva.
 
 ## Puntos de contacto entre trabajadores y frontend
 
@@ -503,8 +489,8 @@ El selector de país de pago se alimenta de la instantánea [`_data/shipping_cou
 
 Las costuras lógicas principales ya existen en:
 
-- [trabajador/src/index.js](https://github.com/your-org/your-project/blob/main/worker/src/index.js)
-- [trabajador/src/proveedor-config.js](https://github.com/your-org/your-project/blob/main/worker/src/provider-config.js)
+- [trabajador/src/index.js](https://github.com/aindaco1/pool/blob/main/worker/src/index.js)
+- [trabajador/src/proveedor-config.js](https://github.com/aindaco1/pool/blob/main/worker/src/provider-config.js)
 
 El flujo de envío actual:
 
@@ -521,10 +507,7 @@ El carrito y la interfaz de usuario para administrar aportes:
 - Continuar recopilando la dirección de envío para pedidos físicos.
 - no expone ningún selector amplio de operador/servicio
 
-El panel de administración es una interfaz orientada al operador para el mismo envío.
-metadatos y no introduce un segundo modelo. Los nuevos campos del panel se serializan
-a `shipping_preset`, `shipping_fallback_flat_rate`, `shipping_options` o el
-campos del paquete `shipping.*` anidados ya consumidos por Worker.
+El panel de administración es una interfaz orientada al operador para los mismos metadatos de envío y no introduce un segundo modelo. Los nuevos campos del panel se serializan en `shipping_preset`, `shipping_fallback_flat_rate`, `shipping_options` o los campos del paquete anidado `shipping.*` que ya consume Worker.
 
 ## Estrategia de prueba
 
@@ -624,8 +607,7 @@ El respaldo aparece solo cuando:
 - USPS no devuelve ninguna tarifa utilizable
 - el envío no tiene una anulación válida más específica o una ruta de tabla manual
 
-La plataforma no muestra el respaldo `$3.00` como una estimación falsa antes de una
-intento de cotización.
+La plataforma no muestra el respaldo `$3.00` como una estimación falsa antes de un intento de cotización.
 
 ## Comportamiento del carrito y del pago
 
@@ -654,8 +636,7 @@ Cuando se requiere un ZIP pero está incompleto, la interfaz de usuario permanec
 
 Esto se aplica tanto en el sidecar del carrito como en la vista previa de pago alojada/en el sitio.
 
-La entrada postal parcial permanece en modo estimación. El carro no muestra el piso.
-respaldo mientras el usuario todavía está escribiendo.
+La entrada postal parcial permanece en modo estimación. El carrito no muestra el respaldo plano mientras el usuario sigue escribiendo.
 
 ### Estados de envío conocidos en la interfaz de usuario
 

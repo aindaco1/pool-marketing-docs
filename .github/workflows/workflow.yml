@@ -35,6 +35,13 @@ jobs:
           ruby-version: "3.0"
           bundler-cache: true
 
+      - name: Test documentation import and translation contracts
+        run: |
+          ruby scripts/test_sync_pool_docs.rb
+          python3 -m venv /tmp/pool-docs-tests
+          /tmp/pool-docs-tests/bin/pip install -r scripts/requirements-docs-i18n.txt
+          /tmp/pool-docs-tests/bin/python scripts/test_build_spanish_docs.py
+
       - name: Build site
         run: bundle exec jekyll build --trace
 

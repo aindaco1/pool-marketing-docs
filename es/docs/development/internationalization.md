@@ -10,18 +10,16 @@ lang: es
 
 ## Última actualización
 
-25 de agosto de 2026
+6 de septiembre de 2026
 
-Este documento describe la estructura de localización actual de The Pool y la
-Flujo de trabajo compatible para agregar idiomas en una bifurcación. El inglés es el predeterminado.
-local y el español es el local secundario mantenido.
+Este documento describe la estructura de localización actual de The Pool y el flujo de trabajo admitido para agregar idiomas en una bifurcación. El inglés es la configuración regional predeterminada y el español es la configuración regional secundaria mantenida.
 
 ## Superficie de localización actual
 
 El modelo i18n actual cubre:
 
-- configuración regional estructurada en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml)
-- catálogos de traducción compartidos en [`_data/i18n/`](https://github.com/your-org/your-project/tree/main/_data/i18n)
+- configuración regional estructurada en [`_config.yml`](https://github.com/aindaco1/pool/blob/main/_config.yml)
+- catálogos de traducción compartidos en [`_data/i18n/`](https://github.com/aindaco1/pool/tree/main/_data/i18n)
 - asistentes de URL con reconocimiento regional y un selector de idioma de pie de página compartido
 - rutas públicas localizadas para:
   - `/`
@@ -49,7 +47,7 @@ El inglés sigue siendo la configuración regional predeterminada. El español e
 
 ## Modelo de configuración
 
-La configuración regional canónica se encuentra en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml):
+La configuración regional canónica se encuentra en [`_config.yml`](https://github.com/aindaco1/pool/blob/main/_config.yml):
 
 ```yml
 i18n:
@@ -105,8 +103,8 @@ Las páginas de campaña son la principal excepción: se generan a partir de la 
 
 Las cadenas compartidas propiedad del sitio se encuentran en un archivo YAML por configuración regional:
 
-- [/_data/i18n/en.yml](https://github.com/your-org/your-project/blob/main/_data/i18n/en.yml)
-- [/_data/i18n/es.yml](https://github.com/your-org/your-project/blob/main/_data/i18n/es.yml)
+- [/_data/i18n/en.yml](https://github.com/aindaco1/pool/blob/main/_data/i18n/en.yml)
+- [/_data/i18n/es.yml](https://github.com/aindaco1/pool/blob/main/_data/i18n/es.yml)
 
 Esto incluye:
 
@@ -128,8 +126,7 @@ El inglés es el archivo fuente canónico y la configuración regional alternati
 
 ### 2. Páginas escritas de formato largo
 
-La copia de página de formato largo utiliza archivos fuente localizados en lugar de forzar cada
-párrafo en YAML.
+La copia de página de formato largo utiliza archivos fuente localizados en lugar de forzar cada párrafo a YAML.
 
 Ejemplos:
 
@@ -137,8 +134,8 @@ Ejemplos:
 - [es/about.md](/es/docs/overview/about-the-pool/)
 - [términos.md](/es/docs/overview/terms-and-guidelines/)
 - [es/terms.md](/es/docs/overview/terms-and-guidelines/)
-- [lista-de-verificación-de-campaña-de-creadores.md](https://github.com/your-org/your-project/blob/main/creator-campaign-checklist.md)
-- [es/creator-campaign-checklist.md](https://github.com/your-org/your-project/blob/main/es/creator-campaign-checklist.md)
+- [lista-de-verificación-de-campaña-de-creadores.md](https://github.com/aindaco1/pool/blob/main/creator-campaign-checklist.md)
+- [es/creator-campaign-checklist.md](https://github.com/aindaco1/pool/blob/main/es/creator-campaign-checklist.md)
 
 Utilice el mismo patrón para cualquier página con mucho contenido.
 
@@ -174,23 +171,23 @@ Las páginas de productos de Focused Shopping siguen el mismo modelo de par loca
 
 Ayudantes locales compartidos:
 
-- [/_includes/t.html](https://github.com/your-org/your-project/blob/main/_includes/t.html)
-- [/_includes/localized-url.html](https://github.com/your-org/your-project/blob/main/_includes/localized-url.html)
-- [/_includes/language-switcher.html](https://github.com/your-org/your-project/blob/main/_includes/language-switcher.html)
-- [/_includes/fecha-localizada.html](https://github.com/your-org/your-project/blob/main/_includes/localized-date.html)
-- [/_includes/localized-datetime.html](https://github.com/your-org/your-project/blob/main/_includes/localized-datetime.html)
+- [/_includes/t.html](https://github.com/aindaco1/pool/blob/main/_includes/t.html)
+- [/_includes/localized-url.html](https://github.com/aindaco1/pool/blob/main/_includes/localized-url.html)
+- [/_includes/language-switcher.html](https://github.com/aindaco1/pool/blob/main/_includes/language-switcher.html)
+- [/_includes/fecha-localizada.html](https://github.com/aindaco1/pool/blob/main/_includes/localized-date.html)
+- [/_includes/localized-datetime.html](https://github.com/aindaco1/pool/blob/main/_includes/localized-datetime.html)
 
 Cargas útiles de configuración regional en tiempo de ejecución:
 
-- [/assets/i18n.json](https://github.com/your-org/your-project/blob/main/assets/i18n.json)
-- [/_includes/runtime-messages-json.html](https://github.com/your-org/your-project/blob/main/_includes/runtime-messages-json.html)
-- [activos/js/pool-config.js](https://github.com/your-org/your-project/blob/main/assets/js/pool-config.js)
+- [/assets/i18n.json](https://github.com/aindaco1/pool/blob/main/assets/i18n.json)
+- [/_includes/runtime-messages-json.html](https://github.com/aindaco1/pool/blob/main/_includes/runtime-messages-json.html)
+- [activos/js/pool-config.js](https://github.com/aindaco1/pool/blob/main/assets/js/pool-config.js)
 
 Localización del panel de administración:
 
-- La copia estática del shell de administración en [/_layouts/admin.html](https://github.com/your-org/your-project/blob/main/_layouts/admin.html) usa el asistente de traducción Liquid compartido
+- La copia estática del shell de administración en [/_layouts/admin.html](https://github.com/aindaco1/pool/blob/main/_layouts/admin.html) usa el asistente de traducción compartido Liquid
 - La copia de administración en tiempo de ejecución está incluida en el catálogo de administración completo emitido por `runtime-messages-json.html`.
-- Los campos de Configuración y Campañas generados provienen de Worker JSON, pero [assets/js/admin-dashboard.js](https://github.com/your-org/your-project/blob/main/assets/js/admin-dashboard.js) los localiza con claves deterministas:
+- Los campos de Configuración y Campañas generados provienen de Worker JSON, pero [assets/js/admin-dashboard.js](https://github.com/aindaco1/pool/blob/main/assets/js/admin-dashboard.js) los localiza con claves deterministas:
   - `settings_section_*` para secciones de la barra lateral de configuración de nivel superior
   - `settings_field_*_label`, `settings_field_*_help` y `settings_field_*_placeholder` para configuraciones de plataforma editables
   - `settings_readonly_*_label` y `settings_readonly_*_help` para diagnósticos de solo lectura de plataforma y filas de estado secreto
@@ -222,8 +219,8 @@ Los correos electrónicos de apoyo de los trabajadores reutilizan el mismo catá
 
 Archivos relevantes:
 
-- [trabajador/src/email.js](https://github.com/your-org/your-project/blob/main/worker/src/email.js)
-- [trabajador/src/index.js](https://github.com/your-org/your-project/blob/main/worker/src/index.js)
+- [trabajador/src/email.js](https://github.com/aindaco1/pool/blob/main/worker/src/email.js)
+- [trabajador/src/index.js](https://github.com/aindaco1/pool/blob/main/worker/src/index.js)
 
 Comportamiento práctico:
 
@@ -253,8 +250,8 @@ El soporte completo de idiomas también necesita:
 
 ## Flujo de trabajo de bifurcación recomendado
 
-1. Copie [/_data/i18n/en.yml](https://github.com/your-org/your-project/blob/main/_data/i18n/en.yml) a `/_data/i18n/{lang}.yml`.
-2. Agregue el idioma al bloque `i18n` en [/_config.yml](https://github.com/your-org/your-project/blob/main/_config.yml).
+1. Copie [/_data/i18n/en.yml](https://github.com/aindaco1/pool/blob/main/_data/i18n/en.yml) a `/_data/i18n/{lang}.yml`.
+2. Agregue el idioma al bloque `i18n` en [/_config.yml](https://github.com/aindaco1/pool/blob/main/_config.yml).
 3. Agregue rutas de páginas públicas localizadas a `i18n.pages`.
 4. Agregue páginas de origen localizadas para contenido de formato largo como `/about/`, `/terms/`, `/manage/` o páginas de índice de la comunidad seleccionadas cuando sea necesario.
 5. Verifique las rutas de recopilación generadas, como `/es/campaigns/{slug}/`, y cualquier ruta de inserción con reconocimiento regional que exponga su implementación.
@@ -295,11 +292,7 @@ Para cambios importantes en las políticas, mantenga los títulos, anclajes, obl
 
 ## Límites actuales
 
-La integridad local automatizada y las comprobaciones i18n/SEO representadas son puertas de liberación.
-La copia actual de Acerca de, Términos, Compras, Envío y No devoluciones tiene como objetivo neutral
-Español de Estados Unidos/Latinoamérica. Las reclamaciones de revisión humana específicas de la versión pertenecen a
-[publicar evidencia](https://github.com/your-org/your-project/tree/main/docs/release-evidence); agregar una configuración regional más allá del inglés y
-El español requiere un plan explícito de revisión de traductor/hablante nativo.
+La integridad local automatizada y las comprobaciones i18n/SEO representadas son puertas de liberación. La copia actual de Acerca de, Términos, Compras, Envíos y No devoluciones está dirigida al español neutral de EE. UU. y Latinoamérica. Las afirmaciones de revisión humana específicas de la versión pertenecen a [evidencia de la versión](https://github.com/aindaco1/pool/tree/main/docs/release-evidence); Agregar una configuración regional más allá del inglés y el español requiere un plan explícito de revisión de traductor/hablante nativo.
 
 Todavía intencionalmente fuera del alcance de este modelo:
 

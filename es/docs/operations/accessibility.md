@@ -12,9 +12,7 @@ lang: es
 
 25 de agosto de 2026
 
-Este documento describe la línea base de accesibilidad actual de The Pool, la
-superficies de interacción de mayor riesgo cubiertas por verificación automática o manual,
-y las restricciones aplicadas a los cambios de interfaz.
+Este documento describe la línea base de accesibilidad actual de The Pool, las superficies de interacción de mayor riesgo cubiertas por la verificación manual o automática y las restricciones aplicadas a los cambios de interfaz.
 
 ## Prioridades actuales
 
@@ -235,9 +233,7 @@ npm run podman:doctor
 
 ## Comprobaciones manuales
 
-Las comprobaciones automatizadas de accesibilidad, configuración regional y páginas renderizadas son puertas de liberación.
-La evidencia manual de VoiceOver/NVDA sigue siendo opcional a menos que se libere explícitamente.
-lo requiere; cuando se realice, utilice estas comprobaciones para cambios significativos en la interfaz de usuario:
+Las comprobaciones automatizadas de accesibilidad, configuración regional y páginas renderizadas son puertas de liberación. La evidencia manual de VoiceOver/NVDA sigue siendo opcional a menos que un lanzamiento lo requiera explícitamente; cuando se realice, utilice estas comprobaciones para cambios significativos en la interfaz de usuario:
 
 - El cajón del carrito se puede abrir, navegar y cerrar solo con el teclado.
 - El disparador del carrito anuncia una etiqueta útil y un estado expandido/contraído para tecnología de asistencia.

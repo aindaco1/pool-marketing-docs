@@ -10,13 +10,13 @@ lang: es
 
 ## Última actualización
 
-25 de agosto de 2026
+6 de septiembre de 2026
 
 Este documento describe el sistema de producto complementario actual.
 
 La plataforma admite dos ámbitos complementarios que comparten intencionalmente la misma experiencia de usuario de la tarjeta y al mismo tiempo se comportan de manera diferente en contabilidad, envío y cumplimiento:
 
-- **Complementos de plataforma** se encuentran en el catálogo global en `add_ons` en [/_config.yml](https://github.com/your-org/your-project/blob/main/_config.yml)
+- **Complementos de plataforma** se encuentran en el catálogo global en `add_ons` en [/_config.yml](https://github.com/aindaco1/pool/blob/main/_config.yml)
 - **Complementos de campaña** disponibles en el frente de la campaña en `campaign_add_ons`
 
 Ambos alcances:
@@ -67,7 +67,7 @@ Ellos:
 
 ## Superficie del catálogo actual
 
-Los productos complementarios globales se encuentran en [/_config.yml](https://github.com/your-org/your-project/blob/main/_config.yml) bajo `add_ons`.
+Los productos complementarios globales se encuentran en [/_config.yml](https://github.com/aindaco1/pool/blob/main/_config.yml) bajo `add_ons`.
 
 Claves de nivel superior actuales:
 
@@ -187,7 +187,7 @@ El flujo de complementos actual tiene en cuenta intencionalmente el inventario:
 - El inventario puede vivir en el producto en sí o en cada variante.
 - Los complementos globales leen el inventario de `add_ons`.
 - complementos de campaña leer inventario de `campaign_add_ons`
-- el Trabajador expone una instantánea del inventario actual en [/add-ons/inventory](https://github.com/your-org/your-project/blob/main/worker/src/index.js)
+- Worker expone una instantánea del inventario actual en [/add-ons/inventory](https://github.com/aindaco1/pool/blob/main/worker/src/index.js)
 - carrito y Administrar aporte consumen el mismo asistente compartido de estado del producto que reconoce el inventario
 - Aparece un mensaje de stock bajo cuando la cantidad restante es igual o inferior a `low_stock_threshold`
 - Las variantes agotadas se eliminan de la superficie compartida del estado del producto a menos que ya estén seleccionadas en un aporte existente.
@@ -235,11 +235,11 @@ La división de envío actual es:
 
 ## Contrato de tiempo de ejecución
 
-El catálogo actual está expuesto a la configuración del tiempo de ejecución del navegador a través de [assets/js/pool-config.js](https://github.com/your-org/your-project/blob/main/assets/js/pool-config.js) y el inicio del tiempo de ejecución compartido incluye [/_includes/cart-runtime-foot.html](https://github.com/your-org/your-project/blob/main/_includes/cart-runtime-foot.html).
+El catálogo actual está expuesto a la configuración del tiempo de ejecución del navegador a través de [assets/js/pool-config.js](https://github.com/aindaco1/pool/blob/main/assets/js/pool-config.js) y el inicio del tiempo de ejecución compartido incluye [/_includes/cart-runtime-foot.html](https://github.com/aindaco1/pool/blob/main/_includes/cart-runtime-foot.html).
 
 Eso significa que la interfaz de usuario del lado del carrito y de Manage Pledge puede leer una fuente de verdad estable `POOL_CONFIG.addOns` en lugar de duplicar los datos del producto en múltiples plantillas o scripts.
 
-Worker también tiene una fuente de catálogo estática coincidente en [/api/add-ons.json](https://github.com/your-org/your-project/blob/main/api/add-ons.json), y los manifiestos de pago pendientes pueden contener:
+Worker también tiene una fuente de catálogo estática coincidente en [/api/add-ons.json](https://github.com/aindaco1/pool/blob/main/api/add-ons.json), y los manifiestos de pago pendientes pueden contener:
 
 - `bundleAddOns`
 - `bundleAddOnAnchorCampaignSlug`
@@ -290,5 +290,4 @@ En `fulfillment-report`:
 
 Esto mantiene clara la propiedad operativa sin cambiar la interfaz de usuario del complemento orientada a los patrocinadores.
 
-El catálogo prospectivo y el trabajo de inventario compartido se rastrean en el
-[Hoja de ruta](/es/docs/reference/roadmap/).
+El catálogo prospectivo y el trabajo de inventario compartido se rastrean en [Roadmap](/es/docs/reference/roadmap/).

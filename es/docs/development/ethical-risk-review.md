@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-25 de agosto de 2026
+6 de septiembre de 2026
 
 Esta guía adapta el Ethical OS Toolkit del Institute for the Future y Omidyar Network a las superficies de crowdfunding, pagos, correo electrónico, administración y uso compartido público de The Pool. Úselo como una revisión práctica de riesgos, no como un reemplazo de la seguridad, accesibilidad, privacidad o revisión legal.
 
@@ -101,7 +101,7 @@ Trátelos como bloqueadores de liberación hasta que se resuelva explícitamente
 
 ## Orientación específica del proyecto
 
-- Cambios en el proceso de pago y pago: comience desde [PAYMENT_PROCESSOR.md](/es/docs/operations/payment-processor/), [WORKFLOWS.md](/es/docs/development/workflows/) y [SECURITY.md](/es/docs/operations/security/). Verifique los totales canónicos, la idempotencia, la comprensión de los patrocinadores y las rutas de recuperación.
+- Cambios en el proceso de pago y pago: comience desde [PAYMENT_PROCESSOR.md](/es/docs/operations/payment-processor/), [ARCHITECTURE.md](/es/docs/development/architecture/) y [SECURITY.md](/es/docs/operations/security/). Verifique los totales canónicos, la idempotencia, la comprensión de los patrocinadores y las rutas de recuperación.
 - Correo electrónico y recordatorios: comience desde [EMAIL.md](/es/docs/operations/email-system/). Verifique el consentimiento explícito, el alcance de la audiencia, los ensayos, la copia localizada, el comportamiento de supresión/cancelación de suscripción y la evidencia de no envío.
 - Cambios en el panel de administración: comience desde [DASHBOARD.md](/es/docs/operations/admin-dashboard/). Documente si la característica es de solo lectura, local del navegador, respaldada por KV o respaldada por GitHub, y mantenga el alcance de rol/campaña aplicado por Worker.
 - Uso compartido público, SEO e incrustaciones: comience desde [SEO.md](/es/docs/operations/seo/) y [EMBEDS.md](/es/docs/development/campaign-embeds/). Las vistas previas públicas son veraces, tienen en cuenta el estado y nunca filtran datos tokenizados o de vistas previas protegidas.
@@ -116,5 +116,4 @@ Trátelos como bloqueadores de liberación hasta que se resuelva explícitamente
 - Mantenga visible el estado de la plataforma a través de evidencia operativa, como envíos fallidos, presión de límite de velocidad, desviación de la proyección, cobertura de accesibilidad, integridad de i18n, preparación del proveedor y pruebas de ruta de abuso.
 - Revise esta guía cuando el producto agregue nuevas audiencias, nuevos usos de datos, nueva automatización o nuevos canales de distribución.
 
-Los registros de revisión ética específicos de la liberación pertenecen a la correspondiente
-[publicar evidencia](https://github.com/your-org/your-project/tree/main/docs/release-evidence) en lugar de en esta guía del estado actual.
+Los registros de revisión ética específicos de la liberación pertenecen a la [evidencia de liberación](https://github.com/aindaco1/pool/tree/main/docs/release-evidence) correspondiente en lugar de a esta guía del estado actual.

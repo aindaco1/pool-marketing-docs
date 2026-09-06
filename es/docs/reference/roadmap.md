@@ -10,14 +10,10 @@ lang: es
 
 ## Última actualización
 
-25 de agosto de 2026
+6 de septiembre de 2026
 
 Este documento contiene únicamente trabajo prospectivo.
-No describe ni el producto actual ni una fecha o versión de lanzamiento prometida.
-El comportamiento actual pertenece a las [README](/es/docs/development/platform-readme/) y guías de práctica;
-cambios completos y no publicados
-pertenecen al [Changelog](/es/docs/reference/changelog/), con verificación de versión en
-[publicar evidencia](https://github.com/your-org/your-project/tree/main/docs/release-evidence).
+No describe ni el producto actual ni una fecha o versión de lanzamiento prometida. El comportamiento actual pertenece a las [README](/es/docs/development/platform-readme/) y guías de práctica; Los cambios completos y no publicados pertenecen al [Changelog](/es/docs/reference/changelog/), con la verificación de la versión en [evidencia de la versión](https://github.com/aindaco1/pool/tree/main/docs/release-evidence).
 
 ## Trabajo de producto potencial
 
@@ -54,7 +50,7 @@ pertenecen al [Changelog](/es/docs/reference/changelog/), con verificación de v
   - Mejore la privacidad y la retención de los destinos fiscales: revise si el `taxDetails.destination` persistente debe conservar la dirección postal completa para siempre, si las pruebas fiscales almacenadas se pueden minimizar o aplicar hash después de las ventanas de liquidación/informe, y cómo esto interactúa con las direcciones de cumplimiento que ya requieren retención de PII.
   - Agregue soporte de conciliación y remesas: cree exportaciones de obligaciones tributarias agrupadas por proveedor, fuente, jurisdicción, código de ubicación, tasa efectiva, subtotal imponible, envío sujeto a impuestos, impuestos recaudados, propiedad de campaña/plataforma y deltas de reembolso/cancelación/modificación; Asegúrese de que los informes conserven los detalles históricos de impuestos almacenados incluso después de que cambien la configuración del proveedor o las categorías del catálogo.
   - Amplíe las pruebas en las capas correctas: pruebas unitarias para la construcción de líneas de impuestos y adaptadores de proveedores, pruebas de fijación para el inicio de NM/respaldo de API y la tributación de envío ZIP.TAX, pruebas de trabajadores para el pago y administración de deltas de impuestos de aporte, pruebas de navegador para estados de IU provisionales/de error/de respaldo, pruebas de informes para exportaciones de obligaciones tributarias y pruebas de configuración para el manejo de credenciales/preparación del proveedor.
-  - Actualice los documentos después de la implementación: `docs/TAX_CALCULATOR.md`, `docs/CUSTOMIZATION.md`, `docs/WORKFLOWS.md`, `docs/TESTING.md`, `docs/SECURITY.md`, `worker/README.md`, `docs/PAYMENT_PROCESSOR.md`, las listas de verificación del creador y el texto de ayuda del panel deben explicar la selección de proveedores, la política de respaldo, la cadencia de actualización, el comportamiento de las categorías de impuestos, la evidencia almacenada y lo que los operadores deben verificar con un profesional de impuestos.
+  - Actualice los documentos después de la implementación: `docs/TAX_CALCULATOR.md`, `docs/CUSTOMIZATION.md`, `docs/ARCHITECTURE.md`, `docs/TESTING.md`, `docs/SECURITY.md`, `worker/README.md`, `docs/PAYMENT_PROCESSOR.md`, las listas de verificación del creador y el texto de ayuda del panel deben explicar la selección de proveedores, la política de respaldo, la cadencia de actualización, el comportamiento de las categorías de impuestos, la evidencia almacenada y lo que los operadores deben verificar con un profesional de impuestos.
 - [] Integración de inventario con el sistema POS Stripe
   - Trate esto como inventario compartido entre The Pool, Store y [Pago por Stripe](https://paymentforstripe.com/), no como una afirmación de que los productos Stripe o el pago por el stock propio de Stripe cuentan. The Pool y Store siguen teniendo autoridad sobre el contenido de sus propios productos, precios en línea, envío, impuestos, contabilidad de campañas y valores históricos de pedidos/aportes; Un libro de contabilidad de existencias compartido limitado adquiere autoridad solo para el inventario físico finito vinculado o la capacidad de eventos, incluidos los complementos físicos The Pool y los productos físicos, de boletos y de confirmación de asistencia con seguimiento de inventario Store.
   - Agregue una configuración de superadministrador **Inventario compartido y POS** a ambos paneles de administración, respaldada por la configuración canónica y el estado Worker reflejado, con `enabled: false` como repositorio, desarrollo local y nueva bifurcación predeterminada. Mantenga la prueba y la activación en vivo separadas, muestre la preparación configurada o faltante para el coordinador compartido, las credenciales Stripe, el webhook, el programador y la versión del esquema, y ​​requiera una verificación previa exitosa de solo lectura más una confirmación explícita antes de la habilitación en vivo.

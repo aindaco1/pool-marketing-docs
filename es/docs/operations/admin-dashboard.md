@@ -10,11 +10,9 @@ lang: es
 
 ## Última actualización
 
-25 de agosto de 2026
+6 de septiembre de 2026
 
-Este documento es la referencia del operador y la fuente de verdad para The Pool.
-edición de campañas, informes, análisis y marketing privados basados en paneles de control
-enlaces, complementos y gestión de usuarios.
+Este documento es la referencia del operador y la fuente de verdad para la edición, informes, análisis, enlaces de marketing, complementos y administración de usuarios de campañas basadas en paneles privados de The Pool.
 
 ## Audiencia
 
@@ -113,13 +111,7 @@ Al recargar, el panel restaura la última pestaña de nivel superior permitida d
 
 Las configuraciones están agrupadas en una barra lateral izquierda. Los superadministradores pueden editar secciones de configuración publicables y guardar la administración de usuarios solo en tiempo de ejecución por separado.
 
-La barra lateral utiliza el orden compartido entre proyectos donde los productos se superponen.
-The Pool pliega los campos separados **URL canónicas** en **Plataforma** y utiliza
-**Informes del corredor de campaña** en la costura de marketing global. El esquema Worker
-mantiene **Complementos de plataforma** en el punto de preparación, mientras que el navegador los dirige a
-La pestaña **Complementos** de nivel superior de The Pool en lugar de duplicarla en Configuración
-barra lateral. La automatización del navegador cubre el orden visible y el contrato de configuración.
-La prueba cubre el pedido Worker completo:
+La barra lateral utiliza el orden compartido entre proyectos donde los productos se superponen. The Pool integra los campos separados de **URL canónicas** en **Plataforma** y utiliza **Informes de ejecución de campaña** en la costura de marketing global. El esquema Worker mantiene **Complementos de plataforma** en la línea de preparación, mientras que el navegador lo dirige a la pestaña **Complementos** de nivel superior de The Pool en lugar de duplicarlo en la barra lateral de Configuración. La automatización del navegador cubre el orden visible y la prueba del contrato de configuración cubre el orden completo de Worker:
 
 1. Plataforma
 2. Marca y SEO
@@ -238,10 +230,25 @@ Normas:
 
 Esta sección informa el estado configurado/faltante para las credenciales de tiempo de ejecución únicamente. No debe mostrar ni editar valores secretos.
 
+### Anulaciones de diagnósticos en tiempo de ejecución
+
+Estas variables Worker complementan el espejo de configuración canónico; no crean un segundo catálogo de configuración editable:
+
+|variable|Propósito|
+| --- | --- |
+|`ADMIN_LOCAL_REPO_SERVICE`|URL auxiliar del repositorio exclusivo para desarrolladores; `env.dev` utiliza `http://127.0.0.1:8799`. El Worker por sí solo no puede escribir archivos host.|
+|`ADMIN_TURNSTILE_REQUIRED`|Error cerrado cuando se espera la configuración del administrador Turnstile.|
+|`CLOUDFLARE_WORKER_SCRIPT_NAME`|Filtrar el uso de Cloudflare por script Worker; omitir para uso en toda la cuenta.|
+|`PLAN_USAGE_CLOUDFLARE_PLAN`, `PLAN_USAGE_RESEND_PLAN`|Mostrar planes alternativos cuando la detección de proveedores no esté disponible.|
+|`CLOUDFLARE_*_DAILY_LIMIT`, `CLOUDFLARE_*_MONTHLY_LIMIT`|Mostrar anulaciones de cuota para las métricas Workers/KV cuando los datos del proveedor omiten límites, como `CLOUDFLARE_WORKERS_REQUESTS_MONTHLY_LIMIT`.|
+|`RESEND_EMAILS_MONTHLY_LIMIT`, `RESEND_EMAILS_DAILY_LIMIT`|Resend muestra anulaciones de cuotas.|
+|`PLAN_USAGE_WARNING_PERCENT`, `PLAN_USAGE_CRITICAL_PERCENT`|Umbrales de advertencia de progreso de uso.|
+
+Estas anulaciones de visualización no cambian las cuotas de los proveedores. Mantenga las credenciales en secretos Worker; [Security](/es/docs/operations/security/) es propietario de sus ámbitos.
+
 ## Límite del panel de control entre proyectos
 
-El panel Store es una fuente de patrones operativos reutilizables, no un segundo
-modelo de producto. El mapeo The Pool actual es:
+El panel Store es una fuente de patrones operativos reutilizables, no un segundo modelo de producto. El mapeo The Pool actual es:
 
 |Superficie Store|Decisión The Pool|
 | --- | --- |
@@ -256,9 +263,7 @@ modelo de producto. El mapeo The Pool actual es:
 |Valores predeterminados de marketing globales de Store|No copiado: The Pool ya tiene enlaces de marketing relacionados con la campaña, borradores compartidos, referencias, códigos QR, incrustaciones y controles de recordatorio.|
 |Productos, cupones, descargas, boletos, pedidos y UI de conciliación|No copiado: los equivalentes admitidos de The Pool son campañas, complementos, patrocinadores, informes, liquidación y conciliación de aportes.|
 
-Al reutilizar otro patrón de administración de Dust Wave, use la autenticación, solicitud y autenticación existentes de The Pool.
-ayudantes de estado, tabla, localización, configuración y prueba; no introducir
-Almacenamiento con nombre Store o fuentes de verdad exclusivas del navegador.
+Al reutilizar otro patrón de administración de Dust Wave, utilice los ayudantes de autenticación, solicitud, estado, tabla, localización, configuración y prueba existentes de The Pool; no introduzca almacenamiento con nombre Store ni fuentes de información fiables exclusivas del navegador.
 
 ## Complementos de plataforma
 
@@ -408,6 +413,123 @@ Tipos de informes admitidos:
 - informe de cumplimiento
 
 La interfaz de usuario del informe del navegador está orientada a la descarga. No necesita controles manuales de envío de correo electrónico ni de marcación como enviado.
+
+### Informes de aporte de CLI
+
+Genere informes CSV de aportes de Cloudflare KV:
+
+```bash
+# Remote production/dev reports require Wrangler auth.
+(cd worker && npx wrangler login)
+
+# Or, for non-interactive shells and Podman-backed report runs:
+export CLOUDFLARE_API_TOKEN="your-token"
+export CLOUDFLARE_ACCOUNT_ID="your-account-id"
+
+# All pledges, production KV
+./scripts/pledge-report.sh
+
+# Single campaign
+./scripts/pledge-report.sh worst-movie-ever
+
+# Dev/preview KV
+./scripts/pledge-report.sh --env dev
+
+# Save to file
+./scripts/pledge-report.sh worst-movie-ever > pledges.csv
+```
+
+Para informes remotos respaldados por Podman, coloque `CLOUDFLARE_API_TOKEN` y `CLOUDFLARE_ACCOUNT_ID` en el shell del host o en un archivo env local ignorado como `.env.local`, `.env.cloudflare` o `worker/.dev.vars`; los envoltorios de informes pasan los valores de autenticación de Cloudflare a `podman exec`.
+
+Configuración de bifurcación para informes de producción:
+
+1. En Cloudflare, vaya a **Mi perfil -> Tokens API -> Crear token**.
+2. Cree un token de usuario con **Cuenta/Almacenamiento KV de trabajadores/Lectura** con alcance para la cuenta propietaria del espacio de nombres KV `PLEDGES` de esta bifurcación.
+3. Guárdelo con la identificación de la cuenta en `worker/.dev.vars` u otro archivo env ignorado:
+
+```bash
+CLOUDFLARE_API_TOKEN=your-token
+CLOUDFLARE_ACCOUNT_ID=your-account-id
+```
+
+4. Ejecute exportaciones de producción a través del mismo entorno de trabajo de Podman utilizado por las pruebas locales:
+
+```bash
+./scripts/pledge-report.sh --podman --env production --remote > ~/Desktop/pool-pledge-report.csv
+./scripts/fulfillment-report.sh --podman --env production --remote > ~/Desktop/pool-fulfillment-report.csv
+```
+
+El progreso se escribe en stderr, mientras que los datos CSV se escriben solo en stdout, por lo que las redirecciones de archivos se mantienen limpias.
+
+**Formato de salida:** Una fila por entrada del historial (estilo libro mayor). Esto significa:
+- Nuevas aportes: 1 fila (creada)
+- aportes modificados: más de 2 filas (creadas + deltas de modificación)
+- aportes cancelados: 2 filas (creadas + canceladas con montos negativos)
+
+**Columnas de salida:** `email`, `campaign`, `items`, `add_on_items`, `campaign_subtotal`, `platform_add_on_subtotal`, `subtotal`, `tip_percent`, `tip`, `tax`, `shipping`, `total`, `status`, `charged`, `created_at`, `order_id`.
+
+**Valores de estado:**
+- `created`: creación de aporte inicial (los elementos muestran la lista de niveles completa)
+- `modified`: cambio de nivel/cantidad de aporte (los elementos muestran diferencias: `+Added Tier`, `-Removed Tier`)
+- `cancelled` — Aporte cancelado (muestra montos negativos)
+- `active` — Aporte heredado sin historia
+- `charged` — aporte cargado heredada sin historia
+- `failed` — Aporte fallido heredado sin historia
+
+**Formato de elementos de fila modificado:**
+```
+(modified) +Line of Dialogue; -Writer Credit x2; +Custom Support $5.00
+```
+- `+Tier` o `+Tier xN`: se agregó un nivel (o se aumentó la cantidad)
+- `-Tier` o `-Tier xN`: se eliminó el nivel (o se redujo la cantidad)
+- `+Custom Support $X` o `-Custom Support $X`: se agregó o eliminó soporte personalizado
+- `; tip updated to N%`: la propina cambió durante la misma modificación, incluso si otros campos de contribución también cambiaron
+- Los niveles sin cambios no aparecen en la diferencia
+
+**Soporte personalizado en artículos:** Cuando un aporte incluye soporte personalizado, aparece como `Custom Support $X.XX` en la columna de artículos (por ejemplo, `Line of Dialogue; Custom Support $25.00`).
+
+**Formato de fila cancelada:** Las filas canceladas muestran montos negativos (subtotal, propina, impuestos, envío, total), de modo que la suma de todas las filas da el total correcto de la campaña. Los elementos tienen el prefijo `-` para indicar su eliminación.
+
+**Asignación de nombres de niveles:** El informe convierte los ID de niveles en nombres legibles por humanos (por ejemplo, `frame` → `One Frame`, `dialogue` → `Line of Dialogue`).
+
+Utilice `campaign_subtotal` para la contabilidad del progreso de la campaña; `subtotal` también incluye complementos de plataforma. Las filas del historial codifican cambios y cancelaciones como deltas. `total` incluye propina, impuestos y envío; Las sumas del libro mayor describen los montos de los aportes registradas y no prueban el cobro exitoso del pago.
+
+### Informes de cumplimiento de CLI
+
+Genere informes agregados que muestren el **estado actual** del aporte de cada patrocinador (para fines de cumplimiento):
+
+```bash
+# All pledges, production KV
+./scripts/fulfillment-report.sh
+
+# Single campaign
+./scripts/fulfillment-report.sh worst-movie-ever
+
+# Dev/preview KV
+./scripts/fulfillment-report.sh --env dev
+
+# Save to file
+./scripts/fulfillment-report.sh worst-movie-ever > fulfillment.csv
+```
+
+**Formato de salida:** El estado actual del aporte se agrega por patrocinador y campaña, luego se divide por campaña o plataforma cuando sea necesario. Por lo tanto, un patrocinador puede tener más de una fila de cumplimiento para una campaña.
+
+**Columnas de salida:** `email`, `campaign`, `fulfiller`, `items`, `add_on_items`, `campaign_subtotal`, `platform_add_on_subtotal`, `subtotal`, `tip_percent`, `tip`, `tax`, `shipping`, `total`, `shipping_address`.
+
+**Diferencias clave con aporte-report.sh:**
+- Muestra **estado de nivel actual** (no el historial)
+- **Agrega** múltiples aportes por patrocinador/campaña antes de dividirlos por cumplidores.
+- **Excluye** aportes cancelados
+- Enumera los elementos entregables; El soporte personalizado aún participa en los totales de dinero aplicables.
+- **No** columnas de estado, creada_en o id_pedido
+- Los artículos muestran las cantidades finales (por ejemplo, si el patrocinador se modifica desde el cuadro → diálogo, solo aparece el diálogo)
+- Incluye `shipping_address` para el cumplimiento del nivel físico
+- `total` es el monto del cargo final, incluida la propina opcional de The Pool.
+
+**Casos de uso:**
+- Hojas de cálculo de cumplimiento (qué recompensas entregar a cada patrocinador)
+- El patrocinador cuenta por nivel
+- Seguimiento de entregables
 
 ## Patrocinadores
 

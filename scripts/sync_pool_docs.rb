@@ -4,11 +4,12 @@
 require "date"
 require "fileutils"
 require "pathname"
+require "open3"
 require "set"
 require "shellwords"
 
 ROOT = Pathname(__dir__).join("..").expand_path
-POOL_ROOT = Pathname(ENV.fetch("POOL_SOURCE", "/tmp/pool")).expand_path
+POOL_ROOT = Pathname(ENV.fetch("POOL_SOURCE", ROOT.join("../pool").to_s)).expand_path
 POOL_REPO = ENV.fetch("POOL_REPO", "aindaco1/pool")
 POOL_BLOB_BASE = "https://github.com/#{POOL_REPO}/blob/main/"
 POOL_TREE_BASE = "https://github.com/#{POOL_REPO}/tree/main/"
@@ -25,9 +26,8 @@ DOCS = [
   { src: "about.md", dest: "docs/overview/about-the-pool.md", title: "About The Pool", parent: "Overview", nav_order: 1 },
   { src: "terms.md", dest: "docs/overview/terms-and-guidelines.md", title: "Terms & Creative Guidelines", parent: "Overview", nav_order: 2 },
   { src: "docs/CONTRIBUTING.md", dest: "docs/development/contributing.md", title: "Contributing", parent: "Development", nav_order: 1 },
-  { src: "docs/PROJECT_OVERVIEW.md", dest: "docs/development/project-overview.md", title: "Project Overview", parent: "Development", nav_order: 2 },
-  { src: "docs/WORKFLOWS.md", dest: "docs/development/workflows.md", title: "Workflows", parent: "Development", nav_order: 3 },
-  { src: "docs/DEV_NOTES.md", dest: "docs/development/developer-notes.md", title: "Developer Notes", parent: "Development", nav_order: 4 },
+  { src: "docs/ARCHITECTURE.md", dest: "docs/development/architecture.md", title: "Architecture", parent: "Development", nav_order: 2 },
+  { src: "docs/CONTENT_MODEL.md", dest: "docs/development/content-model.md", title: "Campaign Content Model", parent: "Development", nav_order: 3 },
   { src: "docs/CUSTOMIZATION.md", dest: "docs/development/customization-guide.md", title: "Customization Guide", parent: "Development", nav_order: 5 },
   { src: "docs/I18N.md", dest: "docs/development/internationalization.md", title: "Internationalization", parent: "Development", nav_order: 6 },
   { src: "docs/EMBEDS.md", dest: "docs/development/campaign-embeds.md", title: "Campaign Embeds", parent: "Development", nav_order: 7 },
@@ -51,6 +51,8 @@ DOCS = [
   { src: "docs/ACCESSIBILITY.md", dest: "docs/operations/accessibility.md", title: "Accessibility", parent: "Operations", nav_order: 13 },
   { src: "docs/SEO.md", dest: "docs/operations/seo.md", title: "SEO", parent: "Operations", nav_order: 14 },
   { src: "docs/PERFORMANCE.md", dest: "docs/operations/performance.md", title: "Performance", parent: "Operations", nav_order: 15 },
+  { src: "docs/DEPLOYMENT.md", dest: "docs/operations/deployment.md", title: "Deployment", parent: "Operations", nav_order: 16 },
+  { src: "docs/WORKER_API.md", dest: "docs/reference/worker-api.md", title: "Worker API", parent: "Reference", nav_order: 5 },
   { src: "CHANGELOG.md", dest: "docs/reference/changelog.md", title: "Changelog", parent: "Reference", nav_order: 1 },
   { src: "docs/ROADMAP.md", dest: "docs/reference/roadmap.md", title: "Roadmap", parent: "Reference", nav_order: 2 },
   { src: "docs/PULL_REQUEST_TEMPLATE.md", dest: "docs/reference/pull-request-template.md", title: "Pull Request Template", parent: "Reference", nav_order: 3 }
@@ -63,6 +65,7 @@ SELECTED_DOC_SOURCES = ENV.fetch("POOL_DOCS", "")
   .to_set
 
 ALIASES = {
+  "docs/README.md" => "/docs/development/",
   "docs/" => "/docs/",
   "./docs/" => "/docs/",
   "es/about.md" => "/docs/overview/about-the-pool/",
@@ -219,7 +222,11 @@ GENERIC_REPLACEMENTS = [
 ].freeze
 
 def rewrite_copy(content, current_src)
-  rewritten = content.dup
+  source_links = []
+  rewritten = content.gsub(%r{https://github\.com/#{Regexp.escape(POOL_REPO)}[^\s)\]]*}) do |url|
+    source_links << url
+    "POOL_SOURCE_LINK_#{source_links.length - 1}_END"
+  end
 
   GENERIC_REPLACEMENTS.each do |from, to|
     rewritten.gsub!(from, to)
@@ -288,43 +295,15 @@ def rewrite_copy(content, current_src)
     rewritten.gsub!("2. Add CNAME file: `site.example.com`", "2. Add a `CNAME` file for your public site domain")
     rewritten.gsub!("- [ ] Verify `CNAME` is set to `site.example.com`", "- [ ] Verify `CNAME` is set to your public site domain")
     rewritten.gsub!("| **Dust Wave** | Company name (two words, not \"DustWave\") |", "| **Platform operator** | Company or studio name for your deployment |")
-  when "docs/PROJECT_OVERVIEW.md"
-    rewritten.gsub!(/^# Project Overview.*$/, "# Project Overview")
-    rewritten.gsub!("- Company name: **Dust Wave** (two words, not \"DustWave\")", "- Company name: set this to your organization or studio name")
-    rewritten.gsub!("- Design system: Matches dust-wave-shop (minimalist black/white, 8px grid, Inter + Gambado Sans)", "- Design system: adapt the supported design tokens and typography to your own brand")
-    rewritten.gsub!("- platform tips are optional, default to 5%, and are capped at 15%.", "- Platform tips are optional, default to 5%, and are capped at 15%.")
   when "docs/ADD_ON_PRODUCTS.md"
     rewritten.gsub!("## Initial Dust Wave Import", "## Initial Merch Import")
     rewritten.gsub!("The current first-wave catalog is based on the live your merch store at [shop.example.com](https://shop.example.com/):", "The current first-wave catalog is shown as an example merch import from [shop.example.com](https://shop.example.com/):")
   when "docs/SECURITY.md"
     rewritten.gsub!(/^- \*\*Primary:\*\* \[security@example\.com\]\n/, "")
-  when "worker/README.md"
-    rewritten.sub!(
-      /(The Pool currently only needs USPS OAuth plus the default pricing\/shipping-options product set for live quote calculation\. It does \*\*not\*\* require USPS Labels \/ Ship \/ EPA setup unless the project later grows into label generation\.)/,
-      <<~MARKDOWN.strip
-        \\1
-
-        Example local `worker/.dev.vars` file:
-
-        ```dotenv
-        STRIPE_SECRET_KEY_TEST=sk_test_your_test_key
-        STRIPE_WEBHOOK_SECRET_TEST=whsec_your_test_webhook_secret
-        CHECKOUT_INTENT_SECRET=replace_with_a_long_random_string
-        MAGIC_LINK_SECRET=replace_with_a_different_long_random_string
-        RESEND_API_KEY=re_example_key
-        ADMIN_SECRET=replace_with_a_third_long_random_string
-        USPS_CLIENT_SECRET=replace_with_usps_client_secret
-        ```
-
-        Notes:
-
-        - keep `worker/.dev.vars` untracked and gitignored
-        - use local/test secrets here, not live production credentials
-        - `./scripts/dev.sh --podman` may auto-generate or update some local-only values such as `CHECKOUT_INTENT_SECRET` or the Stripe webhook secret during development
-      MARKDOWN
-    )
   end
 
+  source_links.each_with_index { |url, index| rewritten.gsub!("POOL_SOURCE_LINK_#{index}_END", url) }
+  rewritten.gsub!("[github.com/your-org/your-project](https://github.com/#{POOL_REPO})", "[github.com/#{POOL_REPO}](https://github.com/#{POOL_REPO})")
   rewritten.gsub!(/[ \t]+$/, "")
   rewritten
 end
@@ -375,6 +354,14 @@ def validate_manifest!
 end
 
 def source_map_body
+  revision, status = Open3.capture2("git", "-C", POOL_ROOT.to_s, "rev-parse", "HEAD", err: File::NULL)
+  provenance = if status.success?
+    dirty, = Open3.capture2("git", "-C", POOL_ROOT.to_s, "status", "--porcelain", "--", *DOCS.map { |doc| doc[:src] }, "es/about.md", "es/terms.md")
+    note = dirty.empty? ? "" : " The source checkout includes uncommitted documentation edits; this revision is the baseline, not the complete imported snapshot."
+    "Imported from Pool revision [`#{revision.strip[0, 12]}`](https://github.com/#{POOL_REPO}/commit/#{revision.strip}).#{note}"
+  else
+    "Imported from a local Pool source directory without Git revision metadata."
+  end
   rows = DOCS.map do |doc|
     source = "[`#{doc[:src]}`](#{POOL_BLOB_BASE}#{doc[:src]})"
     route = "/" + doc[:dest].sub(/\.md$/, "/")
@@ -390,6 +377,14 @@ def source_map_body
     sync script uses for validation, link rewriting, navigation metadata, and
     output paths.
 
+    #{provenance}
+
+    The [Development index](/docs/development/) follows the ownership and task
+    paths in Pool's [documentation index](#{POOL_BLOB_BASE}docs/README.md).
+    Architecture owns system relationships and lifecycle; Campaign Content Model
+    owns authoring fields; Worker API owns endpoint contracts; Deployment owns
+    release wiring. Detailed procedures stay in their owning guide.
+
     | Pool source | Marketing documentation | Section |
     | --- | --- | --- |
     #{rows.join("\n")}
@@ -397,32 +392,42 @@ def source_map_body
     ## Regenerate Documentation
 
     ```bash
-    POOL_SOURCE=/path/to/pool ruby scripts/sync_pool_docs.rb
+    export POOL_SOURCE=/path/to/pool
+    ruby scripts/sync_pool_docs.rb
     python3 scripts/build_spanish_docs.py
     ```
 
     The Campaign Creator Checklist remains a Pool-owned public route and is not
-    duplicated into this developer documentation tree.
+    duplicated into this developer documentation tree. Release evidence stays in
+    Pool's [release-evidence directory](#{POOL_TREE_BASE}docs/release-evidence/).
+
+    Project Overview, Workflows, and Developer Notes retain their old URLs as
+    short migration pages. They no longer duplicate the current guides.
+
   MARKDOWN
 end
 
-validate_manifest!
+def sync_docs!
+  validate_manifest!
 
-active_docs = SELECTED_DOC_SOURCES.empty? ? DOCS : DOCS.select { |doc| SELECTED_DOC_SOURCES.include?(doc[:src]) }
-active_docs.each do |doc|
-  source_path = POOL_ROOT.join(doc[:src])
-  target_path = ROOT.join(doc[:dest])
-  content = strip_front_matter(source_path.read)
-  content = rewrite_links(content, doc[:src])
-  content = rewrite_copy(content, doc[:src])
-  write_generated_page(target_path, front_matter_for(doc), content)
+  active_docs = SELECTED_DOC_SOURCES.empty? ? DOCS : DOCS.select { |doc| SELECTED_DOC_SOURCES.include?(doc[:src]) }
+  active_docs.each do |doc|
+    source_path = POOL_ROOT.join(doc[:src])
+    target_path = ROOT.join(doc[:dest])
+    content = strip_front_matter(source_path.read)
+    content = rewrite_copy(content, doc[:src])
+    content = rewrite_links(content, doc[:src])
+    write_generated_page(target_path, front_matter_for(doc), content)
+  end
+
+  if SELECTED_DOC_SOURCES.empty?
+    source_map = {
+      title: "Source Map",
+      parent: "Reference",
+      nav_order: 4
+    }
+    write_generated_page(ROOT.join(SOURCE_MAP_DEST), front_matter_for(source_map), source_map_body)
+  end
 end
 
-if SELECTED_DOC_SOURCES.empty?
-  source_map = {
-    title: "Source Map",
-    parent: "Reference",
-    nav_order: 4
-  }
-  write_generated_page(ROOT.join(SOURCE_MAP_DEST), front_matter_for(source_map), source_map_body)
-end
+sync_docs! if $PROGRAM_NAME == __FILE__

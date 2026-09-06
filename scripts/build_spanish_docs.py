@@ -21,7 +21,7 @@ import yaml
 ROOT = Path(__file__).resolve().parent.parent
 SOURCE_DIR = ROOT / "docs"
 TARGET_DIR = ROOT / "es" / "docs"
-POOL_ROOT = Path(os.environ.get("POOL_SOURCE", "/tmp/pool")).expanduser().resolve()
+POOL_ROOT = Path(os.environ.get("POOL_SOURCE", ROOT.parent / "pool")).expanduser().resolve()
 
 CURATED_SPANISH_SOURCES = {
     Path("overview/about-the-pool.md"): Path("es/about.md"),
@@ -39,6 +39,10 @@ SECTION_TITLES = {
 TITLE_OVERRIDES = {
     "About The Pool": "Acerca de The Pool",
     "Terms & Creative Guidelines": "Términos y pautas creativas",
+    "Architecture": "Arquitectura",
+    "Campaign Content Model": "Modelo de contenido de campañas",
+    "Worker API": "API del Worker",
+    "Deployment": "Despliegue",
     "Project Overview": "Resumen del proyecto",
     "Customization Guide": "Guía de personalización",
     "Campaign Embeds": "Embeds de campaña",
@@ -71,6 +75,17 @@ TITLE_OVERRIDES = {
     "Product Video Workflow": "Flujo de trabajo de video de producto",
     "Source Map": "Mapa de fuentes",
     "Tax Calculator": "Calculadora de impuestos",
+    "Host Fallback": "Alternativa en el host",
+    "Settlement": "Liquidación",
+    "Post-deploy Diary Check": "Comprobación del diario posterior a la implementación",
+    "Media Optimization": "Optimización de medios",
+    "Data Model": "Modelo de datos",
+    "Media": "Medios de comunicación",
+    "Dependency audits": "Auditorías de dependencias",
+    "Dependency And Release Security": "Seguridad de dependencias y versiones",
+    "Development Setup": "Configuración de desarrollo",
+    "Secrets Checklist": "Lista de verificación de secretos",
+    "Reports": "Informes",
 }
 
 BODY_OVERRIDES = {
@@ -106,6 +121,16 @@ MONTH_OVERRIDES = {
 }
 
 ANCHOR_OVERRIDES = {
+    "#dependency-audits": "#auditorías-de-dependencias",
+    "#dependency-and-release-security": "#seguridad-de-dependencias-y-versiones",
+    "#development-setup": "#configuración-de-desarrollo",
+    "#secrets-checklist": "#lista-de-verificación-de-secretos",
+    "#reports": "#informes",
+    "#post-deploy-diary-check": "#comprobación-del-diario-posterior-a-la-implementación",
+    "#media-optimization": "#optimización-de-medios",
+    "#data-model": "#modelo-de-datos",
+    "#settlement": "#liquidación",
+    "#media": "#medios-de-comunicación",
     "#cloudflare-plan-guidance-for-forks": "#cloudflare-guía-de-planificación-para-horquillas",
 }
 
@@ -294,6 +319,8 @@ def protect_text(text: str) -> tuple[str, list[str]]:
 
 def restore_text(text: str, placeholders: list[str]) -> str:
     restored = text
+    restored = re.sub(r"siembra de (?:dispositivos|accesorios)", "carga de datos de prueba", restored, flags=re.IGNORECASE)
+    restored = restored.replace("versión de Nodo", "versión de Node.js")
     for index, original in enumerate(placeholders):
         restored = restored.replace(f"ZZTOKEN{index}ZZ", original)
     restored = restored.replace("La Piscina", "The Pool")
@@ -419,6 +446,9 @@ def translate_texts(texts: list[str]) -> list[str]:
             continue
 
         protected, placeholders = protect_text(stripped)
+        if not re.search(r"[A-Za-z]", re.sub(r"ZZTOKEN\d+ZZ", "", protected)):
+            translated[index] = restore_text(protected, placeholders)
+            continue
         pending_values.append(protected)
         pending_meta.append((index, stripped, placeholders))
 
@@ -487,12 +517,16 @@ def rewrite_docs_links(text: str) -> str:
     text = text.replace('"/docs/', '"/es/docs/')
     text = text.replace(" /docs/", " /es/docs/")
     for source, target in ANCHOR_OVERRIDES.items():
-        text = text.replace(source, target)
+        text = re.sub(re.escape(source) + r"(?=$|[\s)\"'<>])", target, text)
     return text
 
 
+HTTP_METHOD = r"(?:GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)"
+HTTP_HEADING = re.compile(rf"^#{{1,6}}\s+{HTTP_METHOD}(?:\s+or\s+{HTTP_METHOD})?\s+/\S+")
+
+
 def translate_line(line: str) -> str:
-    if re.match(r"^#{1,6}\s+(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\s+/\S+", line):
+    if HTTP_HEADING.match(line):
         return line
 
     if re.fullmatch(r"\s*\{:[^}]+\}\s*", line):
@@ -522,6 +556,36 @@ def translate_line(line: str) -> str:
     return rewrite_docs_links(translate_text(line))
 
 
+def unwrap_prose(body: str) -> str:
+    """Translate wrapped Markdown paragraphs as sentences, preserving structure."""
+    lines: list[str] = []
+    paragraph: list[str] = []
+    fence = ""
+
+    def flush() -> None:
+        if paragraph:
+            lines.append(" ".join(paragraph))
+            paragraph.clear()
+
+    for line in body.splitlines():
+        stripped = line.lstrip()
+        if stripped.startswith(("```", "~~~")):
+            flush()
+            marker = stripped[:3]
+            fence = "" if fence == marker else (fence or marker)
+            lines.append(line)
+        elif fence or line in BODY_OVERRIDES or not line.strip() or re.match(r"^(?:\s|#{1,6}\s|[-*+>] |\d+[.)] |[|<{]|!\[|[-*_]{3,}\s*$)", line):
+            flush()
+            lines.append(line)
+        elif line.endswith("  ") or line.endswith("\\"):
+            flush()
+            lines.append(line)
+        else:
+            paragraph.append(line)
+    flush()
+    return "\n".join(lines) + "\n"
+
+
 def translate_body(body: str) -> str:
     translated_lines = []
     in_fence = False
@@ -539,7 +603,7 @@ def translate_body(body: str) -> str:
         pending_texts.clear()
         pending_prefixes.clear()
 
-    for line in body.splitlines():
+    for line in unwrap_prose(body).splitlines():
         stripped = line.lstrip()
         if stripped.startswith("```") or stripped.startswith("~~~"):
             flush_pending()
@@ -557,7 +621,7 @@ def translate_body(body: str) -> str:
             translated_lines.append(line)
             continue
 
-        if re.match(r"^#{1,6}\s+(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\s+/\S+", line):
+        if HTTP_HEADING.match(line):
             flush_pending()
             translated_lines.append(line)
             continue
@@ -628,7 +692,7 @@ def curated_spanish_body(relative_path: Path, english_body: str) -> str | None:
 
     source_path = POOL_ROOT / source_relative_path
     if not source_path.is_file():
-        return None
+        raise FileNotFoundError(f"Required curated Spanish source is missing: {source_path}; set POOL_SOURCE to the same checkout used for the English sync")
 
     _, body = load_front_matter(source_path.read_text())
     body = re.sub(r"^\{% assign .+? %\}\n?", "", body, flags=re.MULTILINE)
@@ -783,6 +847,7 @@ def translate_page(path: Path) -> None:
 
     translated_body = (curated_spanish_body(relative_path, body) or translate_body(body)).rstrip() + "\n"
     target_path.write_text(dump_page(data, translated_body))
+    print(f"Wrote {target_path.relative_to(ROOT)}", flush=True)
 
 
 def main() -> int:
@@ -799,7 +864,7 @@ def main() -> int:
         if value.strip()
     }
 
-    paths = list(SOURCE_DIR.rglob("*.md"))
+    paths = [path for path in SOURCE_DIR.rglob("*.md") if "maintainers" not in path.relative_to(SOURCE_DIR).parts]
     if requested_files:
         paths = [
             path

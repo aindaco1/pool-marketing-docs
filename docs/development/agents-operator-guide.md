@@ -9,13 +9,18 @@ render_with_liquid: false
 
 ## Last Updated
 
-August 25, 2026
+September 6, 2026
 
 This is the operating guide for people and coding agents working on **The Pool**. Use it to make safe changes without drifting the static site, Cloudflare Worker, checkout math, private administration, or localized behavior out of sync.
 
 Read it alongside:
 
+- [docs/README.md](/docs/development/) for the documentation index and guide ownership
 - [README.md](/docs/development/platform-readme/) for the product and architecture overview
+- [docs/ARCHITECTURE.md](/docs/development/architecture/) for system ownership, storage, and lifecycle
+- [docs/CONTENT_MODEL.md](/docs/development/content-model/) for campaign authoring fields
+- [docs/WORKER_API.md](/docs/reference/worker-api/) for endpoint contracts
+- [docs/DEPLOYMENT.md](/docs/operations/deployment/) for production setup and release wiring
 - [docs/CUSTOMIZATION.md](/docs/development/customization-guide/) for the supported fork-facing configuration surface
 - [docs/PAYMENT_PROCESSOR.md](/docs/operations/payment-processor/) for Stripe, canonical checkout, webhooks, settlement, and reconciliation
 - [docs/TAX_CALCULATOR.md](/docs/operations/tax-calculator/) for tax providers, canonical quotes, mirrored configuration, and verification
@@ -26,7 +31,7 @@ Read it alongside:
 - [docs/BACKUP_RESTORE.md](/docs/operations/backup-restore/) for backup, restore, and disaster recovery
 - [docs/TESTING.md](/docs/operations/testing/) for local verification and merge gates
 - [docs/ROADMAP.md](/docs/reference/roadmap/) for prospective work only
-- [CHANGELOG.md](/docs/reference/changelog/) and [docs/release-evidence/](https://github.com/your-org/your-project/tree/main/docs/release-evidence) for completed release history and verification records
+- [CHANGELOG.md](/docs/reference/changelog/) and [docs/release-evidence/](https://github.com/aindaco1/pool/tree/main/docs/release-evidence) for completed release history and verification records
 
 ## Project shape
 
@@ -42,20 +47,20 @@ If a change affects pricing, availability, campaign progress, pledge state, emai
 
 ## Sources of truth
 
-- [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml): canonical fork-facing platform configuration
-- [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml): machine-local overrides only
-- [`_campaigns/`](https://github.com/your-org/your-project/tree/main/_campaigns): campaign content, tiers, goals, diary data, and campaign add-ons
-- [`_data/i18n/`](https://github.com/your-org/your-project/tree/main/_data/i18n): shared localized UI, runtime, and email copy
-- [`_data/media-optimization-manifest.json`](https://github.com/your-org/your-project/blob/main/_data/media-optimization-manifest.json): rebuildable repository media metadata; source files remain authoritative
-- [`_layouts/`](https://github.com/your-org/your-project/tree/main/_layouts) and [`_includes/`](https://github.com/your-org/your-project/tree/main/_includes): public pages, campaign pages, embeds, SEO, and locale helpers
-- [`assets/`](https://github.com/your-org/your-project/tree/main/assets): browser runtime, Sass, themes, and generated localized assets
-- [`worker/src/`](https://github.com/your-org/your-project/tree/main/worker/src): authoritative checkout, webhooks, statistics, emails, settlement, administration, and reports
-- [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml): Worker environment wiring and mirrored defaults
-- [`config/performance-budgets.json`](https://github.com/your-org/your-project/blob/main/config/performance-budgets.json): executable public and runtime performance thresholds
-- [`config/pool-data-inventory.json`](https://github.com/your-org/your-project/blob/main/config/pool-data-inventory.json): data classification, retention, and recovery inventory
-- [`tests/`](https://github.com/your-org/your-project/tree/main/tests): unit, security, accessibility, and end-to-end contracts
-- [`scripts/`](https://github.com/your-org/your-project/tree/main/scripts): local development, release gates, smoke tests, audits, and synchronization
-- [`docs/release-evidence/`](https://github.com/your-org/your-project/tree/main/docs/release-evidence): release-specific verification records
+- [`_config.yml`](https://github.com/aindaco1/pool/blob/main/_config.yml): canonical fork-facing platform configuration
+- [`_config.local.yml`](https://github.com/aindaco1/pool/blob/main/_config.local.yml): machine-local overrides only
+- [`_campaigns/`](https://github.com/aindaco1/pool/tree/main/_campaigns): campaign content, tiers, goals, diary data, and campaign add-ons
+- [`_data/i18n/`](https://github.com/aindaco1/pool/tree/main/_data/i18n): shared localized UI, runtime, and email copy
+- [`_data/media-optimization-manifest.json`](https://github.com/aindaco1/pool/blob/main/_data/media-optimization-manifest.json): rebuildable repository media metadata; source files remain authoritative
+- [`_layouts/`](https://github.com/aindaco1/pool/tree/main/_layouts) and [`_includes/`](https://github.com/aindaco1/pool/tree/main/_includes): public pages, campaign pages, embeds, SEO, and locale helpers
+- [`assets/`](https://github.com/aindaco1/pool/tree/main/assets): browser runtime, Sass, themes, and generated localized assets
+- [`worker/src/`](https://github.com/aindaco1/pool/tree/main/worker/src): authoritative checkout, webhooks, statistics, emails, settlement, administration, and reports
+- [`worker/wrangler.toml`](https://github.com/aindaco1/pool/blob/main/worker/wrangler.toml): Worker environment wiring and mirrored defaults
+- [`config/performance-budgets.json`](https://github.com/aindaco1/pool/blob/main/config/performance-budgets.json): executable public and runtime performance thresholds
+- [`config/pool-data-inventory.json`](https://github.com/aindaco1/pool/blob/main/config/pool-data-inventory.json): data classification, retention, and recovery inventory
+- [`tests/`](https://github.com/aindaco1/pool/tree/main/tests): unit, security, accessibility, and end-to-end contracts
+- [`scripts/`](https://github.com/aindaco1/pool/tree/main/scripts): local development, release gates, smoke tests, audits, and synchronization
+- [`docs/release-evidence/`](https://github.com/aindaco1/pool/tree/main/docs/release-evidence): release-specific verification records
 
 ## Safe workflow
 
@@ -148,6 +153,11 @@ Shared system strings belong in `_data/i18n/<lang>.yml`; creator-authored campai
 
 ## Documentation map
 
+- Start here and guide ownership: [docs/README.md](/docs/development/)
+- Architecture and lifecycle: [docs/ARCHITECTURE.md](/docs/development/architecture/)
+- Campaign content model: [docs/CONTENT_MODEL.md](/docs/development/content-model/)
+- Worker API: [docs/WORKER_API.md](/docs/reference/worker-api/)
+- Deployment: [docs/DEPLOYMENT.md](/docs/operations/deployment/)
 - Fork configuration: [docs/CUSTOMIZATION.md](/docs/development/customization-guide/)
 - Release history: [CHANGELOG.md](/docs/reference/changelog/)
 - Prospective work: [docs/ROADMAP.md](/docs/reference/roadmap/)
@@ -178,5 +188,6 @@ Shared system strings belong in `_data/i18n/<lang>.yml`; creator-authored campai
 - Never silently drop locale, embed, share-preview, private-cache, or historical-price behavior.
 - Preserve unrelated user changes and stage only files in scope.
 - Keep current-state docs in present tense and grounded in verified behavior. Put proposals and deferred work only in the roadmap, and put completed release history only in the changelog or release evidence.
+- Keep detailed procedures in the guide that owns them; use the documentation index and links instead of copying runbooks into entry-point READMEs. Maintainer docs stay out of the public Jekyll artifact; root Markdown page sources retain their routing and localization contracts.
 
 When uncertain, make the smallest change that keeps the site and Worker aligned, prove it with the narrowest meaningful test, and run the broader gate when warranted.

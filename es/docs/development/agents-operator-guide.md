@@ -10,13 +10,18 @@ lang: es
 
 ## Última actualización
 
-25 de agosto de 2026
+6 de septiembre de 2026
 
 Esta es la guía operativa para personas y agentes de codificación que trabajan en **The Pool**. Úselo para realizar cambios seguros sin desincronizar el sitio estático, Cloudflare Worker, las matemáticas de pago, la administración privada o el comportamiento localizado.
 
 Léelo junto a:
 
+- [docs/README.md](/es/docs/development/) para ver el índice de documentación y la propiedad de la guía
 - [README.md](/es/docs/development/platform-readme/) para ver la descripción general del producto y la arquitectura
+- [docs/ARCHITECTURE.md](/es/docs/development/architecture/) para información sobre propiedad, almacenamiento y ciclo de vida del sistema
+- [docs/CONTENT_MODEL.md](/es/docs/development/content-model/) para campos de creación de campañas
+- [docs/WORKER_API.md](/es/docs/reference/worker-api/) para contratos de punto final
+- [docs/DEPLOYMENT.md](/es/docs/operations/deployment/) para configuración de producción y cableado de liberación
 - [docs/CUSTOMIZATION.md](/es/docs/development/customization-guide/) para conocer la superficie de configuración orientada hacia la horquilla admitida
 - [docs/PAYMENT_PROCESSOR.md](/es/docs/operations/payment-processor/) para Stripe, pago canónico, webhooks, liquidación y conciliación
 - [docs/TAX_CALCULATOR.md](/es/docs/operations/tax-calculator/) para proveedores de impuestos, cotizaciones canónicas, configuración reflejada y verificación
@@ -27,7 +32,7 @@ Léelo junto a:
 - [docs/BACKUP_RESTORE.md](/es/docs/operations/backup-restore/) para respaldo, restauración y recuperación ante desastres
 - [docs/TESTING.md](/es/docs/operations/testing/) para verificación local y puertas de fusión
 - [docs/ROADMAP.md](/es/docs/reference/roadmap/) solo para trabajos potenciales
-- [CHANGELOG.md](/es/docs/reference/changelog/) y [docs/release-evidence/](https://github.com/your-org/your-project/tree/main/docs/release-evidence) para ver el historial de versiones completo y los registros de verificación
+- [CHANGELOG.md](/es/docs/reference/changelog/) y [docs/release-evidence/](https://github.com/aindaco1/pool/tree/main/docs/release-evidence) para ver el historial de versiones completo y los registros de verificación
 
 ## Forma del proyecto
 
@@ -43,20 +48,20 @@ Si un cambio afecta el precio, la disponibilidad, el progreso de la campaña, el
 
 ## fuentes de verdad
 
-- [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml): configuración canónica de plataforma orientada hacia la horquilla
-- [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml): solo anulaciones locales de la máquina
-- [`_campaigns/`](https://github.com/your-org/your-project/tree/main/_campaigns): contenido de la campaña, niveles, objetivos, datos del diario y complementos de la campaña
-- [`_data/i18n/`](https://github.com/your-org/your-project/tree/main/_data/i18n): interfaz de usuario localizada compartida, tiempo de ejecución y copia por correo electrónico
-- [`_data/media-optimization-manifest.json`](https://github.com/your-org/your-project/blob/main/_data/media-optimization-manifest.json): metadatos de medios del repositorio reconstruibles; Los archivos fuente siguen siendo autorizados.
-- [`_layouts/`](https://github.com/your-org/your-project/tree/main/_layouts) y [`_includes/`](https://github.com/your-org/your-project/tree/main/_includes): páginas públicas, páginas de campaña, incrustaciones, SEO y ayudantes locales
-- [`assets/`](https://github.com/your-org/your-project/tree/main/assets): tiempo de ejecución del navegador, Sass, temas y recursos localizados generados
-- [`worker/src/`](https://github.com/your-org/your-project/tree/main/worker/src): pago autorizado, webhooks, estadísticas, correos electrónicos, liquidación, administración e informes
-- [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml): cableado del entorno Worker y valores predeterminados reflejados
-- [`config/performance-budgets.json`](https://github.com/your-org/your-project/blob/main/config/performance-budgets.json): umbrales de rendimiento del ejecutable público y del tiempo de ejecución
-- [`config/pool-data-inventory.json`](https://github.com/your-org/your-project/blob/main/config/pool-data-inventory.json): inventario de clasificación, retención y recuperación de datos
-- [`tests/`](https://github.com/your-org/your-project/tree/main/tests): unidad, seguridad, accesibilidad y contratos de extremo a extremo
-- [`scripts/`](https://github.com/your-org/your-project/tree/main/scripts): desarrollo local, puertas de liberación, pruebas de humo, auditorías y sincronización
-- [`docs/release-evidence/`](https://github.com/your-org/your-project/tree/main/docs/release-evidence): registros de verificación específicos de la versión
+- [`_config.yml`](https://github.com/aindaco1/pool/blob/main/_config.yml): configuración canónica de plataforma orientada hacia la horquilla
+- [`_config.local.yml`](https://github.com/aindaco1/pool/blob/main/_config.local.yml): solo anulaciones locales de la máquina
+- [`_campaigns/`](https://github.com/aindaco1/pool/tree/main/_campaigns): contenido de la campaña, niveles, objetivos, datos del diario y complementos de la campaña
+- [`_data/i18n/`](https://github.com/aindaco1/pool/tree/main/_data/i18n): interfaz de usuario localizada compartida, tiempo de ejecución y copia por correo electrónico
+- [`_data/media-optimization-manifest.json`](https://github.com/aindaco1/pool/blob/main/_data/media-optimization-manifest.json): metadatos de medios del repositorio reconstruibles; Los archivos fuente siguen siendo autorizados.
+- [`_layouts/`](https://github.com/aindaco1/pool/tree/main/_layouts) y [`_includes/`](https://github.com/aindaco1/pool/tree/main/_includes): páginas públicas, páginas de campaña, incrustaciones, SEO y ayudantes locales
+- [`assets/`](https://github.com/aindaco1/pool/tree/main/assets): tiempo de ejecución del navegador, Sass, temas y recursos localizados generados
+- [`worker/src/`](https://github.com/aindaco1/pool/tree/main/worker/src): pago autorizado, webhooks, estadísticas, correos electrónicos, liquidación, administración e informes
+- [`worker/wrangler.toml`](https://github.com/aindaco1/pool/blob/main/worker/wrangler.toml): cableado del entorno Worker y valores predeterminados reflejados
+- [`config/performance-budgets.json`](https://github.com/aindaco1/pool/blob/main/config/performance-budgets.json): umbrales de rendimiento del ejecutable público y del tiempo de ejecución
+- [`config/pool-data-inventory.json`](https://github.com/aindaco1/pool/blob/main/config/pool-data-inventory.json): inventario de clasificación, retención y recuperación de datos
+- [`tests/`](https://github.com/aindaco1/pool/tree/main/tests): unidad, seguridad, accesibilidad y contratos de extremo a extremo
+- [`scripts/`](https://github.com/aindaco1/pool/tree/main/scripts): desarrollo local, puertas de liberación, pruebas de humo, auditorías y sincronización
+- [`docs/release-evidence/`](https://github.com/aindaco1/pool/tree/main/docs/release-evidence): registros de verificación específicos de la versión
 
 ## Flujo de trabajo seguro
 
@@ -149,6 +154,11 @@ Las cadenas de sistema compartidas pertenecen a `_data/i18n/<lang>.yml`; El cont
 
 ## Mapa de documentación
 
+- Comience aquí y oriente la propiedad: [docs/README.md](/es/docs/development/)
+- Arquitectura y ciclo de vida: [docs/ARCHITECTURE.md](/es/docs/development/architecture/)
+- Modelo de contenido de campaña: [docs/CONTENT_MODEL.md](/es/docs/development/content-model/)
+- API Worker: [docs/WORKER_API.md](/es/docs/reference/worker-api/)
+- Implementación: [docs/DEPLOYMENT.md](/es/docs/operations/deployment/)
 - Configuración de bifurcación: [docs/CUSTOMIZATION.md](/es/docs/development/customization-guide/)
 - Historial de versiones: [CHANGELOG.md](/es/docs/reference/changelog/)
 - Trabajo prospectivo: [docs/ROADMAP.md](/es/docs/reference/roadmap/)
@@ -179,5 +189,6 @@ Las cadenas de sistema compartidas pertenecen a `_data/i18n/<lang>.yml`; El cont
 - Nunca descarte silenciosamente el comportamiento local, incrustado, de vista previa compartida, de caché privada o de precios históricos.
 - Conserve los cambios de usuario no relacionados y organice solo los archivos dentro del alcance.
 - Mantenga los documentos del estado actual en tiempo presente y basados ​​en comportamientos verificados. Coloque las propuestas y el trabajo diferido solo en la hoja de ruta y coloque el historial de lanzamientos completo solo en el registro de cambios o en la evidencia de lanzamiento.
+- Mantener los procedimientos detallados en la guía propietaria; utilice el índice de documentación y los enlaces en lugar de copiar runbooks en archivos README de punto de entrada. Los documentos de mantenimiento permanecen fuera del artefacto público Jekyll; Las fuentes de la página raíz de Markdown conservan sus contratos de enrutamiento y localización.
 
 Cuando no esté seguro, realice el cambio más pequeño que mantenga alineados el sitio y Worker, pruébelo con la prueba significativa más estrecha y ejecute la puerta más amplia cuando esté justificado.

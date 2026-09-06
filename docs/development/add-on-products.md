@@ -9,13 +9,13 @@ render_with_liquid: false
 
 ## Last Updated
 
-August 25, 2026
+September 6, 2026
 
 This document describes the current add-on product system.
 
 The platform supports two add-on scopes that intentionally share the same card UX while behaving differently in accounting, shipping, and fulfillment:
 
-- **Platform add-ons** live in the global catalog under `add_ons` in [/_config.yml](https://github.com/your-org/your-project/blob/main/_config.yml)
+- **Platform add-ons** live in the global catalog under `add_ons` in [/_config.yml](https://github.com/aindaco1/pool/blob/main/_config.yml)
 - **Campaign add-ons** live in campaign front matter under `campaign_add_ons`
 
 Both scopes:
@@ -66,7 +66,7 @@ They:
 
 ## Current Catalog Surface
 
-Global add-on products live in [/_config.yml](https://github.com/your-org/your-project/blob/main/_config.yml) under `add_ons`.
+Global add-on products live in [/_config.yml](https://github.com/aindaco1/pool/blob/main/_config.yml) under `add_ons`.
 
 Current top-level keys:
 
@@ -186,7 +186,7 @@ The current add-on flow is intentionally inventory-aware:
 - inventory can live on the product itself or on each variant
 - global add-ons read inventory from `add_ons`
 - campaign add-ons read inventory from `campaign_add_ons`
-- the Worker exposes a current inventory snapshot at [/add-ons/inventory](https://github.com/your-org/your-project/blob/main/worker/src/index.js)
+- the Worker exposes a current inventory snapshot at [/add-ons/inventory](https://github.com/aindaco1/pool/blob/main/worker/src/index.js)
 - cart and Manage Pledge both consume the same shared inventory-aware product-state helper
 - low-stock messaging appears when remaining quantity is at or below `low_stock_threshold`
 - sold-out variants are removed from the shared product-state surface unless they are already selected on an existing pledge
@@ -234,11 +234,11 @@ The current shipping split is:
 
 ## Runtime Contract
 
-The current catalog is exposed to browser runtime config through [assets/js/pool-config.js](https://github.com/your-org/your-project/blob/main/assets/js/pool-config.js) and the shared runtime boot include [/_includes/cart-runtime-foot.html](https://github.com/your-org/your-project/blob/main/_includes/cart-runtime-foot.html).
+The current catalog is exposed to browser runtime config through [assets/js/pool-config.js](https://github.com/aindaco1/pool/blob/main/assets/js/pool-config.js) and the shared runtime boot include [/_includes/cart-runtime-foot.html](https://github.com/aindaco1/pool/blob/main/_includes/cart-runtime-foot.html).
 
 That means cart-side and Manage Pledge UI can read one stable `POOL_CONFIG.addOns` source of truth instead of duplicating product data in multiple templates or scripts.
 
-The Worker also has a matching static catalog source at [/api/add-ons.json](https://github.com/your-org/your-project/blob/main/api/add-ons.json), and pending checkout manifests can carry:
+The Worker also has a matching static catalog source at [/api/add-ons.json](https://github.com/aindaco1/pool/blob/main/api/add-ons.json), and pending checkout manifests can carry:
 
 - `bundleAddOns`
 - `bundleAddOnAnchorCampaignSlug`

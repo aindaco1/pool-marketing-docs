@@ -9,19 +9,23 @@ lang: es
 
 ## Última actualización
 
-25 de agosto de 2026
+6 de septiembre de 2026
 
 El flujo de contribución, las notas de arquitectura, los problemas de implementación y los puntos de extensión orientados hacia la bifurcación se encuentran aquí.
 
 ## Ruta recomendada
 
-1. [Plataforma README](/es/docs/development/platform-readme/) para la versión actual, funciones, inicio rápido, superficie de prueba y modelo de implementación.
-2. [Contribuyendo con ](/es/docs/development/contributing/) para conocer los requisitos previos, la configuración local, el flujo de trabajo de GitHub y las convenciones de trabajo seguras.
-3. [Descripción general del proyecto](/es/docs/development/project-overview/) para ver el resumen del sistema, el flujo de financiación, el ciclo de vida de la campaña y el mapa de códigos.
-4. [Flujos de trabajo](/es/docs/development/workflows/) para la máquina de estado de aporte, el modelo de almacenamiento y el comportamiento de la ruta del trabajador.
-5. [Procesador de pagos](/es/docs/operations/payment-processor/) para pago canónico, integración, liquidación y conciliación de Stripe.
-6. [Notas del desarrollador](/es/docs/development/developer-notes/) para obtener detalles de implementación específicos de la pila, orientación sobre el modelo de contenido y trampas.
-7. [Guía para agentes y operadores](/es/docs/development/agents-operator-guide/) para conocer la forma más segura de realizar cambios en el repositorio sin desincronizar el sitio, el trabajador, el pago o el comportamiento localizado.
+1. [Plataforma README](/es/docs/development/platform-readme/) para una breve introducción y un inicio rápido.
+2. [Contribuyendo](/es/docs/development/contributing/) para dependencias, configuración local, flujo de trabajo de contribución y convenciones de implementación.
+3. [Arquitectura](/es/docs/development/architecture/) para propiedad, almacenamiento, ciclo de vida de campaña y aporte, y el mapa de códigos.
+4. [Modelo de contenido de campaña](/es/docs/development/content-model/) para campos, niveles, medios, entradas de diario y decisiones de campaña.
+5. [Worker API](/es/docs/reference/worker-api/) para contratos de terminales y ejemplos de solicitud/respuesta.
+6. [Implementación](/es/docs/operations/deployment/) para configuración inicial, credenciales y páginas separadas y flujos de lanzamiento de Worker.
+7. [Guía de agentes y operadores](/es/docs/development/agents-operator-guide/) para conocer las reglas del repositorio y los límites de la fuente de la verdad.
+
+## Propiedad de la guía
+
+Mantenga los procedimientos detallados en la guía propietaria. La arquitectura posee las relaciones del sistema; El modelo de contenido de campaña posee campos de creación; La API Worker posee contratos de punto final. La personalización posee configuraciones y espejos. La configuración del proveedor pertenece al Procesador de pagos, Calculadora de impuestos, Envío y Correo electrónico. La implementación es propietaria del cableado de liberación, las pruebas son propietarias de la ejecución de las pruebas y Merge Smoke es propietaria de la aprobación del operador. La Plataforma y los README Worker son puntos de entrada a estas guías.
 
 ## Configuración y extensión
 

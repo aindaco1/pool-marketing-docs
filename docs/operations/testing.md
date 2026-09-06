@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-August 25, 2026
+September 6, 2026
 
 This guide covers the automated test suites, local test infrastructure, and manual verification paths. Weekly synthetic recovery, protected preview drills, and post-restore verification are documented in [BACKUP_RESTORE.md](/docs/operations/backup-restore/).
 
@@ -30,6 +30,15 @@ git submodule update --init --recursive
 npx vitest run tests/unit/platform-pin.test.ts tests/unit/jekyll-template-pin.test.ts
 npm run jekyll-template:check
 ```
+
+The root `esbuild` and `smol-toml` dependencies are exact pins matching the
+reviewed Platform Build Core and Release Core manifests. Upgrade them together
+with the Platform gitlink, not independently in a routine dependency PR. The pin
+test checks both root manifests and the installed-version entries in the lockfile.
+Dependabot defers their routine version updates while keeping security updates
+eligible. A security fix still requires a reviewed compatible Platform upgrade;
+do not weaken the pin test to bypass it. Continue running both dependency audits
+described in [SECURITY.md](/docs/operations/security/#dependency-and-release-security).
 
 The local-only product-video adapter has a bounded real-interface smoke path:
 
@@ -57,10 +66,36 @@ force-stops any survivor. A focused regression uses a deliberately stubborn
 child process to ensure a fully passing gate cannot hang until the CI job
 timeout after printing its phase summary.
 
+## Dependency audits
+
+`npm run test:dependencies` audits the root and Worker lockfiles, each with
+production-only and full dependency scopes. It needs Node/npm and initialized
+submodules, but no dependency installation. To repeat one check:
+
+```bash
+npm run test:dependencies -- --target=worker --scope=full
+```
+
+Merge Smoke runs these four checks as independent matrix jobs with fail-fast
+disabled. Its installation steps use `--no-audit`; successful installation and
+tests are not audit evidence. Require all four audit checks and the smoke check
+to pass before merging. Repository branch-protection settings are managed
+separately from the workflow.
+
+Each audit has at most three attempts, a 30-second npm request timeout, a
+45-second process deadline, and 5/10-second retry delays (at most 150 seconds
+per check, excluding job setup). Only recognized transient network/service
+failures are retried. Findings and configuration/authentication errors are not.
+A valid report with moderate-or-higher findings exits 1; unavailable, malformed,
+or incomplete evidence exits 2. Below-threshold findings remain visible for
+review. An exhausted outage never passes or waives the release audit: rerun the
+failed checks after the service recovers. The helper does not run `audit fix` or
+modify either lockfile.
+
 ## Quick Reference
 
 ```bash
-npm run test:unit          # Unit tests (Vitest) — ~700ms
+npm run test:unit          # Unit tests (Vitest)
 npm run test:unit:watch    # Watch mode
 npm run test:unit:coverage # With coverage report
 npm run test:i18n          # Supported locale catalog completeness check
@@ -71,6 +106,7 @@ npm run test:performance:lighthouse # Core-route Lighthouse evidence in Podman
 npm run test:performance:runtime # Authenticated/redacted Worker p95 evidence; requires input or token
 npm run test:cache-policy  # Deployed public/private cache-header evidence
 npm run test:secrets       # Secret exposure audit for local env files
+npm run test:dependencies  # Production + full npm audits for root and Worker
 npm run test:premerge      # Merge-readiness checks for changed Worker logic
 npm run release:smoke -- --evidence-file /tmp/pool-release-smoke.md  # Release sign-off wrapper
 npm run release:a11y-evidence   # Focused campaign/cart accessibility evidence
@@ -240,6 +276,18 @@ This runs:
 
 The pre-merge script auto-starts Jekyll with `_config.yml,_config.local.yml` when needed so the local-only `smoke-editable` campaign is available during merge gating, and the Playwright harness uses the same combined config locally.
 That gate tries the host Bundler/Jekyll path first, including a one-time `bundle install` attempt when Bundler is present but gems are missing. It keeps the lighter host Worker smoke, but runs the mutable-pledge smoke through the Podman-backed stack so the stateful modify/cancel path uses isolated local service state even when the host build path succeeds. If the host Ruby path still cannot build cleanly, it falls back to a Podman-backed Jekyll build plus the remaining Podman-aware smoke/browser helpers instead of failing on host setup alone.
+
+Host phases inherit the caller's `PATH`, including any selected rbenv Ruby and
+Node tools. They do not start a login shell: on macOS, login startup files can
+replace that path with system Ruby after the host dependency check has passed.
+If a host build unexpectedly falls back to Podman, inspect the phase log and
+compare `command -v ruby`, `ruby -v`, `command -v bundle`, and `bundle check`
+in the shell launching the gate. The toolchain regression exercises both build
+dispatch paths with a simulated login-shell path reset:
+
+```bash
+npx vitest run tests/unit/premerge-toolchain.test.ts
+```
 Both Jekyll helpers fail immediately when their build command fails, so minification and artifact validation cannot accidentally reuse stale `_site` output.
 For headless browser runs, Playwright builds a static `_site` and serves that output with a lightweight HTTP server instead of using `jekyll serve`, which keeps automated browser checks closer to the real published asset layout.
 
@@ -260,13 +308,13 @@ npm run media:optimize:check
 npm run media:optimize:check:podman # use when host-native media tools are missing
 ```
 
-The local Worker defaults in [worker/wrangler.toml](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) match that first-party setup. `./scripts/dev.sh --podman` auto-generates a local `CHECKOUT_INTENT_SECRET` in `worker/.dev.vars` if it is missing, so fresh local checkout starts do not fail closed on an uninitialized dev secret.
+The local Worker defaults in [worker/wrangler.toml](https://github.com/aindaco1/pool/blob/main/worker/wrangler.toml) match that first-party setup. `./scripts/dev.sh --podman` auto-generates a local `CHECKOUT_INTENT_SECRET` in `worker/.dev.vars` if it is missing, so fresh local checkout starts do not fail closed on an uninitialized dev secret.
 
 When the merge gate or local security suite uses the placeholder `STRIPE_SECRET_KEY=sk_test_smoke`, `/test/setup` seeds deterministic synthetic Stripe customer IDs instead of calling Stripe. Use a real Stripe test key only when you specifically need payment-method-update smoke coverage against Stripe's API.
 
 For local work, prefer `./scripts/dev.sh --podman`. It starts Jekyll and the Worker in rootless Podman containers while preserving the same ports and local Wrangler state.
 
-[`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml) is an override-only layer, not a second base config. When you change or add fork-facing settings, prefer [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) unless the value differs only on your local machine.
+`_config.local.yml` is an override-only layer, not a second base config. When you change or add fork-facing settings, prefer [`_config.yml`](https://github.com/aindaco1/pool/blob/main/_config.yml) unless the value differs only on your local machine.
 
 The browser helper scripts support the same mode:
 
@@ -281,7 +329,7 @@ The browser helper scripts support the same mode:
 
 Those helpers run Playwright and shell smoke logic on the host, but they boot the site and Worker through the shared Podman-backed local stack first. The report scripts can run directly through the Worker container as well. That keeps local testing and exports closer to production-like service boundaries without forcing host Ruby or host Wrangler setup.
 
-For host-side commands that need the Podman-backed stack without depending on detached stack persistence across separate shells, use [`scripts/podman-stack-run.sh`](https://github.com/your-org/your-project/blob/main/scripts/podman-stack-run.sh). `npm run test:security:podman` uses that wrapper.
+For host-side commands that need the Podman-backed stack without depending on detached stack persistence across separate shells, use [`scripts/podman-stack-run.sh`](https://github.com/aindaco1/pool/blob/main/scripts/podman-stack-run.sh). `npm run test:security:podman` uses that wrapper.
 
 For a mostly host-independent browser path, `npm run test:e2e:headless:podman` runs the automated Playwright suite inside a dedicated Podman container on the same local pod network as the site and Worker.
 
@@ -310,7 +358,7 @@ The current Podman scope is intentionally narrow:
 
 Use [docs/PODMAN.md](/docs/operations/podman-local-dev/) for the exact setup and current limitations.
 
-If you change `pricing.sales_tax_rate` or `shipping.fallback_flat_rate` in the Jekyll config, the repo auto-syncs the mirrored Worker values in [worker/wrangler.toml](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) through the main dev/test paths. Restart `./scripts/dev.sh --podman` before testing checkout math so both services pick up the new values.
+If you change `pricing.sales_tax_rate` or `shipping.fallback_flat_rate` in the Jekyll config, the repo auto-syncs the mirrored Worker values in [worker/wrangler.toml](https://github.com/aindaco1/pool/blob/main/worker/wrangler.toml) through the main dev/test paths. Restart `./scripts/dev.sh --podman` before testing checkout math so both services pick up the new values.
 
 If you tune free-plan read behavior, keep these in sync too:
 
@@ -397,57 +445,10 @@ git worktree remove ../pool-main-check
 
 ### Manual Smoke Checklist
 
-Run these against staging before merge when a staging environment exists. If no staging environment exists for The Pool, run the same checklist locally with `./scripts/dev.sh --podman` and record that exception in the PR/release notes.
-
-1. Start a new checkout on a live test campaign and confirm `/checkout-intent/start` returns a custom-session bootstrap when the matching Stripe publishable key is configured, or a hosted URL when hosted fallback is intentionally used.
-2. Complete a pledge and verify the webhook stores the pledge, stats update, and confirmation email path stays healthy.
-3. Modify a pledge with tier/support/custom amount changes and verify totals, history, and inventory update correctly.
-4. Cancel an uncharged pledge and verify stats and inventory are released correctly.
-5. Run settlement dry-run and live-run on seeded pledges, confirming campaigns only mark settled when nothing needs attention.
-6. Trigger diary, announcement, and milestone broadcasts on a campaign large enough to cross pagination boundaries.
-7. Trigger a fulfillment report on a campaign with both campaign and platform items, confirming that runner recipients receive only campaign rows and `support_email` receives the platform-only attachment.
-
-For checkout or Worker business-logic changes, a smoke pass is still required before merge:
-
-- Prefer staging when available.
-- If no staging exists, use the stronger local path:
-  - `./scripts/dev.sh --podman`
-  - `./scripts/smoke-pledge-management.sh`
-  - the operator checklist in [docs/MERGE_SMOKE_CHECKLIST.md](/docs/operations/merge-smoke-checklist/)
-  - a PR note explicitly stating that no staging environment exists
-
-For an operator-ready version with exact commands and expected results, use [docs/MERGE_SMOKE_CHECKLIST.md](/docs/operations/merge-smoke-checklist/).
-
-For local rehearsal of pledge management, prefer the `smoke-editable` campaign. It is local-only via `test_only: true`, stays live well past the normal smoke window, and gives `/test/setup` a stable target for modify/cancel coverage.
-
-You can exercise that path end to end with:
-
-```bash
-./scripts/smoke-pledge-management.sh
-```
-
-When `ADMIN_SECRET` is available, that smoke path also verifies that the campaign remains projection-clean after setup, modify, and cancel by calling the read-only `POST /stats/:slug/check` endpoint between mutation phases.
-
-For local CSV verification against your actual local Worker state, use:
-
-```bash
-./scripts/pledge-report.sh --local
-./scripts/fulfillment-report.sh --local
-```
-
-Use `pledge-report.sh` when you want the full ledger, including modify/cancel deltas and tip-change annotations. Use `fulfillment-report.sh` when you want the merged current state for a backer within a campaign.
-
-If the merged fulfillment view and the public site ever disagree for a campaign, treat that as a likely stale stats/inventory projection issue first, not a reporting bug by default. The admin stats and inventory recalc endpoints repair stale `campaign-pledges:{slug}` indexes while rebuilding the campaign projection state.
-
-Before you repair a projection, check for drift explicitly:
-
-```bash
-./scripts/check-projections.sh                 # Check all campaigns
-./scripts/check-projections.sh hand-relations  # Check one campaign
-./scripts/check-projections.sh --podman        # Reuse/start the Podman dev stack first
-```
-
-That script calls the read-only admin drift-check endpoints and exits nonzero when stored `campaign-pledges:{slug}`, `stats:{slug}`, or `tier-inventory:{slug}` projections no longer match active pledge truth.
+Use [Merge Smoke](/docs/operations/merge-smoke-checklist/) for the maintained operator steps,
+expected results, failure rule, and sign-off template. Record the tested
+revision/environment and any missing provider evidence. Repeat the relevant
+manual flow when automated coverage does not prove the changed behavior.
 
 ### Intentional Behavior Changes
 
@@ -635,177 +636,55 @@ See [tests/security/README.md](/docs/operations/security-test-suite/) for detail
 
 ---
 
-## Manual Testing Prerequisites
+## Manual Test Setup
 
-- Repository-locked [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/install-and-update/) via `npm ci` and `npx wrangler`
-- [Stripe CLI](https://stripe.com/docs/stripe-cli) for webhook testing
-- Stripe account (test mode)
-- Resend account (free tier: 3,000 emails/month)
+Use [Contributing](/docs/development/contributing/#development-setup) to install dependencies and
+configure local credentials, and [Podman](/docs/operations/podman-local-dev/) to start the full stack.
+Provider-specific setup has one owner:
 
----
+- [Payment Processor](/docs/operations/payment-processor/): test keys, Stripe CLI forwarding, the matching webhook secret, and payment recovery.
+- [Email](/docs/operations/email-system/): sender/domain verification, test sends, and signed delivery-event verification.
+- [Deployment](/docs/operations/deployment/): hosted Worker bindings, runtime versus Actions secrets, and production wiring.
 
-## 1. Cloudflare Worker Setup
+Use Stripe test mode and an inbox you control for manual payment/email checks.
+Start the local stack with `./scripts/dev.sh --podman`, or use the documented
+host fallback. The local webhook signing secret must come from the same
+listener that forwards events; avoid two independently started listeners.
 
-### Create KV Namespaces
+## Local Test Data
 
-```bash
-wrangler login
-wrangler kv:namespace create "VOTES"
-wrangler kv:namespace create "VOTES" --preview
-wrangler kv:namespace create "PLEDGES"
-wrangler kv:namespace create "PLEDGES" --preview
-```
-
-### Set Secrets
+Against a running local test Worker, seed the dashboard fixtures with:
 
 ```bash
-cd worker
-openssl rand -base64 32
-
-wrangler secret put STRIPE_SECRET_KEY
-wrangler secret put MAGIC_LINK_SECRET
-wrangler secret put CHECKOUT_INTENT_SECRET
-wrangler secret put RESEND_API_KEY
-wrangler secret put ADMIN_SECRET
-wrangler secret put ADMIN_SETTLEMENT_SECRET
-wrangler secret put ADMIN_BROADCAST_SECRET
+./scripts/seed-admin-test-campaigns.sh
 ```
 
-### Run Worker Locally
+The helper defaults to `hand-relations,smoke-editable`, calls `/test/setup`, and
+prints the resulting fixture/manage links. `/manage/?dev` provides browser mock
+data and does not prove Worker persistence.
 
-Preferred:
+For the broader synthetic dataset, `./scripts/seed-all-campaigns.sh` clears
+existing local pledge data and seeds scenarios with active, charged, cancelled,
+failed, and modified pledges, then recalculates projections. Use disposable
+local state and the configured local admin credential; inspect
+[`scripts/seed-all-campaigns.mjs`](https://github.com/aindaco1/pool/blob/main/scripts/seed-all-campaigns.mjs) for the fixture
+amounts rather than treating campaign dates or sample totals as current status.
+Local persistence depends on the launcher/state directory; a Worker restart is
+not a guarantee that all KV data was erased. Podman smoke paths use isolated
+state and reset it for reproducibility.
+
+For a targeted local inspection, run from `worker/`:
 
 ```bash
-./scripts/dev.sh --podman
+npx wrangler kv key list --binding PLEDGES --env dev --local
 ```
 
-Manual fallback:
+Stop the local Worker before resetting its state; move an unwanted local state
+directory aside so it remains recoverable. Remote/preview resets follow
+[Backup and Restore](/docs/operations/backup-restore/) and require an explicit environment and
+scope, not an unfiltered namespace deletion loop.
 
-```bash
-cd worker
-npx wrangler dev --env dev --port 8787
-```
-
-## 2. Resend Setup
-
-Use [EMAIL.md](/docs/operations/email-system/) as the full email setup and integration reference. This section is the short manual testing path.
-
-### Create Account & API Key
-
-1. Sign up at [resend.com](https://resend.com)
-2. Go to **API Keys** → **Create API Key**
-3. Name: "Project Dev"
-4. Permission: "Sending access"
-5. Copy the key (starts with `re_`)
-
-### Verify Domain (for production)
-
-1. Go to **Domains** → **Add Domain**
-2. Add the exact sender domain used by `PLEDGES_EMAIL_FROM` / `UPDATES_EMAIL_FROM` (for this deployment, `site.example.com`)
-3. Add the DNS records Resend provides
-4. Wait for verification
-
-### Test Mode (no domain needed)
-
-For testing, you can send to your own email without domain verification:
-- Resend allows sending from `onboarding@resend.dev` in test mode
-- Or use your verified personal email
-
-### Test Email Sending
-
-```bash
-curl -X POST 'https://api.resend.com/emails' \
-  -H 'Authorization: Bearer re_YOUR_API_KEY' \
-  -H 'Content-Type: application/json' \
-  -d '{
-    "from": "onboarding@resend.dev",
-    "to": "your-email@example.com",
-    "subject": "Test from your deployment",
-    "html": "<p>Magic link test!</p>"
-  }'
-```
-
-For production delivery evidence, also create `https://worker.example.com/webhooks/resend`, subscribe to delivered/bounced/complained/failed/suppressed events, and store its signing secret as `RESEND_WEBHOOK_SECRET`. Unit tests synthesize signed events; they do not call live Resend.
-
----
-
-## 3. Stripe Setup (Test Mode)
-
-Use [PAYMENT_PROCESSOR.md](/docs/operations/payment-processor/) as the full Stripe setup, webhook, settlement, and reconciliation reference. This section is the short local test-mode path.
-
-### Get Test Keys
-
-1. Login to [dashboard.stripe.com](https://dashboard.stripe.com)
-2. Toggle to **Test mode** (top right)
-3. Go to **Developers** → **API keys**
-4. Copy **Secret key** (`sk_test_...`)
-
-### Install Stripe CLI
-
-```bash
-# macOS
-brew install stripe/stripe-cli/stripe
-
-# Login
-stripe login
-```
-
-### Forward Webhooks to Local Worker
-
-Preferred option for local end-to-end testing:
-
-```bash
-./scripts/dev.sh --podman
-```
-
-This starts Jekyll, the Worker, Stripe CLI forwarding, and writes the matching `STRIPE_WEBHOOK_SECRET` into `worker/.dev.vars`.
-It also clears stale processes on ports `4000`, `8787`, and `4040` so the local stack matches the automated smoke/test harness.
-
-Manual fallback:
-
-```bash
-# Forward Stripe webhooks to your local Worker
-stripe listen --forward-to 127.0.0.1:8787/webhooks/stripe
-# Note the webhook signing secret it outputs (whsec_...)
-```
-
-Add the webhook secret to your local Worker config:
-```bash
-printf '\nSTRIPE_WEBHOOK_SECRET=whsec_...\n' >> worker/.dev.vars
-# Or edit worker/.dev.vars and replace the existing STRIPE_WEBHOOK_SECRET value
-```
-
----
-
-## 4. Full End-to-End Test
-
-### Start All Services
-
-Preferred:
-
-```bash
-./scripts/dev.sh --podman
-```
-
-Manual fallback:
-
-Terminal 1 - Jekyll:
-```bash
-bundle exec jekyll serve --config _config.yml,_config.local.yml --port 4000
-# Site at http://127.0.0.1:4000
-```
-
-Terminal 2 - Worker:
-```bash
-cd worker
-npx wrangler dev --env dev --port 8787
-# Worker at http://127.0.0.1:8787
-```
-
-Terminal 3 - Stripe CLI:
-```bash
-stripe listen --forward-to 127.0.0.1:8787/webhooks/stripe
-```
+## Full End-to-End Test
 
 ### Test the Flow
 
@@ -844,7 +723,7 @@ stripe listen --forward-to 127.0.0.1:8787/webhooks/stripe
 
 ---
 
-## 5. Testing Individual Components
+## Testing Individual Components
 
 ### Test Magic Link Token
 
@@ -880,7 +759,7 @@ wrangler kv:key get "results:hand-relations:poster" --binding VOTES --preview
 
 ---
 
-## 6. Troubleshooting
+## Troubleshooting
 
 ### Checkout start fails closed
 - Verify `CHECKOUT_INTENT_SECRET` exists in `worker/.dev.vars`
@@ -907,7 +786,7 @@ wrangler kv:key get "results:hand-relations:poster" --binding VOTES --preview
 
 ---
 
-## 7. Testing Worker Enhancements
+## Testing Worker Enhancements
 
 ### Test Campaign Validation
 
@@ -1025,68 +904,11 @@ Expected: Returns `{ success: true }` and triggers GitHub workflow.
 
 ---
 
-## 8. Production Checklist
+## Release and Credential References
 
-- [ ] Switch Stripe to live keys
-- [ ] Review [PAYMENT_PROCESSOR.md](/docs/operations/payment-processor/) for Stripe live keys, webhook secrets, settlement credentials, and reconciliation checks
-- [ ] Verify the Resend sender domain used by `PLEDGES_EMAIL_FROM` and `UPDATES_EMAIL_FROM` (for this deployment, `site.example.com`); see [EMAIL.md](/docs/operations/email-system/)
-- [ ] If launch reminders or admin Turnstile widgets are enabled, verify the public site keys and matching Worker Turnstile secrets are set
-- [ ] Deploy Worker: `wrangler deploy`
-- [ ] Set up Stripe webhook in dashboard → `https://worker.example.com/webhooks/stripe`
-- [ ] Set up Resend delivery webhook → `https://worker.example.com/webhooks/resend` and set `RESEND_WEBHOOK_SECRET`
-- [ ] Confirm `EMAIL_OUTBOX_ENABLED=true` and `PAYMENT_RECONCILIATION_ENABLED=true` in the live Worker
-- [ ] Run media manifest/optimization check and inspect dashboard broken-reference warnings
-- [ ] Test with a real $1 pledge
-
-## 9. Secrets Reference
-
-### GitHub Actions (Repo → Settings → Secrets)
-- `STRIPE_SECRET_KEY` — Stripe live secret (sk_...)
-- `CHECKOUT_INTENT_SECRET` — HMAC secret for checkout intent signing
-- Uses `GITHUB_TOKEN` auto-provided for commits
-
-### Cloudflare Worker (wrangler or dashboard → Variables)
-- `STRIPE_SECRET_KEY` — same as above
-- `SITE_BASE` — `https://site.example.com`
-- `WORKER_BASE` — `https://worker.example.com`
-- `APP_MODE` — `live` or `test`
-- `CHECKOUT_INTENT_SECRET` — Random 32+ char string for checkout signing
-- `MAGIC_LINK_SECRET` — Random 32+ char string for HMAC token signing
-- `CAMPAIGN_PREVIEW_SECRET` — Optional dedicated preview reviewer-link signing secret; if omitted, the Worker falls back to existing signing secrets
-- `RESEND_API_KEY` — Resend API key for supporter emails (re_...)
-- `RESEND_WEBHOOK_SECRET` — Resend/Svix signing secret for delivery and suppression events (whsec_...)
-- `ADMIN_SECRET` — Random string for admin API endpoints
-- `ADMIN_SETTLEMENT_SECRET` — Optional scoped admin secret for settlement endpoints; use a separate local-only value in `worker/.dev.vars`
-- `ADMIN_BROADCAST_SECRET` — Optional scoped admin secret for diary, milestone, and announcement endpoints; also add it to GitHub repository secrets for the post-deploy diary check when enabled
-- `CLOUDFLARE_API_TOKEN` — For GitHub deploys, use a Cloudflare user API token created from **My Profile -> API Tokens** with the **Edit Cloudflare Workers** template. For local report exports, use a separate read-only Workers KV token when possible.
-- `CLOUDFLARE_ACCOUNT_ID` — Cloudflare account id for Wrangler deploys, non-interactive local report/export scripts, and the Worker runtime Settings -> Plan usage endpoint
-- `CLOUDFLARE_USAGE_API_TOKEN` — Optional read-only GraphQL Analytics token for the admin Settings -> Plan usage tracker; add Billing Read for Workers plan auto-detection and keep it separate from deploy tokens.
-- `TURNSTILE_SECRET_KEY` — Shared Cloudflare Turnstile secret when admin sign-in or launch reminder widgets are enabled
-- `LAUNCH_REMINDER_TURNSTILE_SECRET_KEY` — Optional reminder-specific Turnstile secret if not using the shared secret
-- `LAUNCH_REMINDER_TOKEN_SECRET` — Optional reminder unsubscribe-token secret; falls back to `MAGIC_LINK_SECRET`
-- `ABANDONED_CART_TOKEN_SECRET` — Optional abandoned-checkout reminder token secret for unsubscribe and resume links; falls back to `MAGIC_LINK_SECRET`
-- `GITHUB_TOKEN` — GitHub PAT with repo/workflow access for dashboard publish actions and rebuild triggers; optional only when you are not testing GitHub-backed publishing
-- `ADMIN_BOOTSTRAP_EMAILS` — Optional local/recovery super-admin email list for dashboard sign-in; local dev reads this from `worker/.dev.vars`
-- `ADMIN_USERS_JSON` — Optional seed/recovery admin user list mirrored from `_config.yml`; dashboard Users edits save to KV at `admin-users:v1`
-- `CORS_ALLOWED_ORIGIN` — Must match the site origin for browser dashboard requests; local Podman derives this for `http://127.0.0.1:4000`
-
-### Cloudflare KV
-- **Namespace**: `PLEDGES` — Stores pledge data and aggregated stats
-  - Keys: `pledge:{orderId}` → pledge JSON
-  - Keys: `email:{email}` → array of order IDs
-  - Keys: `stats:{campaignSlug}` → `{ pledgedAmount, pledgeCount, tierCounts }`
-  - Keys: `campaign-preview-reviewers:{campaignSlug}` → 24-hour protected-preview reviewer email allowlist
-- **Namespace**: `VOTES` — Stores community votes
-  - Keys: `vote:{campaignSlug}:{decisionId}:{orderId}` → option string
-  - Keys: `results:{campaignSlug}:{decisionId}` → JSON `{optionA: count, ...}`
-
-### Stripe Dashboard
-- Webhook endpoint = `https://worker.example.com/webhooks/stripe`
-  - Events: `checkout.session.completed`
-- Product catalog not required; amounts come from Worker-canonicalized first-party cart items
-
-### Resend Dashboard
-- **Domain**: Verify the domain portion of the sender addresses configured in `_config.yml` / Worker env. For this deployment, `PLEDGES_EMAIL_FROM` is `The Pool <pledges@site.example.com>`, so Resend must authorize `site.example.com`.
-- **API Key**: Create key with "Sending access" permission
-- Used for: All supporter-facing pledge email (confirmation, manage/community access, launch reminders, abandoned-checkout reminders, diary updates, Blast/announcement emails, reports, charge success, payment failure, cancellations)
-- Local dev note: even when `SITE_BASE` points at `127.0.0.1`, embedded email images still use the public `https://site.example.com` asset base so inbox previews do not show broken localhost image URLs.
+[Merge Smoke](/docs/operations/merge-smoke-checklist/) owns the operator checklist and sign-off
+template. [Deployment](/docs/operations/deployment/) owns production wiring.
+[Security](/docs/operations/security/#secrets-checklist) owns signing/admin credential
+requirements; payment, email, tax, and shipping provider credentials are covered
+in their dedicated runbooks. Record provider omissions explicitly; local unit,
+fixture, or browser success is not external acceptance.

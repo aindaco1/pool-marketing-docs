@@ -9,11 +9,13 @@ lang: es
 
 ## Última actualización
 
-25 de agosto de 2026
+6 de septiembre de 2026
 
 Aquí se encuentra material de apoyo para el historial de lanzamientos, la planificación, la coordinación de los contribuyentes y las plantillas de procesos reutilizables.
 
 ## Biblioteca de referencia
+
+- [Worker API](/es/docs/reference/worker-api/) para contratos de terminales y ejemplos de solicitud/respuesta.
 
 - [Changelog](/es/docs/reference/changelog/) para notas de la versión versionadas y cambios recientes en la plataforma.
 - [Roadmap](/es/docs/reference/roadmap/) solo para trabajos potenciales; El comportamiento actual se encuentra en las guías de práctica y el trabajo completado se encuentra en el registro de cambios.

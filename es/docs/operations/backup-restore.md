@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-16 de julio de 2026
+6 de septiembre de 2026
 
 Este es el runbook del operador canónico para el estado propiedad de The Pool que no se puede recrear mediante una implementación normal. Cubre el historial de Git, Cloudflare KV, metadatos del proveedor, pedidos de restauración, retención y evidencia de recuperación. Nunca trata los valores secretos como contenido de respaldo.
 
@@ -26,7 +26,7 @@ The Pool utiliza estos objetivos aprobados:
 
 La retención es 7 diarias, 5 semanales, 12 mensuales y cada instantánea de lanzamiento. Mantenga al menos una copia cifrada fuera de la cuenta o dispositivo principal. Verifique el cifrado y las sumas de verificación antes de contar una instantánea como recuperable.
 
-La clasificación y la política legibles por máquina se encuentran en [`config/pool-data-inventory.json`](https://github.com/your-org/your-project/blob/main/config/pool-data-inventory.json). Auditelo después de cualquier nuevo prefijo KV, Durable Object, cola, marcador de idempotencia o flujo de trabajo de pago:
+La clasificación y la política legibles por máquina se encuentran en [`config/pool-data-inventory.json`](https://github.com/aindaco1/pool/blob/main/config/pool-data-inventory.json). Auditelo después de cualquier nuevo prefijo KV, Durable Object, cola, marcador de idempotencia o flujo de trabajo de pago:
 
 ```bash
 npm run backup:inventory:audit

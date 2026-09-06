@@ -9,21 +9,28 @@ render_with_liquid: false
 
 ## Last Updated
 
-August 25, 2026
+September 6, 2026
 
 The Pool repository is the canonical source for imported product and
 developer documentation. This page is generated from the same manifest the
 sync script uses for validation, link rewriting, navigation metadata, and
 output paths.
 
+Imported from Pool revision [`a55469830726`](https://github.com/aindaco1/pool/commit/a55469830726ceff53d6a7d61a8422c207a10d32).
+
+The [Development index](/docs/development/) follows the ownership and task
+paths in Pool's [documentation index](https://github.com/aindaco1/pool/blob/main/docs/README.md).
+Architecture owns system relationships and lifecycle; Campaign Content Model
+owns authoring fields; Worker API owns endpoint contracts; Deployment owns
+release wiring. Detailed procedures stay in their owning guide.
+
 | Pool source | Marketing documentation | Section |
 | --- | --- | --- |
 | [`about.md`](https://github.com/aindaco1/pool/blob/main/about.md) | [About The Pool](/docs/overview/about-the-pool/) | Overview |
 | [`terms.md`](https://github.com/aindaco1/pool/blob/main/terms.md) | [Terms & Creative Guidelines](/docs/overview/terms-and-guidelines/) | Overview |
 | [`docs/CONTRIBUTING.md`](https://github.com/aindaco1/pool/blob/main/docs/CONTRIBUTING.md) | [Contributing](/docs/development/contributing/) | Development |
-| [`docs/PROJECT_OVERVIEW.md`](https://github.com/aindaco1/pool/blob/main/docs/PROJECT_OVERVIEW.md) | [Project Overview](/docs/development/project-overview/) | Development |
-| [`docs/WORKFLOWS.md`](https://github.com/aindaco1/pool/blob/main/docs/WORKFLOWS.md) | [Workflows](/docs/development/workflows/) | Development |
-| [`docs/DEV_NOTES.md`](https://github.com/aindaco1/pool/blob/main/docs/DEV_NOTES.md) | [Developer Notes](/docs/development/developer-notes/) | Development |
+| [`docs/ARCHITECTURE.md`](https://github.com/aindaco1/pool/blob/main/docs/ARCHITECTURE.md) | [Architecture](/docs/development/architecture/) | Development |
+| [`docs/CONTENT_MODEL.md`](https://github.com/aindaco1/pool/blob/main/docs/CONTENT_MODEL.md) | [Campaign Content Model](/docs/development/content-model/) | Development |
 | [`docs/CUSTOMIZATION.md`](https://github.com/aindaco1/pool/blob/main/docs/CUSTOMIZATION.md) | [Customization Guide](/docs/development/customization-guide/) | Development |
 | [`docs/I18N.md`](https://github.com/aindaco1/pool/blob/main/docs/I18N.md) | [Internationalization](/docs/development/internationalization/) | Development |
 | [`docs/EMBEDS.md`](https://github.com/aindaco1/pool/blob/main/docs/EMBEDS.md) | [Campaign Embeds](/docs/development/campaign-embeds/) | Development |
@@ -47,6 +54,8 @@ output paths.
 | [`docs/ACCESSIBILITY.md`](https://github.com/aindaco1/pool/blob/main/docs/ACCESSIBILITY.md) | [Accessibility](/docs/operations/accessibility/) | Operations |
 | [`docs/SEO.md`](https://github.com/aindaco1/pool/blob/main/docs/SEO.md) | [SEO](/docs/operations/seo/) | Operations |
 | [`docs/PERFORMANCE.md`](https://github.com/aindaco1/pool/blob/main/docs/PERFORMANCE.md) | [Performance](/docs/operations/performance/) | Operations |
+| [`docs/DEPLOYMENT.md`](https://github.com/aindaco1/pool/blob/main/docs/DEPLOYMENT.md) | [Deployment](/docs/operations/deployment/) | Operations |
+| [`docs/WORKER_API.md`](https://github.com/aindaco1/pool/blob/main/docs/WORKER_API.md) | [Worker API](/docs/reference/worker-api/) | Reference |
 | [`CHANGELOG.md`](https://github.com/aindaco1/pool/blob/main/CHANGELOG.md) | [Changelog](/docs/reference/changelog/) | Reference |
 | [`docs/ROADMAP.md`](https://github.com/aindaco1/pool/blob/main/docs/ROADMAP.md) | [Roadmap](/docs/reference/roadmap/) | Reference |
 | [`docs/PULL_REQUEST_TEMPLATE.md`](https://github.com/aindaco1/pool/blob/main/docs/PULL_REQUEST_TEMPLATE.md) | [Pull Request Template](/docs/reference/pull-request-template/) | Reference |
@@ -54,9 +63,14 @@ output paths.
 ## Regenerate Documentation
 
 ```bash
-POOL_SOURCE=/path/to/pool ruby scripts/sync_pool_docs.rb
+export POOL_SOURCE=/path/to/pool
+ruby scripts/sync_pool_docs.rb
 python3 scripts/build_spanish_docs.py
 ```
 
 The Campaign Creator Checklist remains a Pool-owned public route and is not
-duplicated into this developer documentation tree.
+duplicated into this developer documentation tree. Release evidence stays in
+Pool's [release-evidence directory](https://github.com/aindaco1/pool/tree/main/docs/release-evidence/).
+
+Project Overview, Workflows, and Developer Notes retain their old URLs as
+short migration pages. They no longer duplicate the current guides.

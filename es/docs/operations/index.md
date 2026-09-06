@@ -9,17 +9,20 @@ lang: es
 
 ## Última actualización
 
-25 de agosto de 2026
+6 de septiembre de 2026
 
 Esta sección cubre el panel de administración, el trabajador de aporte, las opciones de tiempo de ejecución local, los controles de calidad y las reglas operativas que protegen el comportamiento de pago y cumplimiento.
 
 ## Tiempo de ejecución local y servicios
 
 - [Panel de administración](/es/docs/operations/admin-dashboard/) para edición de campañas, informes, análisis, herramientas de marketing, carga de medios y gestión de usuarios basados ​​en navegador.
-- [Worker de aportes](/es/docs/operations/worker/) para secretos, espacios de nombres KV, webhooks, variables de entorno y puntos finales API.
+- [Pledge Worker](/es/docs/operations/worker/) para el punto de entrada de desarrollo Worker y enlaces a sus guías propias.
 - [Procesador de pagos](/es/docs/operations/payment-processor/) para configuración de Stripe, pago canónico, webhooks, liquidación y conciliación.
 - [Sistema de correo electrónico](/es/docs/operations/email-system/) para configuración del remitente, comportamiento, localización, entrega y reintentos del correo electrónico transaccional y de campaña.
 - [Podman Local Dev](/es/docs/operations/podman-local-dev/) para la pila local en contenedores, la matriz de soporte y el flujo de solución de problemas.
+
+- [Implementación](/es/docs/operations/deployment/) para configuración de producción, credenciales, versiones de páginas y Worker, y comprobaciones posteriores a la implementación.
+- [Worker API](/es/docs/reference/worker-api/) para contratos de terminales y ejemplos de solicitud/respuesta.
 
 ## Comprobaciones de calidad, seguridad y liberación
 

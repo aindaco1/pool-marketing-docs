@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-August 25, 2026
+September 6, 2026
 
 This repo includes a rootless Podman-backed local development path for the two services that usually create the most host setup churn:
 
@@ -217,7 +217,7 @@ npm run test:e2e:headless:podman -- tests/e2e/admin-dashboard.spec.ts --project=
 
 That focused suite is the preferred local browser check for admin UI changes such as Create new campaign, protected Preview publishing, shared info-button/help behavior, and responsive Campaigns sidebar layout.
 
-For host-side commands that need a Podman-backed site/Worker without assuming detached stack persistence, use [`scripts/podman-stack-run.sh`](https://github.com/your-org/your-project/blob/main/scripts/podman-stack-run.sh). `npm run test:security:podman` uses that wrapper to boot the stack, run the security suite, and tear the stack down in one invocation.
+For host-side commands that need a Podman-backed site/Worker without assuming detached stack persistence, use [`scripts/podman-stack-run.sh`](https://github.com/aindaco1/pool/blob/main/scripts/podman-stack-run.sh). `npm run test:security:podman` uses that wrapper to boot the stack, run the security suite, and tear the stack down in one invocation.
 
 The Worker container defaults to `node:24-bookworm-slim`. If a local Podman image pull stalls but the Playwright image pinned in `Containerfile.playwright.dev` is already cached, the launcher can reuse that exact Node 24 base so development still matches the GitHub Actions Node 24 runtime. Use `nvm use` from the repository root to select the supported Node 24.15 baseline before running host-side npm commands.
 

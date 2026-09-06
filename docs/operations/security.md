@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-August 25, 2026
+September 6, 2026
 
 This document covers the security architecture, known risks, applied hardening measures, accepted tradeoffs, and penetration testing procedures for The Pool crowdfunding platform. Encrypted backup boundaries, quarantined session/rate-limit state, off-device handling, and production restore approvals are defined in [BACKUP_RESTORE.md](/docs/operations/backup-restore/).
 
@@ -257,7 +257,7 @@ limit.
 
 Use `GET /admin/observability/webhooks`,
 `GET /admin/observability/performance`, and
-[`scripts/check-observability.sh`](https://github.com/your-org/your-project/blob/main/scripts/check-observability.sh) to review
+[`scripts/check-observability.sh`](https://github.com/aindaco1/pool/blob/main/scripts/check-observability.sh) to review
 bounded delivery and timing summaries without exposing raw request payloads.
 
 ### Credential Comparison And Scope
@@ -276,6 +276,14 @@ block release. Dev-only findings in build or release tooling require removal, a
 clean supported pin, or an explicit scoped acceptance record. The current
 Lighthouse pin is recorded in the lockfile; the changelog and release evidence,
 not this guide, retain the version-specific resolution history.
+
+`npm run test:dependencies` runs both scopes against both lockfiles with bounded
+transient retries. Merge Smoke exposes all four audits independently from
+dependency installation and application tests. Missing audit evidence is a
+failed check, not an accepted risk or a clean result; an npm service outage must
+not be waived as a dev-only finding. The automated threshold remains moderate,
+and any lower-severity findings remain in the output for scoped review. See
+[Testing Guide](/docs/operations/testing/#dependency-audits) for deadlines and rerun commands.
 
 ### Accepted Risks
 
@@ -304,6 +312,7 @@ Payment-specific setup is documented in [PAYMENT_PROCESSOR.md](/docs/operations/
 | Stripe Webhook Secret | `STRIPE_WEBHOOK_SECRET_LIVE` | 32+ chars |
 | Checkout Intent Secret | `CHECKOUT_INTENT_SECRET` | 32+ chars |
 | Magic Link Secret | `MAGIC_LINK_SECRET` | 32+ chars |
+| Campaign Preview Secret | Optional `CAMPAIGN_PREVIEW_SECRET`; falls back to `MAGIC_LINK_SECRET`, then admin signing secrets | 32+ chars |
 | Launch Reminder Token Secret | `LAUNCH_REMINDER_TOKEN_SECRET` or `MAGIC_LINK_SECRET` fallback | 32+ chars |
 | Abandoned Checkout Token Secret | `ABANDONED_CART_TOKEN_SECRET` or `MAGIC_LINK_SECRET` fallback for reminder unsubscribe/resume links | 32+ chars |
 | Admin Session Secret | `ADMIN_SESSION_SECRET` | 32+ chars |

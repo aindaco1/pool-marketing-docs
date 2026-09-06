@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-August 25, 2026
+September 6, 2026
 
 This guide adapts the Ethical OS Toolkit from the Institute for the Future and Omidyar Network to The Pool's crowdfunding, payment, email, admin, and public sharing surfaces. Use it as a practical risk review, not as a replacement for security, accessibility, privacy, or legal review.
 
@@ -100,7 +100,7 @@ Treat these as release blockers until explicitly resolved:
 
 ## Project-Specific Guidance
 
-- Checkout and payment changes: start from [PAYMENT_PROCESSOR.md](/docs/operations/payment-processor/), [WORKFLOWS.md](/docs/development/workflows/), and [SECURITY.md](/docs/operations/security/). Verify canonical totals, idempotency, supporter understanding, and recovery paths.
+- Checkout and payment changes: start from [PAYMENT_PROCESSOR.md](/docs/operations/payment-processor/), [ARCHITECTURE.md](/docs/development/architecture/), and [SECURITY.md](/docs/operations/security/). Verify canonical totals, idempotency, supporter understanding, and recovery paths.
 - Email and reminders: start from [EMAIL.md](/docs/operations/email-system/). Verify explicit consent, audience scope, dry runs, localized copy, suppression/unsubscribe behavior, and no-send evidence.
 - Admin dashboard changes: start from [DASHBOARD.md](/docs/operations/admin-dashboard/). Document whether the feature is read-only, browser-local, KV-backed, or GitHub-backed, and keep role/campaign scoping Worker-enforced.
 - Public sharing, SEO, and embeds: start from [SEO.md](/docs/operations/seo/) and [EMBEDS.md](/docs/development/campaign-embeds/). Public previews are truthful, state-aware, and never leak protected-preview or tokenized data.
@@ -116,4 +116,4 @@ Treat these as release blockers until explicitly resolved:
 - Revisit this guide when the product adds new audiences, new data uses, new automation, or new distribution channels.
 
 Release-specific ethical review records belong with the corresponding
-[release evidence](https://github.com/your-org/your-project/tree/main/docs/release-evidence) rather than in this current-state guide.
+[release evidence](https://github.com/aindaco1/pool/tree/main/docs/release-evidence) rather than in this current-state guide.

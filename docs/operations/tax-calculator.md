@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-August 25, 2026
+September 6, 2026
 
 This document covers The Pool's current tax-calculation model, including
 provider selection, fork-facing configuration, browser behavior, Worker
@@ -52,7 +52,7 @@ The Worker still accepts the legacy provider value `external` as an alias for
 
 ## Configuration Surface
 
-Fork-facing tax config lives in [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) and is described
+Fork-facing tax config lives in [`_config.yml`](https://github.com/aindaco1/pool/blob/main/_config.yml) and is described
 in [CUSTOMIZATION.md](/docs/development/customization-guide/).
 
 Current keys:
@@ -230,5 +230,5 @@ Check:
 - [PAYMENT_PROCESSOR.md](/docs/operations/payment-processor/)
 - [TESTING.md](/docs/operations/testing/)
 - [PODMAN.md](/docs/operations/podman-local-dev/)
-- [PROJECT_OVERVIEW.md](/docs/development/project-overview/)
+- [ARCHITECTURE.md](/docs/development/architecture/)
 - [worker/README.md](/docs/operations/worker/)

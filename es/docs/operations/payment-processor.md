@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-25 de agosto de 2026
+6 de septiembre de 2026
 
 The Pool utiliza Stripe como procesador de pagos, con Cloudflare Worker como límite canónico de pago, aporte, webhook y liquidación. El sitio público puede recopilar la intención del carrito, pero Worker reconstruye la forma del dinero, crea sesiones Stripe, mantiene los aportes y luego cobra los métodos de pago guardados solo cuando una campaña de todo o nada tiene éxito.
 
@@ -287,7 +287,7 @@ El Worker crea otra sesión de pago Stripe en modo de configuración. En el modo
 
 Si el aporte estaba en estado `payment_failed` y la campaña se financia después de la fecha límite, Worker intenta un reintento inmediato fuera de la sesión después de guardar el nuevo método de pago.
 
-## Asentamiento
+## Liquidación
 
 La liquidación se ejecuta solo después de que haya pasado la fecha límite de la campaña en la zona horaria configurada de la plataforma y la campaña esté financiada.
 
@@ -327,7 +327,7 @@ Utilice `ADMIN_SETTLEMENT_SECRET` para la automatización de liquidación cuando
 
 ### Registro de aporte
 
-Los campos de dinero prometido son centavos enteros:
+Los campos persistentes de subtotal, impuestos, envío, monto de propina y total son centavos enteros:
 
 ```json
 {
@@ -375,6 +375,23 @@ los aportes cargados también pueden almacenar datos financieros Stripe reales:
 Los análisis del panel prefieren datos reales de transacciones de saldo Stripe cuando están presentes y etiquetas de estimaciones cuando faltan datos reales.
 
 Los registros más antiguos sin `currency` se leen como USD. Esta es una compatibilidad predeterminada, no compatibilidad con múltiples monedas. `valueTime` describe cuándo ocurrió el evento de soporte/procesador, `bookedAt` describe la persistencia de Worker y `processorAvailableAt` se completa solo cuando los datos del saldo de Stripe exponen el tiempo de disponibilidad.
+
+### Artículos de aporte e historial
+
+los aportes pueden almacenar `tierId` / `tierQty`, `additionalTiers` (`id`, `qty`), `supportItems` (`id`, dólar `amount`), dólar `customAmount` y `bundleAddOns`. El `tipPercent` seleccionado está separado del centavo entero `tipAmount`. El pago de varias campañas crea registros separados con alcance de campaña. [Productos complementarios](/es/docs/development/add-on-products/) define la identidad del producto/variante y la regla histórica guardada `unitPrice` para selecciones sin cambios.
+
+Las entradas del historial registran el nivel/estado del complemento del evento y la marca de tiempo ISO `at`:
+
+|Campo|Significado|
+| --- | --- |
+|`type`|`created`, `modified` o `cancelled`|
+|`subtotal` / `subtotalDelta`|Subtotal completo creado o cambio posterior en centavos|
+|`tipAmount` / `tipAmountDelta`, `tipPercent`|Valor/cambio de propina en centavos y porcentaje seleccionado|
+|`tax` / `taxDelta`, `shipping` / `shippingDelta`|Componentes de carga almacenados o cambios en centavos|
+|`amount` / `amountDelta`|Total que incluye impuestos, envío y propina, o el cambio en ese total|
+|`tierId`, `tierQty`, `additionalTiers`, `customAmount`, `bundleAddOns`|Selección de artículos después del evento.|
+
+Las modificaciones conllevan deltas positivas o negativas; la cancelación revierte los montos prometidos. [Los informes del panel](/es/docs/operations/admin-dashboard/#informes) explican las filas del libro mayor, el cumplimiento del estado actual y la división campaña/plataforma.
 
 ### Registros de proyección
 
@@ -532,7 +549,7 @@ Para el comportamiento del procesador, prefiera el modo de prueba Stripe y la CL
 
 ## Documentos relacionados
 
-- [FLUJOS DE TRABAJO.md](/es/docs/development/workflows/)
+- [ARQUITECTURA.md](/es/docs/development/architecture/)
 - [SEGURIDAD.md](/es/docs/operations/security/)
 - [PRUEBA.md](/es/docs/operations/testing/)
 - [PANEL.md](/es/docs/operations/admin-dashboard/)

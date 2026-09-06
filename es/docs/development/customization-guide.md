@@ -10,13 +10,13 @@ lang: es
 
 ## Última actualización
 
-25 de agosto de 2026
+6 de septiembre de 2026
 
 Esta guía cubre la superficie de personalización sin código admitida para bifurcaciones de The Pool.
 
 El objetivo es permitir que las bifurcaciones cambien el nombre, el estilo y la reconfiguración de la plataforma a través de la configuración, manteniendo alineados el pago, los informes, los correos electrónicos y el trabajador.
 
-El modelo de configuración estructurado en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) es la superficie canónica orientada hacia la horquilla.
+El modelo de configuración estructurado en [`_config.yml`](https://github.com/aindaco1/pool/blob/main/_config.yml) es la superficie canónica orientada a la horquilla.
 
 La configuración específica del proveedor se encuentra en runbooks separados: use [PAYMENT_PROCESSOR.md](/es/docs/operations/payment-processor/) para Stripe y liquidación, y [EMAIL.md](/es/docs/operations/email-system/) para remitentes Resend y entrega de correo electrónico.
 
@@ -24,9 +24,9 @@ La configuración específica del proveedor se encuentra en runbooks separados: 
 
 Para la mayoría de las bifurcaciones, los principales archivos de personalización son:
 
-- [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml)
-- [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml)
-- [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml)
+- [`_config.yml`](https://github.com/aindaco1/pool/blob/main/_config.yml)
+- `_config.local.yml`
+- [`worker/wrangler.toml`](https://github.com/aindaco1/pool/blob/main/worker/wrangler.toml)
 
 Utilice `./scripts/dev.sh --podman` para la verificación local después de los cambios de configuración.
 
@@ -40,7 +40,7 @@ Para ediciones normales del operador, utilice el panel de administración privad
 - **Configuración -> Usuarios** es solo en tiempo de ejecución y se guarda directamente en Worker KV en `admin-users:v1`; no se publica en GitHub.
 - **Secretos y credenciales** tiene un estado de solo lectura. Los valores secretos aún pertenecen a los secretos de los trabajadores, los secretos del repositorio de GitHub o los archivos env locales ignorados.
 
-Trate [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml) como un archivo de solo anulación. Mantenga la configuración de bifurcación canónica en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) y use el archivo local solo para cosas que difieren en su máquina, como las URL del host local o la visibilidad de la campaña solo local.
+Trate `_config.local.yml` como un archivo de sólo anulación. Mantenga la configuración de bifurcación canónica en [`_config.yml`](https://github.com/aindaco1/pool/blob/main/_config.yml) y use el archivo local solo para cosas que difieren en su máquina, como las URL del host local o la visibilidad de la campaña solo local.
 
 La ruta local normal está basada en localhost:
 
@@ -207,10 +207,7 @@ tax:
 
 Si habilita `zip_tax`, configure también el secreto de trabajador `ZIP_TAX_API_KEY`. Mantenga ese secreto fuera de `_config.yml`.
 
-La instantánea inicial de Nuevo México proporcionada está fijada en
-[`@dustwave/tax-core`](https://github.com/your-org/your-project/blob/main/shared/dust-wave-platform/packages/tax-core/src/nm-grt-starter.js).
-Actualícelo solo en el proceso de pago de la versión de la plataforma, revise la diferencia generada y
-luego avance el pin inmutable de The Pool. Desde la raíz del repositorio de la plataforma:
+La instantánea inicial de Nuevo México proporcionada está fijada en [`@dustwave/tax-core`](https://github.com/aindaco1/pool/blob/main/shared/dust-wave-platform/packages/tax-core/src/nm-grt-starter.js). Actualícelo solo en el proceso de pago de la versión de la plataforma, revise la diferencia generada y luego avance el pin inmutable de The Pool. Desde la raíz del repositorio de la plataforma:
 
 ```bash
 node ./packages/tax-core/bin/update-nm-grt-starter.mjs \
@@ -394,7 +391,7 @@ Límite secreto importante:
 - mantenga el compañero `USPS_CLIENT_SECRET` en Secretos del trabajador o `worker/.dev.vars`
 - no guardes el secreto en la configuración de Jekyll
 
-La lista de destinos de pago está intencionalmente separada de esas perillas. La plataforma posee el registro canónico en `packages/shipping-core/data/shipping-countries.yml`; actualice la instantánea [`_data/shipping_countries.yml`](https://github.com/your-org/your-project/blob/main/_data/shipping_countries.yml) generada con `npm run shipping-countries:sync` después de avanzar el pin de plataforma exacto. `npm run shipping-countries:check` falla al desviarse.
+La lista de destinos de pago está intencionalmente separada de esas perillas. La plataforma posee el registro canónico en `packages/shipping-core/data/shipping-countries.yml`; actualice la instantánea [`_data/shipping_countries.yml`](https://github.com/aindaco1/pool/blob/main/_data/shipping_countries.yml) generada con `npm run shipping-countries:sync` después de avanzar el pin de plataforma exacto. `npm run shipping-countries:check` falla al desviarse.
 
 Ejemplo:
 
@@ -559,8 +556,7 @@ Por el contrario, los `add_ons.products` globales siguen siendo productos de pla
 
 ### `podcast_benefits`
 
-Utilice `podcast_benefits` para el límite no secreto entre las recompensas The Pool y el
-tiempo de ejecución separado del podcast Dust Wave:
+Utilice `podcast_benefits` para establecer el límite no secreto entre las recompensas The Pool y el tiempo de ejecución independiente del podcast Dust Wave:
 
 - `enabled` es un interruptor de apagado explícito y el valor predeterminado es `false`
 - `bridge_url` debe ser el Podcast exacto
@@ -568,14 +564,7 @@ Punto final `/v1/internal/pool/grants`
 - `bridge_timeout_ms` acepta un tiempo de espera de servicio limitado de 1 a 15 segundos
 - `mappings` está actualmente vacío, por lo que el puente no emite derechos
 
-El `POOL_PODCAST_BRIDGE_SECRET` coincidente nunca pertenece a `_config.yml`; conjunto
-un valor generado independientemente en secretos Worker o ignorado
-`worker/.dev.vars` e instale ese mismo valor específico del entorno en
-Pódcast. La implementación expone y prueba solo la entrega firmada.
-primitivo. No escanea aportes, emite códigos, pone en cola correos electrónicos ni cambia
-comportamiento de pago/liquidación mientras `mappings` está vacío y el interruptor de apagado está
-apagado. Un `_config.local.yml` local puede anular `bridge_url` con el correspondiente
-Punto final local Podcast Worker para una prueba de integración aislada.
+El `POOL_PODCAST_BRIDGE_SECRET` coincidente nunca pertenece a `_config.yml`; establezca un valor generado de forma independiente en los secretos de Worker o ignore `worker/.dev.vars`, e instale ese mismo valor específico del entorno en Podcast. La implementación expone y prueba solo la primitiva de entrega firmada. No escanea aportes, emite códigos, pone en cola correos electrónicos ni cambia el comportamiento de pago/liquidación mientras `mappings` está vacío y el interruptor de apagado está apagado. Un `_config.local.yml` local puede anular `bridge_url` con el punto final de Podcast local coincidente Worker para una prueba de integración aislada.
 
 ### `reports`
 
@@ -642,7 +631,7 @@ runner_report_emails:
 
 Utilice `design` para anulaciones seleccionadas del sistema de diseño que no requieren ediciones de Sass.
 
-Estos valores se emiten en la hoja de estilo generada [assets/main.css](https://github.com/your-org/your-project/blob/main/assets/main.scss), que mantiene el puente de variables de diseño compatible con el estricto CSP del sitio. [assets/theme-vars.css](https://github.com/your-org/your-project/blob/main/assets/theme-vars.css) permanece como un artefacto de compatibilidad, pero los diseños públicos no lo solicitan por separado. Las bifurcaciones no necesitan editar Sass solo para cambiar los tokens admitidos.
+Estos valores se emiten en la hoja de estilo generada [assets/main.css](https://github.com/aindaco1/pool/blob/main/assets/main.scss), que mantiene el puente de variables de diseño compatible con el estricto CSP del sitio. [assets/theme-vars.css](https://github.com/aindaco1/pool/blob/main/assets/theme-vars.css) permanece como un artefacto de compatibilidad, pero los diseños públicos no lo solicitan por separado. Las bifurcaciones no necesitan editar Sass solo para cambiar los tokens admitidos.
 
 Las mismas variables CSS generadas también son el tema del sidecar Stripe Elements en el sitio, por lo que las anulaciones de tipografía/color/radio admitidas se llevan a cabo en la interfaz de usuario de pago personalizada sin agregar una capa de configuración separada solo para el pago.
 
@@ -795,7 +784,7 @@ Estos valores siguen siendo importantes para el sitio generado y, en algunos cas
 
 ### Reflejado automáticamente al trabajador
 
-Estos valores de configuración del sitio también se reflejan en los valores del entorno del trabajador en [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml):
+Estos valores de configuración del sitio también se reflejan en los valores de entorno Worker en [`worker/wrangler.toml`](https://github.com/aindaco1/pool/blob/main/worker/wrangler.toml):
 
 - `title` -> `SITE_TITLE`
 - `description` -> `SITE_DESCRIPTION`
@@ -887,7 +876,7 @@ Para mayor comodidad, el repositorio incluye:
 npm run sync:worker-config
 ```
 
-Ese comando sincroniza los valores reflejados por el trabajador en [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) de `_config.yml` y `_config.local.yml`.
+Ese comando sincroniza los valores reflejados de Worker en [`worker/wrangler.toml`](https://github.com/aindaco1/pool/blob/main/worker/wrangler.toml) de `_config.yml` y `_config.local.yml`.
 
 No escribe secretos Worker, archivos multimedia ni resultados de optimización generados. Los secretos de OAuth USPS, las claves secretas Stripe, las claves Resend, las claves ZIP.TAX, los secretos Turnstile, los tokens GitHub y las credenciales de implementación Cloudflare aún pertenecen a los secretos Worker, los secretos del repositorio GitHub o los archivos de entorno locales ignorados. Los runbooks Stripe y Resend son [PAYMENT_PROCESSOR.md](/es/docs/operations/payment-processor/) y [EMAIL.md](/es/docs/operations/email-system/).
 

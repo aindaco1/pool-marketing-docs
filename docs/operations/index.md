@@ -8,17 +8,20 @@ has_children: true
 
 ## Last Updated
 
-August 25, 2026
+September 6, 2026
 
 This section covers the admin dashboard, pledge Worker, local runtime options, quality gates, and the operational rules that protect checkout and fulfillment behavior.
 
 ## Local Runtime And Services
 
 - [Admin Dashboard](/docs/operations/admin-dashboard/) for browser-based campaign editing, reports, analytics, marketing tools, media uploads, and user management.
-- [Pledge Worker](/docs/operations/worker/) for secrets, KV namespaces, webhooks, environment variables, and API endpoints.
+- [Pledge Worker](/docs/operations/worker/) for the Worker development entry point and links to its owning guides.
 - [Payment Processor](/docs/operations/payment-processor/) for Stripe setup, canonical checkout, webhooks, settlement, and reconciliation.
 - [Email System](/docs/operations/email-system/) for sender setup, transactional and campaign email behavior, localization, delivery, and retries.
 - [Podman Local Dev](/docs/operations/podman-local-dev/) for the containerized local stack, support matrix, and troubleshooting flow.
+
+- [Deployment](/docs/operations/deployment/) for production setup, credentials, Pages and Worker releases, and post-deploy checks.
+- [Worker API](/docs/reference/worker-api/) for endpoint contracts and request/response examples.
 
 ## Quality, Security, And Release Checks
 

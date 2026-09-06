@@ -62,6 +62,10 @@ FORBIDDEN_SPANISH_CURRENT_STATE = {
 
 REQUIRED_DOCS = {
     Path("development/product-video-workflow.md"),
+    Path("development/architecture.md"),
+    Path("development/content-model.md"),
+    Path("operations/deployment.md"),
+    Path("reference/worker-api.md"),
     Path("operations/tax-calculator.md"),
     Path("reference/source-map.md"),
 }
@@ -82,7 +86,7 @@ def add_pattern_errors(
         return
 
     for path in sorted(docs_root.rglob("*.md")):
-        if path in exclusions:
+        if path in exclusions or "maintainers" in path.relative_to(docs_root).parts:
             continue
         body = path.read_text(errors="replace")
         for label, pattern in patterns.items():
@@ -105,7 +109,7 @@ def audit_roadmap(path: Path, contract: str, errors: list[str]) -> None:
 
 
 def audit_tree_parity(errors: list[str]) -> None:
-    english = {path.relative_to(DOCS) for path in DOCS.rglob("*.md")}
+    english = {path.relative_to(DOCS) for path in DOCS.rglob("*.md") if "maintainers" not in path.relative_to(DOCS).parts}
     spanish = {path.relative_to(SPANISH_DOCS) for path in SPANISH_DOCS.rglob("*.md")}
 
     for path in sorted(english - spanish):
@@ -136,6 +140,11 @@ def main() -> int:
         errors,
     )
     audit_tree_parity(errors)
+    site = ROOT / "_site"
+    if site.exists():
+        for excluded in ("docs/maintainers", "scripts", "README.md", "LICENSE", "ROADMAP.md", "design-qa.md"):
+            if (site / excluded).exists():
+                errors.append(f"_site/{excluded}: repository-only material leaked into the public build")
 
     if errors:
         print("Current-state documentation audit failed:")

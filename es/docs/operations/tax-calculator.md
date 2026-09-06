@@ -10,17 +10,11 @@ lang: es
 
 ## Última actualización
 
-25 de agosto de 2026
+6 de septiembre de 2026
 
-Este documento cubre el modelo actual de cálculo de impuestos de The Pool, incluido
-selección de proveedor, configuración orientada a la bifurcación, comportamiento del navegador, Worker
-puntos finales y los controles que los operadores deben realizar antes del envío relacionados con impuestos.
-cambios.
+Este documento cubre el modelo actual de cálculo de impuestos en The Pool, incluyendo selección de proveedor, configuración para forks, comportamiento del navegador, endpoints del Worker y las verificaciones que conviene correr antes de publicar cambios relacionados con impuestos.
 
-Los impuestos son una preocupación de primera clase Worker en lugar de una tasa fija configurada
-en todas partes. Una implementación puede permanecer con una tarifa fija o cambiar a una respaldada por el proveedor
-o cálculos de ubicación proporcionados sin bifurcar las matemáticas de pago
-el navegador, Worker, gestión de aportes, correos electrónicos e informes.
+Los impuestos son una preocupación de primera clase y no una tasa fija configurada en todas partes. Una implementación puede permanecer con una tarifa fija o cambiar a un cálculo basado en la ubicación respaldado o proporcionado por el proveedor sin bifurcar las matemáticas de pago en el navegador, Worker, administración de aportes, correos electrónicos e informes.
 
 ## Qué controla esta capa
 
@@ -34,8 +28,7 @@ La capa impositiva mantiene una respuesta consistente en:
 - correos electrónicos de patrocinadores
 - reportes y exportaciones
 
-El Worker sigue siendo la fuente de la verdad. El navegador puede solicitar vistas previas, pero
-los totales persistentes provienen del cálculo del lado Worker.
+El Worker sigue siendo la fuente de la verdad. El navegador puede solicitar vistas previas, pero los totales persistentes provienen del cálculo del lado Worker.
 
 ## Modos de proveedor actuales
 
@@ -48,13 +41,11 @@ Los modos de proveedor de cara al operador admitidos son:
 |`nm_grt`|Utiliza el conjunto de datos inicial de Nuevo México suministrado y puede refinar direcciones completas de Nuevo México con la API EDAC GRT|implementaciones centradas en Nuevo México que necesitan más precisión local|
 |`zip_tax`|Utiliza ZIP.TAX para búsquedas de jurisdicciones de EE. UU. y Canadá y recurre a `offline_rules` para otros países.|Implementaciones que desean precisión fiscal local respaldada por el proveedor|
 
-Worker todavía acepta el valor del proveedor heredado `external` como alias para
-`zip_tax`, pero las nuevas configuraciones y ediciones del panel deben usar `zip_tax`.
+Worker todavía acepta el valor del proveedor heredado `external` como alias para `zip_tax`, pero las nuevas configuraciones y ediciones del panel deben usar `zip_tax`.
 
 ## Superficie de configuración
 
-La configuración de impuestos orientada a la bifurcación se encuentra en [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) y se describe
-en [PERSONALIZACIÓN.md](/es/docs/development/customization-guide/).
+La configuración de impuestos orientada a la bifurcación se encuentra en [`_config.yml`](https://github.com/aindaco1/pool/blob/main/_config.yml) y se describe en [CUSTOMIZATION.md](/es/docs/development/customization-guide/).
 
 Claves actuales:
 
@@ -82,8 +73,7 @@ La línea base de compatibilidad sigue estando disponible:
 
 ## Espejo del Worker y secretos
 
-La configuración de impuestos no secreta se refleja desde la configuración del sitio en Worker
-ambiente:
+La configuración de impuestos no secreta se refleja desde la configuración del sitio en el entorno Worker:
 
 - `TAX_PROVIDER`
 - `TAX_ORIGIN_COUNTRY`
@@ -92,9 +82,7 @@ ambiente:
 - `ZIP_TAX_API_BASE`
 - `SALES_TAX_RATE` para `flat`
 
-Si habilita `zip_tax`, configure también `ZIP_TAX_API_KEY`. Mantenga esa llave fuera de
-`_config.yml`; configúrelo como un secreto Worker o en `worker/.dev.vars` ignorado para
-trabajo local.
+Si habilita `zip_tax`, configure también `ZIP_TAX_API_KEY`. Mantenga esa clave fuera de `_config.yml`; configúrelo como un secreto Worker o en `worker/.dev.vars` ignorado para el trabajo local.
 
 Actualice el conjunto de datos de inicio de Nuevo México suministrado con:
 
@@ -104,8 +92,7 @@ node ./scripts/update-nm-grt-starter.mjs
 
 ## Comportamiento del navegador y del checkout
 
-El navegador puede mostrar un estado provisional antes de tener suficiente destino.
-detalle.
+El navegador puede mostrar un estado provisional antes de tener suficientes detalles del destino.
 
 Comportamiento actual:
 
@@ -118,15 +105,13 @@ antes de devolver una cotización
 calle analizable más ciudad y código postal; de lo contrario usa el motor de arranque
 conjunto de datos o respaldo plano configurado
 
-Por lo tanto, una vista previa de impuestos puede quedar incompleta al principio del proceso de pago y resolución.
-una vez que los detalles de facturación o envío estén presentes.
+Por lo tanto, una vista previa de impuestos puede permanecer incompleta al principio del proceso de pago y resolverse una vez que los detalles de facturación o envío estén presentes.
 
 ## Endpoints principales
 
 ### `POST /tax/quote`
 
-Este punto final devuelve una vista previa de impuestos calculada por Worker para el carrito propio.
-y la interfaz de usuario de pago.
+Este punto final devuelve una vista previa de impuestos calculados por Worker para el carrito propio y la interfaz de usuario de pago.
 
 Sirve para:
 
@@ -152,8 +137,7 @@ Este es el bootstrap de pago autorizado. Él:
 - calcula los totales finales de pago
 - persiste la instantánea de pago firmada utilizada por Stripe y Worker
 
-Si el impuesto del navegador parece incorrecto, determine si el problema afecta únicamente
-Estado de vista previa de `/tax/quote` o también el resultado canónico de `/checkout-intent/start`.
+Si el impuesto del navegador parece incorrecto, determine si el problema afecta solo al estado de vista previa de `/tax/quote` o también al resultado canónico de `/checkout-intent/start`.
 
 ## Desarrollo Local
 
@@ -173,13 +157,11 @@ refrescado
 - un dispositivo sin suficientes detalles de facturación o envío puede producir un resultado esperado
 Estado provisional en lugar de un error del producto.
 
-Consulte [PODMAN.md](/es/docs/operations/podman-local-dev/), [TESTING.md](/es/docs/operations/testing/) y el
-[Worker README](/es/docs/operations/worker/) para el tiempo de ejecución circundante.
+Consulte [PODMAN.md](/es/docs/operations/podman-local-dev/), [TESTING.md](/es/docs/operations/testing/) y [Worker README](/es/docs/operations/worker/) para conocer el tiempo de ejecución circundante.
 
 ## Verificación
 
-Cuando la configuración de impuestos, el código de proveedor, el manejo del destino de pago o los precios
-cambios en la pantalla, verifique:
+Cuando cambie la configuración de impuestos, el código de proveedor, el manejo del destino de pago o la visualización de precios, verifique:
 
 - la vista previa del carrito se actualiza cuando cambia el destino
 - el comportamiento provisional `--` aparece solo cuando corresponde
@@ -231,5 +213,5 @@ Controlar:
 - [PAYMENT_PROCESSOR.md](/es/docs/operations/payment-processor/)
 - [PRUEBA.md](/es/docs/operations/testing/)
 - [PODMAN.md](/es/docs/operations/podman-local-dev/)
-- [PROJECT_OVERVIEW.md](/es/docs/development/project-overview/)
+- [ARQUITECTURA.md](/es/docs/development/architecture/)
 - [trabajador/README.md](/es/docs/operations/worker/)

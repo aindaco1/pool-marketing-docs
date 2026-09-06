@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-25 de agosto de 2026
+6 de septiembre de 2026
 
 Este documento describe el modelo SEO actual de The Pool en 2026. Es intencionalmente conservador: las páginas públicas se hacen más fáciles de rastrear y comprender, mientras que los flujos tokenizados y exclusivos para patrocinadores permanecen fuera de la intención del índice. La implementación está diseñada en torno a metadatos reales, páginas públicas reales y datos estructurados honestos en lugar de relleno de contenido o cebo de resultados enriquecidos.
 
@@ -42,12 +42,12 @@ La línea de base actual incluye:
 - PNG de tarjetas compartidas de campaña generadas por los trabajadores para metadatos sociales públicos, con SVG retenido para herramientas internas de vista previa/depuración
 - generado [`robots.txt`](/robots.txt)
 - generado [`sitemap.xml`](/sitemap.xml)
-- diagnóstico generado [`sitemap.txt`](https://github.com/your-org/your-project/blob/main/sitemap.txt), no anunciado intencionalmente como un segundo mapa del sitio canónico en `robots.txt`
-- selección de mapa de sitio público compartido en [`_includes/seo-sitemap-items.liquid`](https://github.com/your-org/your-project/blob/main/_includes/seo-sitemap-items.liquid), con representación XML y alternativas `xhtml:link` localizadas en [`_includes/seo-sitemap-url.xml`](https://github.com/your-org/your-project/blob/main/_includes/seo-sitemap-url.xml)
+- diagnóstico generado [`sitemap.txt`](https://github.com/aindaco1/pool/blob/main/sitemap.txt), no anunciado intencionalmente como un segundo mapa del sitio canónico en `robots.txt`
+- selección de mapa de sitio público compartido en [`_includes/seo-sitemap-items.liquid`](https://github.com/aindaco1/pool/blob/main/_includes/seo-sitemap-items.liquid), con representación XML y alternativas `xhtml:link` localizadas en [`_includes/seo-sitemap-url.xml`](https://github.com/aindaco1/pool/blob/main/_includes/seo-sitemap-url.xml)
 - valores `lastmod` del mapa del sitio creados solo a través de `last_modified_at`; La colección implícita de Jekyll, `date` y el tiempo de compilación, nunca se tratan como cambios de contenido.
 - Publicación de artículos de campaña y metadatos de modificación derivados de `published_at`, `last_modified_at` explícitos o la fecha de inicio de la campaña en lugar de la fecha de recopilación del tiempo de implementación de Jekyll.
-- una auditoría SEO del sitio generado en [`scripts/audit-seo.mjs`](https://github.com/your-org/your-project/blob/main/scripts/audit-seo.mjs), expuesta como `npm run test:seo` y conectada a la puerta de merge
-- una auditoría de punto final de rastreo en vivo en [`scripts/audit-crawl-endpoints.mjs`](https://github.com/your-org/your-project/blob/main/scripts/audit-crawl-endpoints.mjs) que compara las respuestas ordinarias y de inspección de Google para ambos formatos de mapas de sitio, requiere listas de URL de texto/XML idénticas, valida el estado de los mapas de sitio/robots y los tipos de contenido, y recupera cada URL pública enviada después de la implementación de producción.
+- una auditoría SEO del sitio generado en [`scripts/audit-seo.mjs`](https://github.com/aindaco1/pool/blob/main/scripts/audit-seo.mjs), expuesta como `npm run test:seo` y conectada a la puerta de fusión
+- una auditoría de punto final de rastreo en vivo en [`scripts/audit-crawl-endpoints.mjs`](https://github.com/aindaco1/pool/blob/main/scripts/audit-crawl-endpoints.mjs) que compara las respuestas ordinarias y de inspección de Google para ambos formatos de mapas de sitio, requiere listas de URL de texto/XML idénticas, valida el estado de los mapas de sitio/robots y los tipos de contenido, y recupera cada URL pública enviada después de la implementación de producción.
 - `noindex,nofollow` explícito en diseños tokenizados o solo para patrocinadores
 - `noindex,nofollow,noarchive`, `sitemap: false` explícitos, robots no permitidos y metadatos sociales deshabilitados en el panel de administración privado
 - shells de vista previa de campaña protegidos con `noindex,nofollow,noarchive`, sin metadatos sociales, sin JSON-LD, sin inclusión de mapa de sitio público y sin elegibilidad de captación previa pública
@@ -60,18 +60,18 @@ La línea de base actual incluye:
 
 Los principales archivos de implementación son:
 
-- [/_includes/seo-meta.html](https://github.com/your-org/your-project/blob/main/_includes/seo-meta.html)
-- [/_includes/seo-json-ld.html](https://github.com/your-org/your-project/blob/main/_includes/seo-json-ld.html)
-- [/_includes/seo-sitemap-items.liquid](https://github.com/your-org/your-project/blob/main/_includes/seo-sitemap-items.liquid)
-- [/_layouts/campaign.html](https://github.com/your-org/your-project/blob/main/_layouts/campaign.html)
-- [/_plugins/campaign_shopping_product_pages.rb](https://github.com/your-org/your-project/blob/main/_plugins/campaign_shopping_product_pages.rb)
-- [/_includes/campaña-compra-producto.html](https://github.com/your-org/your-project/blob/main/_includes/campaign-shopping-product.html)
-- [/worker/src/index.js](https://github.com/your-org/your-project/blob/main/worker/src/index.js)
-- [/scripts/audit-seo.mjs](https://github.com/your-org/your-project/blob/main/scripts/audit-seo.mjs)
-- [/scripts/audit-crawl-endpoints.mjs](https://github.com/your-org/your-project/blob/main/scripts/audit-crawl-endpoints.mjs)
+- [/_includes/seo-meta.html](https://github.com/aindaco1/pool/blob/main/_includes/seo-meta.html)
+- [/_includes/seo-json-ld.html](https://github.com/aindaco1/pool/blob/main/_includes/seo-json-ld.html)
+- [/_includes/seo-sitemap-items.liquid](https://github.com/aindaco1/pool/blob/main/_includes/seo-sitemap-items.liquid)
+- [/_layouts/campaign.html](https://github.com/aindaco1/pool/blob/main/_layouts/campaign.html)
+- [/_plugins/campaign_shopping_product_pages.rb](https://github.com/aindaco1/pool/blob/main/_plugins/campaign_shopping_product_pages.rb)
+- [/_includes/campaña-compra-producto.html](https://github.com/aindaco1/pool/blob/main/_includes/campaign-shopping-product.html)
+- [/worker/src/index.js](https://github.com/aindaco1/pool/blob/main/worker/src/index.js)
+- [/scripts/audit-seo.mjs](https://github.com/aindaco1/pool/blob/main/scripts/audit-seo.mjs)
+- [/scripts/audit-crawl-endpoints.mjs](https://github.com/aindaco1/pool/blob/main/scripts/audit-crawl-endpoints.mjs)
 - [/robots.txt](/robots.txt)
 - [/sitemap.xml](/sitemap.xml)
-- [/sitemap.txt](https://github.com/your-org/your-project/blob/main/sitemap.txt)
+- [/sitemap.txt](https://github.com/aindaco1/pool/blob/main/sitemap.txt)
 
 Las vistas previas sociales de la campaña tienen de forma predeterminada un PNG generado por los trabajadores y compatible con rastreadores que utiliza el progreso de la campaña en vivo. Una campaña aún puede anular eso con `social_image` cuando necesita una imagen rasterizada estática fija, idealmente JPEG o PNG en `1200 x 630`.
 
@@ -123,8 +123,8 @@ Esto se aplica mediante una combinación de:
 
 Contrato del panel de administración:
 
-- [admin.md](https://github.com/your-org/your-project/blob/main/admin.md) y [es/admin/index.html](https://github.com/your-org/your-project/blob/main/es/admin/index.html) deben conservar `indexable: false` y `sitemap: false`
-- [/_layouts/admin.html](https://github.com/your-org/your-project/blob/main/_layouts/admin.html) debe llamar a `seo-meta.html` con `indexable=false` y `social=false`
+- [admin.md](https://github.com/aindaco1/pool/blob/main/admin.md) y [es/admin/index.html](https://github.com/aindaco1/pool/blob/main/es/admin/index.html) deben conservar `indexable: false` y `sitemap: false`
+- [/_layouts/admin.html](https://github.com/aindaco1/pool/blob/main/_layouts/admin.html) debe llamar a `seo-meta.html` con `indexable=false` y `social=false`
 - [`robots.txt`](/robots.txt) debe rechazar `/admin/` y `/es/admin/`
 - [`sitemap.xml`](/sitemap.xml) no debe incluir rutas de administración
 - el diseño del administrador no debe emitir metadatos de vista previa social JSON-LD o Open Graph/Twitter; el panel es una superficie de aplicación privada, no un resultado de búsqueda público ni un objetivo compartido
@@ -276,8 +276,7 @@ El modelo actual SEO evita explícitamente:
 - indexación de flujos de acceso exclusivos para patrocinadores, vinculados a sesiones o tokenizados
 - Tratar el panel de administración o las vistas previas de campañas protegidas como páginas de destino públicas, objetivos para compartir o superficies de documentación rastreables.
 
-Los metadatos potenciales, la distribución y el trabajo de Shopping se rastrean en el
-[Hoja de ruta](/es/docs/reference/roadmap/).
+Los metadatos potenciales, la distribución y el trabajo de Shopping se rastrean en [Roadmap](/es/docs/reference/roadmap/).
 
 ## Notas
 

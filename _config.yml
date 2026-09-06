@@ -55,6 +55,10 @@ exclude:
   - node_modules/
   - tmp/
   - Gemfile.lock
+  - README.md
+  - LICENSE
+  - docs/maintainers/
+  - scripts/
 
 search_enabled: true
 search:

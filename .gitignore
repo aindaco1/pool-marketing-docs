@@ -7,3 +7,7 @@ _site/
 .translation-cache/
 vendor/
 .DS_Store
+
+# Python tooling
+__pycache__/
+.venv-docs-i18n/

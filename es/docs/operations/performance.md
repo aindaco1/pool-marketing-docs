@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-25 de agosto de 2026
+6 de septiembre de 2026
 
 The Pool es una plataforma de crowdfunding estática con un Cloudflare Worker para mutaciones, lecturas en vivo y operaciones administrativas. El trabajo de rendimiento conserva esa forma: las páginas públicas son rápidas a partir de HTML estático, el código de aplicación pesado se carga solo cuando un usuario lo necesita y el trabajo especulativo se mantiene lo suficientemente conservador como para nunca hacer que los flujos de pago, administración o soporte sean menos confiables.
 
@@ -52,18 +52,18 @@ Jekyll genera el sitio público y lo implementa como salida de GitHub Pages. El 
 
 Superficies de repositorio importantes:
 
-- [`_layouts/default.html`](https://github.com/your-org/your-project/blob/main/_layouts/default.html): diseño público compartido
-- [`_layouts/campaign.html`](https://github.com/your-org/your-project/blob/main/_layouts/campaign.html): diseño de detalle de la campaña
-- [`_includes/cart-runtime-foot.html`](https://github.com/your-org/your-project/blob/main/_includes/cart-runtime-foot.html): cargador de carro liviano incluido
-- [`_includes/page-prefetch.html`](https://github.com/your-org/your-project/blob/main/_includes/page-prefetch.html): inclusión de captación previa de documentos públicos
-- [`assets/js/cart-runtime-loader.js`](https://github.com/your-org/your-project/blob/main/assets/js/cart-runtime-loader.js): arranque del tiempo de ejecución del carrito diferido
-- [`assets/js/page-prefetch.js`](https://github.com/your-org/your-project/blob/main/assets/js/page-prefetch.js): tiempo de ejecución de captación previa de documentos basado en intención
-- [`@dustwave/build-core`](https://github.com/your-org/your-project/blob/main/shared/dust-wave-platform/packages/build-core/src/site-assets.js): minificación de CSS/JS y Site Shell generados fijados y incluidos en la lista permitida
-- [`scripts/audit-performance-budgets.mjs`](https://github.com/your-org/your-project/blob/main/scripts/audit-performance-budgets.mjs): límites máximos de liberación de activos designados y totales medidos
-- [`scripts/performance-lighthouse.mjs`](https://github.com/your-org/your-project/blob/main/scripts/performance-lighthouse.mjs): categoría Lighthouse, Web Vital y evidencia de liberación de recursos transferidos
-- [`scripts/audit-cache-policy.mjs`](https://github.com/your-org/your-project/blob/main/scripts/audit-cache-policy.mjs): evidencia de política de caché pública y privada/sin almacenamiento implementada
-- [`scripts/audit-runtime-performance.mjs`](https://github.com/your-org/your-project/blob/main/scripts/audit-runtime-performance.mjs): evidencia p95 autenticada para operaciones Worker configuradas
-- [`scripts/sync-worker-config.rb`](https://github.com/your-org/your-project/blob/main/scripts/sync-worker-config.rb): duplicación de configuración de sitio a trabajador
+- [`_layouts/default.html`](https://github.com/aindaco1/pool/blob/main/_layouts/default.html): diseño público compartido
+- [`_layouts/campaign.html`](https://github.com/aindaco1/pool/blob/main/_layouts/campaign.html): diseño de detalle de la campaña
+- [`_includes/cart-runtime-foot.html`](https://github.com/aindaco1/pool/blob/main/_includes/cart-runtime-foot.html): cargador de carro liviano incluido
+- [`_includes/page-prefetch.html`](https://github.com/aindaco1/pool/blob/main/_includes/page-prefetch.html): inclusión de captación previa de documentos públicos
+- [`assets/js/cart-runtime-loader.js`](https://github.com/aindaco1/pool/blob/main/assets/js/cart-runtime-loader.js): arranque del tiempo de ejecución del carrito diferido
+- [`assets/js/page-prefetch.js`](https://github.com/aindaco1/pool/blob/main/assets/js/page-prefetch.js): tiempo de ejecución de captación previa de documentos basado en intención
+- [`@dustwave/build-core`](https://github.com/aindaco1/pool/blob/main/shared/dust-wave-platform/packages/build-core/src/site-assets.js): minificación de CSS/JS y Site Shell generados fijados y incluidos en la lista permitida
+- [`scripts/audit-performance-budgets.mjs`](https://github.com/aindaco1/pool/blob/main/scripts/audit-performance-budgets.mjs): límites máximos de liberación de activos designados y totales medidos
+- [`scripts/performance-lighthouse.mjs`](https://github.com/aindaco1/pool/blob/main/scripts/performance-lighthouse.mjs): categoría Lighthouse, Web Vital y evidencia de liberación de recursos transferidos
+- [`scripts/audit-cache-policy.mjs`](https://github.com/aindaco1/pool/blob/main/scripts/audit-cache-policy.mjs): evidencia de política de caché pública y privada/sin almacenamiento implementada
+- [`scripts/audit-runtime-performance.mjs`](https://github.com/aindaco1/pool/blob/main/scripts/audit-runtime-performance.mjs): evidencia p95 autenticada para operaciones Worker configuradas
+- [`scripts/sync-worker-config.rb`](https://github.com/aindaco1/pool/blob/main/scripts/sync-worker-config.rb): duplicación de configuración de sitio a Worker
 
 Sass solo para administradores se emite como `assets/admin.css` y se carga únicamente mediante el diseño del administrador, lo que mantiene el CSS del panel fuera de las páginas de campaña públicas. Las sesiones de administración y el procesador de registros de auditoría que se utilizan con poca frecuencia se encuentran en `assets/js/admin-settings-review.js` y se cargan a pedido cuando se abre cualquiera de las secciones de Configuración; Tanto ese módulo como el paquete inicial `admin-dashboard.js` tienen límites ejecutables con nombre en `config/performance-budgets.json`. El CSS de fuente de visualización de Adobe se activa después de la preparación de DOM sin respaldo de secuencia de comandos; Inter sigue siendo la dependencia de la fuente del cuerpo. La caché Workers permanece deshabilitada para el modelo de lectura de administrador The Pool hasta que un punto de referencia representativo demuestre una mejora de al menos el 40 % en p95. El umbral de evidencia, no la elección de caché de otro producto, controla la habilitación de The Pool.
 
@@ -124,9 +124,9 @@ El cargador se activa cuando:
 
 Los archivos de carros pesados ​​no forman parte de una primera carga pública ordinaria a menos que esté presente uno de esos estados:
 
-- [`assets/js/cart-provider.js`](https://github.com/your-org/your-project/blob/main/assets/js/cart-provider.js)
-- [`assets/js/cart.js`](https://github.com/your-org/your-project/blob/main/assets/js/cart.js)
-- [`assets/js/buy-buttons.js`](https://github.com/your-org/your-project/blob/main/assets/js/buy-buttons.js)
+- [`assets/js/cart-provider.js`](https://github.com/aindaco1/pool/blob/main/assets/js/cart-provider.js)
+- [`assets/js/cart.js`](https://github.com/aindaco1/pool/blob/main/assets/js/cart.js)
+- [`assets/js/buy-buttons.js`](https://github.com/aindaco1/pool/blob/main/assets/js/buy-buttons.js)
 - sidecars de pago y complementos compartidos/ayudantes de envío
 
 Al cambiar el carrito o la carga del carrito, verifique con las herramientas de red del navegador que una vista anónima de la página de la campaña no descargue con entusiasmo la pila completa del carrito.
@@ -181,11 +181,11 @@ Las variables CSS del token de diseño generadas se incluyen en `assets/main.css
 
 El grupo incluye un tiempo de ejecución de búsqueda previa de documentos del mismo origen opcional para enlaces de navegación públicos. Está inspirado en el modelo de intención de desplazamiento/toque de instant.page, pero la implementación es local, pequeña y deliberadamente conservadora.
 
-El tiempo de ejecución se encuentra en [`assets/js/page-prefetch.js`](https://github.com/your-org/your-project/blob/main/assets/js/page-prefetch.js). Se carga en superficies de páginas públicas de forma predeterminada y permanece fuera de los diseños de aplicaciones privadas.
+El tiempo de ejecución se encuentra en [`assets/js/page-prefetch.js`](https://github.com/aindaco1/pool/blob/main/assets/js/page-prefetch.js). Se carga en superficies de páginas públicas de forma predeterminada y permanece fuera de los diseños de aplicaciones privadas.
 
 ### Configuración
 
-La inclusión compartida es [`_includes/page-prefetch.html`](https://github.com/your-org/your-project/blob/main/_includes/page-prefetch.html). Emite el tiempo de ejecución sólo cuando esta configuración está habilitada:
+La inclusión compartida es [`_includes/page-prefetch.html`](https://github.com/aindaco1/pool/blob/main/_includes/page-prefetch.html). Emite el tiempo de ejecución sólo cuando esta configuración está habilitada:
 
 ```yml
 performance:
@@ -196,8 +196,8 @@ performance:
 
 La inclusión está conectada a superficies de páginas públicas:
 
-- [`_layouts/default.html`](https://github.com/your-org/your-project/blob/main/_layouts/default.html)
-- [`_layouts/campaign.html`](https://github.com/your-org/your-project/blob/main/_layouts/campaign.html)
+- [`_layouts/default.html`](https://github.com/aindaco1/pool/blob/main/_layouts/default.html)
+- [`_layouts/campaign.html`](https://github.com/aindaco1/pool/blob/main/_layouts/campaign.html)
 
 Los diseños de aplicaciones privadas no cargan el tiempo de ejecución de captación previa.
 
@@ -436,6 +436,54 @@ Utilice esta lista de verificación antes de fusionar cambios de rendimiento:
 - Las barras de progreso, los medios de héroe y los controles de campaña no cambian después de la hidratación.
 - los cambios de medios pasan `npm run media:optimize:check` cuando los medios cargados o agregados manualmente cambian
 - Las pruebas relevantes de unidades y navegadores se comparan con los activos creados.
+
+## Cloudflare Guía de planificación para horquillas
+
+The Pool tiene una forma intencionada para que la mayor parte del tráfico siga siendo barato:
+
+- GitHub Pages sirve al sitio estático, por lo que las cargas normales de página no invocan el Worker.
+- los datos públicos en vivo prefieren una solicitud `/live/:slug` combinada en lugar de estadísticas separadas + llamadas de inventario
+- Las páginas de campaña almacenan en caché las estadísticas en vivo y el inventario en `localStorage` para `cache.live_stats_ttl_seconds` / `cache.live_inventory_ttl_seconds` (`300` predeterminado)
+- las pestañas de fondo dejan de actualizarse hasta que la página vuelve a ser visible
+- los informes del panel, los patrocinadores, los análisis, las reconstrucciones de estadísticas, los asistentes de liquidación y la enumeración de los patrocinadores de los administradores prefieren los índices `campaign-pledges:{slug}` antes de recurrir a costosos escaneos de espacios de nombres, y las reconstrucciones de estadísticas/inventario reparan los índices de campaña obsoletos cuando detectan una desviación
+- Las lecturas normales del panel, la representación de vista previa protegida, las vistas previas de contenido, las vistas previas/descargas de informes, los filtros de soporte, las vistas de análisis, la creación de URL de marketing, las cargas del selector de biblioteca multimedia, el estado de pago abandonado y los borradores del editor local están diseñados para agregar cero escrituras KV.
+- La publicación de vista previa protegida escribe una lista de acceso permitido de corta duración `campaign-preview-reviewers:{slug}` más un registro de auditoría, mientras que la campaña respaldada por GitHub Markdown no almacena direcciones de correo electrónico de vista previa.
+- el archivo de campaña escribe solo el registro de auditoría de administración en KV; el movimiento de fuente/medio ocurre localmente en dev y en GitHub Acciones para producción
+- Las nuevas comprobaciones de deriva de solo lectura facilitan la confirmación cuando las proyecciones están obsoletas antes de ejecutar una ruta de reparación.
+- Las rutas de escritura de nivel limitado solicitan al coordinador disponibilidad según la reserva en lugar de reconstruir la verdad a partir de las claves de reserva KV.
+- Las lecturas de inventario adicionales de la plataforma utilizan una proyección de recuento de ventas después del arranque inicial, por lo que las actualizaciones normales del inventario no enumeran todas las claves de aporte.
+- el envío de recordatorios de lanzamiento, el sondeo de reintento de confirmación de los patrocinadores y los recordatorios de pago abandonado utilizan marcadores de estado de cola; Los ticks cron inactivos omiten los escaneos de la lista KV y las colas inactivas obtienen una nueva verificación de compatibilidad cada hora en lugar de un sondeo de espacio de nombres a nivel de minutos o de 15 minutos.
+- Las rutas de lectura públicas siguen siendo intencionalmente permisivas para que una campaña legítimamente popular no alcance límites artificiales anti-DoS, mientras que las costosas escrituras de pago/administración/administración conllevan límites de velocidad y límites de tamaño de solicitud más estrictos.
+- Una vez que un cliente ya ha superado una ventana de límite de velocidad, las solicitudes bloqueadas repetidas ya no reescriben el mismo contador KV en cada visita.
+- `POST /checkout-intent/abandon` utiliza un depósito de reintentos con alcance de orden para que la limpieza de descarga/reintento siga siendo compatible con las IP compartidas sin dejar abierta la ruta de lanzamiento.
+- la configuración Worker también establece `limits.cpu_ms = 100` para Workers Estándar/Pagado implementado, como un límite de denegación de billetera implementado; Los horarios locales y los límites del proveedor requieren mediciones separadas.
+
+Perillas de horquilla que vale la pena conocer:
+
+- configuración del sitio: `cache.live_stats_ttl_seconds`, `cache.live_inventory_ttl_seconds`, `performance.intent_prefetch_*`, `pricing.sales_tax_rate`, `shipping.fallback_flat_rate`, `tax.*`
+- Entorno Worker: precios sincronizados automáticamente y valores del proveedor de impuestos en [`worker/wrangler.toml`](https://github.com/aindaco1/pool/blob/main/worker/wrangler.toml)
+
+### Escenarios prácticos de escalabilidad
+
+Estos son escenarios de planificación aproximados, no garantías. Asumen los TTL de caché del navegador predeterminados de cinco minutos y un comportamiento de usuario mayoritariamente normal. Los límites y precios de los proveedores cambian independientemente de este repositorio; verifíquelos en la documentación actual de Cloudflare antes de elegir un plan.
+
+|Escenario|Actividad diaria dura|Perspectivas del plan|
+|----------|----------------------|--------------|
+|Pequeño lanzamiento colectivo|~1500 visitas a la página de la campaña, ~75 visitas de administradores/colaboradores, ~20 inicios de pago, ~10 aportes completadas|Gratis es un punto de partida razonable para la forma operativa que The Pool está diseñado para manejar de forma económica.|
+|Semana de lanzamiento ocupada|~8000 visitas a la página de la campaña, ~250 visitas de administradores/colaboradores, ~60 inicios de pago, ~25 aportes completados o modificados|A menudo, sigue siendo plausible en el modo Gratis si el abuso se mantiene bajo y los flujos de reparación del administrador son raros, pero aquí es donde el Pago comienza a comprar un margen real.|
+|Estudio multiproyecto en crecimiento|~20,000+ lecturas dinámicas por día o muchas docenas de aportes completadas/modificadas/canceladas por día|Comience a planificar el pago antes de un impulso importante. Los días con muchas mutaciones y el camino de abuso se convierten en la parte a tener en cuenta primero.|
+
+Utilice la documentación del proveedor como fuente de verdad para la solicitud actual, el tiempo de CPU, la lectura/escritura/lista de KV y los límites de precios:
+
+- [Precios Cloudflare Workers](https://developers.cloudflare.com/workers/platform/pricing/)
+- [Cloudflare Workers KV precios](https://developers.cloudflare.com/kv/platform/pricing/)
+- [Cloudflare Workers KV límites](https://developers.cloudflare.com/kv/platform/limits/)
+
+La conclusión práctica para las bifurcaciones es simple: The Pool aún puede adaptarse al plan gratuito Workers para su forma prevista de "pequeña cantidad de campañas simultáneas, volumen modesto de patrocinadores, ejecución de un mes", especialmente porque el tráfico de lectura pública es barato y la mayoría de los días tiene poco tráfico de mutación. La razón para pasar a Pagado no es que Gratis de repente dejó de funcionar, sino que Pagado ofrece un margen más saludable para picos de flash, escrituras de ruta de abuso KV, actividad de modificación/cancelación más intensa y más herramientas de operador.
+
+Se espera que un día normal sin colas utilice aproximadamente `48-75` Workers KV solicitudes de lista durante 24 horas: aproximadamente una nueva verificación inactiva cada hora para el envío de recordatorios de lanzamiento y las colas de reintento de correo electrónico de soporte, además de arranques de proyección ocasionales o rutas de reparación del operador. Los trabajos de recordatorio de lanzamiento activos y los reintentos de correo electrónico de los colaboradores aún muestran sus colas limitadas cuando hay trabajo real pendiente.
+
+Un matiz de implementación: el bloque `limits` configurable de Cloudflare solo se aplica en el modelo de uso estándar y solo en Workers implementado, no en el desarrollo local. Eso significa que la nueva protección `cpu_ms` es un respaldo de denegación de billetera para implementaciones pagas, mientras que Workers Free todavía depende de los techos de plan libre integrados de Cloudflare.
 
 ## No metas
 

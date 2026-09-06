@@ -10,9 +10,20 @@ lang: es
 
 ## Última actualización
 
-25 de agosto de 2026
+6 de septiembre de 2026
 
 ## Inédito
+
+### Mantenimiento de dependencia
+
+- Se agregaron verificaciones de auditoría completa/producción raíz explícita y Worker a Merge Smoke,
+separado de la instalación y las pruebas. Las fallas transitorias de npm se han limitado
+reintentos; La evidencia faltante no pasa la verificación en lugar de parecer limpia.
+- Se actualizó Vitest y su proveedor de cobertura V8 a 4.1.11, Vite a 8.2.2 y
+axe-core a 4.13.0.
+- Se mantuvieron las herramientas compartidas de compilación/lanzamiento en el esbuild 0.28.1 y revisado de la plataforma.
+smol-toml 1.7.1, hizo que los requisitos de raíz sean exactos y agregó cobertura de regresión
+para alineación de manifiesto/archivo de bloqueo y exclusiones de Dependabot de solo versión.
 
 ### Postura de producción
 
@@ -21,12 +32,34 @@ Vista previa de URL: un error en la postura de producción.
 
 ### Documentación
 
+- Se actualizaron las páginas Acerca de y Términos en inglés y español para que coincidan con el complemento guardado
+precios, plazos de cancelación, reintentos inmediatos de pago fallido después de un
+actualización de tarjetas, preferencias de correo electrónico de campaña e independencia de aporte/correo electrónico.
+La revisión de la copia cubre las expectativas de pago, la privacidad, el acceso y la mensajería;
+Los recursos de cumplimiento existentes y las protecciones de derechos legales permanecen intactos.
+- Se agregó un índice de documentación basado en tareas y se consolidó la descripción general.
+flujo de trabajo y guías de notas para desarrolladores sobre arquitectura, contenido de campaña,
+y referencias de API Worker. Configuración, implementación, generación de informes y verificación
+los procedimientos ahora viven con sus propias guías; Los archivos README raíz y Worker son
+puntos de entrada concisos.
+- Se corrigió la implementación obsoleta de Worker, los impuestos de proveedores y la contabilidad de informes.
+descripciones manteniendo el estado actual, la hoja de ruta y el historial de lanzamientos
+límites.
+- Se excluyó la documentación del mantenedor del artefacto público Jekyll y se agregó
+una verificación de artefactos previa a la fusión, preservando las páginas raíz y localizada del sitio web.
 - Comportamiento actual separado, trabajo prospectivo e historial de lanzamientos en todo el mundo.
 README, guías prácticas, hoja de ruta, registro de cambios y evidencia de lanzamiento.
 - Se eliminaron instantáneas de proveedores fechadas, hojas de ruta de trabajo completado, específicas de la versión.
 libros de estado y listas duplicadas de trabajos futuros de guías del estado actual.
 - Se movió la guía de la calculadora de impuestos a The Pool para que el comportamiento, configuración y
 la resolución de problemas y la verificación tienen una fuente de documentación ascendente.
+
+### Verificación local
+
+- Se preservó la selección de Ruby/Bundler y Nodo de la persona que llama en el host previo a la fusión
+fases. Los shells de inicio de sesión anteriormente podían pasar controles de dependencia bajo rbenv,
+luego cambie al sistema macOS Ruby para la compilación y retroceda innecesariamente
+a Podman. Se agregó cobertura de regresión para el host y el envío de compilación Podman.
 
 ## v1.2.20 - 2026-08-06
 

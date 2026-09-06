@@ -8,11 +8,13 @@ has_children: true
 
 ## Last Updated
 
-August 25, 2026
+September 6, 2026
 
 Supporting material for release history, planning, contributor coordination, and reusable process templates lives here.
 
 ## Reference Library
+
+- [Worker API](/docs/reference/worker-api/) for endpoint contracts and request/response examples.
 
 - [Changelog](/docs/reference/changelog/) for versioned release notes and recent platform changes.
 - [Roadmap](/docs/reference/roadmap/) for prospective work only; current behavior lives in the practice guides and completed work lives in the changelog.

@@ -9,13 +9,13 @@ render_with_liquid: false
 
 ## Last Updated
 
-August 25, 2026
+September 6, 2026
 
 This guide covers the supported no-code customization surface for forks of The Pool.
 
 The goal is to let forks rebrand, restyle, and reconfigure the platform through config, while keeping checkout, reports, emails, and the Worker aligned.
 
-The structured config model in [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml) is the canonical fork-facing surface.
+The structured config model in [`_config.yml`](https://github.com/aindaco1/pool/blob/main/_config.yml) is the canonical fork-facing surface.
 
 Provider-specific setup lives in separate runbooks: use [PAYMENT_PROCESSOR.md](/docs/operations/payment-processor/) for Stripe and settlement, and [EMAIL.md](/docs/operations/email-system/) for Resend senders and email delivery.
 
@@ -23,9 +23,9 @@ Provider-specific setup lives in separate runbooks: use [PAYMENT_PROCESSOR.md](/
 
 For most forks, the main customization files are:
 
-- [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml)
-- [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml)
-- [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml)
+- [`_config.yml`](https://github.com/aindaco1/pool/blob/main/_config.yml)
+- `_config.local.yml`
+- [`worker/wrangler.toml`](https://github.com/aindaco1/pool/blob/main/worker/wrangler.toml)
 
 Use `./scripts/dev.sh --podman` for local verification after config changes.
 
@@ -39,7 +39,7 @@ For normal operator edits, use the private admin dashboard at `/admin/` or `/es/
 - **Settings -> Users** is runtime-only and saves directly to Worker KV at `admin-users:v1`; it does not publish to GitHub.
 - **Secrets & credentials** is read-only status. Secret values still belong in Worker secrets, GitHub repository secrets, or ignored local env files.
 
-Treat [`_config.local.yml`](https://github.com/your-org/your-project/blob/main/_config.local.yml) as an override-only file. Keep canonical fork settings in [`_config.yml`](https://github.com/your-org/your-project/blob/main/_config.yml), and use the local file only for things that differ on your machine, like localhost URLs or local-only campaign visibility.
+Treat `_config.local.yml` as an override-only file. Keep canonical fork settings in [`_config.yml`](https://github.com/aindaco1/pool/blob/main/_config.yml), and use the local file only for things that differ on your machine, like localhost URLs or local-only campaign visibility.
 
 The normal local path is localhost-based:
 
@@ -207,7 +207,7 @@ tax:
 If you enable `zip_tax`, also set the Worker secret `ZIP_TAX_API_KEY`. Keep that secret out of `_config.yml`.
 
 The vendored New Mexico starter snapshot is pinned in
-[`@dustwave/tax-core`](https://github.com/your-org/your-project/blob/main/shared/dust-wave-platform/packages/tax-core/src/nm-grt-starter.js).
+[`@dustwave/tax-core`](https://github.com/aindaco1/pool/blob/main/shared/dust-wave-platform/packages/tax-core/src/nm-grt-starter.js).
 Refresh it only in a Platform release checkout, review the generated diff, and
 then advance Pool's immutable pin. From the Platform repository root:
 
@@ -393,7 +393,7 @@ Important secret boundary:
 - keep the companion `USPS_CLIENT_SECRET` in Worker secrets or `worker/.dev.vars`
 - do not commit the secret into Jekyll config
 
-The checkout destination list is intentionally separate from those knobs. Platform owns the canonical registry at `packages/shipping-core/data/shipping-countries.yml`; refresh the generated [`_data/shipping_countries.yml`](https://github.com/your-org/your-project/blob/main/_data/shipping_countries.yml) snapshot with `npm run shipping-countries:sync` after advancing the exact Platform pin. `npm run shipping-countries:check` fails on drift.
+The checkout destination list is intentionally separate from those knobs. Platform owns the canonical registry at `packages/shipping-core/data/shipping-countries.yml`; refresh the generated [`_data/shipping_countries.yml`](https://github.com/aindaco1/pool/blob/main/_data/shipping_countries.yml) snapshot with `npm run shipping-countries:sync` after advancing the exact Platform pin. `npm run shipping-countries:check` fails on drift.
 
 Example:
 
@@ -641,7 +641,7 @@ runner_report_emails:
 
 Use `design` for curated design-system overrides that do not require Sass edits.
 
-These values are emitted into the generated stylesheet [assets/main.css](https://github.com/your-org/your-project/blob/main/assets/main.scss), which keeps the design-variable bridge compatible with the site’s strict CSP. [assets/theme-vars.css](https://github.com/your-org/your-project/blob/main/assets/theme-vars.css) remains as a compatibility artifact, but public layouts do not request it separately. Forks do not need to edit Sass just to change supported tokens.
+These values are emitted into the generated stylesheet [assets/main.css](https://github.com/aindaco1/pool/blob/main/assets/main.scss), which keeps the design-variable bridge compatible with the site’s strict CSP. [assets/theme-vars.css](https://github.com/aindaco1/pool/blob/main/assets/theme-vars.css) remains as a compatibility artifact, but public layouts do not request it separately. Forks do not need to edit Sass just to change supported tokens.
 
 The same generated CSS variables also theme the on-site Stripe Elements sidecar, so supported typography/color/radius overrides carry through the custom checkout payment UI without adding a separate checkout-only config layer.
 
@@ -794,7 +794,7 @@ These values still matter to the generated site and, in some cases, to Worker-fe
 
 ### Auto-Mirrored To Worker
 
-These site-config values are also reflected into the Worker env values in [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml):
+These site-config values are also reflected into the Worker env values in [`worker/wrangler.toml`](https://github.com/aindaco1/pool/blob/main/worker/wrangler.toml):
 
 - `title` -> `SITE_TITLE`
 - `description` -> `SITE_DESCRIPTION`
@@ -886,7 +886,7 @@ For convenience, the repo includes:
 npm run sync:worker-config
 ```
 
-That command syncs the Worker-mirrored values in [`worker/wrangler.toml`](https://github.com/your-org/your-project/blob/main/worker/wrangler.toml) from `_config.yml` and `_config.local.yml`.
+That command syncs the Worker-mirrored values in [`worker/wrangler.toml`](https://github.com/aindaco1/pool/blob/main/worker/wrangler.toml) from `_config.yml` and `_config.local.yml`.
 
 It does not write Worker secrets, media files, or generated optimization outputs. USPS OAuth secrets, Stripe secret keys, Resend keys, ZIP.TAX keys, Turnstile secrets, GitHub tokens, and Cloudflare deploy credentials still belong in Worker secrets, GitHub repository secrets, or ignored local env files. The Stripe and Resend runbooks are [PAYMENT_PROCESSOR.md](/docs/operations/payment-processor/) and [EMAIL.md](/docs/operations/email-system/).
 

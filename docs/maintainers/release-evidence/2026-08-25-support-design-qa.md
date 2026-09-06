@@ -19,4 +19,5 @@ The production page and implementation were captured in the in-app browser at th
 - The responsive navigation, checkout CTAs, external links, language control, heading order, landmarks, and focus treatment remain functional.
 - No horizontal overflow, cropped content, placeholder art, unreadable contrast, or accidental border-radius drift was observed.
 
-final result: passed
+Recorded result: passed on August 25, 2026. This is historical local visual
+verification, not evidence of the current deployment.

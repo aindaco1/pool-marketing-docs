@@ -8,19 +8,28 @@ has_children: true
 
 ## Last Updated
 
-August 25, 2026
+September 6, 2026
 
 Contribution flow, architecture notes, implementation gotchas, and fork-facing extension points live here.
 
 ## Recommended Path
 
-1. [Platform README](/docs/development/platform-readme/) for the current release, features, quick start, test surface, and deployment model.
-2. [Contributing](/docs/development/contributing/) for prerequisites, local setup, GitHub workflow, and safe working conventions.
-3. [Project Overview](/docs/development/project-overview/) for the system summary, funding flow, campaign lifecycle, and code map.
-4. [Workflows](/docs/development/workflows/) for the pledge state machine, storage model, and Worker route behavior.
-5. [Payment Processor](/docs/operations/payment-processor/) for canonical checkout, Stripe integration, settlement, and reconciliation.
-6. [Developer Notes](/docs/development/developer-notes/) for stack-specific implementation details, content model guidance, and gotchas.
-7. [Agents & Operator Guide](/docs/development/agents-operator-guide/) for the safest way to make repo changes without drifting site, Worker, checkout, or localized behavior out of sync.
+1. [Platform README](/docs/development/platform-readme/) for a short introduction and quick start.
+2. [Contributing](/docs/development/contributing/) for dependencies, local setup, contribution workflow, and implementation conventions.
+3. [Architecture](/docs/development/architecture/) for ownership, storage, campaign and pledge lifecycle, and the code map.
+4. [Campaign Content Model](/docs/development/content-model/) for campaign fields, tiers, media, diary entries, and decisions.
+5. [Worker API](/docs/reference/worker-api/) for endpoint contracts and request/response examples.
+6. [Deployment](/docs/operations/deployment/) for first-time setup, credentials, and separate Pages and Worker release flows.
+7. [Agents & Operator Guide](/docs/development/agents-operator-guide/) for repository rules and the source-of-truth boundaries.
+
+## Guide Ownership
+
+Keep detailed procedures in the guide that owns them. Architecture owns system
+relationships; Campaign Content Model owns authoring fields; Worker API owns
+endpoint contracts. Customization owns settings and mirrors. Provider setup
+belongs in Payment Processor, Tax Calculator, Shipping, and Email. Deployment
+owns release wiring, Testing owns test execution, and Merge Smoke owns operator
+sign-off. The Platform and Worker READMEs are entry points to these guides.
 
 ## Configuration And Extension
 

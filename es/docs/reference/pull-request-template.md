@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-16 de julio de 2026
+6 de septiembre de 2026
 
 ## Propósito
 <!-- ¿Qué problema resuelve este PR? -->
@@ -37,7 +37,7 @@ lang: es
 - [] La persistencia de aportes almacena niveles, elementos de soporte, monto personalizado y totales activos que se actualizan correctamente
 - [] El flujo de actualización de la tarjeta aún se realiza correctamente para los aportes activos y `payment_failed` cuando se tocan
 - [] Los temporizadores de cuenta regresiva muestran los valores correctos al cargar la página (sin flash "00 00 00 00")
-- [] Cron `workflow_dispatch` carga aportes de prueba fuera de sesión
+- [] Programador Worker / cargos de envío de liquidación aportes de prueba elegibles fuera de sesión cuando el comportamiento de pago cambió
 - [] Documentos actualizados (si el comportamiento o la configuración cambiaron)
 
 ## Seguridad / Secretos
@@ -55,5 +55,5 @@ lang: es
 
 ## Compatibilidad con versiones anteriores
 - [] Sin cambios importantes en el modelo de contenido
-- [] Si el esquema cambia, `docs/DEV_NOTES.md` actualizado y campañas de muestra
+- [] Si el esquema cambia, `docs/CONTENT_MODEL.md` actualizado y campañas de muestra
 - [] Los ID de campaña/complemento/nivel/variante existentes se conservan a menos que la migración los cambie intencionalmente.

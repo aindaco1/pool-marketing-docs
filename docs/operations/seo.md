@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-August 25, 2026
+September 6, 2026
 
 This document describes The Pool's current SEO model in 2026. It is intentionally conservative: public pages are made easier to crawl and understand, while supporter-only and tokenized flows stay out of index intent. The implementation is designed around real metadata, real public pages, and honest structured data rather than content padding or rich-result bait.
 
@@ -41,12 +41,12 @@ The current baseline includes:
 - Worker-generated campaign share-card PNGs for public social metadata, with SVG retained for internal preview/debug tooling
 - generated [`robots.txt`](/robots.txt)
 - generated [`sitemap.xml`](/sitemap.xml)
-- generated diagnostic [`sitemap.txt`](https://github.com/your-org/your-project/blob/main/sitemap.txt), intentionally not advertised as a second canonical sitemap in `robots.txt`
-- shared public sitemap selection in [`_includes/seo-sitemap-items.liquid`](https://github.com/your-org/your-project/blob/main/_includes/seo-sitemap-items.liquid), with XML rendering and localized `xhtml:link` alternates in [`_includes/seo-sitemap-url.xml`](https://github.com/your-org/your-project/blob/main/_includes/seo-sitemap-url.xml)
+- generated diagnostic [`sitemap.txt`](https://github.com/aindaco1/pool/blob/main/sitemap.txt), intentionally not advertised as a second canonical sitemap in `robots.txt`
+- shared public sitemap selection in [`_includes/seo-sitemap-items.liquid`](https://github.com/aindaco1/pool/blob/main/_includes/seo-sitemap-items.liquid), with XML rendering and localized `xhtml:link` alternates in [`_includes/seo-sitemap-url.xml`](https://github.com/aindaco1/pool/blob/main/_includes/seo-sitemap-url.xml)
 - authored sitemap `lastmod` values only through `last_modified_at`; Jekyll's implicit collection `date` and build time are never treated as content changes
 - campaign article publication and modification metadata derived from explicit `published_at`, `last_modified_at`, or the campaign start date rather than Jekyll's deployment-time collection date
-- a generated-site SEO audit at [`scripts/audit-seo.mjs`](https://github.com/your-org/your-project/blob/main/scripts/audit-seo.mjs), exposed as `npm run test:seo` and wired into the merge gate
-- a live crawl-endpoint audit at [`scripts/audit-crawl-endpoints.mjs`](https://github.com/your-org/your-project/blob/main/scripts/audit-crawl-endpoints.mjs) that compares ordinary and Google Inspection responses for both sitemap formats, requires identical XML/text URL lists, validates sitemap/robots status and content types, and fetches every submitted public URL after production deploys
+- a generated-site SEO audit at [`scripts/audit-seo.mjs`](https://github.com/aindaco1/pool/blob/main/scripts/audit-seo.mjs), exposed as `npm run test:seo` and wired into the merge gate
+- a live crawl-endpoint audit at [`scripts/audit-crawl-endpoints.mjs`](https://github.com/aindaco1/pool/blob/main/scripts/audit-crawl-endpoints.mjs) that compares ordinary and Google Inspection responses for both sitemap formats, requires identical XML/text URL lists, validates sitemap/robots status and content types, and fetches every submitted public URL after production deploys
 - explicit `noindex,nofollow` on tokenized or supporter-only layouts
 - explicit `noindex,nofollow,noarchive`, `sitemap: false`, robots disallows, and disabled social metadata on the private admin dashboard
 - protected campaign preview shells with `noindex,nofollow,noarchive`, no social metadata, no JSON-LD, no public sitemap inclusion, and no public prefetch eligibility
@@ -59,18 +59,18 @@ The current baseline includes:
 
 The main implementation files are:
 
-- [/_includes/seo-meta.html](https://github.com/your-org/your-project/blob/main/_includes/seo-meta.html)
-- [/_includes/seo-json-ld.html](https://github.com/your-org/your-project/blob/main/_includes/seo-json-ld.html)
-- [/_includes/seo-sitemap-items.liquid](https://github.com/your-org/your-project/blob/main/_includes/seo-sitemap-items.liquid)
-- [/_layouts/campaign.html](https://github.com/your-org/your-project/blob/main/_layouts/campaign.html)
-- [/_plugins/campaign_shopping_product_pages.rb](https://github.com/your-org/your-project/blob/main/_plugins/campaign_shopping_product_pages.rb)
-- [/_includes/campaign-shopping-product.html](https://github.com/your-org/your-project/blob/main/_includes/campaign-shopping-product.html)
-- [/worker/src/index.js](https://github.com/your-org/your-project/blob/main/worker/src/index.js)
-- [/scripts/audit-seo.mjs](https://github.com/your-org/your-project/blob/main/scripts/audit-seo.mjs)
-- [/scripts/audit-crawl-endpoints.mjs](https://github.com/your-org/your-project/blob/main/scripts/audit-crawl-endpoints.mjs)
+- [/_includes/seo-meta.html](https://github.com/aindaco1/pool/blob/main/_includes/seo-meta.html)
+- [/_includes/seo-json-ld.html](https://github.com/aindaco1/pool/blob/main/_includes/seo-json-ld.html)
+- [/_includes/seo-sitemap-items.liquid](https://github.com/aindaco1/pool/blob/main/_includes/seo-sitemap-items.liquid)
+- [/_layouts/campaign.html](https://github.com/aindaco1/pool/blob/main/_layouts/campaign.html)
+- [/_plugins/campaign_shopping_product_pages.rb](https://github.com/aindaco1/pool/blob/main/_plugins/campaign_shopping_product_pages.rb)
+- [/_includes/campaign-shopping-product.html](https://github.com/aindaco1/pool/blob/main/_includes/campaign-shopping-product.html)
+- [/worker/src/index.js](https://github.com/aindaco1/pool/blob/main/worker/src/index.js)
+- [/scripts/audit-seo.mjs](https://github.com/aindaco1/pool/blob/main/scripts/audit-seo.mjs)
+- [/scripts/audit-crawl-endpoints.mjs](https://github.com/aindaco1/pool/blob/main/scripts/audit-crawl-endpoints.mjs)
 - [/robots.txt](/robots.txt)
 - [/sitemap.xml](/sitemap.xml)
-- [/sitemap.txt](https://github.com/your-org/your-project/blob/main/sitemap.txt)
+- [/sitemap.txt](https://github.com/aindaco1/pool/blob/main/sitemap.txt)
 
 Campaign social previews default to a Worker-generated, crawler-friendly PNG that uses live campaign progress. A campaign can still override that with `social_image` when it needs a fixed static raster image, ideally JPEG or PNG at `1200 x 630`.
 
@@ -122,8 +122,8 @@ This is enforced through a mix of:
 
 Admin dashboard contract:
 
-- [admin.md](https://github.com/your-org/your-project/blob/main/admin.md) and [es/admin/index.html](https://github.com/your-org/your-project/blob/main/es/admin/index.html) must keep `indexable: false` and `sitemap: false`
-- [/_layouts/admin.html](https://github.com/your-org/your-project/blob/main/_layouts/admin.html) must call `seo-meta.html` with `indexable=false` and `social=false`
+- [admin.md](https://github.com/aindaco1/pool/blob/main/admin.md) and [es/admin/index.html](https://github.com/aindaco1/pool/blob/main/es/admin/index.html) must keep `indexable: false` and `sitemap: false`
+- [/_layouts/admin.html](https://github.com/aindaco1/pool/blob/main/_layouts/admin.html) must call `seo-meta.html` with `indexable=false` and `social=false`
 - [`robots.txt`](/robots.txt) must disallow `/admin/` and `/es/admin/`
 - [`sitemap.xml`](/sitemap.xml) must not include admin routes
 - the admin layout must not emit JSON-LD or Open Graph/Twitter social-preview metadata; the dashboard is a private app surface, not a public search result or share target

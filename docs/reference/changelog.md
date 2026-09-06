@@ -9,9 +9,20 @@ render_with_liquid: false
 
 ## Last Updated
 
-August 25, 2026
+September 6, 2026
 
 ## Unreleased
+
+### Dependency maintenance
+
+- Added explicit root and Worker production/full audit checks to Merge Smoke,
+  separate from installation and tests. Transient npm failures have bounded
+  retries; missing evidence fails the check instead of appearing clean.
+- Updated Vitest and its V8 coverage provider to 4.1.11, Vite to 8.2.2, and
+  axe-core to 4.13.0.
+- Kept shared build/release tooling on Platform's reviewed esbuild 0.28.1 and
+  smol-toml 1.7.1, made the root requirements exact, and added regression coverage
+  for manifest/lockfile alignment and version-only Dependabot exclusions.
 
 ### Production posture
 
@@ -20,12 +31,34 @@ August 25, 2026
 
 ### Documentation
 
+- Updated English and Spanish About and Terms pages to match saved add-on
+  pricing, cancellation deadlines, immediate failed-payment retries after a
+  card update, campaign email preferences, and pledge/email independence.
+  The copy review covers payment expectations, privacy, access, and messaging;
+  existing fulfillment remedies and statutory-rights protections remain intact.
+- Added a task-based documentation index and consolidated the overview,
+  workflow, and developer-note guides into architecture, campaign content,
+  and Worker API references. Setup, deployment, reporting, and verification
+  procedures now live with their owning guides; root and Worker READMEs are
+  concise entry points.
+- Corrected stale Worker deployment, provider-tax, and report-accounting
+  descriptions while retaining current-state, roadmap, and release-history
+  boundaries.
+- Excluded maintainer documentation from the public Jekyll artifact and added
+  a pre-merge artifact check, preserving the root and localized website pages.
 - Separated current behavior, prospective work, and release history across the
   README, practice guides, roadmap, changelog, and release evidence.
 - Removed dated provider snapshots, completed-work roadmaps, release-specific
   status ledgers, and duplicate future-work lists from current-state guides.
 - Moved the tax calculator guide into Pool so provider behavior, configuration,
   troubleshooting, and verification have one upstream documentation source.
+
+### Local verification
+
+- Preserved the caller's Ruby/Bundler and Node selection across pre-merge host
+  phases. Login shells could previously pass dependency checks under rbenv,
+  then switch to macOS system Ruby for the build and unnecessarily fall back
+  to Podman. Added regression coverage for host and Podman build dispatch.
 
 ## v1.2.20 - 2026-08-06
 
