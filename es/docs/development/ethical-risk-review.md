@@ -120,4 +120,6 @@ Los registros de revisión ética específicos de la liberación pertenecen a la
 
 ## Cuentas de administrador no asignadas — 2026-09-09
 
+**Estado: Resuelto.** La solución se envió el 9 de septiembre de 2026 y se incluye en **v1.2.21**. La [verificación de versión consolidada](https://github.com/aindaco1/pool/blob/main/docs/release-evidence/v1.2.21.md#release-verification) pasó las pruebas de administración que cubren la preservación de usuarios no asignados existentes y el rechazo de nuevos usuarios no asignados. Consulte la [evidencia de implementación original](https://github.com/aindaco1/pool/blob/main/docs/release-evidence/2026-09-09-admin-user-preservation.md).
+
 Al guardar usuarios se conserva una cuenta de campaña no asignada previamente sin otorgar acceso a la campaña. La excepción proviene únicamente de los usuarios almacenados; Las listas permitidas proporcionadas por el navegador no pueden crear cuentas no asignadas ni eliminar una asignación existente. La autorización de superadministrador, CSRF y por campaña siguen teniendo autoridad. No se reenvía ninguna notificación para un usuario existente sin cambios y la membresía Store permanece en su clave separada.

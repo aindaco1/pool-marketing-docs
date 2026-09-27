@@ -14,7 +14,7 @@ lang: es
 
 **Base de plataforma de crowdfunding de código abierto**
 
-La versión actual es **v1.2.20**. Los cambios posteriores a esa etiqueta se registran en **Inédito** en el [Changelog](/es/docs/reference/changelog/); El trabajo prospectivo pertenece al [Roadmap](/es/docs/reference/roadmap/).
+La versión actual es **v1.2.21**. Los cambios posteriores a esa etiqueta se registran en **Inédito** en el [Changelog](/es/docs/reference/changelog/); El trabajo prospectivo pertenece al [Roadmap](/es/docs/reference/roadmap/).
 
 The Pool combina un sitio estático Jekyll, un carrito de navegador propio y un Cloudflare Worker para un crowdfunding creativo de todo o nada. Los patrocinadores guardan una tarjeta mediante un paso de pago Stripe en el sitio. Las campañas financiadas cobran después de su fecha límite; Las campañas fallidas no cobran. Un pago puede incluir varias campañas, cada una de las cuales persiste y se liquida como un aporte de campaña independiente.
 
