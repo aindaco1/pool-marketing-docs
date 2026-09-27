@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-6 de septiembre de 2026
+27 de septiembre de 2026
 
 Este documento cubre el modelo actual de cálculo de impuestos en The Pool, incluyendo selección de proveedor, configuración para forks, comportamiento del navegador, endpoints del Worker y las verificaciones que conviene correr antes de publicar cambios relacionados con impuestos.
 
@@ -28,7 +28,9 @@ La capa impositiva mantiene una respuesta consistente en:
 - correos electrónicos de patrocinadores
 - reportes y exportaciones
 
-El Worker sigue siendo la fuente de la verdad. El navegador puede solicitar vistas previas, pero los totales persistentes provienen del cálculo del lado Worker.
+El transporte del proveedor utiliza el modo de redireccionamiento manual compatible con Cloudflare y rechaza explícitamente las respuestas 3xx. Esto mantiene las búsquedas en vivo utilizables en el tiempo de ejecución de Worker sin reenviar credenciales de proveedor ni consultas de direcciones para redirigir objetivos.
+
+El Worker sigue siendo la fuente de la verdad. El navegador puede solicitar vistas previas, pero los totales persistentes provienen del cálculo del lado Worker. La cotización de pago propia aceptada se verifica mediante hash al finalizar y se retienen sus totales. La finalización no vuelve a calcular los impuestos de la dirección enriquecida de Stripe después de la configuración de la tarjeta. Las nuevas cotizaciones utilizan el destino completo de facturación o impuestos de envío proporcionado.
 
 ## Modos de proveedor actuales
 
@@ -106,6 +108,8 @@ calle analizable más ciudad y código postal; de lo contrario usa el motor de a
 conjunto de datos o respaldo plano configurado
 
 Por lo tanto, una vista previa de impuestos puede permanecer incompleta al principio del proceso de pago y resolverse una vez que los detalles de facturación o envío estén presentes.
+
+Manage Pledge utiliza el mismo monto validado `/tax/quote` para el resumen de página actualizado y el modo de confirmación. Un monto cero o tasa efectiva es una cotización explícita, no un valor faltante; ambas pantallas lo conservan, incluida la etiqueta de tarifa. Si una actualización falla o devuelve un monto no válido, ambas pantallas usan el respaldo existente basado en la tasa efectiva del aporte (incluido cero), o la tasa configurada cuando no hay una tasa guardada disponible. Las respuestas retrasadas de ediciones anteriores no sobrescriben el resumen actual. El Worker aún recalcula los totales autorizados cuando el patrocinador confirma una modificación. Ambas rutas seleccionan primero una dirección de facturación almacenada normalizada, luego la dirección de envío almacenada y luego el destino de cotización histórico. Una instantánea histórica incompleta no debe ocultar una dirección de envío utilizable. Las cotizaciones históricas aceptadas permanecen sin cambios hasta que un patrocinador confirme una actualización. Las etiquetas de tarifas conservan hasta cuatro decimales (por ejemplo, 7,5625%).
 
 ## Endpoints principales
 

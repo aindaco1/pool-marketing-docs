@@ -86,6 +86,15 @@ TITLE_OVERRIDES = {
     "Development Setup": "Configuración de desarrollo",
     "Secrets Checklist": "Lista de verificación de secretos",
     "Reports": "Informes",
+    "Saving and Publishing": "Guardar y publicar",
+    "Protected Preview": "Vista previa protegida",
+    "Recover a missing browser draft": "Recuperar un borrador perdido del navegador",
+    "Campaign Runner Reports": "Informes para responsables de campaña",
+    "Advisory Jev pilot": "Piloto orientativo de Jev",
+    "Local Workspace Cleanup": "Limpieza del espacio de trabajo local",
+    "Local Test Data": "Datos de prueba locales",
+    "Start Local Dev": "Iniciar desarrollo local",
+    "4. Completion And Webhook": "4. Finalización y webhook",
 }
 
 BODY_OVERRIDES = {
@@ -132,6 +141,15 @@ ANCHOR_OVERRIDES = {
     "#settlement": "#liquidación",
     "#media": "#medios-de-comunicación",
     "#cloudflare-plan-guidance-for-forks": "#cloudflare-guía-de-planificación-para-horquillas",
+    "#saving-and-publishing": "#guardar-y-publicar",
+    "#protected-preview": "#vista-previa-protegida",
+    "#recover-a-missing-browser-draft": "#recuperar-un-borrador-perdido-del-navegador",
+    "#campaign-runner-reports": "#informes-para-responsables-de-campaña",
+    "#advisory-jev-pilot": "#piloto-orientativo-de-jev",
+    "#local-workspace-cleanup": "#limpieza-del-espacio-de-trabajo-local",
+    "#local-test-data": "#datos-de-prueba-locales",
+    "#start-local-dev": "#iniciar-desarrollo-local",
+    "#4-completion-and-webhook": "#4-finalización-y-webhook",
 }
 
 CACHE_DIR = ROOT / ".translation-cache"
@@ -309,6 +327,8 @@ def protect_text(text: str) -> tuple[str, list[str]]:
         "Playwright",
         "Liquid",
         "Sass",
+        "no-store",
+        "slug",
     ]
     working = protect(r"\bThe Pool\b", working)
     working = protect(r"\bPool\b", working, "The Pool")
@@ -321,6 +341,9 @@ def restore_text(text: str, placeholders: list[str]) -> str:
     restored = text
     restored = re.sub(r"siembra de (?:dispositivos|accesorios)", "carga de datos de prueba", restored, flags=re.IGNORECASE)
     restored = restored.replace("versión de Nodo", "versión de Node.js")
+    restored = restored.replace("sin tienda", "no-store")
+    restored = restored.replace("esa babosa", "ese slug")
+    restored = restored.replace("la babosa", "el slug")
     for index, original in enumerate(placeholders):
         restored = restored.replace(f"ZZTOKEN{index}ZZ", original)
     restored = restored.replace("La Piscina", "The Pool")

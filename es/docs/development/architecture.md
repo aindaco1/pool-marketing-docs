@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-6 de septiembre de 2026
+27 de septiembre de 2026
 
 Esta guía está destinada a los contribuyentes que rastrean cómo encajan el sitio de The Pool, Worker, los proveedores y el estado del repositorio. Los contratos de punto final se encuentran en [Worker API](/es/docs/reference/worker-api/); Las operaciones del proveedor se encuentran en los runbooks vinculados.
 
@@ -20,13 +20,14 @@ Esta guía está destinada a los contribuyentes que rastrean cómo encajan el si
 | --- | --- |
 |Páginas públicas, rutas localizadas, plantillas y carrito de navegación|Fuentes Jekyll y `assets/`|
 |Identidad de plataforma, catálogo y configuración de bifurcación admitida|`_config.yml`; `_config.local.yml` mantiene anulaciones locales|
-|Texto de campaña, niveles, objetivos, diario y complementos de campaña|`_campaigns/` y medios de repositorio|
+|Texto de campaña publicado, niveles, objetivos, diario y complementos de campaña|`_campaigns/` y medios de repositorio|
+|Copias de trabajo de campaña guardadas|`_campaign_drafts/`, excluido de construcciones públicas; mismo modelo de Markdown e historial de Git|
 |Precios, permisos, decisiones de inventario, persistencia de aportes y liquidación.|Cloudflare Worker|
 |Datos de tarjetas, métodos de pago y procesamiento de cargos|Stripe|
 |Registros de aportes, proyecciones, usuarios administradores y marcadores operativos|Worker KV, con coordinadores serializados para mutaciones críticas|
 |Historial de publicaciones y fuentes|Confirmaciones y acciones respaldadas por GitHub, o el asistente de repositorio local en desarrollo|
 
-El navegador propone el estado. Worker resuelve la campaña/catálogo actual, valida la disponibilidad y calcula totales autorizados. Las ediciones normales del creador utilizan el [dashboard](/es/docs/operations/admin-dashboard/); Los cambios publicables se escriben en Git en lugar de crear un segundo catálogo de contenido en KV.
+El navegador propone el estado. Worker resuelve la campaña/catálogo actual, valida la disponibilidad y calcula totales autorizados. Las ediciones normales del creador utilizan el [dashboard](/es/docs/operations/admin-dashboard/); Los cambios publicables se escriben en Git en lugar de crear un segundo catálogo de contenido en KV. Guardar escribe una copia de trabajo; Publish promueve sus campos de autoría en la campaña canónica. Las API públicas y el proceso de pago nunca leen copias de trabajo.
 
 ### Fundamentos compartidos
 
@@ -41,7 +42,7 @@ El estado de la campaña es `upcoming` → `live` → `post`. Jekyll calcula el 
 1. El patrocinador selecciona niveles, elementos de soporte, soporte personalizado o complementos en el carrito propio.
 2. `/checkout-intent/start` resuelve precios canónicos, impuestos, envío, estado de campaña y reservas de nivel limitado, luego crea una sesión Stripe en modo de configuración.
 3. El sidecar de pago in situ guarda una tarjeta. Un respaldo alojado permanece disponible cuando lo requiere la configuración de pago.
-4. La persistencia del webhook, con una ruta de finalización/recuperación limitada, crea un aporte por campaña. El navegador espera la persistencia antes de mostrar el éxito y luego invalida los totales de la campaña almacenados en caché.
+4. La persistencia del webhook y la recuperación limitada del navegador comparten un coordinador de finalización por pedido y la cotización verificada para crear un aporte por campaña. El navegador espera la persistencia antes de mostrar el éxito y luego invalida los totales de la campaña almacenados en caché.
 5. Los enlaces mágicos con alcance de pedido permiten a los patrocinadores gestionar aportes activos. Los aportes vencidos se vuelven de solo lectura, excepto las actualizaciones de tarjetas elegibles.
 6. Después de la fecha límite de una campaña financiada, la programación Worker envía acuerdos con el alcance de la campaña y registra los resultados de los cargos. La recuperación de pagos fallidos utiliza el flujo de actualización del método de pago existente.
 

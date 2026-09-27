@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-September 6, 2026
+September 27, 2026
 
 This is the canonical operator runbook for Pool-owned state that cannot be recreated by a normal deploy. It covers Git history, Cloudflare KV, provider metadata, restore ordering, retention, and recovery evidence. It never treats secret values as backup content.
 
@@ -38,7 +38,7 @@ npm run backup:inventory:audit
 - `VOTES` contains supporter votes and published result projections.
 - `RATELIMIT` and browser login/session/preview state are quarantined and are not restored normally. Privacy-minimized `admin-login-history:*` is incident evidence, not an active session, and is restored only when an incident requires it.
 - Stripe remains authoritative for payment-provider objects. A Pool snapshot records identifiers and compares them read-only; it does not replace Stripe records.
-- Durable Object storage is never imported. Checkout intent, scarce-tier inventory, and settlement coordination must be revalidated or rebuilt from pledge truth, campaign configuration, Stripe state, and projection checks.
+- Durable Object storage is never imported. Checkout nonce/completion evidence, scarce-tier inventory, and settlement coordination must be revalidated or rebuilt from pledge truth, campaign configuration, Stripe state, and projection checks.
 - Secrets are inventory only: snapshot evidence may include configured secret names and missing/configured status, never values.
 
 ## Readiness and snapshot commands
@@ -227,3 +227,14 @@ Then review Campaigns, Analytics, Reports, Supporters, Users, Marketing, media, 
 ## Incident evidence
 
 Record snapshot receipt hash, source commit, restore target, start/end time, operator/approver, traffic preflight, reconciliation counts, preview verification, production gate decisions, keys/families restored or rebuilt, residual mismatches, and the exact time automation resumed. Evidence must not contain secret values, full backup contents, raw provider payloads, or unnecessary customer data.
+
+## Campaign working copies
+
+The repository recovery bundle includes `_campaign_drafts/` with the published
+campaign sources. Restore both before reopening editing. Preview access remains
+short-lived KV data and is not restored. A saved working copy contains its public
+authoring baseline; after a divergent restore, Publish reports a revision conflict
+instead of replacing restored public content. Archiving a campaign retains its
+working copy and accounts for draft media references. Browser-local Content drafts
+and `:recovery-v1` copies remain separate and require recovery in the original
+browser/profile; see [Dashboard recovery](/docs/operations/admin-dashboard/#recover-a-missing-browser-draft).

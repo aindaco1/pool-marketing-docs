@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-September 6, 2026
+September 27, 2026
 
 The Pool is a static-first crowdfunding platform with a Cloudflare Worker for mutations, live reads, and admin operations. Performance work preserves that shape: public pages are fast from static HTML, heavy application code loads only when a user needs it, and speculative work stays conservative enough that it never makes checkout, admin, or supporter flows less reliable.
 
@@ -64,7 +64,7 @@ Important repo surfaces:
 - [`scripts/audit-runtime-performance.mjs`](https://github.com/aindaco1/pool/blob/main/scripts/audit-runtime-performance.mjs): authenticated p95 evidence for configured Worker operations
 - [`scripts/sync-worker-config.rb`](https://github.com/aindaco1/pool/blob/main/scripts/sync-worker-config.rb): site-to-Worker config mirroring
 
-Admin-only Sass is emitted as `assets/admin.css` and loaded only by the admin layout, keeping dashboard CSS off public campaign pages. The infrequently used Admin sessions and Audit log renderer lives in `assets/js/admin-settings-review.js` and loads on demand when either Settings section opens; both that module and the initial `admin-dashboard.js` bundle have named executable ceilings in `config/performance-budgets.json`. Adobe display-font CSS is activated after DOM readiness with a no-script fallback; Inter remains the body-font dependency. Workers Cache remains disabled for the Pool admin read model until a representative benchmark proves at least a 40% p95 improvement. The evidence threshold, not another product's cache choice, controls Pool enablement.
+Admin and protected-preview Sass is emitted as `assets/admin.css` and loaded by the admin and campaign-preview layouts, keeping dashboard CSS off public campaign pages. The infrequently used Admin sessions and Audit log renderer lives in `assets/js/admin-settings-review.js` and loads on demand when either Settings section opens; both that module and the initial `admin-dashboard.js` bundle have named executable ceilings in `config/performance-budgets.json`. Adobe display-font CSS is activated after DOM readiness with a no-script fallback; Inter remains the body-font dependency. Workers Cache remains disabled for the Pool admin read model until a representative benchmark proves at least a 40% p95 improvement. The evidence threshold, not another product's cache choice, controls Pool enablement.
 
 Worker performance summaries retain bounded latency histograms and expose approximate p50/p95/p99 alongside count, average, minimum, maximum, and last duration. They do not retain request bodies or customer identifiers.
 
@@ -326,7 +326,7 @@ npm run media:optimize:check
 npm run media:manifest
 ```
 
-`_data/media-optimization-manifest.json` is a deterministic rebuildable index, not a second media store. It records source hashes, size, dimensions/duration, generated WebP/WebM derivatives, references, and warnings. Dashboard placement budgets for hero, gallery, tier, Blast, and poster media are advisory and reuse this manifest; unsafe types and missing required alt text remain hard validation failures. If an attempted derivative is larger than its source, the source hash and skipped width are recorded so check mode does not misclassify the intentional omission as drift.
+`_data/media-optimization-manifest.json` is a deterministic rebuildable index, not a second media store. It records source hashes, size, dimensions/duration, generated WebP/WebM derivatives, references, and warnings. Dashboard placement budgets for hero, gallery, tier, Blast, and poster media are advisory and reuse this manifest; unsafe types remain hard validation failures, while missing alt text is advisory and never blocks saving or publishing. If an attempted derivative is larger than its source, the source hash and skipped width are recorded so check mode does not misclassify the intentional omission as drift.
 
 If the host machine does not have the native optimizers installed, use the Podman-backed wrappers instead:
 

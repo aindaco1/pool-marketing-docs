@@ -10,12 +10,131 @@ lang: es
 
 ## Última actualización
 
-6 de septiembre de 2026
+27 de septiembre de 2026
 
 ## Inédito
 
+- Mantenga los complementos de campaña y plataforma con inventario en blanco disponibles en el carrito.
+Administre el aporte y el pago canónico, incluidas cantidades de variantes ilimitadas.
+Actualice las cachés de inventario obsoletas mientras conserva los límites explícitos de agotamiento.
+- En su lugar, muestre el estado del ciclo de vida de la campaña basado en fechas en la configuración del panel
+de material inicial obsoleto guardado, con texto de ayuda localizado.
+
+- Vuelva a intentar los informes de campaña diarios después de una ejecución cron retrasada o transitoria
+fallo en la cola, utilizando marcadores de finalización del día local y destinatario estable
+identidades de la bandeja de salida para evitar duplicados. Registre ejecuciones incompletas en diagnóstico.
+- Corrija la carga de fotografías complementarias de la campaña que solicitan permisos solo para la plataforma.
+Los complementos nuevos y existentes heredan el alcance de carga del editor de su campaña.
+
+- Se agregó un piloto de aviso de Jev opcional para el pago sintético en inglés/español.
+gestión de aportes y texto de correo electrónico transaccional. Captura renderizadores existentes,
+comprueba controles emparejados fieles/defectuosos e informa la incertidumbre sin cambiar
+puertas existentes. Evaluación y transporte compartidos en vivo en Platform Test Core 0.3.0;
+no se agregó ninguna dependencia del modelo al tiempo de ejecución del producto.
+
+- Suscriba a los usuarios de campaña asignados a los informes de ejecución de forma predeterminada. Campañas
+La configuración permite a los editores desmarcar usuarios y guardar/publicar campañas específicas.
+opciones de exclusión voluntaria, manteniendo destinatarios adicionales. Informes programados, manual.
+Los envíos, las vistas previas y el estado del panel comparten la resolución del destinatario.
+
+- Representar descripciones de artículos del carrito con el Markdown en línea seguro compartido existente
+renderizador, incluido el énfasis anidado y el subrayado en los recién agregados y restaurados
+carros. Preservar el formato de descripción a través de la campaña y el nivel destacado
+botones manteniendo inertes el HTML y los enlaces inseguros.
+
+- Consolidar siete ramas de optimización de imágenes de Deinonychus revisadas, agregando
+28 variantes WebP responsivas y compresión de fuente sin pérdidas. Conservar el
+MP4 original después de rechazar un WebM generado más grande.
+
+- Restaurar solicitudes de proveedores de impuestos en vivo en Cloudflare Workers a través de Tax Core
+0.3.1. Utilice el manejo de redireccionamiento manual admitido y rechace las respuestas 3xx
+explícitamente; evitar que una opción de búsqueda no admitida seleccione silenciosamente
+una tasa de retorno configurada.
+
+- Mantenga Manage Pledge y sus totales modales de confirmación alineados con Worker
+cotización de impuestos, incluidas etiquetas de impuesto cero y tasa cero. Utilice el mismo recurso para
+cotizaciones no válidas e ignorar las respuestas fiscales retrasadas de ediciones anteriores. Actualizar
+cotizaciones de la dirección de facturación o envío guardada antes de recurrir a una
+destino de cotización histórico y conservar tasas impositivas de cuatro decimales en las etiquetas.
+
+- Se corrigieron los pagos con tarjeta guardada que no permitían la confirmación del aporte cuando Stripe proporciona un pago más completo.
+dirección. El webhook y la recuperación del navegador comparten la cotización verificada y admiten la actualidad
+y campos de envío heredados Stripe, y serializar la finalización por pedido. preservar
+totales aceptados y referencias pendientes de recuperación; reintentar la confirmación sin
+creando otra sesión de configuración. Se muestran las páginas de pago y resultados en inglés/español
+estado explícito no confirmado hasta que se verifique la persistencia.
+
+- Adopte Platform Admin Shell 0.12.0 y Design Core 0.3.0 para el editor compartido
+renderizado, carga de vistas previas, descripciones de imágenes opcionales, marcadores de posición en blanco,
+contención del diseño y comentarios bilingües legibles. Preservar la imagen local
+vistas previas después de la carga y guardar mientras los activos públicos esperan su implementación. renderizar
+Texto anidado en negrita/cursiva de forma consistente en el editor y en las vistas previas públicas/móviles.
+
+
+- Crear aviso de texto alternativo de imagen para guardar/publicar campaña y diario. normalizar
+descripciones de forma segura, preservar el estado decorativo explícito y omitir espacios vacíos.
+marcadores de posición de texto del diario conservando la validación del contenido real.
+- Haga énfasis en Markdown en línea en resúmenes públicos y descripciones de recompensas.
+Restaure estilos de vista previa, ajuste imágenes de vista previa al marco móvil y muestre
+Miniaturas de imágenes preparadas antes de cargarlas. Mantenga paneles multimedia y nombres de archivos largos
+dentro de sus contenedores y por encima de los controles de las galerías vecinas.
+
+- Renderice videos de héroes de campaña cargados con su formato MP4, WebM o MOV real.
+tipo de fuente en lugar de etiquetar cada carga como WebM. Compartir renderizado de origen
+con vídeos de contenido, incluidas extensiones que combinan mayúsculas y minúsculas y cadenas de consulta de URL.
+
+- Mantenga las herramientas del proyecto Podman en el motor compartido seleccionado. Eliminar máquina virtual automática
+se reinicia y se elimina el proceso del puerto host para que otros proyectos locales sigan ejecutándose.
+Conserve los puntos finales explícitos, la CLI en PATH y libere las comprobaciones de recursos.
+
+- Se corrigió el error en la carga de videos de la campaña en el límite de 2 MB del asistente compartido GitHub.
+Las cargas de héroe, contenido, diario y reemplazo transmiten archivos binarios hasta
+100 MB a GitHub, con memoria limitada y validación de tamaño exacto.
+
+- Corrija las asignaciones de usuarios a campañas recién creadas y no publicadas validándolas con la lista de campañas del panel.
+
+- Conservar los usuarios de campaña existentes no asignados cuando se editan otros usuarios.
+Su acceso a la campaña permanece vacío; las excepciones proporcionadas por el cliente no pueden
+cree un usuario no asignado o borre una asignación existente.
+
+### Guardado y publicación del proyecto.
+
+- Agregue Guardar en todo el proyecto, vistas previas protegidas de las revisiones guardadas y Publicación explícita para campañas nuevas y ya públicas. Preservar el navegador local Guardar borradores y datos de recuperación existentes; Mantener el contenido, los precios y los medios de la campaña pública sin cambios hasta su publicación.
+
+### Recuperación del borrador de campaña
+
+- La carga de la campaña conserva los borradores no publicados del navegador en lugar de reemplazarlos
+con el contenido del servidor. Guardar borrador ya no desactiva la publicación o la
+Advertencia de salida de página para trabajos no publicados.
+- Los fallos de almacenamiento y los medios preparados producen mensajes de guardado explícitos. retrasado
+las respuestas de campaña y los borradores de cambios de otra pestaña no pueden reemplazar silenciosamente
+el borrador activo. Se agregaron pruebas de regresión de actualización/recuperación y orientación para el operador.
+
+### Vista previa de la campaña
+
+- Cargue los estilos de vista previa existentes en páginas protegidas para compartir para que la campaña
+El marco llena el ancho disponible en lugar de usar el pequeño valor predeterminado del navegador.
+- Se corrigieron los errores 404 de la página de vista previa para campañas no publicadas. El generador existente
+lee fuentes de campaña omitidas en la colección pública de Jekyll y crea
+los mismos shells protegidos genéricos en cada idioma admitido.
+- Se agregó una regresión Jekyll real que cubre vistas previas inéditas y continuó.
+exclusión de borradores de contenido de rutas públicas, catálogos y mapas de sitios.
+
+### Creación de campaña
+
+- Se corrigieron las solicitudes del panel respaldadas por GitHub que fallaban antes del acceso a la red porque
+el tiempo de ejecución Worker rechaza el modo de redirección del cliente compartido. GitHub de The Pool
+El adaptador utiliza el manejo de redireccionamiento manual y aún rechaza los redireccionamientos.
+- La creación de campañas conserva los usuarios no asignados no relacionados en lugar de rechazarlos.
+toda la lista de usuarios. Los usuarios seleccionados conservan sus asignaciones anteriores.
+Las ediciones explícitas de los usuarios aún requieren que los usuarios de la campaña tengan una campaña.
+- Se agregaron regresiones reales de creación de campañas y cobertura GitHub en tiempo de ejecución de Worker.
+para conservación de asignaciones y escrituras fallidas sin efectos de cuenta o correo electrónico.
+
 ### Mantenimiento de dependencia
 
+- Fije la dependencia transitiva de Sharp de la cadena de herramientas de desarrollo Worker a 0.35.4
+para resolver GHSA-rgj7-g3m4-5g8c sin cambiar Wrangler o el código de producción.
 - Se agregaron verificaciones de auditoría completa/producción raíz explícita y Worker a Merge Smoke,
 separado de la instalación y las pruebas. Las fallas transitorias de npm se han limitado
 reintentos; La evidencia faltante no pasa la verificación en lugar de parecer limpia.

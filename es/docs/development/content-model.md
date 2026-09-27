@@ -10,9 +10,11 @@ lang: es
 
 ## Última actualización
 
-6 de septiembre de 2026
+27 de septiembre de 2026
 
 Utilice esta referencia cuando cambie el Markdown de la campaña, la validación del esquema o el editor de la campaña. La creación de rutina pertenece al [dashboard](/es/docs/operations/admin-dashboard/); los creadores pueden utilizar la [lista de verificación de lanzamiento](https://github.com/aindaco1/pool/blob/main/creator-campaign-checklist.md). Conserve los ID de campaña, nivel, producto, variante, diario y decisión existentes. La fuente del repositorio y la validación de Worker siguen siendo autorizadas.
+
+Las copias de trabajo guardadas utilizan el mismo formato de campaña en `_campaign_drafts/`. Los campos internos `_pool_draft_base_hash` y `_pool_draft_saved_at` rastrean la línea base de creación pública y el último guardado; nunca son promovidos a la campaña pública. Los archivos borrador están excluidos de la generación del sitio. Consulte [Dashboard](/es/docs/operations/admin-dashboard/#vista-previa-protegida) para conocer el comportamiento de guardar, obtener una vista previa, publicar y recuperar el navegador.
 
 ## Campos de campaña
 
@@ -70,15 +72,21 @@ Para evitar que aparezca "00 00 00 00" antes de que se cargue JavaScript:
 
 Entrecomilla cadenas con caracteres especiales para evitar problemas de análisis de YAML.
 
+### Destinatarios del informe del corredor
+
+Los usuarios de campaña asignados reciben informes de forma predeterminada. `runner_report_emails` es una lista opcional de destinatarios adicionales; `runner_report_excluded_emails` es una lista opcional de opciones de exclusión voluntaria y está vacía de forma predeterminada. Ambas listas utilizan direcciones de correo electrónico normalizadas. Las exclusiones anulan a los destinatarios adicionales y a los usuarios asignados. El panel presenta las opciones de exclusión voluntaria como usuarios no marcados y las conserva mediante Guardar y Publicar. Consulte [Email](/es/docs/operations/email-system/#informes-para-responsables-de-campaña) para conocer la resolución y programación del tiempo de ejecución.
+
 ### Campos multimedia
+
+El texto alternativo de la imagen es opcional. Las descripciones que faltan siguen siendo una recomendación de accesibilidad y no impiden guardar o publicar. El estado decorativo es explícito; dejar una descripción vacía no marca la imagen como decorativa.
 
 - **`hero_image`** (obligatorio): Imagen cuadrada/vertical para vistas previas de tarjetas de la página de inicio
 - **`hero_image_wide`** (opcional): Imagen ancha para la página de detalles de la campaña (vuelve a `hero_image`)
-- **`hero_video`** (opcional): vídeo WebM para detalles de la campaña (utiliza la imagen principal como póster)
+- **`hero_video`** (opcional): ruta MP4, WebM o MOV cargada, o URL de proveedor de video compatible, para obtener detalles de la campaña (el video local usa `hero_image_wide` o `hero_image` como póster)
 - **`creator_image`** (opcional): imagen cuadrada para el creador (círculo de 48 píxeles en la barra lateral)
 - **Nivel `image`** (opcional): Imagen ancha mostrada encima del nombre del nivel
 
-**Requisitos de video:** Se prefiere WebM para los videos de campaña cargados; se recomienda 16:9 y un máximo de 1920 x 1080. El panel de administración acepta cargas de videos destacados de hasta 100 MB o URL de YouTube/Vimeo, y obtiene una vista previa de archivos de video existentes o incrustaciones a través de la misma política de seguridad de contenido que la página de campaña pública. Los bloques de vídeo de contenido local pueden especificar un `poster` opcional; cuando se omiten, las vistas del editor público/administrador generan un póster transitorio desde el primer fotograma del vídeo y mantienen el vídeo reproducible cargado de forma diferida hasta su reproducción.
+**Requisitos de video:** Se prefiere WebM para los videos de campaña cargados; se recomienda 16:9 y un máximo de 1920 x 1080. El panel de administración acepta cargas de videos destacados de hasta 100 MB o URL de YouTube/Vimeo, y obtiene una vista previa de archivos de video existentes o incrustaciones a través de la misma política de seguridad de contenido que la página de campaña pública. Los vídeos de contenido y héroes públicos declaran el tipo MIME que coincide con la extensión del archivo; la reproducción aún requiere códecs compatibles con el navegador. Los bloques de vídeo de contenido local pueden especificar un `poster` opcional; cuando se omiten, las vistas del editor público/administrador generan un póster transitorio desde el primer fotograma del vídeo y mantienen el vídeo reproducible cargado de forma diferida hasta su reproducción.
 
 **Rutas de carga del panel:** El panel escribe los recursos cargados en el modelo de activos estáticos actual:
 
@@ -145,6 +153,8 @@ stretch_goals:
 ```
 
 ### Niveles
+
+Las descripciones de niveles admiten negrita, cursiva, énfasis anidado, subrayado y saltos de línea en línea. El carrito carga el códec del editor de plataforma anclado según la intención del carrito y utiliza su renderizador en línea seguro con los enlaces deshabilitados. Los botones de campaña y de nivel destacado contienen texto fuente con atributos de escape; La representación del carrito aplica la misma política a los artículos recién agregados y a los carritos guardados anteriormente. El HTML no compatible permanece como formato de escape. El almacenamiento del carrito conserva la descripción original en lugar del HTML renderizado.
 
 ```yaml
 tiers:

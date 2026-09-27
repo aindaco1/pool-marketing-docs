@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-September 6, 2026
+September 27, 2026
 
 This is the operating guide for people and coding agents working on **The Pool**. Use it to make safe changes without drifting the static site, Cloudflare Worker, checkout math, private administration, or localized behavior out of sync.
 
@@ -49,7 +49,8 @@ If a change affects pricing, availability, campaign progress, pledge state, emai
 
 - [`_config.yml`](https://github.com/aindaco1/pool/blob/main/_config.yml): canonical fork-facing platform configuration
 - [`_config.local.yml`](https://github.com/aindaco1/pool/blob/main/_config.local.yml): machine-local overrides only
-- [`_campaigns/`](https://github.com/aindaco1/pool/tree/main/_campaigns): campaign content, tiers, goals, diary data, and campaign add-ons
+- [`_campaigns/`](https://github.com/aindaco1/pool/tree/main/_campaigns): published campaign content, tiers, goals, diary data, and campaign add-ons
+- `_campaign_drafts/`: Git-backed saved working copies, excluded from public builds and checkout; use the same authoring model and preserve browser recovery data
 - [`_data/i18n/`](https://github.com/aindaco1/pool/tree/main/_data/i18n): shared localized UI, runtime, and email copy
 - [`_data/media-optimization-manifest.json`](https://github.com/aindaco1/pool/blob/main/_data/media-optimization-manifest.json): rebuildable repository media metadata; source files remain authoritative
 - [`_layouts/`](https://github.com/aindaco1/pool/tree/main/_layouts) and [`_includes/`](https://github.com/aindaco1/pool/tree/main/_includes): public pages, campaign pages, embeds, SEO, and locale helpers
@@ -126,7 +127,7 @@ Check Worker mail logic, `_data/i18n/`, sender configuration, and [docs/EMAIL.md
 
 ### Media
 
-The repository asset tree is authoritative. Rebuild `_data/media-optimization-manifest.json` with `npm run media:manifest`; do not create a KV-backed media catalog. Use the existing GitHub optimizer dispatch for changed/all repair, preserve source files and intentionally skipped larger derivatives, require alt text for meaningful images, and use explicit decorative-image state for empty alt text.
+The repository asset tree is authoritative. Rebuild `_data/media-optimization-manifest.json` with `npm run media:manifest`; do not create a KV-backed media catalog. Use the existing GitHub optimizer dispatch for changed/all repair, preserve source files and intentionally skipped larger derivatives, recommend alt text for meaningful images without blocking Save or Publish, and keep decorative-image state explicit.
 
 ### Embeds, SEO, and share cards
 

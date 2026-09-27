@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-September 6, 2026
+September 27, 2026
 
 This document describes The Pool's current localization structure and the
 supported workflow for adding languages in a fork. English is the default
@@ -308,3 +308,11 @@ Still intentionally out of scope for this model:
 - an in-repo machine-translation pipeline
 
 Prospective localization work is tracked in the [Roadmap](/docs/reference/roadmap/).
+
+
+Dashboard request and validation feedback uses the pinned Platform Admin Shell
+English/Spanish catalog. Pool supplies domain field labels and diary context from
+`_data/i18n/`; generic network, session, conflict, upload-size, provider-failure,
+and validation-reason copy stays shared. Unknown errors receive a localized safe
+fallback. Raw backend diagnostics remain developer data, not untranslated UI copy.
+Creator-authored campaign and diary titles retain their original language.

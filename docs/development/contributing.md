@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-September 6, 2026
+September 27, 2026
 
 This guide covers onboarding, the contribution workflow, and shared development
 patterns. Start with [AGENTS](/docs/development/agents-operator-guide/) and the
@@ -97,6 +97,38 @@ messaging, analytics, admin power, visibility, or automation. Dashboard work
 also requires the relevant [Accessibility](/docs/operations/accessibility/), [I18N](/docs/development/internationalization/),
 [Security](/docs/operations/security/), and [SEO](/docs/operations/seo/) contracts.
 
+## Local Workspace Cleanup
+
+Run cleanup after validation and after stopping services that use the generated
+output. Start with `git status --short`, `git worktree list`, and
+`git ls-files --others --ignored --exclude-standard --directory`; being ignored
+does not mean a file is disposable.
+
+| Keep for development, testing, or recovery | Regenerate when needed |
+| --- | --- |
+| Source, `_campaigns/`, `_campaign_drafts/`, repository media, tests/fixtures, and committed release evidence | `_site/` and temporary duplicate site builds |
+| Jev corpus/report/review files cited in release evidence | Jev run `site/` directories |
+| Root and Worker `node_modules/`, installed Ruby gems, `.bundle/` configuration, and shared submodules | `.jekyll-cache/`, `.sass-cache/`, and `.jekyll-metadata` |
+| `_config.local*.yml`, `worker/.dev.vars`, and local environment files | Completed `test-results/`, `playwright-report/`, and coverage output |
+| `worker/.wrangler/state/`, browser profiles/drafts, and recovery exports | Inspected disposable files under `tmp/` and `worker/.wrangler/tmp/` |
+| Podman machines, development images/volumes, and Playwright browser installations | Obsolete logs and screenshots already retained in release evidence |
+
+Inspect `tmp/` before clearing it: recovery exports or an unfinished investigation
+are not build artifacts. Move selected output to a dated recovery directory
+outside the checkout or the system Trash, and record its original paths. Avoid
+blanket `git clean -fdx`, browser-storage clearing, or container/volume pruning.
+Restarting `./scripts/dev.sh --podman` rebuilds the site; the browser harness also
+builds `_site/` automatically. [Testing](/docs/operations/testing/#local-test-data) owns deliberate
+local-state resets.
+
+Fetch/prune remote references, compare each branch tip with its merged PR, and
+check that no worktree uses it. Squash-merged branches may not appear under
+`git branch --merged`; verify the PR head and merge commit instead. Preserve
+unmerged work, or incorporate a verified generated correction before removing
+its branch. Save branch names and commit IDs, with a Git bundle for commits not
+reachable from main, before removing stale local and remote refs. Recheck tips
+immediately before deletion so another collaborator’s newer commit is retained.
+
 ## Development Patterns
 
 Theme and email/checkout branding use the `design.*` / `platform.*` surface in
@@ -137,7 +169,7 @@ Platform boundary; do not patch the submodule in place.
 
 Use `.sr-only` for supporting text, labeled controls, decorative SVG state,
 and the existing live regions/focus behavior. `_includes/a11y.html` supplies
-`sr-text` and `external-link` patterns. Meaningful images require alt text;
+`sr-text` and `external-link` patterns. Alt text is recommended for meaningful images and does not block saving or publishing;
 intentional decorative images use the explicit decorative state.
 
 Shared strings use `_includes/t.html`, with interpolation and locale fallback.

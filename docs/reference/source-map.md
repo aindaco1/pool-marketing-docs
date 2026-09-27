@@ -9,14 +9,14 @@ render_with_liquid: false
 
 ## Last Updated
 
-September 6, 2026
+September 27, 2026
 
 The Pool repository is the canonical source for imported product and
 developer documentation. This page is generated from the same manifest the
 sync script uses for validation, link rewriting, navigation metadata, and
 output paths.
 
-Imported from Pool revision [`a55469830726`](https://github.com/aindaco1/pool/commit/a55469830726ceff53d6a7d61a8422c207a10d32).
+Imported from Pool revision [`839a2d9925ba`](https://github.com/aindaco1/pool/commit/839a2d9925bac2bef529d5756a76986a405e7929).
 
 The [Development index](/docs/development/) follows the ownership and task
 paths in Pool's [documentation index](https://github.com/aindaco1/pool/blob/main/docs/README.md).

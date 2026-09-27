@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-6 de septiembre de 2026
+27 de septiembre de 2026
 
 The Pool envía correo electrónico transaccional y de soporte de campaña a través de Resend desde Cloudflare Worker. Las plantillas se encuentran en `worker/src/email.js`, la copia localizada compartida se encuentra en `_data/i18n/*.yml` y la programación/selección de audiencia se encuentra principalmente en `worker/src/index.js`.
 
@@ -281,9 +281,15 @@ Comportamiento actual:
 
 Se prefiere `ABANDONED_CART_TOKEN_SECRET` para firmar recordatorios y recurre a `MAGIC_LINK_SECRET` cuando se omite.
 
-### Informes del corredor de campaña
+### Informes para responsables de campaña
 
-Enviado según el cronograma configurado para la campaña `runner_report_emails`.
+Enviado según la programación configurada a los usuarios asignados explícitamente a la campaña, más la campaña adicional `runner_report_emails`. Worker resuelve las asignaciones actuales del almacén de usuario administrador efectivo al crear o enviar un informe; Al eliminar una asignación, se elimina esa suscripción predeterminada. El acceso de superadministrador por sí solo no suscribe a una persona a todas las campañas. Las direcciones adicionales siguen siendo destinatarios explícitos hasta que se eliminen.
+
+En la configuración de Campañas, **Informes de usuarios de campaña** verifica los usuarios asignados de forma predeterminada. Desmarque un usuario, luego Guarde y publique para detener sus informes para esa campaña; compruébalos nuevamente para continuar. Esto almacena `runner_report_excluded_emails` en el modelo de creación de campañas existente. Las exclusiones anulan a los destinatarios asignados y adicionales, sobreviven a ediciones y reasignaciones posteriores y no cambian el acceso al panel. **Correos electrónicos de informes adicionales** acepta destinatarios además de los usuarios asignados. Las direcciones están normalizadas y deduplicadas. Una lista efectiva vacía omite los informes diarios.
+
+Para un informe faltante, utilice el [ejecución en seco del informe de campaña-runner](/es/docs/reference/worker-api/#post-adminreportcampaign-runner) para verificar los destinatarios efectivos, el estado de la campaña, el recuento de filas y el marcador enviado antes de investigar la entrega del proveedor. Los informes vencen a la hora local configurada y siguen siendo elegibles durante el resto de ese día local. Los tics cron retrasados ​​o perdidos y los fallos transitorios en la cola reintentan en tics posteriores. `cron:campaign-runner-reports:<local-date>` registra un pase completo durante dos días, por lo que los ticks posteriores se saltan las lecturas de campaña/aporte. Una carga de catálogo vacía o fallida no consume el día. Los errores por campaña se pueden volver a intentar y aparecen en `cron:lastError`.
+
+Guardar destinatarios después de completar un pase diario entra en vigor el siguiente día programado; las adiciones del mismo día y las fechas perdidas anteriores requieren un envío manual explícito. Los reintentos automáticos no reconstruyen instantáneas históricas.
 
 Tipos de informes:
 
@@ -293,6 +299,12 @@ Tipos de informes:
 Comportamiento actual:
 
 - El tiempo utiliza `platform.timezone`.
+- Los marcadores de informes enviados registran la cola duradera, no la entrega del proveedor. Confirmar
+entrega por separado en bandeja de salida con comprobante de entrega o Resend.
+- Las identidades de la bandeja de salida diaria programada utilizan la campaña, la fecha del informe y el destinatario; cumplimiento
+Las identidades utilizan campaña, audiencia y destinatario. Reintentando después de un parcial
+La falla de escritura en cola o marcador enviado reutiliza la carga útil en cola. manual explícito
+Los informes conservan sus identidades basadas en la carga útil y el comportamiento `markAsSent`.
 - Los archivos adjuntos CSV son opcionales según la configuración.
 - Los destinatarios de la campaña reciben filas completadas por la campaña.
 - `platform.support_email` puede recibir filas separadas de cumplimiento de plataforma cuando los complementos de plataforma necesitan cumplimiento.

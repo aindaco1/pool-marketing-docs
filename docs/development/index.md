@@ -8,7 +8,7 @@ has_children: true
 
 ## Last Updated
 
-September 6, 2026
+September 27, 2026
 
 Contribution flow, architecture notes, implementation gotchas, and fork-facing extension points live here.
 
@@ -36,7 +36,7 @@ sign-off. The Platform and Worker READMEs are entry points to these guides.
 - [Customization Guide](/docs/development/customization-guide/) for the supported `_config.yml` surface, design tokens, pricing, shipping, and fork branding knobs.
 - [Internationalization](/docs/development/internationalization/) for locale config, routing, translation catalogs, and the language-addition workflow.
 - [Campaign Embeds](/docs/development/campaign-embeds/) for hosted embed routes, resize behavior, and localization rules.
-- [Add-On Products](/docs/development/add-on-products/) for the platform-wide merch catalog, inventory model, runtime contract, and shipping behavior.
+- [Add-On Products](/docs/development/add-on-products/) for platform and campaign catalogs, variant pricing, limited or unlimited inventory, and shipping behavior.
 - [Product Video Workflow](/docs/development/product-video-workflow/) for local capture, rendering, verification, and publication boundaries.
 - [Ethical Risk Review](/docs/development/ethical-risk-review/) for evaluating changes involving money, data, messaging, automation, admin power, visibility, and sharing.
 - [Agents & Operator Guide](/docs/development/agents-operator-guide/) for repo invariants, source-of-truth guidance, and safe contributor/LLM workflows.
@@ -44,3 +44,12 @@ sign-off. The Platform and Worker READMEs are entry points to these guides.
 ## Day-To-Day Use
 
 This section is the right home base when you are opening your first PR, mapping a feature to existing architecture, or adapting The Pool into a branded fork.
+
+| Task | Owning guide |
+| --- | --- |
+| Save a campaign, share a protected preview, or publish changes | [Dashboard: Saving and Publishing](/docs/operations/admin-dashboard/#saving-and-publishing) |
+| Recover browser-local campaign edits | [Dashboard: Draft Recovery](/docs/operations/admin-dashboard/#recover-a-missing-browser-draft) |
+| Understand checkout confirmation and recovery | [Payment Processor: Checkout Completion](/docs/operations/payment-processor/#4-completion-and-webhook) |
+| Configure report recipients, opt-outs, and scheduled retries | [Email: Campaign Runner Reports](/docs/operations/email-system/#campaign-runner-reports) |
+| Run the advisory supporter-message evaluation | [Testing: Advisory Jev Pilot](/docs/operations/testing/#advisory-jev-pilot) |
+| Clean generated files while preserving local state and evidence | [Contributing: Local Workspace Cleanup](/docs/development/contributing/#local-workspace-cleanup) |

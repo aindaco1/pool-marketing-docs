@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-6 de septiembre de 2026
+27 de septiembre de 2026
 
 Este es el runbook del operador canónico para el estado propiedad de The Pool que no se puede recrear mediante una implementación normal. Cubre el historial de Git, Cloudflare KV, metadatos del proveedor, pedidos de restauración, retención y evidencia de recuperación. Nunca trata los valores secretos como contenido de respaldo.
 
@@ -39,7 +39,7 @@ npm run backup:inventory:audit
 - `VOTES` contiene votos de los patrocinadores y proyecciones de resultados publicadas.
 - `RATELIMIT` y el estado de inicio de sesión/sesión/vista previa del navegador están en cuarentena y no se restauran normalmente. `admin-login-history:*` con privacidad minimizada es evidencia de incidente, no una sesión activa, y se restaura solo cuando un incidente lo requiere.
 - Stripe sigue teniendo autoridad para los objetos de proveedores de pagos. Una instantánea The Pool registra identificadores y los compara como de solo lectura; no reemplaza los registros Stripe.
-- El almacenamiento Durable Object nunca se importa. La intención de pago, el inventario de nivel escaso y la coordinación de la liquidación deben revalidarse o reconstruirse a partir de la verdad del aporte, la configuración de la campaña, el estado de Stripe y las verificaciones de proyección.
+- El almacenamiento Durable Object nunca se importa. La evidencia de finalización/nonce de pago, el inventario de nivel escaso y la coordinación de acuerdos deben revalidarse o reconstruirse a partir de la veracidad del aporte, la configuración de la campaña, el estado de Stripe y las verificaciones de proyección.
 - Los secretos son solo de inventario: la evidencia instantánea puede incluir nombres de secretos configurados y estados faltantes/configurados, nunca valores.
 
 ## Comandos de preparación e instantáneas
@@ -228,3 +228,7 @@ Luego revise Campañas, Análisis, Informes, Colaboradores, Usuarios, Marketing,
 ## evidencia del incidente
 
 Registre el hash de recepción de instantáneas, la confirmación de origen, el destino de restauración, la hora de inicio/finalización, el operador/aprobador, la verificación previa del tráfico, los recuentos de conciliación, la verificación de vista previa, las decisiones de la puerta de producción, las claves/familias restauradas o reconstruidas, las discrepancias residuales y la hora exacta en que se reanudó la automatización. La evidencia no debe contener valores secretos, contenidos de respaldo completo, cargas útiles del proveedor sin procesar ni datos innecesarios del cliente.
+
+## Copias de trabajo de campaña
+
+El paquete de recuperación del repositorio incluye `_campaign_drafts/` con las fuentes de la campaña publicadas. Restaure ambos antes de reabrir la edición. El acceso a la vista previa sigue siendo información de KV de corta duración y no se restaura. Una copia de trabajo guardada contiene su base de creación pública; Después de una restauración divergente, Publish informa un conflicto de revisión en lugar de reemplazar el contenido público restaurado. Al archivar una campaña se conserva su copia de trabajo y se tienen en cuenta los borradores de referencias de los medios. Los borradores de contenido local del navegador y las copias de `:recovery-v1` permanecen separados y requieren recuperación en el navegador/perfil original; consulte [Recuperación del panel](/es/docs/operations/admin-dashboard/#recuperar-un-borrador-perdido-del-navegador).

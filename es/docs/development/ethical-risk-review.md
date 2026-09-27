@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-6 de septiembre de 2026
+27 de septiembre de 2026
 
 Esta guía adapta el Ethical OS Toolkit del Institute for the Future y Omidyar Network a las superficies de crowdfunding, pagos, correo electrónico, administración y uso compartido público de The Pool. Úselo como una revisión práctica de riesgos, no como un reemplazo de la seguridad, accesibilidad, privacidad o revisión legal.
 
@@ -117,3 +117,7 @@ Trátelos como bloqueadores de liberación hasta que se resuelva explícitamente
 - Revise esta guía cuando el producto agregue nuevas audiencias, nuevos usos de datos, nueva automatización o nuevos canales de distribución.
 
 Los registros de revisión ética específicos de la liberación pertenecen a la [evidencia de liberación](https://github.com/aindaco1/pool/tree/main/docs/release-evidence) correspondiente en lugar de a esta guía del estado actual.
+
+## Cuentas de administrador no asignadas — 2026-09-09
+
+Al guardar usuarios se conserva una cuenta de campaña no asignada previamente sin otorgar acceso a la campaña. La excepción proviene únicamente de los usuarios almacenados; Las listas permitidas proporcionadas por el navegador no pueden crear cuentas no asignadas ni eliminar una asignación existente. La autorización de superadministrador, CSRF y por campaña siguen teniendo autoridad. No se reenvía ninguna notificación para un usuario existente sin cambios y la membresía Store permanece en su clave separada.
