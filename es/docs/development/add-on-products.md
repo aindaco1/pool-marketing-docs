@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-6 de septiembre de 2026
+27 de septiembre de 2026
 
 Este documento describe el sistema de producto complementario actual.
 
@@ -185,6 +185,8 @@ Valores predeterminados del inventario actual:
 El flujo de complementos actual tiene en cuenta intencionalmente el inventario:
 
 - El inventario puede vivir en el producto en sí o en cada variante.
+- inventario en blanco, omitido o `null` significa ilimitado; `0` explícito significa agotado y los recuentos positivos disminuyen con las ventas guardadas.
+- Worker, carrito y Manage Pledge preservan esa distinción tanto para el inventario de productos como para el de variantes.
 - Los complementos globales leen el inventario de `add_ons`.
 - complementos de campaña leer inventario de `campaign_add_ons`
 - Worker expone una instantánea del inventario actual en [/add-ons/inventory](https://github.com/aindaco1/pool/blob/main/worker/src/index.js)

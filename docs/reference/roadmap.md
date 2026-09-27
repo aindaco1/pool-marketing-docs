@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-September 6, 2026
+September 27, 2026
 
 This document contains prospective work only.
 It describes neither the current product nor a promised release date or version.
@@ -101,6 +101,13 @@ belong in the [Changelog](/docs/reference/changelog/), with release verification
   evidence.
 
 ## Developer Workflow And Platform Validation
+
+- Review the advisory Jev supporter-message pilot before adding any default or
+  CI gate. Have a fluent reviewer label representative English/Spanish examples,
+  calibrate on a separate set, validate on fresh held-out examples, and confirm
+  repeated-run stability and incremental coverage over existing exact checks.
+  Keep checkout arithmetic, permissions and provider acceptance deterministic.
+  The current workflow belongs in [Testing](/docs/operations/testing/#advisory-jev-pilot).
 
 - Add a containerized manual checkout/browser path when it provides coverage
   beyond the automated headless Podman suite.

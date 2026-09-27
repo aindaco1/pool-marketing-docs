@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-6 de septiembre de 2026
+27 de septiembre de 2026
 
 Este documento describe la estructura de localización actual de The Pool y el flujo de trabajo admitido para agregar idiomas en una bifurcación. El inglés es la configuración regional predeterminada y el español es la configuración regional secundaria mantenida.
 
@@ -302,3 +302,6 @@ Todavía intencionalmente fuera del alcance de este modelo:
 - un canal de traducción automática en el repositorio
 
 El posible trabajo de localización se rastrea en [Roadmap](/es/docs/reference/roadmap/).
+
+
+La solicitud del panel y los comentarios de validación utilizan el catálogo en inglés/español de Platform Admin Shell anclado. The Pool proporciona etiquetas de campo de dominio y contexto de diario de `_data/i18n/`; La red genérica, la sesión, el conflicto, el tamaño de carga, el error del proveedor y la copia del motivo de validación permanecen compartidos. Los errores desconocidos reciben un respaldo seguro localizado. Los diagnósticos de backend sin procesar siguen siendo datos del desarrollador, no una copia de la interfaz de usuario sin traducir. Los títulos de las campañas y los diarios escritos por el creador conservan su idioma original.

@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-September 6, 2026
+September 27, 2026
 
 This is the endpoint reference for contributors and operators integrating with
 the Pool Worker. It consolidates the route examples previously spread across
@@ -17,6 +17,42 @@ the architecture and component guides. The handlers in
 [`worker/src/index.js`](https://github.com/aindaco1/pool/blob/main/worker/src/index.js) and
 [`worker/src/routes/`](https://github.com/aindaco1/pool/tree/main/worker/src/routes) are authoritative; this is a guide
 to the documented integration routes, not a generated inventory of every handler.
+
+### Campaign working copies
+
+`GET /admin/campaigns/draft?campaignSlug=<slug>` returns the editable content and
+`baseRevision`, `hasWorkingCopy`, `isPublished`, `hasUnpublishedChanges`, `savedAt`,
+and the current admin’s active preview link. `GET /admin/settings?working=true`
+returns campaign fields from the same saved working copy and includes its revision
+in each campaign section’s `workingCopy`. Both require campaign-scoped admin access
+and remain private/no-store; draft files never enter the public campaign catalog.
+
+`POST /admin/campaigns/draft` requires campaign-editor permission, CSRF, a matching
+`baseRevision`, and `intent: "save"` or `"publish"`. Its JSON body is capped at 512 KiB;
+media uses the existing bounded upload endpoints. Save accepts `campaignSlug`,
+`draft: { title, shortBlurb, longContent }`, and `changes` using the existing settings
+change format. Every change must belong to that slug; `settingsRevision` must match
+when settings changes are present. The Worker validates the merged candidate,
+including featured-tier references, and commits one `_campaign_drafts/<slug>.md`
+file. It does not write public campaign data, send invitations, or delete media.
+
+Publish accepts the slug and saved revision, verifies that public authoring fields
+still match the working copy’s base, and promotes only authoring fields into the
+current `_campaigns/<slug>.md`. It preserves runtime/settlement fields, sets
+`published: true`, `preview_only: false`, and `visibility: public`, and requests a
+rebuild. Title, ordered valid dates, and a positive goal are required. Both actions
+return the updated working-copy status and reject stale revisions with HTTP 409
+`campaign_revision_conflict`. The local repo helper implements the same revision
+precondition with serialized atomic file replacement.
+
+Protected preview publishing accepts optional `workingRevision` and
+`preserveLinks: true` from the current dashboard. A stale working revision fails;
+active links retain their original token and expiry while new invitations are
+added within the existing reviewer limit. Preview reads the latest saved working
+copy. Legacy content/settings publishing endpoints remain supported for open older
+dashboards; a public edit through those paths causes a conflicting draft Publish
+to fail rather than overwrite it.
+
 
 ## Authentication and Related Runbooks
 
@@ -65,6 +101,20 @@ The Worker rebuilds tier, bundle add-on, custom-support, shipping, and subtotal 
 When a pledge qualifies for shipping upgrades, the Worker also persists the selected limited delivery option (`standard`, `signature_required`, or `adult_signature_required`) so the cart, Manage Pledge, stored pledge total, and supporter emails stay aligned.
 
 Limited-tier reservations and claims are serialized through a per-campaign Durable Object coordinator before the KV inventory snapshot is updated, so concurrent checkout starts, retries, modifications, and webhook completions cannot oversell scarce rewards.
+
+### POST /checkout-intent/complete
+
+Body: `{ "orderId": "pool-intent-...", "sessionId": "cs_..." }`.
+Trusted-origin, per-order rate-limited completion of the existing Stripe setup session.
+A `200` response with `persisted: true` confirms persistence without a further summary
+read. Concurrent completion returns `409` with `retryable: true`; verification failures
+return an error and `persisted: false`. This route does not charge the supporter.
+
+### GET /checkout-intent/summary?orderId={orderId}
+
+Returns a private, non-cacheable summary. A saved quote has `persisted: false` and
+`pledgeStatus: "pending"`; only persisted pledges/confirmed bundles return
+`persisted: true`. An absent quote or pledge returns `404`.
 
 ### GET /pledges?token={token}
 Get the pledge(s) authorized by a magic link token.
@@ -244,10 +294,12 @@ The private `/admin/` and `/es/admin/` shells use cookie-backed Worker routes in
 - `GET /admin/settings` reads a role-scoped settings/config snapshot for the dashboard
 - `POST /admin/settings/preview` validates settings changes without publishing
 - `POST /admin/settings/logo-upload`, `POST /admin/settings/image-upload`, `POST /admin/settings/audio-upload`, and `POST /admin/settings/video-upload` stage dashboard uploads through the same GitHub-backed publish path as their owning settings/content fields; image/video uploads request the **Optimize dashboard media** workflow with `scope=changed` after commit, while native image optimization and video transcoding still run in the repository media pipeline rather than inside the Worker
+  - Video uploads accept a raw binary body with `Content-Type: video/mp4`, `video/webm`, or `video/quicktime`. Query parameters carry `filename`, `size` (exact bytes), `kind`, `campaignSlug`, and optional `collection`, `fieldPath`, `filenameBase`, `replaceGithubPath`, and `replaceSha`. The limit is 100,000,000 file bytes; metadata is limited to 8,192 URL-query characters. Session and CSRF authorization precede reading video bytes. The Worker verifies the actual streamed length against `size` and, when present, `Content-Length`, then streams base64 JSON to GitHub with a ten-minute deadline and a bounded response. Invalid/truncated streams cannot complete the GitHub JSON document; redirects and automatic write retries are prohibited. Success retains the existing path/SHA/processing response shape and reports the exact byte count.
+  - Legacy JSON/base64 video requests remain supported within a 12 MiB request-body limit for older tabs. Full-size uploads require the binary format; deploy the Worker before refreshing Pages. Other media endpoints keep their existing JSON contracts and limits.
 - `POST /admin/settings/publish` validates and publishes platform settings, platform add-ons, campaign variables, and campaign structured data through GitHub-backed commits
 - The browser remembers dashboard tab/subtab context locally across reloads; this restoration does not call a Worker route and does not write KV or GitHub state
 - `POST /admin/users` saves dashboard-managed admin users directly to `admin-users:v1` in Worker KV and emails newly created users sign-in instructions when Resend is configured
-- `POST /admin/campaigns/create` lets super admins create preview-only campaigns through the GitHub-backed campaign source path, assign one or more existing campaign users, optionally create multiple new campaign users in `admin-users:v1`, email assigned users the admin dashboard link, and record an audit event
+- `POST /admin/campaigns/create` lets super admins create preview-only campaigns through the GitHub-backed campaign source path, optionally assign existing/new campaign users in `admin-users:v1`, email assigned users the admin dashboard link, and record an audit event. Assignments are additive; unrelated existing users, including unassigned users, are preserved. A failed campaign file write leaves users unchanged and sends no assignment email.
 - `POST /admin/campaigns/archive` lets super admins archive non-live campaigns locally in dev or by dispatching `.github/workflows/archive-campaign.yml` in production; the Worker validates CSRF, role, slug, campaign existence, and effective state, records an audit event, and moves campaign source/media through the dev repo helper or GitHub Actions
 - `POST /admin/campaign-preview/publish` lets super admins and assigned campaign users publish a protected preview, stores the publishing admin plus optional reviewer emails in `campaign-preview-reviewers:{slug}` with a 24-hour TTL, returns a signed dashboard preview link for the publishing admin, sends signed links to optional reviewers, writes only preview flags to campaign Markdown, and records an audit event
 - `GET /admin/campaign-preview/:slug` returns a private/no-store full campaign page preview payload with campaign fonts/media embeds and read-only pledge controls when the requester has an authorized admin session or a valid reviewer token whose email is still on the 24-hour KV allowlist
@@ -350,7 +402,8 @@ Notes:
 
 - `dryRun: true` returns recipients, row counts, filename, and marker status without sending
 - omitting `markAsSent` defaults it to `true` for live sends so the matching scheduled run does not immediately duplicate the report
-- campaign recipients still come from campaign front matter `runner_report_emails`
+- automatic retries reuse scheduled outbox identities; explicit manual sends retain their existing payload-based deduplication, so `markAsSent: false` does not consume the scheduled report
+- campaign recipients are current assigned campaign users plus front matter `runner_report_emails`, excluding `runner_report_excluded_emails`; previews, scheduled sends, and manual sends use the same resolution
 - `reportType: "pledge"` is the daily live-campaign ledger report
 - `reportType: "fulfillment"` is the one-time post-deadline shipment/export report
 - report emails use short, emoji-free, deliverability-first subjects with the configured prefix plus report kind and campaign title
@@ -383,7 +436,7 @@ Operational guidance:
 
 - prefer `dryRun: true` first when checking a new campaign, recipient list, or customization change
 - set `markAsSent: false` only when you intentionally want a manual send without consuming the scheduled-send marker
-- deployment-wide behavior comes from `_config.yml` under `reports.campaign_runner`, while per-campaign recipients stay in front matter
+- deployment-wide behavior comes from `_config.yml` under `reports.campaign_runner`; assignments come from the effective admin-user store, while additional recipients and opt-outs use campaign front matter (see [Email](/docs/operations/email-system/#campaign-runner-reports))
 - for fulfillment, validate both the runner and platform slices before sending if a campaign includes platform add-ons
 
 ### POST /test/email

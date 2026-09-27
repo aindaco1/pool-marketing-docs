@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-6 de septiembre de 2026
+27 de septiembre de 2026
 
 The Pool utiliza Stripe como procesador de pagos, con Cloudflare Worker como límite canónico de pago, aporte, webhook y liquidación. El sitio público puede recopilar la intención del carrito, pero Worker reconstruye la forma del dinero, crea sesiones Stripe, mantiene los aportes y luego cobra los métodos de pago guardados solo cuando una campaña de todo o nada tiene éxito.
 
@@ -255,8 +255,8 @@ Stripe envía `checkout.session.completed`. El Worker:
 3. Comprueba la idempotencia de `stripe-event:{event.id}`.
 4. Recupera los detalles de la sesión Stripe, SetupIntent, cliente y método de pago según sea necesario.
 5. Carga el manifiesto de pago guardado.
-6. Vuelve a calcular el hash de pago y valida el manifiesto.
-7. Persiste un registro `pledge:{orderId}` por campaña.
+6. Verifica la cotización Worker guardada con el hash de metadatos Stripe, incluida la opción de envío.
+7. Serializa la finalización del webhook/recuperación por pedido a través de `CHECKOUT_INTENTS` y conserva un registro `pledge:{orderId}` por campaña con los totales de cotización aceptados.
 8. Actualiza índices y proyecciones de campaña.
 9. Confirma reservas de nivel limitado.
 10. Envía un correo electrónico de confirmación al colaborador a través de Resend.
@@ -271,7 +271,15 @@ El sidecar de pago personalizado también tiene una ruta de recuperación proteg
 POST /checkout-intent/complete
 ```
 
-Esa ruta recupera la sesión Stripe y crea el aporte si el webhook se retrasó o se perdió en el desarrollo local. Tiene control de origen, alcance de pedido y límite de reintentos.
+Esa ruta recupera la sesión Stripe existente y crea el aporte si el webhook se retrasa o se pierde, en producción o desarrollo. Tiene control de origen, alcance de pedido y límite de reintentos. Su exitosa respuesta de persistencia es autoritaria; el navegador no requiere una segunda lectura KV eventualmente consistente para mostrar éxito. Una finalización simultánea devuelve un conflicto que se puede volver a intentar. El coordinador por pedido conserva la evidencia de finalización durante 24 horas y expira su almacenamiento mediante alarma.
+
+La configuración de la tarjeta no autoriza un total diferente. La finalización utiliza la cotización guardada verificada en lugar de volver a calcular los impuestos/envío desde la dirección más completa de Stripe o una respuesta modificada del proveedor. Las nuevas cotizaciones de pago conservan la dirección de envío proporcionada y utilizan su destino fiscal completo. Cumplimiento lee tanto `collected_information.shipping_details` como `shipping_details` heredado, con la dirección guardada como alternativa. Para sesiones de configuración personalizadas que omiten el envío desde la representación API actual, la recuperación recupera la misma sesión utilizando la representación `2022-11-15` heredada del webhook; Esta es una excepción de compatibilidad de solo lectura para el pin API predeterminado.
+
+Después de la configuración de la tarjeta, el navegador conserva solo la referencia del pedido/sesión en el almacenamiento de la sesión con pestañas durante un máximo de 24 horas. Los reintentos automáticos limitados y **Verificar estado de aporte** reanudan ese pedido sin invocar la confirmación Stripe ni iniciar otro pago. Un intento no resuelto muestra que el aporte no está confirmado, que no se produjo ningún cargo en la configuración, su referencia y el contacto de soporte configurado. Cerrar/reabrir el cajón o recargar la pestaña conserva este estado. Cerrar un cajón libera reservas escasas, pero conserva el vencimiento de 24 horas existente de la cotización para los webhooks retrasados.
+
+Las páginas de resultados en inglés y español ocultan la copia exitosa y conservan el carrito hasta que esté disponible un recibo de finalización exitosa o un resumen persistente. Las URL de redireccionamiento Stripe llevan el ID de sesión existente para su recuperación; la página lo elimina de la barra de direcciones y conserva la misma referencia con alcance de pestañas. Un manifiesto propio faltante o vencido no se cierra en lugar de reconstruir totales diferentes de la configuración actual.
+
+Para un incidente, inspeccione el estado de la sesión de configuración de Stripe, los registros de aporte canónicos y los resultados del webhook por separado. Varias sesiones de configuración pueden ser intentos repetidos de un aporte prevista. No recupere cada sesión a ciegas: primero concilie el pedido previsto, el total cotizado, los registros existentes y el inventario. Nunca cree un cargo para reparar la confirmación de pago.
 
 ## Administrar tarjeta de aporte y actualización
 

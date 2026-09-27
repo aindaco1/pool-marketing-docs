@@ -58,7 +58,7 @@ La calculadora de envíos debe cumplir con el modelo de seguridad vigente:
 - sin llamadas directas inseguras del navegador a USPS
 - no hay almacenamiento de larga duración para el cliente del estado de cotización de envío sensible más allá de lo que el flujo de pago actual ya necesita
 - Las fallas de USPS deben degradarse a la tasa de respaldo configurada en lugar de crear una derivación insegura o un estado de pago roto
-- Las respuestas Worker que contienen información interna sobre cotizaciones de envío utilizan la postura actual de respuesta privada/sin tienda cuando corresponda.
+- Las respuestas Worker que contienen información interna sobre cotizaciones de envío utilizan la postura actual de respuesta privada/no-store cuando corresponda.
 
 ### Accesibilidad
 

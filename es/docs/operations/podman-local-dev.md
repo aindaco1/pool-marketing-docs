@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-6 de septiembre de 2026
+27 de septiembre de 2026
 
 Este repositorio incluye una ruta de desarrollo local sin raíz respaldada por Podman para los dos servicios que normalmente crean la mayor rotación de configuración de host:
 
@@ -74,18 +74,11 @@ El modo Podman está diseñado en torno a tres prioridades:
 
 |SO anfitrión|modelo podman|Estado de soporte|
 |---------|--------------|----------------|
-|macos|`podman machine` máquina virtual|Validado por el anfitrión. Prefiera `libkrun` si `applehv` es inestable.|
+|macos|`podman machine` máquina virtual|Validado por el host con la máquina compartida seleccionada.|
 |linux|Podman nativo desarraigado|Apoyado por la lógica del lanzador y el flujo de autoverificación; La validación del host físico no se registra.|
 |ventanas|`podman machine` máquina virtual|Compatible con la lógica del iniciador y el flujo de autoverificación desde un shell compatible con bash; La validación del host físico no se registra.|
 
-En macOS y Windows, `./scripts/dev.sh --podman` inicializará/iniciará el `podman machine` predeterminado cuando sea necesario. En Linux, el iniciador omite la administración de la máquina y se comunica directamente con el motor Podman local sin raíz.
-
-Si Podman en macOS aparece en el backend `applehv` anterior y el inicio de la máquina es inestable, prefiera `libkrun` en `~/.config/containers/containers.conf`:
-
-```toml
-[machine]
-provider = "libkrun"
-```
+En macOS y Windows, las herramientas de proyecto usan `CONTAINER_HOST` o `CONTAINER_CONNECTION` cuando se suministran; de lo contrario, la conexión predeterminada seleccionada por Podman. Nunca inicializan, inician, detienen ni reinician una VM compartida. En Linux, utilizan el motor nativo sin raíz. Inicie/seleccione una máquina una vez en el nivel de host antes de iniciar proyectos; utilice el mismo ejecutable Podman en PATH para todos los proyectos y cualquier servicio de inicio de sesión.
 
 ## Iniciar desarrollo local
 
@@ -135,7 +128,7 @@ http://127.0.0.1:4000/admin/
 
 El trabajador local ofrece API de panel en `http://127.0.0.1:8787`, con `CORS_ALLOWED_ORIGIN` derivado para el sitio local. El panel puede ejercitar las campañas de prueba locales inicializadas y el KV local. La gestión de usuarios del panel guarda la escritura en KV local (`admin-users:v1`) en lugar de comprometerse con GitHub. La configuración de Dev Worker también establece `ADMIN_LOCAL_REPO_WRITES_ENABLED=true` e inicia un asistente de repositorio local protegido por token en la dirección de bucle invertido del contenedor de Worker, por lo que **Crear nueva campaña** y **Archivar campaña** pueden escribir/mover archivos en el repositorio montado en lugar de depender del envío del flujo de trabajo de GitHub mientras se realizan pruebas localmente.
 
-Foreground `./scripts/dev.sh --podman` también supervisa el módulo de desarrollo. Si Jekyll o Wrangler sale, el iniciador imprime registros recientes, reinicia el contenedor detenido y vuelve a crear el pod si un reinicio directo no es suficiente. Se vuelve a intentar la recreación del pod porque Podman ocasionalmente puede devolver errores de inicio parcial como `starting some containers: internal libpod error`; entre intentos, el iniciador elimina contenedores/pods de desarrollo parciales por nombre y etiqueta de pila de desarrollo, verifica que los artefactos antiguos hayan desaparecido, espera a que se libere el puerto de Podman, actualiza la conexión Podman y reinicia la máquina Podman en macOS/Windows si la limpieza por sí sola no borra el estado obsoleto. El lanzador también inicia el pod vacío antes de agregar el sitio y los contenedores Worker, lo que evita una ruta Podman inestable donde un pod creado puede dejar `pool-dev-site` creado y `pool-dev-worker` perdido. Las comprobaciones de preparación de Jekyll esperan la página `/admin/` real en lugar de cualquier respuesta HTTP, por lo que un oyente obsoleto o un sitio aún en construcción no cuentan como listos. Un volumen Worker frío recibe un período de gracia de instalación de dependencia verificado mediante hash de bloqueo independiente antes de que se inicie el reloj de estado del tiempo de ejecución normal, lo que evita que un `npm ci` lento se elimine y se reinicie indefinidamente; Los volúmenes cálidos se saltan esa espera inmediatamente. Ajuste el intervalo de verificación con `PODMAN_SUPERVISE_INTERVAL`, la cola del registro de reinicio con `PODMAN_SUPERVISE_LOG_LINES`, los reintentos de inicio con `PODMAN_STACK_START_ATTEMPTS`, el retraso de reintento con `PODMAN_STACK_RETRY_DELAY`, el tiempo de espera de preparación del sitio con `PODMAN_SITE_READY_TIMEOUT`, el tiempo de espera de instalación en frío de Worker con `PODMAN_WORKER_INSTALL_TIMEOUT` y el tiempo de espera de preparación del tiempo de ejecución de Worker con `PODMAN_WORKER_READY_TIMEOUT`. Los flujos auxiliares separados aún obtienen la política de reinicio `unless-stopped` de Podman en el sitio y los contenedores Worker.
+Foreground `./scripts/dev.sh --podman` también supervisa el módulo de desarrollo. Si Jekyll o Wrangler sale, el iniciador imprime registros recientes, reinicia el contenedor detenido y vuelve a crear el pod si un reinicio directo no es suficiente. Se vuelve a intentar la recreación del pod porque Podman ocasionalmente puede devolver errores de inicio parcial como `starting some containers: internal libpod error`; entre intentos, el iniciador elimina contenedores/pods de desarrollo parciales por nombre y etiqueta de pila de desarrollo, verifica que los artefactos antiguos hayan desaparecido, espera a que se libere el puerto de Podman, actualiza la conexión Podman e informa un motor inalcanzable sin reiniciar la VM compartida. El lanzador también inicia el pod vacío antes de agregar el sitio y los contenedores Worker, lo que evita una ruta Podman inestable donde un pod creado puede dejar `pool-dev-site` creado y `pool-dev-worker` perdido. Las comprobaciones de preparación de Jekyll esperan la página `/admin/` real en lugar de cualquier respuesta HTTP, por lo que un oyente obsoleto o un sitio aún en construcción no cuentan como listos. Un volumen Worker frío recibe un período de gracia de instalación de dependencia verificado mediante hash de bloqueo independiente antes de que se inicie el reloj de estado del tiempo de ejecución normal, lo que evita que un `npm ci` lento se elimine y se reinicie indefinidamente; Los volúmenes cálidos se saltan esa espera inmediatamente. Ajuste el intervalo de verificación con `PODMAN_SUPERVISE_INTERVAL`, la cola del registro de reinicio con `PODMAN_SUPERVISE_LOG_LINES`, los reintentos de inicio con `PODMAN_STACK_START_ATTEMPTS`, el retraso de reintento con `PODMAN_STACK_RETRY_DELAY`, el tiempo de espera de preparación del sitio con `PODMAN_SITE_READY_TIMEOUT`, el tiempo de espera de instalación en frío de Worker con `PODMAN_WORKER_INSTALL_TIMEOUT` y el tiempo de espera de preparación del tiempo de ejecución de Worker con `PODMAN_WORKER_READY_TIMEOUT`. Los flujos auxiliares separados aún reciben la política de reinicio `unless-stopped` de Podman en el sitio y los contenedores Worker.
 
 ## Reconstruir imágenes
 
@@ -266,38 +259,15 @@ npm run podman:doctor
 
 Esa secuencia ejerce la misma ruta de dispositivo de prueba con reconocimiento de ubicación en la que se basa la puerta de fusión.
 
-Si `./scripts/dev.sh --podman` nunca supera el inicio de Podman, primero verifique la máquina:
+Si el arranque falla, inspeccione el motor seleccionado antes de cambiar algo:
 
 ```bash
-podman machine inspect
-podman machine stop
-podman machine start
-```
-
-Si la máquina arrancó en modo de emergencia o se bloqueó durante el primer arranque, la recuperación más rápida es:
-
-```bash
-podman machine rm -f podman-machine-default
-podman machine init --now
-```
-
-En macOS, el iniciador utiliza el socket API Unix reenviado de la máquina directamente una vez que la VM está activa. Esto evita una clase de problemas de conexión predeterminados que vimos con la CLI empaquetada.
-
-El doctor y el iniciador también realizan una breve verificación de estabilidad después del inicio para que no parpadeen en verde en una máquina que inmediatamente vuelve a caer en un estado de conexión obsoleta.
-
-En Linux, si `podman info` falla, arregle primero la sesión local de Podman sin raíz y luego vuelva a ejecutar el doctor:
-
-```bash
+podman system connection list
+podman machine list
 podman info
-npm run podman:doctor
 ```
 
-En Windows, si `podman machine` existe pero la VM está detenida, use:
-
-```bash
-podman machine start podman-machine-default
-npm run podman:doctor
-```
+Utilice `podman machine start <selected-machine>` solo si esa máquina está detenida y no hay otra máquina activa. Un error de conexión transitorio no significa permiso para reiniciar una VM: es posible que aún se estén ejecutando otros proyectos. No elimine una máquina ni elimine el almacenamiento como recuperación de conexión de rutina.
 
 ## Notas de seguridad
 
@@ -318,3 +288,30 @@ El modo Podman no pretende clonar perfectamente la producción de Cloudflare, pe
 - la misma ruta del navegador de compilación estática utilizada por el arnés sin cabeza del host
 
 El trabajo prospectivo de Podman y de validación multiplataforma se rastrea en [Roadmap](/es/docs/reference/roadmap/).
+
+## Proyectos concurrentes
+
+Utilice un motor sin raíz compartido en macOS. The Pool publica los puertos 4000/8787 con recursos `pool-dev-*`; Store publica 4002/8989 con recursos `store-dev-*`. Cada lanzador elimina solo los contenedores/pod de su propio proyecto. Un puerto de host ocupado provoca que el inicio falle con un diagnóstico; nunca señala a un oyente desconocido. Se admite una pila de desarrollo por proyecto; Las extracciones simultáneas del mismo proyecto no deben compartir estos nombres de recursos fijos ni el estado local.
+
+Configure `CONTAINER_CONNECTION=<name>` o `CONTAINER_HOST=<url>` por comando para usar un motor específico. Establezca el valor predeterminado del host normal con `podman system connection default <name>`; Los lanzadores de proyectos no lo cambian. Utilice un servicio de inicio de sesión de host para iniciar la VM seleccionada una vez, en lugar de poner la recuperación de la máquina en el supervisor de cada proyecto. Reiniciar los contenedores del proyecto es seguro; reiniciar el motor interrumpe todos los proyectos.
+
+El mínimo de versión de 6 GiB cubre la puerta de un único proyecto, no todas las cargas de trabajo simultáneas. RAM económica para compilaciones, conjuntos de navegadores y servicios combinados; inspeccionar `podman stats` y `podman system df`. Cambie el tamaño solo durante una ventana de mantenimiento inactiva. Ningún iniciador de proyectos elimina el almacenamiento compartido.
+
+## Actualizando la máquina
+
+Verifique `podman version` después de actualizar la CLI del host. Mantenga el motor de VM en la misma línea principal/menor admitida. En una ventana de mantenimiento inactiva, pausa cualquier vigilancia de inicio de sesión, confirma que `podman ps` no tiene cargas de trabajo en ejecución y usa la actualización local del sistema operativo de Podman, por ejemplo:
+
+```bash
+podman machine os apply quay.io/podman/machine-os:6.1 <selected-machine>
+podman machine stop <selected-machine>
+podman machine set --memory 16384 <selected-machine>
+podman machine start <selected-machine>
+podman version
+npm run podman:doctor
+```
+
+Elija la versión de la imagen y la RAM para la CLI instalada y la capacidad del host; Estos valores de ejemplo no son actualizaciones automáticas. Conserve imágenes/volúmenes existentes y compare inventarios antes/después. Restaure el mecanismo de vigilancia de inicio de sesión después de la verificación. Referencia oficial: [sistema operativo de la máquina apply](https://docs.podman.io/en/latest/markdown/podman-machine-os-apply.1.html).
+
+## Aislamiento de caché Jekyll
+
+Los comandos del contenedor Jekyll desactivan la caché en el disco. El repositorio montado puede contener una caché Ruby del host o una entrada de caché sincronizada con iCloud incompleta; ninguno de los dos puede impedir el inicio del contenedor. El almacenamiento en caché en memoria y el volumen de dependencia persistente de Bundler permanecen disponibles.

@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-25 de agosto de 2026
+27 de septiembre de 2026
 
 Este documento describe la línea base de accesibilidad actual de The Pool, las superficies de interacción de mayor riesgo cubiertas por la verificación manual o automática y las restricciones aplicadas a los cambios de interfaz.
 
@@ -75,7 +75,7 @@ La interfaz actual incluye:
   - Controles de carga de medios del editor de contenido con entradas de archivos nativos etiquetados, enfoque visible en el botón de carga con estilo, regiones de estado de carga y vistas previas locales del navegador antes de la publicación.
   - Configuración de subtítulos de imagen de la galería que reutilizan la etiqueta compartida/patrón de ayuda y exponen el editor de subtítulos flotantes como un cuadro de texto de texto enriquecido etiquetado.
   - Búsqueda en la biblioteca de medios más filtros de imagen/vídeo/audio implementados como una lista de pestañas accesible, con estado seleccionado, metadatos/detalles de referencia accesibles mediante el teclado y acciones de reparación/reemplazo con nombre.
-  - texto alternativo requerido para imágenes de contenido significativas y un control explícito de imágenes decorativas que deshabilita y borra el texto alternativo en lugar de tratar un campo en blanco como un acceso directo de creación
+  - Texto alternativo recomendado para imágenes de contenido significativo que nunca bloquea Guardar o Publicar, y un control explícito de imágenes decorativas que desactiva y borra el texto alternativo.
   - Configuración -> Planificar encabezados de proveedores de uso que reutilizan la etiqueta de administración compartida/patrón de ayuda, el estado de carga gradual, el texto de la barra de progreso accesible y las tarjetas de métricas responsivas
   - Cree una nueva campaña y cuadros de diálogo de vista previa protegidos que reutilicen el patrón de etiqueta de administrador/ayuda/botón de información compartido, campos nativos, entrada de token de lista de correo electrónico, manejo de enfoque de diálogo y mensajes de estado cortés.
   - tablas de datos ordenables que exponen el estado `aria-sort` y los botones de clasificación

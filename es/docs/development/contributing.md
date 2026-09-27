@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-6 de septiembre de 2026
+27 de septiembre de 2026
 
 Esta guía cubre la incorporación, el flujo de trabajo de contribución y los patrones de desarrollo compartidos. Comience con [AGENTS](/es/docs/development/agents-operator-guide/) y el [índice de documentación](/es/docs/development/) para identificar la guía propietaria de su cambio.
 
@@ -74,6 +74,23 @@ Utilice nombres de rama `feat/`, `fix/` o `docs/` y prefijos de confirmación co
 
 Revise [Ethical Risk](/es/docs/development/ethical-risk-review/) para conocer cambios en el dinero, los datos de los patrocinadores, los mensajes, los análisis, el poder administrativo, la visibilidad o la automatización. El trabajo del panel también requiere los contratos pertinentes de [Accesibilidad](/es/docs/operations/accessibility/), [I18N](/es/docs/development/internationalization/), [Seguridad](/es/docs/operations/security/) y [SEO](/es/docs/operations/seo/).
 
+## Limpieza del espacio de trabajo local
+
+Ejecute la limpieza después de la validación y después de detener los servicios que utilizan la salida generada. Comience con `git status --short`, `git worktree list` y `git ls-files --others --ignored --exclude-standard --directory`; Ser ignorado no significa que un archivo sea desechable.
+
+|Conservar para desarrollo, pruebas o recuperación|Regenerar cuando sea necesario|
+| --- | --- |
+|Fuente, `_campaigns/`, `_campaign_drafts/`, medios del repositorio, pruebas/accesorios y evidencia de lanzamiento comprometida|`_site/` y compilaciones de sitios duplicados temporales|
+|Jev corpus/informe/archivos de revisión citados en la evidencia de divulgación|Jev ejecuta directorios `site/`|
+|Root y Worker `node_modules/`, gemas Ruby instaladas, configuración de `.bundle/` y submódulos compartidos|`.jekyll-cache/`, `.sass-cache/` y `.jekyll-metadata`|
+|`_config.local*.yml`, `worker/.dev.vars` y archivos de entorno local|`test-results/`, `playwright-report/` y salida de cobertura completados|
+|`worker/.wrangler/state/`, perfiles/borradores del navegador y exportaciones de recuperación|Limas desechables inspeccionadas bajo `tmp/` y `worker/.wrangler/tmp/`|
+|Máquinas Podman, imágenes/volúmenes de desarrollo e instalaciones del navegador Playwright|Registros y capturas de pantalla obsoletos ya conservados en la evidencia de publicación|
+
+Inspeccione `tmp/` antes de borrarlo: las exportaciones de recuperación o una investigación sin terminar no son artefactos de compilación. Mueva la salida seleccionada a un directorio de recuperación con fecha fuera de la caja o de la Papelera del sistema, y ​​registre sus rutas originales. Evite `git clean -fdx` general, la limpieza del almacenamiento del navegador o la poda de contenedores/volumen. Al reiniciar `./scripts/dev.sh --podman` se reconstruye el sitio; el arnés del navegador también crea `_site/` automáticamente. [Testing](/es/docs/operations/testing/#datos-de-prueba-locales) posee reinicios deliberados de estado local.
+
+Obtenga/elimine referencias remotas, compare cada punta de rama con su PR fusionado y verifique que ningún árbol de trabajo la utilice. Es posible que las ramas fusionadas por Squash no aparezcan en `git branch --merged`; verifique el jefe de relaciones públicas y combine el aporte en su lugar. Conserve el trabajo no fusionado o incorpore una corrección generada verificada antes de eliminar su rama. Guarde los nombres de las sucursales y los ID de confirmación, con un paquete Git para confirmaciones a las que no se puede acceder desde principal, antes de eliminar las referencias remotas y locales obsoletas. Vuelva a verificar las sugerencias inmediatamente antes de eliminarlas para conservar la confirmación más reciente de otro colaborador.
+
 ## Patrones de desarrollo
 
 El tema y la marca de correo electrónico/pago utilizan la superficie `design.*` / `platform.*` en [Personalización](/es/docs/development/customization-guide/). Jekyll compila `assets/main.scss` y los parciales The Pool bajo `assets/partials/` más los estilos de diseño de plataforma anclados; agregue estilos al componente existente o a la página parcial. Las hojas de estilo de fuentes se cargan desde el encabezado del documento. La minificación de activos generados pertenece a [Performance](/es/docs/operations/performance/).
@@ -98,6 +115,6 @@ El menú móvil para alternar obtiene un apilamiento elevado solo mientras `.is-
 
 ### Ayudantes de accesibilidad y localización
 
-Utilice `.sr-only` para admitir texto, controles etiquetados, estado SVG decorativo y el comportamiento de enfoque/regiones en vivo existentes. `_includes/a11y.html` suministra los patrones `sr-text` y `external-link`. Las imágenes significativas requieren texto alternativo; Las imágenes decorativas intencionadas utilizan el estado decorativo explícito.
+Utilice `.sr-only` para admitir texto, controles etiquetados, estado SVG decorativo y el comportamiento de enfoque/regiones en vivo existentes. `_includes/a11y.html` suministra los patrones `sr-text` y `external-link`. Se recomienda el texto alternativo para imágenes significativas y no bloquea el guardado ni la publicación; Las imágenes decorativas intencionadas utilizan el estado decorativo explícito.
 
 Las cadenas compartidas utilizan `_includes/t.html`, con interpolación y reserva de configuración regional. Los enlaces públicos utilizan los ayudantes locales; La preservación de token/consulta/hash es parte del contrato de esos ayudantes. Consulte [Accessibility](/es/docs/operations/accessibility/) y [I18N](/es/docs/development/internationalization/) para conocer los requisitos de verificación y comportamiento mantenido.

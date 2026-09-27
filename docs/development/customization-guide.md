@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-September 6, 2026
+September 27, 2026
 
 This guide covers the supported no-code customization surface for forks of The Pool.
 
@@ -593,8 +593,8 @@ Supported keys today:
 
 Current behavior:
 
-- campaign-level recipients live in campaign front matter as `runner_report_emails`
-- if that campaign field is missing or empty, no campaign-runner emails are sent for that campaign
+- assigned campaign users receive reports by default; additional recipients use `runner_report_emails` and saved opt-outs use `runner_report_excluded_emails` in campaign front matter (see [Email](/docs/operations/email-system/#campaign-runner-reports))
+- a missing or empty additional-recipient field still includes assigned campaign users; only an empty effective recipient list skips campaign-runner delivery
 - the send window is interpreted in `platform.timezone` so report timing stays aligned with the rest of the campaign lifecycle model
 - `email_subject_prefix` can be set to an empty string to disable the prefix entirely
 - when the prefix is omitted at runtime, the Worker falls back to `[platform.name]`

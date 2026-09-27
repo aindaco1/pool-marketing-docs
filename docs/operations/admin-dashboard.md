@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-September 6, 2026
+September 27, 2026
 
 This document is the operator reference and source of truth for The Pool's
 private dashboard-based campaign editing, reporting, analytics, marketing
@@ -76,12 +76,13 @@ The dashboard intentionally separates read-only browsing, local drafting, KV wri
 | Dashboard summary, analytics, reports, supporters, table filtering, and content preview | Read-only; adds zero KV writes |
 | Dashboard tab/subtab restoration | Browser-local UI state only; remembers the last allowed top-level tab, Settings section, selected Campaigns campaign, and Campaigns subtab without Worker, KV, or GitHub writes |
 | Content editor **Save draft** | Browser-local draft only |
-| Campaign content/settings publish | Worker validates input, writes to GitHub-backed files, triggers the normal rebuild/deploy path, and records an audit event |
+| Campaign **Save** | Worker validates the complete selected project and writes `_campaign_drafts/<slug>.md`; public campaign data remains unchanged |
+| Campaign **Publish** | Saves current edits, then promotes the saved authoring fields to `_campaigns/<slug>.md`, makes the campaign public, and triggers the normal rebuild/deploy path |
 | Protected preview publish | Worker validates campaign scope and base revision, writes only preview flags to GitHub-backed campaign Markdown, stores the publishing admin plus optional reviewer emails in `PLEDGES` KV at `campaign-preview-reviewers:<slug>` with a 24-hour TTL, returns a dashboard-visible signed link for the publisher, sends signed links to optional reviewers, and records an audit event |
 | Super-admin campaign creation | Worker creates a preview-only `_campaigns/<slug>.md` file locally in dev or through GitHub in production, optionally saves assigned/new campaign users to `admin-users:v1`, emails assigned campaign users when present, triggers rebuild when GitHub-backed, and records an audit event |
 | Super-admin campaign archive | Worker validates super-admin role, CSRF, campaign existence, and non-live state, then archives locally in dev or dispatches `.github/workflows/archive-campaign.yml` in production; the archive move keeps campaign source and campaign-owned media under `archive/campaigns/<slug>/` |
 | Platform settings and platform add-ons publish | Worker validates input, writes to GitHub-backed config/assets, triggers the normal rebuild/deploy path, and shows the result as a dashboard platform message |
-| Image/video/audio uploads | Worker validates media, commits the asset path through GitHub, and updates the relevant field locally until publish |
+| Image/video/audio uploads | Worker validates media, commits the asset path through GitHub, and updates the relevant field locally until project Save or platform Publish |
 | Marketing referral save/edit/delete | Campaign-scoped KV mutation for saved referral codes |
 | Settings -> Users save | Single KV write to `admin-users:v1` |
 | Settings -> Plan usage | Read-only Cloudflare/Resend provider API calls; zero KV writes or list operations |
@@ -92,7 +93,7 @@ The dashboard intentionally separates read-only browsing, local drafting, KV wri
 
 Normal dashboard reads must stay within the KV-write budget described in `worker/README.md` and covered by tests.
 
-GitHub-backed publish actions require the deployed Worker to have `GITHUB_TOKEN` plus the repo metadata variables configured. Without that token, the dashboard can still browse, draft, preview, manage runtime users, and save referral codes, but publish actions will fail with a GitHub configuration message. Successful publish actions leave the Publish button disabled again once the saved server state matches the local form state.
+GitHub-backed publish actions require the deployed Worker to have `GITHUB_TOKEN` plus the repo metadata variables configured. Campaign loading, Save, protected Preview, and Publish require the same GitHub configuration in production; the local development stack uses its configured repository helper. Browser backups do not depend on GitHub. Save becomes disabled when the editor matches the saved working copy; Publish remains enabled while the project has unpublished changes or has never been published.
 
 ## Top-Level Tabs
 
@@ -229,7 +230,8 @@ Rules:
 - You cannot delete your own super-admin account.
 - You cannot demote your own super-admin account.
 - You can demote or delete other super admins.
-- Campaign users must have at least one assigned campaign.
+- New campaign users must have at least one assigned campaign. An existing unassigned campaign user can remain unassigned while other users are edited; that account has no campaign access until an assignment is added. Clearing an existing assignment still requires removing the account or selecting another campaign.
+- Assignments accept unpublished repository campaigns shown in the dashboard, including newly created projects. A campaign does not need to be public before collaborators can be added.
 - User changes save to KV immediately through the Users save button; they do not use the Settings publish button.
 - Newly created users are emailed sign-in instructions when Resend is configured. Edits to existing users do not resend the email.
 
@@ -301,6 +303,8 @@ Leaving a variant price blank inherits the product base price. Publishing writes
 
 ## Campaigns
 
+The read-only **State** field shows the effective lifecycle state from the campaign dates in the platform timezone, including automatic launch and deadline transitions. It does not display a stale `state` value saved in campaign front matter.
+
 Campaigns are shown in a left sidebar. Super admins see all campaigns. Campaign users see only assigned campaigns.
 
 For super admins, the first row of the Campaigns sidebar is an icon-only `+` button for **Create new campaign**. Existing campaigns appear below that row. Campaign users do not see the create button.
@@ -321,18 +325,25 @@ Each campaign has these subtabs:
 
 Create new campaign is super-admin-only. It creates a preview-only campaign that remains invisible from public `/campaigns/:slug/`, localized campaign routes, homepage/community/add-on indexes, `/api/campaigns.json`, share cards, sitemap output, robots crawl intent, embeds, and public prefetch eligibility until the campaign is launched.
 
-Required fields:
-
-- campaign title
-- one or more campaign users
+The campaign title is required. Campaign user assignment is optional.
 
 Super admins can create a campaign with no assigned campaign users, select multiple existing campaign users, choose **Create new campaign user**, and add one or more new campaign users with required names and emails in the same dialog. New users are saved to `admin-users:v1`; assigned campaign users receive a Resend-powered email with the admin dashboard link when email delivery is configured.
 
+Creation adds the new campaign to selected users' existing assignments and preserves other users. An existing unselected user with no campaigns does not block creation or unrelated edits in **Settings -> Users**. This exception is derived from stored membership, never from a client-supplied allowlist.
+
 The Worker derives the slug from the title, writes `_campaigns/<slug>.md` through the existing GitHub publish path, sets preview-only/public-hidden defaults, triggers the normal rebuild, and records an audit event. The flow does not require launch dates, goal amount, rewards, images, or page content.
+
+### Saving and Publishing
+
+The **Save**, **Preview**, and **Publish** buttons apply to the selected campaign across all nine authoring subtabs. **Save draft** remains the Content editor’s browser-local backup. Saving locally does not clear the main Save button.
+
+Save writes one Git-backed working copy for both unpublished and already-public projects. It uploads staged Content and Diary media before committing the combined campaign settings/content. Uploaded assets use new paths; Save never changes live pages, prices, checkout, or existing live media. Failed saves retain editor changes. Draft files are excluded from Jekyll output and are included in repository backups; their repository and asset access follows the existing source/media model.
+
+Publish first saves current edits, then promotes the saved copy using the existing campaign-editor permission. Publication requires a title, valid ordered dates, and a positive goal. It clears the hidden flags; fundraising still follows dates. Public-source conflicts stop publication and preserve the working copy. Existing campaigns use their published copy until the first Save; no bulk migration is necessary.
 
 ### Protected Preview
 
-The **Preview** button appears next to **Publish** for campaign content. Super admins and assigned campaign users can publish a protected preview for campaigns they can edit.
+Preview saves current edits before opening the sharing dialog, and rechecks the saved revision before sharing. Existing reviewer links show the latest successful Save until they expire. Save sends no invitations, changes no reviewer allowlist, and does not extend link expiry. Reopening Preview preserves existing active links; optional invitations remain explicit. Super admins and assigned campaign users can publish a protected preview for campaigns they can edit.
 
 Preview publication:
 
@@ -344,15 +355,21 @@ Preview publication:
 - emails explicitly invited additional reviewers signed preview links that expire in 24 hours, with that expiry stated in the email copy
 - records an admin audit event
 
-Preview pages live at `/campaigns/:slug/preview/` and localized equivalents. Generic static shells are generated for every campaign slug so emailed preview links can open immediately; the shell does not embed the campaign title or draft content. It fetches a full read-only campaign page preview through the Worker with either the current admin session or a valid reviewer token, loads the campaign stylesheet and font kit, permits approved media-player embeds, and disables pledge controls. The static preview shell is `noindex,nofollow,noarchive`, uses no social metadata, strips the preview token from the address bar after load, and remains outside public sitemap output and public prefetch eligibility.
+Preview pages live at `/campaigns/:slug/preview/` and localized equivalents. Generic static shells are generated for every campaign slug, including sources marked `published: false` that Jekyll excludes from its public campaign collection. A newly created campaign needs its initial Pages build to finish; later preview publishes reuse that shell without waiting for another build. The shell does not embed the campaign title or draft content. The protected Worker reads the saved working copy when present, otherwise the canonical campaign. It fetches a full read-only campaign page preview through the Worker with either the current admin session or a valid reviewer token, loads the campaign stylesheet and font kit, permits approved media-player embeds, and disables pledge controls. The static preview shell is `noindex,nofollow,noarchive`, uses no social metadata, strips the preview token from the address bar after load, and remains outside public sitemap output and public prefetch eligibility.
 
 ### Campaign Settings
 
 Campaign settings include identity, dates, goal amount, charged/read-only state, runner report emails, shipping overrides, hero media, creator image, backgrounds, and other campaign front matter.
 
+**Campaign user reports** lists assigned campaign users, selected by default.
+Uncheck someone, then Save and Publish to stop their reports for this campaign;
+checking them again resumes delivery. **Additional report emails** retains
+manual recipients. Report preferences do not change dashboard access. See
+[Email](/docs/operations/email-system/#campaign-runner-reports) for recipient and scheduling rules.
+
 Slug and URL are read-only derived fields. Existing campaign slugs are preserved. For new repo-created campaigns, keep the slug URL-safe and stable because checkout, reports, magic links, and pledge records depend on it.
 
-Super admins see **Archive campaign** at the bottom of the Settings subtab after **Campaign background** and **Progress background** when the campaign is not currently live. Campaign users never see this control, and live campaigns hide it entirely. Archiving prompts for confirmation, then moves the campaign out of active source without deleting data. In local dev, `ADMIN_LOCAL_REPO_WRITES_ENABLED=true` routes the Worker through a token-protected local repo helper that moves mounted repo files. In production, the Worker starts the repository **Archive campaign** GitHub Action. Both paths move `_campaigns/<slug>.md`, campaign-owned image/video/audio files, and referenced campaign add-on media into `archive/campaigns/<slug>/`, write an `archive-manifest.json`, and leave media still referenced by other active campaigns in place and listed in the manifest.
+Super admins see **Archive campaign** at the bottom of the Settings subtab after **Campaign background** and **Progress background** when the campaign is not currently live. Campaign users never see this control, and live campaigns hide it entirely. Archiving prompts for confirmation, then moves the campaign out of active source without deleting data. In local dev, `ADMIN_LOCAL_REPO_WRITES_ENABLED=true` routes the Worker through a token-protected local repo helper that moves mounted repo files. In production, the Worker starts the repository **Archive campaign** GitHub Action. Both paths move `_campaigns/<slug>.md`, campaign-owned image/video/audio files, and referenced campaign add-on media into `archive/campaigns/<slug>/`, retain the saved working copy under the archive, write an `archive-manifest.json`, and leave media still referenced by other active campaigns in place and listed in the manifest.
 
 ### Content
 
@@ -369,7 +386,13 @@ Supported block types include:
 - embed
 - divider
 
-The editor supports block insertion controls, keyboard undo for block changes, Markdown-style inline formatting, links, unordered/ordered lists, alignment controls, media settings, and mobile preview. **Save draft** stores a browser-local draft. **Publish** validates and writes through the Worker.
+The editor supports block insertion controls, keyboard undo for block changes, Markdown-style inline formatting, links, unordered/ordered lists, alignment controls, media settings, and mobile preview. Text edits are automatically stored in the current browser. **Save draft** confirms that browser storage accepted the current content; it does not publish. **Publish** stays available for unpublished content and validates and writes through the Worker. Reloading restores a local draft without replacing it with server content. Loading campaign content and rendering the Content editor’s inline preview do not write to draft storage. The header **Preview** action first runs project Save, as described in [Saving and publishing](#saving-and-publishing).
+
+The browser’s leave-page warning remains active for edits not saved to the project, including after **Save draft**. A successful main Save clears it only for the submitted edits; newer typing remains unsaved. Storage failures show an error and leave the save state dirty. A draft changed in another tab or an unreadable draft is left untouched instead of silently overwritten. Selected media files remain in memory until upload: Save draft saves text only. Keep the page open until the main Save completes. Other campaign settings, tiers, and diary forms are not included in the Content editor’s browser draft; the main Save persists them with Content in the saved working copy.
+
+The existing browser draft key and format remain compatible. Loading never rewrites it. Before the new editor first overwrites an existing Content draft, it stores an exact recovery copy at the original key plus `:recovery-v1`. Recovery copies are not automatically deleted. Unreadable storage and changes from another tab prevent overwrite.
+
+Local drafts belong to the exact site origin, browser profile, and editor language. They are not synchronized to another browser or device and are not server backups. An unpublished draft retains its base revision so another author's server changes cannot be silently overwritten. If only preview flags changed and the server content still matches the draft's original baseline, the current server revision is used. A conflict involving changed content requires comparing the preserved draft with the current campaign before reapplying edits; repeatedly reloading does not discard the draft or bypass the conflict.
 
 Uploaded video blocks can include an explicit poster image. When no poster is set, the dashboard and public campaign page generate an in-browser poster from the video's first frame while keeping the playable video itself lazy-loaded until the user presses play.
 
@@ -380,6 +403,19 @@ Content safety rules:
 - Unsafe schemes such as `javascript:` and `data:` are rejected.
 - Raw scripts, event-handler attributes, and unsupported HTML are rejected by the Worker normalization layer.
 - Structured embeds must use approved providers and exact trusted origins.
+
+#### Recover a missing browser draft
+
+Keep the affected browser profile and any still-open editor tabs. Do not clear site data, reinstall/reset the browser, or replace the missing content while investigating. Copy any text still visible in an editor first. With the older dashboard, loading the campaign can overwrite its browser draft, so avoid refreshing that editor again during recovery.
+
+1. Check the Git history of both `_campaign_drafts/<slug>.md` (project Save) and `_campaigns/<slug>.md` (published content). The current header Preview saves the project first; creating a campaign or using the older preview-link flow did not save browser-only content. Inline Content preview requests only validate/render. Preview-reviewer KV records contain access information, not draft text.
+2. In the **original browser profile**, inspect Local Storage for the exact site origin used to edit (normally `https://site.example.com`). Inspect both `pool-admin-content-draft:en:<slug>` and `pool-admin-content-draft:es:<slug>`, plus each key’s `:recovery-v1` copy. Export the primary and recovery values separately; the reviewed console export helper below exports primary keys and visible editor content only. Opening a public page on that origin allows storage inspection without running the admin editor. Export the raw value before editing it; do not share the entire storage database, cookies, login tokens, or unrelated drafts.
+3. A nonempty `longContent` array can contain recoverable text, media paths, captions, and formatting. An empty array does not establish that nothing was authored: the older load path could have overwritten it. Browser-local drafts on another origin/profile/language must be checked separately if that context was used.
+4. If neither the saved project nor the primary/recovery keys contain the missing content, preserve a copy of the affected browser profile before any forensic recovery attempt. A device/browser-profile backup from before the refresh may retain it. Ordinary site/server backups cannot recover text that was never stored there, and recovery from overwritten browser database files is not guaranteed. Selected media files must be recovered from the creator's original files.
+
+For Chrome, the reviewed [console export script](https://github.com/aindaco1/pool/blob/main/scripts/export-campaign-browser-draft.js) is preconfigured for `deinonychus` on `https://site.example.com`. Run it in the original profile, on the existing editor tab without reloading. If that tab is closed, open the site's public homepage in a new tab. Open the top-page Console with **Cmd+Option+J** on macOS or **Ctrl+Shift+J** on Windows/Linux, review/paste the entire script, and press Enter. It downloads a timestamped JSON file containing the two exact raw draft values and any matching editor text still present. It does not change storage, publish, send a request, read cookies, or export other campaigns. Empty/malformed values are preserved honestly; the script cannot undo an overwritten value. Keep the downloaded file for review before attempting a restore. Adapt the explicit slug and origin only for another authorized campaign investigation.
+
+Only reapply recovered content after saving an independent copy and confirming the campaign and current server revision. Recovery does not authorize launching a campaign or sending preview invitations.
 
 ### Tiers
 
@@ -396,6 +432,12 @@ Digital support items hide shipping fields. Physical support items can use shipp
 ### Campaign Add-ons
 
 Campaign add-ons are optional products attached only to one campaign. They follow the same product/variant model as platform add-ons but contribute to the campaign's accounting instead of platform add-on revenue.
+
+Published campaigns remain editable. In **Campaigns -> Add-Ons**, assigned
+campaign users can upload photos for existing or new campaign products, then
+Save and Publish the revision. Uploads inherit the editor's campaign scope;
+individual add-on records do not need a campaign slug. The top-level platform
+Add-ons editor and its uploads remain restricted to super admins.
 
 ### Stretch Goals
 
@@ -601,6 +643,8 @@ If `campaign-pledges:<slug>` is missing, Blast dry-runs and sends fail closed wi
 
 ## Media
 
+Repository policy can restrict GitHub Actions from opening pull requests. In that case, the media optimizer preserves its generated changes on the review branch and prints a comparison link for a maintainer to open the pull request; it does not change repository permissions or merge media automatically.
+
 Images and videos uploaded through the dashboard are validated before persistence, renamed with lowercase slug-style filenames, and committed to the asset directory that matches their use:
 
 - Platform brand images: `assets/images/defaults/`
@@ -617,15 +661,22 @@ Recommended campaign media:
 - Hero image wide: 16:9, around 1600x900px
 - Creator image: square, around 400x400px
 - Default social image: large 16:9 or Open Graph-friendly image
-- Hero video: direct MP4/WebM/MOV upload up to 100 MB, or a YouTube/Vimeo URL
+- Hero video: direct MP4/WebM/MOV upload up to 100 MB (100,000,000 bytes), or a YouTube/Vimeo URL
 
-The campaign Content editor, diary-entry content editors, and Blast image blocks stage selected media in the browser first. The block shows the selected image, video, or audio selection immediately, but the file is not uploaded until the user publishes content or sends/tests a Blast. During publish or Blast send, the dashboard uploads staged media into the campaign asset directory, replaces the temporary browser preview with the final `/assets/...` path, and then commits the campaign YAML or builds the Blast email payload.
+The same video limit applies to Content, Diary, and media-library replacements.
+The dashboard sends video files as binary request bodies; the Worker streams
+their GitHub encoding without holding the entire file in memory. Campaign
+permissions, source preservation, new asset paths, and optimization after a
+successful commit apply to these uploads. A failed upload does not replace the
+saved media path. Reload older dashboard tabs before uploading large videos.
+
+The campaign Content editor, diary-entry content editors, and Blast image blocks stage selected media in the browser first. The block shows the selected image, video, or audio selection immediately, but the file is not uploaded until the user saves the project or sends/tests a Blast. The mobile preview also shows bounded local thumbnails of staged images; video/audio playback there becomes available after project Save. Empty text placeholders are omitted when saving campaign or diary content. During project Save or Blast send, the dashboard uploads staged media into the campaign asset directory, replaces the temporary browser preview with the final `/assets/...` path, and then commits the campaign YAML or builds the Blast email payload.
 
 Campaign Content, Diary, and Blast blocks can choose existing images, local video/posters, and audio from the scoped media-library dialog. Search, image/video/audio tabs, recent/name sorting, thumbnails, dimensions/duration/file size, campaign/shared scope, reference locations, optimization state, placement warnings, and broken references come from the checked-in rebuildable media manifest. Generated responsive derivatives are described on their source card instead of appearing as standalone choices. Source URL remains available only for repair or advanced path editing, and the picker adds no KV media state.
 
-Meaningful image blocks require alt text. Mark a purely decorative image explicitly to persist empty alt text; do not use decorative mode to bypass describing campaign content. Common hero, gallery, tier, Blast, and poster placements show advisory file-size/dimension budgets.
+Alt text is optional and never blocks Save or Publish. Missing descriptions produce accessibility advice; supplied descriptions are normalized to plain text up to 300 characters. Mark a purely decorative image explicitly; an omitted description does not change that state. Common hero, gallery, tier, Blast, and poster placements show advisory file-size/dimension budgets.
 
-Safe replacement is limited to the same campaign, asset directory, and media type, and requires the current GitHub content SHA so stale edits fail instead of overwriting newer work. Replacement keeps the path stable and shows known references before mutation. Campaign users may dispatch changed-file optimization; full-repository optimization remains super-admin only.
+Safe replacement is limited to the same campaign, asset directory, and media type, and requires the current GitHub content SHA so stale edits fail instead of overwriting newer work. Campaign replacement creates a new asset URL and shows known references before mutation. Existing references retain their original media; choose Use media and save the project to adopt the replacement. Campaign users may dispatch changed-file optimization; full-repository optimization remains super-admin only.
 
 Campaign-scoped media uploads require access to that campaign. Super admins can upload any campaign media and platform/default media; campaign admins can upload only media for campaigns they manage. Platform add-on and platform brand uploads stay super-admin only.
 
@@ -704,3 +755,28 @@ Check the campaign Markdown front matter and the Worker settings response. Inval
 ### Reports, Supporters, Or Analytics Show Missing Index Messages
 
 Dashboard read endpoints rely on `campaign-pledges:{slug}` indexes and intentionally do not fall back to expensive namespace scans. Run the projection repair/rebuild tooling explicitly when an old campaign is missing its index.
+
+
+### Shared editor rendering and feedback
+
+The dashboard and Worker preview use the pinned Platform editor codec for inline
+Markdown, including italic text nested inside bold text. Pool retains campaign
+block rendering and URL validation. The public Ruby filter has a parity test for
+nested emphasis. Shared Design Core mixins provide editor control containment,
+long-filename wrapping, open-panel stacking, spacing, and responsive preview media.
+
+Image uploads keep a tab-local preview keyed by the returned repository path.
+Hero images and editor blocks stay visible before the new asset reaches the public
+site, including after project Save. Sandboxed mobile previews receive bounded
+image thumbnails. Save/Publish payloads contain canonical repository paths only;
+object URLs and data thumbnails are never saved as campaign content. Logout clears
+these previews. Reloading loses the local cache, so unpublished assets still need
+the normal static deployment before their public paths can load in another tab.
+
+Request failures use Platform's readable English/Spanish feedback defaults, with
+Pool's localized campaign/diary field names. For example, `longContent[0].src`
+appears as the source field in content block 1. Known validation reasons give an
+actionable message; unknown provider errors use a localized request-status
+fallback. Original diagnostics remain on the caught error's `rawData` for debugging
+and are not displayed directly. Creator-authored titles are not translated.
+Missing alt text remains an advisory notice and cannot prevent Save or Publish.

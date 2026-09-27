@@ -10,11 +10,11 @@ lang: es
 
 ## Última actualización
 
-6 de septiembre de 2026
+27 de septiembre de 2026
 
 El repositorio The Pool es la fuente canónica para la documentación importada de productos y desarrolladores. Esta página se genera a partir del mismo manifiesto que utiliza el script de sincronización para validación, reescritura de enlaces, metadatos de navegación y rutas de salida.
 
-Importado de la revisión The Pool [`a55469830726`](https://github.com/aindaco1/pool/commit/a55469830726ceff53d6a7d61a8422c207a10d32).
+Importado de la revisión The Pool [`839a2d9925ba`](https://github.com/aindaco1/pool/commit/839a2d9925bac2bef529d5756a76986a405e7929).
 
 El [índice de desarrollo](/es/docs/development/) sigue las rutas de propiedad y tareas en el [índice de documentación](https://github.com/aindaco1/pool/blob/main/docs/README.md). La arquitectura posee las relaciones del sistema y el ciclo de vida; El modelo de contenido de campaña posee campos de creación; La API Worker posee contratos de punto final; El despliegue posee cableado de liberación. Los procedimientos detallados permanecen en su propia guía.
 

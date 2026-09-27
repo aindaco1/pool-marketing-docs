@@ -9,13 +9,19 @@ render_with_liquid: false
 
 ## Last Updated
 
-September 6, 2026
+September 27, 2026
 
 Use this reference when changing campaign Markdown, schema validation, or the
 campaign editor. Routine authoring belongs in the [dashboard](/docs/operations/admin-dashboard/);
 creators can use the [launch checklist](https://github.com/aindaco1/pool/blob/main/creator-campaign-checklist.md).
 Preserve existing campaign, tier, product, variant, diary, and decision IDs.
 The repository source and Worker validation remain authoritative.
+
+Saved working copies use the same campaign format under `_campaign_drafts/`.
+The internal `_pool_draft_base_hash` and `_pool_draft_saved_at` fields track the
+public authoring baseline and last save; they are never promoted into the public
+campaign. Draft files are excluded from site generation. See [Dashboard](/docs/operations/admin-dashboard/#protected-preview)
+for Save, Preview, Publish, and browser recovery behavior.
 
 ## Campaign Fields
 
@@ -73,15 +79,29 @@ To avoid a flash of "00 00 00 00" before JavaScript loads:
 
 Quote strings with special characters to avoid YAML parsing issues.
 
+### Runner Report Recipients
+
+Assigned campaign users receive reports by default. `runner_report_emails`
+is an optional list of additional recipients; `runner_report_excluded_emails`
+is an optional list of opt-outs and defaults to empty. Both lists use normalized
+email addresses. Exclusions override additional recipients as well as assigned
+users. The dashboard presents opt-outs as unchecked users and preserves them
+through Save and Publish. See [Email](/docs/operations/email-system/#campaign-runner-reports) for
+runtime resolution and scheduling.
+
 ### Media Fields
+
+Image alt text is optional. Missing descriptions remain an accessibility
+recommendation and do not prevent saving or publishing. Decorative state is
+explicit; leaving a description empty does not mark the image decorative.
 
 - **`hero_image`** (required): Square/vertical image for home page card previews
 - **`hero_image_wide`** (optional): Wide image for campaign detail page (falls back to `hero_image`)
-- **`hero_video`** (optional): WebM video for campaign detail (uses hero image as poster)
+- **`hero_video`** (optional): Uploaded MP4, WebM, or MOV path, or supported video-provider URL, for campaign detail (local video uses `hero_image_wide` or `hero_image` as its poster)
 - **`creator_image`** (optional): Square image for creator (48px circle in sidebar)
 - **Tier `image`** (optional): Wide image shown above tier name
 
-**Video requirements:** WebM is preferred for uploaded campaign videos, with 16:9 and max 1920x1080 recommended. The admin dashboard accepts hero video uploads up to 100 MB or YouTube/Vimeo URLs, and previews existing video files or embeds through the same content-security policy as the public campaign page. Local content video blocks may specify an optional `poster`; when omitted, public/admin editor views generate a transient poster from the video's first frame and keep the playable video lazy-loaded until play.
+**Video requirements:** WebM is preferred for uploaded campaign videos, with 16:9 and max 1920x1080 recommended. The admin dashboard accepts hero video uploads up to 100 MB or YouTube/Vimeo URLs, and previews existing video files or embeds through the same content-security policy as the public campaign page. Public hero and content videos declare the MIME type matching the file extension; playback still requires browser-supported codecs. Local content video blocks may specify an optional `poster`; when omitted, public/admin editor views generate a transient poster from the video's first frame and keep the playable video lazy-loaded until play.
 
 **Dashboard upload paths:** The dashboard writes uploaded assets into the current static asset model:
 
@@ -148,6 +168,14 @@ stretch_goals:
 ```
 
 ### Tiers
+
+Tier descriptions support inline bold, italic, nested emphasis, underline, and
+line breaks. The cart loads the pinned Platform editor codec on cart intent and
+uses its safe inline renderer with links disabled. Campaign and featured-tier
+buttons carry attribute-escaped source text; cart rendering applies the same
+policy to newly added items and previously saved carts. Unsupported HTML stays
+escaped. Cart storage retains the original description rather than rendered
+HTML.
 
 ```yaml
 tiers:

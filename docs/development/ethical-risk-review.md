@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-September 6, 2026
+September 27, 2026
 
 This guide adapts the Ethical OS Toolkit from the Institute for the Future and Omidyar Network to The Pool's crowdfunding, payment, email, admin, and public sharing surfaces. Use it as a practical risk review, not as a replacement for security, accessibility, privacy, or legal review.
 
@@ -117,3 +117,7 @@ Treat these as release blockers until explicitly resolved:
 
 Release-specific ethical review records belong with the corresponding
 [release evidence](https://github.com/aindaco1/pool/tree/main/docs/release-evidence) rather than in this current-state guide.
+
+## Unassigned admin accounts — 2026-09-09
+
+Saving users preserves a previously unassigned campaign account without granting campaign access. The exception comes only from stored users; browser-supplied allowlists cannot create unassigned accounts or strip an existing assignment. Super-admin, CSRF, and per-campaign authorization remain authoritative. No notification is resent for an unchanged existing user, and Store membership remains in its separate key.

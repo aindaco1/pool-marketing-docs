@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-6 de septiembre de 2026
+27 de septiembre de 2026
 
 The Pool es una plataforma de crowdfunding estática con un Cloudflare Worker para mutaciones, lecturas en vivo y operaciones administrativas. El trabajo de rendimiento conserva esa forma: las páginas públicas son rápidas a partir de HTML estático, el código de aplicación pesado se carga solo cuando un usuario lo necesita y el trabajo especulativo se mantiene lo suficientemente conservador como para nunca hacer que los flujos de pago, administración o soporte sean menos confiables.
 
@@ -65,7 +65,7 @@ Superficies de repositorio importantes:
 - [`scripts/audit-runtime-performance.mjs`](https://github.com/aindaco1/pool/blob/main/scripts/audit-runtime-performance.mjs): evidencia p95 autenticada para operaciones Worker configuradas
 - [`scripts/sync-worker-config.rb`](https://github.com/aindaco1/pool/blob/main/scripts/sync-worker-config.rb): duplicación de configuración de sitio a Worker
 
-Sass solo para administradores se emite como `assets/admin.css` y se carga únicamente mediante el diseño del administrador, lo que mantiene el CSS del panel fuera de las páginas de campaña públicas. Las sesiones de administración y el procesador de registros de auditoría que se utilizan con poca frecuencia se encuentran en `assets/js/admin-settings-review.js` y se cargan a pedido cuando se abre cualquiera de las secciones de Configuración; Tanto ese módulo como el paquete inicial `admin-dashboard.js` tienen límites ejecutables con nombre en `config/performance-budgets.json`. El CSS de fuente de visualización de Adobe se activa después de la preparación de DOM sin respaldo de secuencia de comandos; Inter sigue siendo la dependencia de la fuente del cuerpo. La caché Workers permanece deshabilitada para el modelo de lectura de administrador The Pool hasta que un punto de referencia representativo demuestre una mejora de al menos el 40 % en p95. El umbral de evidencia, no la elección de caché de otro producto, controla la habilitación de The Pool.
+La vista previa protegida y de administración Sass se emite como `assets/admin.css` y se carga mediante los diseños de vista previa de campaña y administración, lo que mantiene el CSS del panel fuera de las páginas de campaña públicas. Las sesiones de administración y el procesador de registros de auditoría que se utilizan con poca frecuencia se encuentran en `assets/js/admin-settings-review.js` y se cargan según demanda cuando se abre cualquiera de las secciones de Configuración; Tanto ese módulo como el paquete inicial `admin-dashboard.js` tienen límites ejecutables con nombre en `config/performance-budgets.json`. El CSS de fuente de visualización de Adobe se activa después de la preparación de DOM sin respaldo de secuencia de comandos; Inter sigue siendo la dependencia de la fuente del cuerpo. La caché Workers permanece deshabilitada para el modelo de lectura de administrador The Pool hasta que un punto de referencia representativo demuestre una mejora de al menos el 40 % en p95. El umbral de evidencia, no la elección de caché de otro producto, controla la habilitación de The Pool.
 
 Los resúmenes de rendimiento de Worker conservan histogramas de latencia acotados y exponen p50/p95/p99 aproximados junto con el recuento, el promedio, el mínimo, el máximo y la última duración. No retienen cuerpos de solicitud ni identificadores de clientes.
 
@@ -327,7 +327,7 @@ npm run media:optimize:check
 npm run media:manifest
 ```
 
-`_data/media-optimization-manifest.json` es un índice reconstruible determinista, no un segundo almacén de medios. Registra hashes de origen, tamaño, dimensiones/duración, derivados de WebP/WebM generados, referencias y advertencias. Los presupuestos de ubicación en el panel de medios para héroes, galerías, niveles, Blast y carteles son de asesoramiento y reutilizan este manifiesto; los tipos inseguros y la falta de texto alternativo requerido siguen siendo fallas de validación estrictas. Si un intento de derivación es mayor que su fuente, el hash de la fuente y el ancho omitido se registran para que el modo de verificación no clasifique erróneamente la omisión intencional como deriva.
+`_data/media-optimization-manifest.json` es un índice reconstruible determinista, no un segundo almacén de medios. Registra hashes de origen, tamaño, dimensiones/duración, derivados de WebP/WebM generados, referencias y advertencias. Los presupuestos de ubicación en el panel de medios para héroes, galerías, niveles, Blast y carteles son de asesoramiento y reutilizan este manifiesto; los tipos inseguros siguen siendo fallas de validación, mientras que la falta de texto alternativo es una recomendación y nunca bloquea el guardado o la publicación. Si un intento de derivación es mayor que su fuente, el hash de la fuente y el ancho omitido se registran para que el modo de verificación no clasifique erróneamente la omisión intencional como deriva.
 
 Si la máquina host no tiene instalados los optimizadores nativos, utilice en su lugar los contenedores respaldados por Podman:
 

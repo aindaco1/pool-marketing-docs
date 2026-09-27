@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-6 de septiembre de 2026
+27 de septiembre de 2026
 
 **Base de plataforma de crowdfunding de código abierto**
 
@@ -25,6 +25,7 @@ The Pool combina un sitio estático Jekyll, un carrito de navegador propio y un 
 - Niveles físicos y digitales, complementos de campaña y plataforma, precios de variantes e informes de cumplimiento.
 - Cronogramas de campaña, objetivos ambiciosos, diarios de producción y decisiones exclusivas de los patrocinadores.
 - Un panel privado con alcance de roles para campañas, configuraciones, productos, informes, patrocinadores, análisis, marketing y usuarios.
+- [Guardar proyecto, vista previa protegida y publicación explícita](/es/docs/operations/admin-dashboard/#guardar-y-publicar) para campañas nuevas y revisiones no publicadas de campañas activas.
 - Páginas públicas localizadas en inglés y español, flujos de patrocinadores, controles del panel y correos electrónicos.
 - Recordatorios de lanzamiento y pago basados en el consentimiento, actualizaciones de campañas y entrega duradera de correo electrónico a través de Resend.
 - Inserciones de campaña, tarjetas para compartir en redes sociales, optimización de medios que preservan la fuente y marca configurable.

@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-September 6, 2026
+September 27, 2026
 
 This document covers The Pool's current tax-calculation model, including
 provider selection, fork-facing configuration, browser behavior, Worker
@@ -33,8 +33,15 @@ The tax layer keeps one consistent answer across:
 - supporter emails
 - reports and exports
 
+Provider transport uses Cloudflare-compatible manual redirect mode and rejects
+3xx responses explicitly. This keeps live lookups usable in the Worker runtime
+without forwarding provider credentials or address queries to redirect targets.
+
 The Worker remains the source of truth. The browser can request previews, but
-persisted totals come from Worker-side calculation.
+persisted totals come from Worker-side calculation. The accepted first-party
+checkout quote is hash-verified at completion and its totals are retained. Completion
+does not recalculate tax from Stripe's enriched address after card setup. New quotes
+use the full supplied billing or shipping tax destination.
 
 ## Current Provider Modes
 
@@ -119,6 +126,20 @@ Current behavior:
 
 A tax preview can therefore remain incomplete early in checkout and resolve
 once billing or shipping details are present.
+
+Manage Pledge uses the same validated `/tax/quote` amount for its updated page
+summary and confirmation modal. A zero amount or effective rate is an explicit
+quote, not a missing value; both displays retain it, including the rate label.
+If a refresh fails or returns an invalid amount, both displays use the existing
+fallback based on the pledge's effective rate (including zero), or the configured
+rate when no saved rate is available. Delayed responses from earlier edits do
+not overwrite the current summary. The Worker still recalculates authoritative
+totals when the supporter confirms a modification. Both paths select a normalized
+stored billing address first, then the stored shipping address, then the historical
+quote destination. An incomplete historical snapshot must not shadow a usable
+shipping address. Historical accepted quotes remain unchanged until a supporter
+confirms an update. Rate labels retain up to four decimal places (for example,
+7.5625%).
 
 ## Main Endpoints
 

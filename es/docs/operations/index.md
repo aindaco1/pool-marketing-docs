@@ -9,16 +9,16 @@ lang: es
 
 ## Última actualización
 
-6 de septiembre de 2026
+27 de septiembre de 2026
 
 Esta sección cubre el panel de administración, el trabajador de aporte, las opciones de tiempo de ejecución local, los controles de calidad y las reglas operativas que protegen el comportamiento de pago y cumplimiento.
 
 ## Tiempo de ejecución local y servicios
 
-- [Panel de administración](/es/docs/operations/admin-dashboard/) para edición de campañas, informes, análisis, herramientas de marketing, carga de medios y gestión de usuarios basados ​​en navegador.
+- [Panel de administración](/es/docs/operations/admin-dashboard/) para guardar campañas, vistas previas protegidas, publicación, recuperación de borradores, informes, carga de medios y administración de usuarios.
 - [Pledge Worker](/es/docs/operations/worker/) para el punto de entrada de desarrollo Worker y enlaces a sus guías propias.
-- [Procesador de pagos](/es/docs/operations/payment-processor/) para configuración de Stripe, pago canónico, webhooks, liquidación y conciliación.
-- [Sistema de correo electrónico](/es/docs/operations/email-system/) para configuración del remitente, comportamiento, localización, entrega y reintentos del correo electrónico transaccional y de campaña.
+- [Procesador de pagos](/es/docs/operations/payment-processor/) para configuración de Stripe, pago canónico, recuperación de confirmación, webhooks, liquidación y conciliación.
+- [Sistema de correo electrónico](/es/docs/operations/email-system/) para configuración del remitente, comportamiento del correo electrónico transaccional y de campaña, suscripciones a informes, programación, entrega y reintentos.
 - [Podman Local Dev](/es/docs/operations/podman-local-dev/) para la pila local en contenedores, la matriz de soporte y el flujo de solución de problemas.
 
 - [Implementación](/es/docs/operations/deployment/) para configuración de producción, credenciales, versiones de páginas y Worker, y comprobaciones posteriores a la implementación.
@@ -26,7 +26,7 @@ Esta sección cubre el panel de administración, el trabajador de aporte, las op
 
 ## Comprobaciones de calidad, seguridad y liberación
 
-- [Guía de pruebas](/es/docs/operations/testing/) para puertas automatizadas, ejecuciones de regresión manual y patrones de creación de pruebas.
+- [Guía de pruebas](/es/docs/operations/testing/) para puertas automáticas, ejecuciones de regresión manual, creación de pruebas y piloto de asesoramiento de Jev.
 - [Rendimiento](/es/docs/operations/performance/) para la carga de páginas públicas, la minificación de activos generados, la precarga por intención y las expectativas de validación.
 - [Fusionar lista de verificación de humo](/es/docs/operations/merge-smoke-checklist/) para que el operador pueda verificar, modificar y cancelar la verificación antes de fusionar.
 - [Guía de seguridad](/es/docs/operations/security/) para conocer los límites de seguridad actuales, el refuerzo aplicado, las pruebas y la respuesta a incidentes.

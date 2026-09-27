@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-September 6, 2026
+September 27, 2026
 
 The Pool sends transactional and campaign-support email through Resend from the Cloudflare Worker. Templates live in `worker/src/email.js`, shared localized copy lives in `_data/i18n/*.yml`, and scheduling / audience selection lives mostly in `worker/src/index.js`.
 
@@ -282,7 +282,35 @@ Current behavior:
 
 ### Campaign Runner Reports
 
-Sent on the configured schedule to campaign `runner_report_emails`.
+Sent on the configured schedule to users explicitly assigned to the campaign,
+plus additional campaign `runner_report_emails`. The Worker resolves current
+assignments from the effective admin-user store when building or sending a
+report; removing an assignment removes that default subscription. Super-admin
+access alone does not subscribe a person to every campaign. Additional
+addresses remain explicit recipients until removed.
+
+In Campaigns settings, **Campaign user reports** checks assigned users by
+default. Uncheck a user, then Save and Publish to stop their reports for that
+campaign; check them again to resume. This stores
+`runner_report_excluded_emails` in the existing campaign authoring model.
+Exclusions override both assigned and additional recipients, survive later
+edits and reassignment, and do not change dashboard access. **Additional
+report emails** accepts recipients beyond assigned users. Addresses are
+normalized and deduplicated. An empty effective list skips daily reports.
+
+For a missing report, use the [campaign-runner report dry run](/docs/reference/worker-api/#post-adminreportcampaign-runner)
+to check the effective recipients, campaign state, row count, and
+sent marker before investigating provider delivery. Reports become due at the
+configured local time and remain eligible for the rest of that local day.
+Delayed or missed cron ticks and transient enqueue failures retry on subsequent
+ticks. `cron:campaign-runner-reports:<local-date>` records a complete pass for
+two days, so later ticks skip campaign/pledge reads. A failed or empty catalog
+load does not consume the day. Per-campaign errors remain retryable and appear
+in `cron:lastError`.
+
+Saving recipients after a completed daily pass takes effect on the next
+scheduled day; same-day additions and earlier missed dates require an explicit
+manual send. Automatic retries do not reconstruct historical snapshots.
 
 Report types:
 
@@ -292,6 +320,12 @@ Report types:
 Current behavior:
 
 - Timing uses `platform.timezone`.
+- Report sent markers record durable enqueue, not provider delivery. Confirm
+  delivery separately in outbox delivery evidence or Resend.
+- Scheduled daily outbox identities use campaign, report date, and recipient; fulfillment
+  identities use campaign, audience, and recipient. Retrying after a partial
+  enqueue or sent-marker write failure reuses the queued payload. Explicit manual
+  reports retain their payload-based identities and `markAsSent` behavior.
 - CSV attachments are optional by config.
 - Campaign-runner recipients receive campaign-fulfilled rows.
 - `platform.support_email` can receive separate platform-fulfillment rows when platform add-ons need fulfillment.

@@ -9,7 +9,7 @@ lang: es
 
 ## Última actualización
 
-6 de septiembre de 2026
+27 de septiembre de 2026
 
 El flujo de contribución, las notas de arquitectura, los problemas de implementación y los puntos de extensión orientados hacia la bifurcación se encuentran aquí.
 
@@ -32,7 +32,7 @@ Mantenga los procedimientos detallados en la guía propietaria. La arquitectura 
 - [Guía de personalización](/es/docs/development/customization-guide/) para la superficie `_config.yml` compatible, tokens de diseño, precios, envío y perillas de marca de horquilla.
 - [Internacionalización](/es/docs/development/internationalization/) para configuración local, enrutamiento, catálogos de traducción y flujo de trabajo de adición de idiomas.
 - [Campaña Embeds](/es/docs/development/campaign-embeds/) para rutas de inserción alojadas, comportamiento de cambio de tamaño y reglas de localización.
-- [Productos complementarios](/es/docs/development/add-on-products/) para el catálogo de productos de toda la plataforma, el modelo de inventario, el contrato de ejecución y el comportamiento de envío.
+- [Productos complementarios](/es/docs/development/add-on-products/) para catálogos de plataformas y campañas, precios de variantes, inventario limitado o ilimitado y comportamiento de envío.
 - [Flujo de trabajo de vídeo del producto](/es/docs/development/product-video-workflow/) para captura, representación, verificación y límites de publicación locales.
 - [Revisión de riesgos éticos](/es/docs/development/ethical-risk-review/) para evaluar cambios relacionados con dinero, datos, mensajería, automatización, poder administrativo, visibilidad y uso compartido.
 - [Guía para agentes y operadores](/es/docs/development/agents-operator-guide/) para obtener invariantes de repositorio, orientación sobre fuentes de verdad y flujos de trabajo seguros para colaboradores/LLM.
@@ -40,3 +40,12 @@ Mantenga los procedimientos detallados en la guía propietaria. La arquitectura 
 ## Uso diario
 
 Esta sección es la base de operaciones adecuada cuando abre su primer PR, asigna una característica a una arquitectura existente o adapta The Pool a una bifurcación de marca.
+
+|Tarea|guía de propiedad|
+| --- | --- |
+|Guarde una campaña, comparta una vista previa protegida o publique cambios|[Panel: Guardar y publicar](/es/docs/operations/admin-dashboard/#guardar-y-publicar)|
+|Recuperar ediciones de campaña locales del navegador|[Panel: Borrador de recuperación](/es/docs/operations/admin-dashboard/#recuperar-un-borrador-perdido-del-navegador)|
+|Comprender la confirmación y recuperación del pago|[Procesador de pagos: finalización del pago](/es/docs/operations/payment-processor/#4-finalización-y-webhook)|
+|Configurar destinatarios de informes, cancelaciones y reintentos programados|[Correo electrónico: Informes del corredor de campaña](/es/docs/operations/email-system/#informes-para-responsables-de-campaña)|
+|Ejecute la evaluación del mensaje de apoyo de asesoramiento|[Prueba: Asesor Jev Pilot](/es/docs/operations/testing/#piloto-orientativo-de-jev)|
+|Limpie los archivos generados mientras preserva el estado local y la evidencia.|[Contribuyendo: Limpieza del espacio de trabajo local](/es/docs/development/contributing/#limpieza-del-espacio-de-trabajo-local)|

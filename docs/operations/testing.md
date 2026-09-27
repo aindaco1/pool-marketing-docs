@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-September 6, 2026
+September 27, 2026
 
 This guide covers the automated test suites, local test infrastructure, and manual verification paths. Weekly synthetic recovery, protected preview drills, and post-restore verification are documented in [BACKUP_RESTORE.md](/docs/operations/backup-restore/).
 
@@ -40,6 +40,22 @@ eligible. A security fix still requires a reviewed compatible Platform upgrade;
 do not weaken the pin test to bypass it. Continue running both dependency audits
 described in [SECURITY.md](/docs/operations/security/#dependency-and-release-security).
 
+Campaign video-upload regression checks run with:
+
+```bash
+npx vitest run tests/unit/github-video-runtime.test.ts tests/unit/github-worker-runtime.test.ts tests/unit/admin-dashboard.test.ts
+```
+
+The video runtime suite streams an exact 100,000,000-byte synthetic file through
+workerd with a simulated GitHub receiver and checks the complete encoded-body
+hash. It also covers chunk boundaries, oversize declarations, truncated or
+overlong streams, and provider errors/redirects. API tests cover campaign scope,
+CSRF, metadata validation, and optimization only after successful persistence.
+The dashboard browser suite verifies the hero uploader sends binary bytes.
+These checks do not establish live GitHub or Cloudflare edge acceptance; after
+deployment, verify a real near-limit MP4 through the dashboard and confirm its
+repository asset and playable preview.
+
 The local-only product-video adapter has a bounded real-interface smoke path:
 
 ```bash
@@ -65,6 +81,8 @@ signals the complete child tree, waits only for a bounded grace period, then
 force-stops any survivor. A focused regression uses a deliberately stubborn
 child process to ensure a fully passing gate cannot hang until the CI job
 timeout after printing its phase summary.
+
+Campaign draft recovery is exercised in `tests/unit/admin-content-draft-recovery.test.ts` and the dashboard browser suite. The checks cover a fresh-page restore against an empty server campaign, Save draft followed by Publish, the real refresh warning, failed or unreadable storage, another tab's changes, delayed responses, staged media, and edits during publication. Keep browser-backup, server-save, and public-version baselines separate. Working-copy regressions also cover all campaign authoring sections, later revisions of published campaigns, live-data isolation, stale public/draft revisions, failed writes, and local compare-and-write concurrency.
 
 ## Dependency audits
 
@@ -99,6 +117,7 @@ npm run test:unit          # Unit tests (Vitest)
 npm run test:unit:watch    # Watch mode
 npm run test:unit:coverage # With coverage report
 npm run test:i18n          # Supported locale catalog completeness check
+npm run test:jev           # Advisory synthetic text-evaluation preview (no network)
 npm run test:seo           # Generated-site SEO/crawl audit; build _site first
 npm run test:crawl-endpoints -- --base=https://site.example.com  # Live sitemap/robots/URL fetch audit
 npm run test:performance:budgets  # Generated JS/CSS release ceilings
@@ -155,6 +174,71 @@ If you want just the public accessibility regression sweep and do not want to de
 npm run test:e2e:headless:podman -- tests/e2e/accessibility-public-pages.spec.ts --project=chromium
 ```
 
+## Advisory Jev pilot
+
+`npm run test:jev` builds fresh local pages with `_config.test.yml` and captures
+34 English/Spanish supporter-message cases: pending/saved checkout confirmation,
+active/locked/failed/charged/cancelled pledge cards, and five transactional emails
+in HTML and plain text. It executes the existing page scripts in isolated DOMs
+with synthetic Worker responses and uses the existing Worker email payload
+capture mode. Before evaluation, exact checks cover confirmation visibility,
+edit/cancel controls, email totals and localized management links.
+
+```bash
+npm run test:jev -- --dry-run
+npm run test:jev -- --live
+```
+
+The default previews requests without authentication or model calls. The live
+command uses `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN`, or the existing
+installed Wrangler login when the token is unset. No credential is written to
+evidence. The command requires the normal host Bundler/Jekyll and npm dependencies.
+`JEKYLL_ENV=production` prevents machine-local settings from entering the build;
+the tracked test configuration supplies local URLs. This does not deploy anything.
+
+The reusable request builder, bounded Cloudflare transport, response validation
+and batch evaluation live in Platform's opt-in `test-core/jev` entry. Pool owns
+the [capture adapter](https://github.com/aindaco1/pool/blob/main/scripts/jev-corpus.mjs), synthetic
+[controls](https://github.com/aindaco1/pool/blob/main/tests/fixtures/jev/controls.json), requirements, credential discovery,
+spending limits and reporting. No app/Worker runtime imports Jev. CutNotes remains
+independently implemented and unchanged.
+
+Each run writes a new ignored `tmp/jev/<run>/` directory containing `corpus.json`,
+`report.json`, `review.md` and the local build. Reports retain raw responses,
+candidate/request text, source/candidate hashes, resolved models, probabilities,
+usage and timing. There is no arbitrary file/production-data input option. Only
+synthetic candidates and questions go to Cloudflare/TypeSafe; source paths,
+account IDs, credentials and real supporter data are excluded. Email URLs are
+removed from semantic input after local routing checks. No email is sent.
+
+Retain `corpus.json`, `report.json` and `review.md` for runs cited in release
+evidence. The run's `site/` directory is a disposable build; the next invocation
+creates a fresh one. Follow [workspace cleanup](/docs/development/contributing/#local-workspace-cleanup)
+for other generated output and recovery copies.
+
+Sixteen paired control examples measure false passes, false failures and reviews.
+These engineering-authored labels are diagnostic, not independent human ratings
+or an unseen validation set. The 0.10 probability margin is provisional, borrowed
+from the CutNotes workflow rather than calibrated for Pool. Near ties, uncertainty
+and unknown model versions become review. A completed pilot may contain failures;
+it does not establish native-Spanish, browser-layout, Stripe, delivery or release
+acceptance. Existing deterministic tests retain authority over money and access.
+
+The pilot stays outside `npm test`, premerge and CI gates. Exit 0 means an explicit
+preview or a completed advisory run, even when findings need review; exit 2 means
+setup, authentication or incomplete evaluation. There are no retries, provider
+fallbacks, purchases or automatic top-ups. At most 100 questions are allowed.
+The default estimated spending limit is $0.25 (`--max-estimated-usd=...`, hard
+maximum $1). The reserve budgets 32,000 input tokens per question using the
+dated [TypeSafe input rate](https://docs.typesafe.ai/models) of $0.042/million
+(2026-09-22); this is an estimate, not a Cloudflare billing cap. The
+[Cloudflare model reference](https://developers.cloudflare.com/ai/models/typesafe/jev/)
+directs actual pricing checks to the account dashboard. Request headers disable
+gateway cache/logging; they are not a provider-retention guarantee.
+
+See the [pilot evidence](https://github.com/aindaco1/pool/blob/main/docs/release-evidence/2026-09-22-jev-pilot.md) for measured
+results and the [roadmap](/docs/reference/roadmap/) for conditions before adopting a gate.
+
 ## Release Evidence
 
 Use the release wrapper before production sign-off:
@@ -206,7 +290,7 @@ Treat new hidden tracking, unbounded notifications, misleading public metadata, 
 
 ## Unit Tests (Vitest)
 
-Fast, isolated tests for JS functions in `tests/unit/`.
+Unit and focused integration tests in `tests/unit/`.
 
 ### Coverage
 
@@ -223,6 +307,7 @@ Fast, isolated tests for JS functions in `tests/unit/`.
 | `admin-dashboard` | Dashboard dirty-state tracking, settings serialization, content/editor normalization, staged media uploads/media picker, actual Stripe fee analytics/backfill, Analytics attribution reporting, marketing shared drafts, abandoned-checkout health/suppression, referral URL helpers, responsive/i18n support utilities |
 | `i18n-completeness` | Supported locale catalogs stay aligned with the English nested key surface |
 | `campaign-page` | Share-link URL construction, safe query preservation, state-aware share text, launch reminder form submission, public campaign controls, and SEO-sensitive campaign-page behavior |
+| `campaign-preview-pages` | Real Jekyll generation from unpublished sources, localized shells, duplicate-route prevention, and draft exclusion from public routes, catalogs, and sitemaps |
 | `page-prefetch` | Same-origin public-route allowlisting, sensitive-query exclusions, network guards, delay/limit handling, and document prefetch hint creation |
 | `cart-runtime-loader` | Lazy cart-runtime boot, persisted/recovery cart detection, idempotent loading, and user-intent triggers |
 | `site-asset-minification` | Generated `_site` CSS/JS minification behavior and check-mode failure cases |
@@ -348,7 +433,7 @@ Public-page coverage also protects localized campaign chrome, including:
 - production-phase labels and CTA copy
 - gallery accessibility labels
 
-The content-safety filter suite in `tests/unit/content-safety-filter.test.ts` also falls back to Podman when host Bundler/Jekyll gems are unavailable. On macOS, it can start the Podman machine as part of that fallback.
+The content-safety filter suite in `tests/unit/content-safety-filter.test.ts` also falls back to Podman when host Bundler/Jekyll gems are unavailable. It uses the caller's endpoint or Podman's selected default connection and requires a reachable engine; it does not start or restart a shared machine. See [Podman](/docs/operations/podman-local-dev/#start-local-dev) for host setup.
 
 The current Podman scope is intentionally narrow:
 

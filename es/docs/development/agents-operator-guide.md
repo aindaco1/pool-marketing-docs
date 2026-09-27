@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-6 de septiembre de 2026
+27 de septiembre de 2026
 
 Esta es la guía operativa para personas y agentes de codificación que trabajan en **The Pool**. Úselo para realizar cambios seguros sin desincronizar el sitio estático, Cloudflare Worker, las matemáticas de pago, la administración privada o el comportamiento localizado.
 
@@ -50,7 +50,8 @@ Si un cambio afecta el precio, la disponibilidad, el progreso de la campaña, el
 
 - [`_config.yml`](https://github.com/aindaco1/pool/blob/main/_config.yml): configuración canónica de plataforma orientada hacia la horquilla
 - [`_config.local.yml`](https://github.com/aindaco1/pool/blob/main/_config.local.yml): solo anulaciones locales de la máquina
-- [`_campaigns/`](https://github.com/aindaco1/pool/tree/main/_campaigns): contenido de la campaña, niveles, objetivos, datos del diario y complementos de la campaña
+- [`_campaigns/`](https://github.com/aindaco1/pool/tree/main/_campaigns): contenido de campaña publicado, niveles, objetivos, datos del diario y complementos de campaña
+- `_campaign_drafts/`: Copias de trabajo guardadas respaldadas por Git, excluidas de compilaciones públicas y de pago; utilizar el mismo modelo de creación y conservar los datos de recuperación del navegador
 - [`_data/i18n/`](https://github.com/aindaco1/pool/tree/main/_data/i18n): interfaz de usuario localizada compartida, tiempo de ejecución y copia por correo electrónico
 - [`_data/media-optimization-manifest.json`](https://github.com/aindaco1/pool/blob/main/_data/media-optimization-manifest.json): metadatos de medios del repositorio reconstruibles; Los archivos fuente siguen siendo autorizados.
 - [`_layouts/`](https://github.com/aindaco1/pool/tree/main/_layouts) y [`_includes/`](https://github.com/aindaco1/pool/tree/main/_includes): páginas públicas, páginas de campaña, incrustaciones, SEO y ayudantes locales
@@ -127,7 +128,7 @@ Verifique la lógica de correo Worker, `_data/i18n/`, la configuración del remi
 
 ### Medios de comunicación
 
-El árbol de activos del repositorio tiene autoridad. Reconstruir `_data/media-optimization-manifest.json` con `npm run media:manifest`; no cree un catálogo de medios respaldado por KV. Utilice el envío del optimizador GitHub existente para reparar todos los cambios o todos los cambios, preservar los archivos de origen y los derivados más grandes omitidos intencionalmente, requerir texto alternativo para imágenes significativas y usar el estado de imagen decorativa explícito para el texto alternativo vacío.
+El árbol de activos del repositorio tiene autoridad. Reconstruir `_data/media-optimization-manifest.json` con `npm run media:manifest`; no cree un catálogo de medios respaldado por KV. Utilice el envío del optimizador GitHub existente para reparar todos los cambios o todos los cambios, conservar los archivos de origen y los derivados más grandes omitidos intencionalmente, recomendar texto alternativo para imágenes significativas sin bloquear Guardar o Publicar y mantener explícito el estado de la imagen decorativa.
 
 ### Inserta, SEO y comparte tarjetas
 

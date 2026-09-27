@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-6 de septiembre de 2026
+27 de septiembre de 2026
 
 Esta guía cubre la superficie de personalización sin código admitida para bifurcaciones de The Pool.
 
@@ -583,8 +583,8 @@ Claves admitidas hoy:
 
 Comportamiento actual:
 
-- Los destinatarios a nivel de campaña viven en el frente de la campaña como `runner_report_emails`.
-- Si el campo de la campaña falta o está vacío, no se envían correos electrónicos al responsable de la campaña para esa campaña.
+- los usuarios de campaña asignados reciben informes de forma predeterminada; los destinatarios adicionales usan `runner_report_emails` y las opciones de exclusión guardadas usan `runner_report_excluded_emails` en el frente de la campaña (consulte [Email](/es/docs/operations/email-system/#informes-para-responsables-de-campaña))
+- un campo de destinatario adicional faltante o vacío aún incluye usuarios de campaña asignados; sólo una lista de destinatarios efectivos vacía omite la entrega del responsable de la campaña
 - la ventana de envío se interpreta en `platform.timezone` para que el tiempo del informe permanezca alineado con el resto del modelo del ciclo de vida de la campaña.
 - `email_subject_prefix` se puede configurar como una cadena vacía para desactivar el prefijo por completo
 - cuando el prefijo se omite en tiempo de ejecución, el trabajador vuelve a `[platform.name]`

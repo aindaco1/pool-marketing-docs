@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-September 6, 2026
+September 27, 2026
 
 This guide is for contributors tracing how The Pool's site, Worker, providers,
 and repository state fit together. Endpoint contracts live in
@@ -21,7 +21,8 @@ and repository state fit together. Endpoint contracts live in
 | --- | --- |
 | Public pages, localized routes, templates, and browser cart | Jekyll sources and `assets/` |
 | Platform identity, catalog, and supported fork settings | `_config.yml`; `_config.local.yml` holds local overrides |
-| Campaign copy, tiers, goals, diary, and campaign add-ons | `_campaigns/` and repository media |
+| Published campaign copy, tiers, goals, diary, and campaign add-ons | `_campaigns/` and repository media |
+| Saved campaign working copies | `_campaign_drafts/`, excluded from public builds; same Markdown model and Git history |
 | Prices, permissions, inventory decisions, pledge persistence, and settlement | Cloudflare Worker |
 | Card data, payment methods, and charge processing | Stripe |
 | Pledge records, projections, admin users, and operational markers | Worker KV, with serialized coordinators for critical mutations |
@@ -30,7 +31,7 @@ and repository state fit together. Endpoint contracts live in
 The browser proposes state. The Worker resolves the current campaign/catalog,
 validates availability, and computes authoritative totals. Normal creator edits
 use the [dashboard](/docs/operations/admin-dashboard/); publishable changes write back to Git instead
-of creating a second content catalog in KV.
+of creating a second content catalog in KV. Save writes a working copy; Publish promotes its authoring fields to the canonical campaign. Public APIs and checkout never read working copies.
 
 ### Shared Foundations
 
@@ -58,7 +59,7 @@ rules; it must not display an ended campaign as live.
 1. The supporter selects tiers, support items, custom support, or add-ons in the first-party cart.
 2. `/checkout-intent/start` resolves canonical prices, tax, shipping, campaign state, and limited-tier reservations, then creates a setup-mode Stripe session.
 3. The on-site payment sidecar saves a card. A hosted fallback remains available when required by the checkout configuration.
-4. Webhook persistence, with a bounded completion/recovery path, creates one pledge per campaign. The browser waits for persistence before showing success and invalidates cached campaign totals afterward.
+4. Webhook persistence and bounded browser recovery share a per-order completion coordinator and the verified quote to create one pledge per campaign. The browser waits for persistence before showing success and invalidates cached campaign totals afterward.
 5. Order-scoped magic links let supporters manage active pledges. Deadline-passed pledges become read-only apart from eligible card updates.
 6. After a funded campaign's deadline, Worker scheduling dispatches campaign-scoped settlement and records charge outcomes. Failed-payment recovery uses the existing payment-method update flow.
 

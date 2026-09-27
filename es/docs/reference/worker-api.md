@@ -10,9 +10,20 @@ lang: es
 
 ## Última actualización
 
-6 de septiembre de 2026
+27 de septiembre de 2026
 
 Esta es la referencia del punto final para contribuyentes y operadores que se integran con The Pool Worker. Consolida los ejemplos de ruta previamente distribuidos en las guías de arquitectura y componentes. Los controladores en [`worker/src/index.js`](https://github.com/aindaco1/pool/blob/main/worker/src/index.js) y [`worker/src/routes/`](https://github.com/aindaco1/pool/tree/main/worker/src/routes) tienen autoridad; Esta es una guía de las rutas de integración documentadas, no un inventario generado de cada controlador.
+
+### Copias de trabajo de campaña
+
+`GET /admin/campaigns/draft?campaignSlug=<slug>` devuelve el contenido editable y `baseRevision`, `hasWorkingCopy`, `isPublished`, `hasUnpublishedChanges`, `savedAt` y el enlace de vista previa activo del administrador actual. `GET /admin/settings?working=true` devuelve campos de campaña de la misma copia de trabajo guardada e incluye su revisión en `workingCopy` de cada sección de campaña. Ambos requieren acceso de administrador específico de la campaña y permanecen privados/no-store; Los borradores de archivos nunca ingresan al catálogo público de campañas.
+
+`POST /admin/campaigns/draft` requiere permiso del editor de campaña, CSRF, un `baseRevision` coincidente y `intent: "save"` o `"publish"`. Su cuerpo JSON tiene un límite de 512 KiB; media utiliza los puntos finales de carga limitados existentes. Guardar acepta `campaignSlug`, `draft: { title, shortBlurb, longContent }` y `changes` utilizando el formato de cambio de configuración existente. Cada cambio debe pertenecer a ese slug; `settingsRevision` debe coincidir cuando hay cambios en la configuración. Worker valida el candidato fusionado, incluidas las referencias de nivel destacado, y confirma un archivo `_campaign_drafts/<slug>.md`. No escribe datos públicos de campañas, no envía invitaciones ni elimina medios.
+
+Publish acepta el slug y la revisión guardada, verifica que los campos de creación públicos aún coincidan con la base de la copia de trabajo y promueve solo los campos de creación en el `_campaigns/<slug>.md` actual. Conserva los campos de tiempo de ejecución/liquidación, establece `published: true`, `preview_only: false` y `visibility: public` y solicita una reconstrucción. Se requieren título, fechas válidas ordenadas y un objetivo positivo. Ambas acciones devuelven el estado de la copia de trabajo actualizada y rechazan las revisiones obsoletas con HTTP 409 `campaign_revision_conflict`. El asistente de repositorio local implementa la misma condición previa de revisión con el reemplazo de archivos atómicos serializados.
+
+La publicación de vista previa protegida acepta `workingRevision` y `preserveLinks: true` opcionales del panel actual. Una revisión obsoleta falla; Los enlaces activos conservan su token original y caducan mientras se agregan nuevas invitaciones dentro del límite de revisor existente. La vista previa lee la última copia de trabajo guardada. Los puntos finales de publicación de configuración/contenido heredados siguen siendo compatibles con paneles de control antiguos abiertos; una edición pública a través de esas rutas provoca que un borrador en conflicto falle en lugar de sobrescribirse.
+
 
 ## Autenticación y Runbooks relacionados
 
@@ -51,6 +62,14 @@ El trabajador reconstruye el nivel, el complemento del paquete, el soporte perso
 Cuando un aporte califica para mejoras de envío, el Trabajador también mantiene la opción de entrega limitada seleccionada (`standard`, `signature_required` o `adult_signature_required`) para que el carrito, la Gestión del aporte, el total del aporte almacenado y los correos electrónicos de los patrocinadores permanezcan alineados.
 
 Las reservas y los reclamos de nivel limitado se serializan a través de un coordinador de objetos duraderos por campaña antes de que se actualice la instantánea del inventario de KV, por lo que los inicios, reintentos, modificaciones y finalizaciones de webhooks simultáneos no pueden sobrevender las escasas recompensas.
+
+### POST /checkout-intent/complete
+
+Cuerpo: `{ "orderId": "pool-intent-...", "sessionId": "cs_..." }`. Finalización de origen confiable y tasa limitada por pedido de la sesión de configuración Stripe existente. Una respuesta `200` con `persisted: true` confirma la persistencia sin una lectura adicional del resumen. La finalización simultánea devuelve `409` con `retryable: true`; los fallos de verificación devuelven un error y `persisted: false`. Esta ruta no cobra al patrocinador.
+
+### GET /checkout-intent/summary?orderId={orderId}
+
+Devuelve un resumen privado que no se puede almacenar en caché. Una cotización guardada tiene `persisted: false` y `pledgeStatus: "pending"`; solo los aportes persistentes/paquetes confirmados devuelven `persisted: true`. Una cotización o aporte ausente devuelve `404`.
 
 ### GET /pledges?token={token}
 Obtenga la(s) aporte(s) autorizada(s) mediante un token de enlace mágico.
@@ -162,7 +181,7 @@ La idempotencia del webhook se confirma solo después de una persistencia exitos
 Punto final del webhook Resend/Svix para eventos entregados, rebotados, reclamados, fallidos y suprimidos. Requiere `RESEND_WEBHOOK_SECRET`, verifica el cuerpo de la solicitud sin procesar y la marca de tiempo, deduplica `svix-id`, actualiza el estado de entrega con privacidad minimizada y aplica hash a los destinatarios antes de la supresión local permanente de rebotes/quejas.
 
 ### GET or POST /campaign-email/unsubscribe?t={token}
-Cancelación de suscripción firmada en el ámbito de la campaña para correo de diario, hitos y anuncios en vivo. RFC 8058 POST devuelve una respuesta de éxito en blanco; El navegador GET devuelve una página de confirmación sin tienda. La preferencia almacenada es un hash de correo electrónico y no suprime el correo electrónico de aporte/pago transaccional.
+Cancelación de suscripción firmada en el ámbito de la campaña para correo de diario, hitos y anuncios en vivo. RFC 8058 POST devuelve una respuesta de éxito en blanco; El navegador GET devuelve una página de confirmación no-store. La preferencia almacenada es un hash de correo electrónico y no suprime el correo electrónico de aporte/pago transaccional.
 
 ### POST /film/stripe-summary
 Adaptador de película de servidor a servidor para agregados Stripe de solo resumen. Requiere `Authorization: Bearer <FILM_STRIPE_SUMMARY_ADAPTER_SECRET>`, `dataBoundary: "summary_only"`, `source: "pool"` y slugs de campaña mapeados en `mappedRefs`. La respuesta se limita a campos agregados de dinero/recuento, recuentos de referencias asignadas, estado, marca de tiempo generada y moneda. No devuelve correos electrónicos de soporte, ID de intención de pago, ID de cargo, ID de transacción de saldo ni datos de tarjeta/método de pago, y escribe un evento de auditoría de administración de solo metadatos.
@@ -230,10 +249,12 @@ Los shells privados `/admin/` y `/es/admin/` utilizan rutas de trabajo respaldad
 - `GET /admin/settings` lee una instantánea de configuración/configuración de ámbito de función para el panel
 - `POST /admin/settings/preview` valida los cambios de configuración sin publicar
 - Cargas de paneles de escenario `POST /admin/settings/logo-upload`, `POST /admin/settings/image-upload`, `POST /admin/settings/audio-upload` y `POST /admin/settings/video-upload` a través de la misma ruta de publicación respaldada por GitHub que sus propios campos de configuración/contenido; Las cargas de imágenes/videos solicitan el flujo de trabajo **Optimizar medios del panel** con `scope=changed` después de la confirmación, mientras que la optimización de imágenes nativas y la transcodificación de video aún se ejecutan en la canalización de medios del repositorio en lugar de dentro del Worker.
+  - Las cargas de videos aceptan un cuerpo binario sin formato con `Content-Type: video/mp4`, `video/webm` o `video/quicktime`. Los parámetros de consulta contienen `filename`, `size` (bytes exactos), `kind`, `campaignSlug` y `collection`, `fieldPath`, `filenameBase`, `replaceGithubPath` y `replaceSha` opcionales. El límite es 100.000.000 de bytes de archivo; Los metadatos están limitados a 8192 caracteres de consulta URL. La autorización de sesión y CSRF precede a la lectura de bytes de vídeo. Worker verifica la duración real de la transmisión con `size` y, cuando está presente, `Content-Length`, luego transmite JSON base64 a GitHub con un plazo de diez minutos y una respuesta limitada. Las secuencias no válidas/truncadas no pueden completar el documento JSON GitHub; Están prohibidos los redireccionamientos y los reintentos de escritura automática. Success conserva la forma de ruta/SHA/respuesta de procesamiento existente e informa el recuento de bytes exacto.
+  - Las solicitudes de vídeo JSON/base64 heredadas siguen admitidas dentro de un límite de cuerpo de solicitud de 12 MiB para pestañas más antiguas. Las cargas en tamaño completo requieren el formato binario; implemente Worker antes de actualizar Pages. Otros puntos finales de medios mantienen sus límites y contratos JSON existentes.
 - `POST /admin/settings/publish` valida y publica configuraciones de plataforma, complementos de plataforma, variables de campaña y datos estructurados de campaña a través de confirmaciones respaldadas por GitHub.
 - El navegador recuerda el contexto de la pestaña/subpestaña del panel de control localmente durante las recargas; esta restauración no llama a una ruta de trabajo y no escribe el estado de KV o GitHub
 - `POST /admin/users` guarda los usuarios administradores administrados por el panel directamente en `admin-users:v1` en Worker KV y envía por correo electrónico las instrucciones de inicio de sesión de los usuarios recién creados cuando se configura Resend
-- `POST /admin/campaigns/create` permite a los superadministradores crear campañas de solo vista previa a través de la ruta de origen de la campaña respaldada por GitHub, asignar uno o más usuarios de campaña existentes,, opcionalmente, crear varios usuarios de campaña nuevos en `admin-users:v1`, enviar por correo electrónico a los usuarios asignados el enlace del panel de administración y registrar un evento de auditoría.
+- `POST /admin/campaigns/create` permite a los superadministradores crear campañas de solo vista previa a través de la ruta de origen de la campaña respaldada por GitHub, opcionalmente asignar usuarios de campaña nuevos o existentes en `admin-users:v1`, enviar por correo electrónico a los usuarios asignados el enlace del panel de administración y registrar un evento de auditoría. Las asignaciones son acumulativas; Se conservan los usuarios existentes no relacionados, incluidos los usuarios no asignados. Una escritura fallida en un archivo de campaña deja a los usuarios sin cambios y no envía ningún correo electrónico de asignación.
 - `POST /admin/campaigns/archive` permite a los superadministradores archivar campañas no activas localmente en desarrollo o enviando `.github/workflows/archive-campaign.yml` a producción; el trabajador valida CSRF, rol, slug, existencia de campaña y estado efectivo, registra un evento de auditoría y mueve la fuente/medios de la campaña a través del asistente de repositorio de desarrollo o acciones de GitHub.
 - `POST /admin/campaign-preview/publish` permite a los superadministradores y usuarios de campaña asignados publicar una vista previa protegida, almacena el administrador de publicación más los correos electrónicos de los revisores opcionales en `campaign-preview-reviewers:{slug}` con un TTL de 24 horas, devuelve un enlace de vista previa del panel firmado para el administrador de publicación, envía enlaces firmados a revisores opcionales, escribe solo indicadores de vista previa en la campaña Markdown y registra un evento de auditoría
 - `GET /admin/campaign-preview/:slug` devuelve una carga útil de vista previa de página de campaña completa privada/no-store con fuentes de campaña/incrustaciones de medios y controles de aporte de solo lectura cuando el solicitante tiene una sesión de administrador autorizada o un token de revisor válido cuyo correo electrónico todavía está en la lista de permitidos de KV de 24 horas.
@@ -336,7 +357,8 @@ Notas:
 
 - `dryRun: true` devuelve destinatarios, recuentos de filas, nombre de archivo y estado del marcador sin enviar
 - Al omitir `markAsSent`, el valor predeterminado es `true` para envíos en vivo, de modo que la ejecución programada coincidente no duplique inmediatamente el informe.
-- Los destinatarios de la campaña todavía provienen del frente de la campaña `runner_report_emails`.
+- los reintentos automáticos reutilizan las identidades programadas de la bandeja de salida; Los envíos manuales explícitos conservan su deduplicación basada en carga útil existente, por lo que `markAsSent: false` no consume el informe programado.
+- los destinatarios de la campaña son los usuarios de la campaña asignados actualmente más el material preliminar `runner_report_emails`, excluyendo `runner_report_excluded_emails`; las vistas previas, los envíos programados y los envíos manuales utilizan la misma resolución
 - `reportType: "pledge"` es el informe diario de la campaña en vivo.
 - `reportType: "fulfillment"` es el informe único de envío/exportación posterior a la fecha límite
 - Los correos electrónicos de informes utilizan asuntos cortos, sin emojis y que priorizan la entregabilidad con el prefijo configurado más el tipo de informe y el título de la campaña.
@@ -369,7 +391,7 @@ Orientación operativa:
 
 - prefiera `dryRun: true` primero al verificar una nueva campaña, lista de destinatarios o cambio de personalización
 - configure `markAsSent: false` solo cuando desee intencionalmente un envío manual sin consumir el marcador de envío programado
-- El comportamiento en toda la implementación proviene de `_config.yml` bajo `reports.campaign_runner`, mientras que los destinatarios por campaña permanecen al frente.
+- el comportamiento de toda la implementación proviene de `_config.yml` en `reports.campaign_runner`; las asignaciones provienen del almacén efectivo de administrador-usuario, mientras que los destinatarios adicionales y las opciones de exclusión utilizan el material preliminar de la campaña (consulte [Email](/es/docs/operations/email-system/#informes-para-responsables-de-campaña))
 - para el cumplimiento, valide tanto el corredor como la plataforma antes de enviar si una campaña incluye complementos de plataforma
 
 ### POST /test/email

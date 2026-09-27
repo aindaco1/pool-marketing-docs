@@ -8,16 +8,16 @@ has_children: true
 
 ## Last Updated
 
-September 6, 2026
+September 27, 2026
 
 This section covers the admin dashboard, pledge Worker, local runtime options, quality gates, and the operational rules that protect checkout and fulfillment behavior.
 
 ## Local Runtime And Services
 
-- [Admin Dashboard](/docs/operations/admin-dashboard/) for browser-based campaign editing, reports, analytics, marketing tools, media uploads, and user management.
+- [Admin Dashboard](/docs/operations/admin-dashboard/) for campaign saving, protected previews, publication, draft recovery, reports, media uploads, and user management.
 - [Pledge Worker](/docs/operations/worker/) for the Worker development entry point and links to its owning guides.
-- [Payment Processor](/docs/operations/payment-processor/) for Stripe setup, canonical checkout, webhooks, settlement, and reconciliation.
-- [Email System](/docs/operations/email-system/) for sender setup, transactional and campaign email behavior, localization, delivery, and retries.
+- [Payment Processor](/docs/operations/payment-processor/) for Stripe setup, canonical checkout, confirmation recovery, webhooks, settlement, and reconciliation.
+- [Email System](/docs/operations/email-system/) for sender setup, transactional and campaign email behavior, report subscriptions, scheduling, delivery, and retries.
 - [Podman Local Dev](/docs/operations/podman-local-dev/) for the containerized local stack, support matrix, and troubleshooting flow.
 
 - [Deployment](/docs/operations/deployment/) for production setup, credentials, Pages and Worker releases, and post-deploy checks.
@@ -25,7 +25,7 @@ This section covers the admin dashboard, pledge Worker, local runtime options, q
 
 ## Quality, Security, And Release Checks
 
-- [Testing Guide](/docs/operations/testing/) for automated gates, manual regression runs, and test authoring patterns.
+- [Testing Guide](/docs/operations/testing/) for automated gates, manual regression runs, test authoring, and the advisory Jev pilot.
 - [Performance](/docs/operations/performance/) for public-page loading, generated asset minification, intent prefetching, and validation expectations.
 - [Merge Smoke Checklist](/docs/operations/merge-smoke-checklist/) for operator-ready checkout, modify, and cancel verification before merge.
 - [Security Guide](/docs/operations/security/) for current security boundaries, applied hardening, testing, and incident response.

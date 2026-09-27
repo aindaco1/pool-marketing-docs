@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-6 de septiembre de 2026
+27 de septiembre de 2026
 
 Este documento cubre la arquitectura de seguridad, los riesgos conocidos, las medidas de refuerzo aplicadas, las compensaciones aceptadas y los procedimientos de prueba de penetración para la plataforma de financiación colectiva The Pool. Los límites de copia de seguridad cifrada, el estado de límite de velocidad/sesión en cuarentena, el manejo fuera del dispositivo y las aprobaciones de restauración de producción se definen en [BACKUP_RESTORE.md](/es/docs/operations/backup-restore/).
 
@@ -137,7 +137,7 @@ Las mutaciones administrativas utilizan estas protecciones comunes:
 - Los usuarios de campañas solo pueden modificar campañas en su alcance asignado; Los superadministradores pueden modificar la configuración de la plataforma y todas las campañas.
 - Las configuraciones respaldadas por GitHub están incluidas en la lista permitida a través de `ADMIN_PLATFORM_SETTING_SCHEMA` y `ADMIN_CAMPAIGN_SETTING_SCHEMA`. Se rechazan las rutas desconocidas y las pseudofilas de la interfaz de usuario, como las del editor de contenido de la campaña, no se pueden asignar en masa mediante la publicación de configuraciones.
 - Las cargas de medios de administración tienen un alcance del lado del servidor según el tipo de carga. Las cargas de medios de campaña requieren un slug de campaña válido más `campaign:edit_content`; Las cargas de medios predeterminadas o de plataforma requieren la ruta de superadministrador `settings:publish`. Worker valida el tipo de archivo, el tamaño, el directorio de destino y el nombre de archivo antes de confirmar una ruta de activo.
-- La limpieza de medios en el momento de la publicación se deriva del lado del servidor a partir de los datos de campaña cargados previamente y del borrador de campaña normalizado que se confirma. Solo elimina los archivos seguros que pertenecen al panel de control relativo a la raíz en los directorios `assets/images`, `assets/videos` o `assets/audio` de la misma campaña, y conserva las URL externas, los activos compartidos/predeterminados y los archivos a los que todavía se hace referencia en otras partes de la campaña.
+- La limpieza de medios en el momento de la publicación se deriva del lado del servidor a partir de los datos de campaña cargados previamente y del borrador de campaña normalizado que se confirma. Conserva los medios a los que hacen referencia las copias de trabajo guardadas y omite la limpieza si esas referencias no se pueden verificar. Los reemplazos de carga de campaña crean una nueva URL de activo para que un borrador no pueda cambiar los medios en vivo. Solo elimina los archivos seguros que pertenecen al panel de control relativo a la raíz en los directorios `assets/images`, `assets/videos` o `assets/audio` de la misma campaña, y conserva las URL externas, los activos compartidos/predeterminados y los archivos a los que todavía se hace referencia en otras partes de la campaña.
 - Los usuarios administradores de solo tiempo de ejecución se guardan únicamente en KV en `admin-users:v1`; no están serializados en `_config.yml`.
 - La restauración de pestañas/subpestañas del panel de administración almacena solo identificadores de interfaz de usuario locales del navegador para el último espacio de trabajo permitido. No se envía a Worker, no escribe el estado KV o GitHub, y la autorización de rol/campaña aún controla lo que se puede restaurar después del inicio de sesión.
 - Los códigos de referencia de marketing se guardan solo en la acción explícita del usuario y tienen como alcance el origen/ruta de la URL de la campaña a la que puede acceder la cuenta de administrador.
@@ -156,7 +156,7 @@ Las mutaciones administrativas utilizan estas protecciones comunes:
 Las vistas previas protegidas son superficies de revisión privadas para campañas editables, no páginas de campañas públicas.
 
 - Los shells de vista previa estática se encuentran en `/campaigns/:slug/preview/` y equivalentes localizados para cada slug de campaña, por lo que los enlaces de vista previa no aceleran la reconstrucción del sitio estático. Utilizan `noindex,nofollow,noarchive`, comportamiento de referencia de origen estricto para compatibilidad con medios integrados, sin metadatos sociales públicos ni JSON-LD público.
-- El shell es genérico y no incorpora el título de la campaña, los datos de carga útil ni los datos de acceso previo en el momento de la compilación. Obtiene una carga útil de vista previa de la página de campaña completa sin tienda de `/admin/campaign-preview/:slug`, con controles de aporte de solo lectura.
+- El shell es genérico y no incorpora el título de la campaña, los datos de carga útil ni los datos de acceso previo en el momento de la compilación. Obtiene una carga útil de vista previa de la página de campaña completa no-store de `/admin/campaign-preview/:slug`, con controles de aporte de solo lectura.
 - Los administradores autenticados pueden recuperar la carga útil solo a través de la sesión de administrador existente, las protecciones CSRF/de origen cuando correspondan y las comprobaciones del alcance de la función/campaña.
 - Los revisores explícitos utilizan tokens `t` firmados según el tipo de token, el slug de campaña, el correo electrónico del revisor y el vencimiento. Worker también compara el correo electrónico con la lista de permitidos de 24 horas de KV antes de devolver una carga útil de vista previa.
 - Las solicitudes de publicación de vista previa llevan una revisión base GitHub cuando esté disponible. Las publicaciones obsoletas devuelven un conflicto en lugar de sobrescribir los cambios de otro usuario.
@@ -198,7 +198,7 @@ y otras respuestas protegidas utilizan el origen del sitio configurado normaliza
 `X-Frame-Options: DENY`, la compatibilidad heredada de `X-XSS-Protection`
 encabezado y `Referrer-Policy: strict-origin-when-cross-origin`.
 - Arranque de pago, finalización de pago, método de pago, administrador, vista previa y
-otras respuestas específicas de pedidos utilizan la política privada/sin tienda cuando corresponda.
+otras respuestas específicas de pedidos utilizan la política privada/no-store cuando corresponda.
 Los POST de métodos de pago y pago entre sitios no superan las comprobaciones de origen.
 - Los analizadores de solicitudes imponen límites de tamaño corporal antes que los costosos JSON, Stripe o KV
 trabajo. Slugs, correos electrónicos, identificadores/opciones de voto, cantidades de centavos enteros, administración
@@ -375,3 +375,7 @@ Consulte [PAYMENT_PROCESSOR.md](/es/docs/operations/payment-processor/) para obt
 
 - **Seguridad de Stripe:** [stripe.com/docs/security](https://stripe.com/docs/security)
 - **Estado de Cloudflare:** [cloudflarestatus.com](https://www.cloudflarestatus.com)
+
+## Revisiones de campaña guardadas
+
+Las copias de trabajo de la campaña siguen estando respaldadas por Git y utilizan el modelo de acceso al repositorio/medios existente; El acceso a la vista previa protegida no hace que un repositorio público de Git o las URL de activos conocidos sean confidenciales. `_campaign_drafts/` está excluido de los artefactos del sitio y de las lecturas de catálogos/pagos públicos. Solo lo resuelven las rutas del editor autenticado con alcance y del revisor firmado. Guardar y publicar requieren CSRF, acceso al editor de campañas y comprobaciones de revisión. La publicación fusiona campos de creación únicamente; Los datos de aporte, inventario, liquidación y acceso a vista previa no se pueden proporcionar a través de este punto final. Los borradores de las copias de recuperación del navegador permanecen en el mismo navegador y nunca se cargan como registro de auditoría. Guardar no envía correos electrónicos ni crea/extiende el acceso del revisor.

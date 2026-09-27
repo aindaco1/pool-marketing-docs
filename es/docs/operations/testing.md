@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-6 de septiembre de 2026
+27 de septiembre de 2026
 
 Esta guía cubre los conjuntos de pruebas automatizadas, la infraestructura de pruebas local y las rutas de verificación manual. La recuperación sintética semanal, los simulacros de vista previa protegida y la verificación posterior a la restauración están documentados en [BACKUP_RESTORE.md](/es/docs/operations/backup-restore/).
 
@@ -26,6 +26,14 @@ npm run jekyll-template:check
 
 Las dependencias raíz `esbuild` y `smol-toml` son pines exactos que coinciden con los manifiestos Platform Build Core y Release Core revisados. Actualícelos junto con la plataforma gitlink, no de forma independiente en un PR de dependencia de rutina. La prueba de pin comprueba tanto los manifiestos raíz como las entradas de la versión instalada en el archivo de bloqueo. Dependabot pospone sus actualizaciones de versión de rutina mientras mantiene las actualizaciones de seguridad elegibles. Una solución de seguridad aún requiere una actualización de plataforma compatible revisada; No debilite la prueba del pin para evitarlo. Continúe ejecutando ambas auditorías de dependencia descritas en [SECURITY.md](/es/docs/operations/security/#seguridad-de-dependencias-y-versiones).
 
+Las comprobaciones de regresión de la carga de vídeos de la campaña se ejecutan con:
+
+```bash
+npx vitest run tests/unit/github-video-runtime.test.ts tests/unit/github-worker-runtime.test.ts tests/unit/admin-dashboard.test.ts
+```
+
+El paquete de tiempo de ejecución de video transmite un archivo sintético exacto de 100.000.000 bytes a través de workd con un receptor GitHub simulado y verifica el hash completo del cuerpo codificado. También cubre límites de fragmentos, declaraciones de gran tamaño, transmisiones truncadas o demasiado largas y errores/redirecciones de proveedores. Las pruebas de API cubren el alcance de la campaña, CSRF, validación de metadatos y optimización solo después de una persistencia exitosa. El conjunto de navegador del panel verifica que el cargador héroe envíe bytes binarios. Estas comprobaciones no establecen la aceptación del borde GitHub o Cloudflare en vivo; después de la implementación, verifique un MP4 real cercano al límite a través del tablero y confirme su recurso de repositorio y su vista previa reproducible.
+
 El adaptador de vídeo de producto sólo local tiene una ruta de humo de interfaz real limitada:
 
 ```bash
@@ -37,6 +45,8 @@ Se compila con el `_config.test.yml` rastreado, captura la ruta de campaña/nive
 Si un Worker de solo host de repente devuelve `503` mientras pasa la ruta de humo respaldada por Podman, detenga la pila de desarrollo del host e inspeccione el directorio local `worker/.wrangler/state` ignorado en busca de una copia en conflicto de Cloud Drive, como `v3 2`. Mueva solo ese directorio de desarrollo local duplicado a un lado y reinicie Worker; no cambie `wrangler.toml`, espacios de nombres remotos ni datos rastreados. Los contenedores Podman utilizan un estado aislado y lo restablecen para realizar comprobaciones de tiempo de ejecución reproducibles.
 
 La puerta previa a la fusión también posee todos los procesos Worker y Jekyll que inicia. La limpieza señala el árbol secundario completo, espera solo un período de gracia limitado y luego detiene por la fuerza a cualquier superviviente. Una regresión enfocada utiliza un proceso secundario deliberadamente obstinado para garantizar que una puerta que pasa por completo no se bloquee hasta que expire el tiempo de espera del trabajo de CI después de imprimir su resumen de fase.
+
+La recuperación del borrador de la campaña se realiza en `tests/unit/admin-content-draft-recovery.test.ts` y en el conjunto de navegadores del panel. Las comprobaciones cubren una restauración de página nueva contra una campaña de servidor vacío, Guardar borrador seguido de Publicar, la advertencia de actualización real, almacenamiento fallido o ilegible, cambios de otra pestaña, respuestas retrasadas, medios preparados y ediciones durante la publicación. Mantenga separadas las líneas base de copia de seguridad del navegador, guardado del servidor y versión pública. Las regresiones de textos de trabajo también cubren todas las secciones de creación de campañas, revisiones posteriores de campañas publicadas, aislamiento de datos en vivo, revisiones públicas/borradores obsoletos, escrituras fallidas y simultaneidad local de comparación y escritura.
 
 ## Auditorías de dependencias
 
@@ -57,6 +67,7 @@ npm run test:unit          # Unit tests (Vitest)
 npm run test:unit:watch    # Watch mode
 npm run test:unit:coverage # With coverage report
 npm run test:i18n          # Supported locale catalog completeness check
+npm run test:jev           # Advisory synthetic text-evaluation preview (no network)
 npm run test:seo           # Generated-site SEO/crawl audit; build _site first
 npm run test:crawl-endpoints -- --base=https://site.example.com  # Live sitemap/robots/URL fetch audit
 npm run test:performance:budgets  # Generated JS/CSS release ceilings
@@ -113,6 +124,29 @@ Si desea solo el barrido de regresión de accesibilidad pública y no desea depe
 npm run test:e2e:headless:podman -- tests/e2e/accessibility-public-pages.spec.ts --project=chromium
 ```
 
+## Piloto orientativo de Jev
+
+`npm run test:jev` crea páginas locales nuevas con `_config.test.yml` y captura 34 casos de mensajes de apoyo en inglés/español: confirmación de pago pendiente/guardado, tarjetas de aporte activas/bloqueadas/fallidas/cargadas/canceladas y cinco correos electrónicos transaccionales en HTML y texto sin formato. Ejecuta los scripts de página existentes en DOM aislados con respuestas sintéticas Worker y utiliza el modo de captura de carga útil de correo electrónico Worker existente. Antes de la evaluación, las verificaciones exactas cubren la visibilidad de la confirmación, los controles de edición/cancelación, los totales de correo electrónico y los enlaces de administración localizados.
+
+```bash
+npm run test:jev -- --dry-run
+npm run test:jev -- --live
+```
+
+La vista previa predeterminada de las solicitudes sin autenticación ni llamadas de modelo. El comando en vivo utiliza `CLOUDFLARE_ACCOUNT_ID` y `CLOUDFLARE_API_TOKEN`, o el inicio de sesión Wrangler instalado existente cuando el token no está configurado. Ninguna credencial está escrita como prueba. El comando requiere las dependencias normales de Bundler/Jekyll y npm del host. `JEKYLL_ENV=production` evita que la configuración local de la máquina ingrese a la compilación; la configuración de prueba rastreada proporciona URL locales. Esto no implementa nada.
+
+El generador de solicitudes reutilizable, el transporte Cloudflare limitado, la validación de respuestas y la evaluación de lotes se encuentran en la entrada `test-core/jev` de participación voluntaria de la plataforma. The Pool posee el [adaptador de captura](https://github.com/aindaco1/pool/blob/main/scripts/jev-corpus.mjs), los controles sintéticos](https://github.com/aindaco1/pool/blob/main/tests/fixtures/jev/controls.json), los requisitos, el descubrimiento de credenciales, los límites de gasto y los informes. Ninguna aplicación/tiempo de ejecución Worker importa Jev. CutNotes permanece implementado de forma independiente y sin cambios.
+
+Cada ejecución escribe un nuevo directorio `tmp/jev/<run>/` ignorado que contiene `corpus.json`, `report.json`, `review.md` y la compilación local. Los informes conservan respuestas sin procesar, texto de solicitud/candidato, hashes de fuente/candidato, modelos resueltos, probabilidades, uso y tiempo. No existe una opción de entrada arbitraria de archivos/datos de producción. Sólo los candidatos sintéticos y las preguntas van a Cloudflare/TypeSafe; Se excluyen las rutas de origen, los ID de cuentas, las credenciales y los datos reales de los patrocinadores. Las URL de correo electrónico se eliminan de la entrada semántica después de las comprobaciones de enrutamiento local. No se envía ningún correo electrónico.
+
+Conserve `corpus.json`, `report.json` y `review.md` para las ejecuciones citadas en la evidencia de publicación. El directorio `site/` de la ejecución es una compilación desechable; la siguiente invocación crea una nueva. Siga [limpieza del espacio de trabajo](/es/docs/development/contributing/#limpieza-del-espacio-de-trabajo-local) para otras copias de salida y recuperación generadas.
+
+Dieciséis ejemplos de control emparejados miden pases falsos, fallos falsos y revisiones. Estas etiquetas creadas por ingenieros son diagnósticos, no calificaciones humanas independientes ni un conjunto de validación invisible. El margen de probabilidad de 0,10 es provisional, tomado del flujo de trabajo de CutNotes en lugar de calibrado para The Pool. Los vínculos cercanos, la incertidumbre y las versiones desconocidas de los modelos pasan a revisión. Un piloto completado puede contener fallas; no establece el español nativo, el diseño del navegador, Stripe, la entrega o la aceptación de la liberación. Las pruebas deterministas existentes conservan autoridad sobre el dinero y el acceso.
+
+El piloto permanece fuera de las puertas `npm test`, premerge y CI. La salida 0 significa una vista previa explícita o una ejecución de asesoramiento completa, incluso cuando los hallazgos necesitan revisión; la salida 2 significa configuración, autenticación o evaluación incompleta. No hay reintentos, retrocesos de proveedores, compras ni recargas automáticas. Se permiten como máximo 100 preguntas. El límite de gasto estimado predeterminado es de 0,25 USD (`--max-estimated-usd=...`, máximo estricto de 1 USD). La reserva presupuesta 32.000 tokens de entrada por pregunta utilizando la [tasa de entrada TypeSafe](https://docs.typesafe.ai/models) con fecha de 0,042 dólares/millón (2026-09-22); Esta es una estimación, no un límite de facturación de Cloudflare. La [referencia del modelo Cloudflare](https://developers.cloudflare.com/ai/models/typesafe/jev/) dirige las comprobaciones de precios reales al panel de la cuenta. Los encabezados de solicitud desactivan el registro/caché de la puerta de enlace; no son una garantía de retención de proveedores.
+
+Consulte la [evidencia piloto](https://github.com/aindaco1/pool/blob/main/docs/release-evidence/2026-09-22-jev-pilot.md) para conocer los resultados medidos y la [mapa de ruta](/es/docs/reference/roadmap/) para conocer las condiciones antes de adoptar una puerta.
+
 ## Liberar evidencia
 
 Utilice el envoltorio de lanzamiento antes de la aprobación de producción:
@@ -164,7 +198,7 @@ Trate el nuevo seguimiento oculto, las notificaciones ilimitadas, los metadatos 
 
 ## Pruebas unitarias (Vitest)
 
-Pruebas rápidas y aisladas para funciones JS en `tests/unit/`.
+Pruebas unitarias y de integración enfocadas en `tests/unit/`.
 
 ### Cobertura
 
@@ -181,6 +215,7 @@ Pruebas rápidas y aisladas para funciones JS en `tests/unit/`.
 |`admin-dashboard`|Seguimiento del estado sucio del panel, serialización de configuraciones, normalización de contenido/editor, cargas de medios por etapas/selector de medios, análisis/relleno de tarifas reales de Stripe, informes de atribución de análisis, borradores compartidos de marketing, salud/supresión de pagos abandonados, ayudas de URL de referencia, utilidades de soporte responsivas/i18n|
 |`i18n-completeness`|Los catálogos locales admitidos permanecen alineados con la superficie de claves anidadas en inglés|
 |`campaign-page`|Construcción de URL de enlaces compartidos, preservación segura de consultas, texto compartido con reconocimiento de estado, envío de formularios de recordatorio de lanzamiento, controles de campañas públicas y comportamiento de la página de campaña sensible a SEO|
+|`campaign-preview-pages`|Generación real de Jekyll a partir de fuentes no publicadas, shells localizados, prevención de rutas duplicadas y exclusión de borradores de rutas públicas, catálogos y mapas de sitio.|
 |`page-prefetch`|Listas permitidas de rutas públicas del mismo origen, exclusiones de consultas confidenciales, protecciones de red, manejo de demoras/límites y creación de sugerencias de captación previa de documentos|
 |`cart-runtime-loader`|Arranque diferido en tiempo de ejecución del carrito, detección de carrito persistente/de recuperación, carga idempotente y activadores de intención del usuario|
 |`site-asset-minification`|Comportamiento de minificación CSS/JS generado `_site` y casos de falla del modo de verificación|
@@ -298,7 +333,7 @@ La cobertura de páginas públicas también protege el Chrome de campaña locali
 - etiquetas de la fase de producción y copia de CTA
 - etiquetas de accesibilidad de la galería
 
-El conjunto de filtros de seguridad de contenido en `tests/unit/content-safety-filter.test.ts` también recurre a Podman cuando las gemas del host Bundler/Jekyll no están disponibles. En macOS, puede iniciar la máquina Podman como parte de ese respaldo.
+El conjunto de filtros de seguridad de contenido en `tests/unit/content-safety-filter.test.ts` también recurre a Podman cuando las gemas host Bundler/Jekyll no están disponibles. Utiliza el punto final de la persona que llama o la conexión predeterminada seleccionada por Podman y requiere un motor accesible; no inicia ni reinicia una máquina compartida. Consulte [Podman](/es/docs/operations/podman-local-dev/#iniciar-desarrollo-local) para la configuración del host.
 
 El alcance actual de Podman es intencionalmente limitado:
 

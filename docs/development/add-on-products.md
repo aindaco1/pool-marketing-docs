@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-September 6, 2026
+September 27, 2026
 
 This document describes the current add-on product system.
 
@@ -184,6 +184,8 @@ Current inventory defaults:
 The current add-on flow is intentionally inventory-aware:
 
 - inventory can live on the product itself or on each variant
+- blank, omitted, or `null` inventory means unlimited; explicit `0` means sold out, and positive counts decrease with saved sales
+- the Worker, cart, and Manage Pledge preserve that distinction for both product and variant inventory
 - global add-ons read inventory from `add_ons`
 - campaign add-ons read inventory from `campaign_add_ons`
 - the Worker exposes a current inventory snapshot at [/add-ons/inventory](https://github.com/aindaco1/pool/blob/main/worker/src/index.js)
