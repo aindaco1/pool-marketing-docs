@@ -14,6 +14,27 @@ lang: es
 
 ## Inédito
 
+## v1.2.22 - 2026-09-27
+
+La optimización de imágenes ahora se publica automáticamente tras la validación y todas las comprobaciones de Merge Smoke. Consulte la [evidencia de la versión](https://github.com/aindaco1/pool/blob/main/docs/release-evidence/v1.2.22.md) para conocer la verificación, el despliegue y la recuperación.
+
+- Se consolidaron las ramas de medios pendientes y se procesaron las imágenes
+pendientes: 78 nuevas variantes WebP adaptables y una reducción de 1.056.560 bytes en las imágenes fuente.
+- Se valida la salida de imágenes, se conservan el contenido decodificado y los metadatos JPEG,
+se comprueban el tamaño, las dimensiones y los tiempos de las variantes, y se publica únicamente
+el commit probado que desciende directamente del `main` actual. Un guardado simultáneo del creador inicia una nueva ejecución.
+- Se inicia Pages explícitamente tras la publicación automática, se eliminan las ramas
+temporales y se conservan informes y un parche recuperable en los artefactos del flujo.
+- Se detectan las cargas pendientes mediante el hash del original y las variantes faltantes, incluso
+cuando después se guarda otro contenido. Se conservan las omisiones intencionales de variantes y se impide
+que el manifiesto generado se cuente a sí mismo como referencia a medios.
+- Los fondos decorativos de la página de inicio usan variantes adaptables de hasta 640 px;
+las imágenes de tarjetas con carga diferida usan su ancho renderizado, con una alternativa que respeta la cuadrícula.
+- La verificación Turnstile del recordatorio comienza al interactuar con el formulario, en lugar de al cargar
+la página o cambiar su tamaño. El token sigue siendo obligatorio y las cargas fallidas del script se pueden reintentar.
+- Se aclara que el problema de las cuentas de administrador sin asignación se resolvió y quedó
+incluido en v1.2.21; las reglas de acceso a las campañas no cambian.
+
 ## v1.2.21 - 2026-09-27
 
 Resumen de mantenimiento del trabajo comprometido desde la versión 1.2.20, además de controles de evaluación locales validados de Jev. Esta versión agrupa mejoras previamente implementadas bajo una sola etiqueta; no introduce ningún comportamiento nuevo del producto. Consulte la [evidencia de publicación](https://github.com/aindaco1/pool/blob/main/docs/release-evidence/v1.2.21.md) para conocer los límites de verificación e implementación.

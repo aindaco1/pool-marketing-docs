@@ -147,6 +147,18 @@ El piloto permanece fuera de las puertas `npm test`, premerge y CI. La salida 0 
 
 Consulte la [evidencia piloto](https://github.com/aindaco1/pool/blob/main/docs/release-evidence/2026-09-22-jev-pilot.md) para conocer los resultados medidos y la [mapa de ruta](/es/docs/reference/roadmap/) para conocer las condiciones antes de adoptar una puerta.
 
+## Comprobaciones de automatización de imágenes
+
+Ejecute comprobaciones de regresión enfocadas después de cambiar la automatización de medios:
+
+```bash
+npx vitest run tests/unit/media-automation.test.ts tests/unit/media-optimization-script.test.ts tests/unit/media-catalog-shared-contract.test.ts tests/unit/workflow-security.test.ts
+```
+
+Estas pruebas cubren las cargas pendientes tras guardados posteriores, las omisiones intencionales de variantes, la generación reproducible del manifiesto, la validación de originales y variantes, los límites de los archivos modificables y los cambios simultáneos en `main` durante la publicación. Valide la salida de los optimizadores nativos con `node scripts/validate-media-optimization.mjs <base-commit>` desde una copia de trabajo limpia del candidato después de optimizar. El validador rechaza cambios ajenos a la optimización en el árbol de trabajo.
+
+Antes de fusionar cambios en el flujo, ejecute **Optimize dashboard media** desde la rama de desarrollo con `scope=changed`. Así se comprueban la optimización nativa, la validación del candidato, todas las comprobaciones reutilizables de Merge Smoke y la limpieza de ramas temporales, sin publicar en `main` ni en Pages. El pull request también debe superar Merge Smoke. Después de fusionarlo, verifique la ejecución del optimizador en `main`, el commit exacto publicado, la limpieza de ramas y la ejecución de Pages iniciada explícitamente. Consulte [Rendimiento](/es/docs/operations/performance/#optimización-de-medios) para recuperar una ejecución fallida.
+
 ## Liberar evidencia
 
 Utilice el envoltorio de lanzamiento antes de la aprobación de producción:

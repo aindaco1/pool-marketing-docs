@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-6 de septiembre de 2026
+27 de septiembre de 2026
 
 Esta guía contiene el cableado de producción por primera vez y el flujo de trabajo de lanzamiento del sitio/Worker. Utilice [Podman](/es/docs/operations/podman-local-dev/) para contenedores locales, [Contributing](/es/docs/development/contributing/) para desarrollo y [Merge Smoke](/es/docs/operations/merge-smoke-checklist/) para la aprobación del operador.
 
@@ -68,7 +68,7 @@ Establezca los secretos `ADMIN_BROADCAST_SECRET` o `ADMIN_SETTLEMENT_SECRET` coi
 
 El flujo de trabajo también necesita permisos de implementación GitHub Pages. Mantenga `pages: write` y `id-token: write` explícitos en el trabajo de implementación de páginas si copia o refactoriza `.github/workflows/deploy.yml`.
 
-Las cargas de paneles solicitan el flujo de trabajo separado **Optimizar medios del panel**. Sus solicitudes de extracción de optimización conservan los archivos fuente; el flujo de trabajo no implementa el código Worker. Consulte [Performance](/es/docs/operations/performance/#optimización-de-medios) y [Dashboard Media](/es/docs/operations/admin-dashboard/#medios-de-comunicación) para conocer el canal de medios.
+Las cargas del panel solicitan el flujo independiente **Optimize dashboard media**. Este valida que la salida contenga solo imágenes y el manifiesto, ejecuta las comprobaciones reutilizables de Merge Smoke y aplica el commit probado a `main` mediante un avance rápido. Después, inicia explícitamente Pages y elimina la rama temporal. No despliega código del Worker. Consulte [Rendimiento](/es/docs/operations/performance/#optimización-de-medios) y [Medios del panel](/es/docs/operations/admin-dashboard/#medios-de-comunicación) para conocer el proceso.
 
 ## Comprobación del diario posterior a la implementación
 

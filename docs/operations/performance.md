@@ -97,7 +97,8 @@ Current guardrails:
 
 - progress bars and marker positions render static width/left utility classes in Jekyll output so they do not start collapsed while JavaScript loads
 - campaign hero images are emitted with preload and high fetch priority where the layout knows the likely LCP asset
-- homepage campaign-card backgrounds use generated responsive WebP sources, lazy loading, and async decoding instead of eagerly transferring full-size PNGs
+- homepage campaign-card images use native lazy-image sizing with a grid-aware fallback; decorative backgrounds at 10% opacity use responsive WebPs capped at 640px, while meaningful card images retain the full responsive range
+- launch-reminder verification loads on form focus, pointer interaction, or input, with submission still requiring a valid Turnstile token; page load and viewport resize do not start a challenge
 - YouTube campaign hero videos render a local poster/play facade first and load the YouTube iframe only after play intent
 - common scripts use `defer` or lazy dynamic loading instead of parser-blocking script tags
 - full document layouts opt out of mobile automatic phone/date/address/email detection so iOS does not restyle operational copy or campaign text unexpectedly
@@ -318,6 +319,14 @@ Dashboard uploads are source-preserving. The Worker validates uploads and commit
 
 Campaign Content, diary content, and Blast email image uploads share the same campaign media upload path. Blast images therefore add no new Worker-side optimization system or KV state: they are committed under `assets/images/campaigns/<slug>/`, the existing media workflow runs with `scope=changed`, and the final site-hosted `/assets/...` path is used in the email payload. Blast video blocks remain provider links/buttons for YouTube or Vimeo instead of embedded players, keeping email HTML small and client-compatible.
 
+The workflow publishes image optimization automatically. It compresses source images losslessly, creates smaller responsive WebP sizes, and rebuilds the repository manifest. `scope=changed` finds new or changed source hashes and missing derivatives across the asset tree, so a subsequent project Save cannot hide an upload. Recorded skips remain valid while the source hash is unchanged. `scope=all` reprocesses all source images. The generated manifest never counts itself as a media reference.
+
+Each run validates that changes contain only image files and the manifest, preserve source pixels/dimensions/frame timing, and keep derivatives smaller than their source with the expected dimensions. A temporary candidate commit then runs the existing **Merge Smoke** workflow, including the full premerge gate and four dependency audits. Only that tested commit can fast-forward `main`. If campaign or configuration work advances `main` during validation, the workflow starts again from current sources rather than rebasing tested output. Feature-branch dispatches validate candidates without publishing them.
+
+After publication, the workflow explicitly requests **Refresh Production Pages** because Actions-token pushes do not trigger push workflows. Temporary candidate branches are deleted on success or failure; optimizer reports and a recoverable patch remain in the run artifacts for 14 days. A failed gate leaves `main` unchanged. Retry with `scope=changed`; Git history supports reverting a published optimization. No bot pull requests, new credentials, repository permission changes, or Worker deployment are needed.
+
+Automatic publication is image-only. Video uploads retain their original files and refresh the manifest; video transcoding and reference rewrites remain available through the local command below and require normal review before merge.
+
 Use the repository media pipeline for source media:
 
 ```bash
@@ -341,7 +350,7 @@ For deployed media-heavy regressions, manually run the **Optimize dashboard medi
 
 If PageSpeed flags oversized campaign images that already flow through `responsive-image.html`, first confirm whether the corresponding `-320.webp`, `-480.webp`, `-640.webp`, `-960.webp`, and `-1600.webp` derivatives exist. Produce missing derivatives with `npm run media:optimize` locally or with the workflow using `scope=all`, not with one-off manual image edits.
 
-The media pipeline:
+The local media command (including reviewed video work):
 
 - compresses images when the optimized result is smaller
 - generates responsive WebP variants at `320w`, `480w`, `640w`, `960w`, and `1600w` for public image templates when the source image is larger than that variant

@@ -49,6 +49,7 @@ This section is the right home base when you are opening your first PR, mapping 
 | --- | --- |
 | Save a campaign, share a protected preview, or publish changes | [Dashboard: Saving and Publishing](/docs/operations/admin-dashboard/#saving-and-publishing) |
 | Recover browser-local campaign edits | [Dashboard: Draft Recovery](/docs/operations/admin-dashboard/#recover-a-missing-browser-draft) |
+| Run or recover automatic image optimization | [Performance: Media Optimization](/docs/operations/performance/#media-optimization) |
 | Understand checkout confirmation and recovery | [Payment Processor: Checkout Completion](/docs/operations/payment-processor/#4-completion-and-webhook) |
 | Configure report recipients, opt-outs, and scheduled retries | [Email: Campaign Runner Reports](/docs/operations/email-system/#campaign-runner-reports) |
 | Run the advisory supporter-message evaluation | [Testing: Advisory Jev Pilot](/docs/operations/testing/#advisory-jev-pilot) |

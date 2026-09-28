@@ -13,6 +13,29 @@ September 27, 2026
 
 ## Unreleased
 
+## v1.2.22 - 2026-09-27
+
+Image optimization now publishes automatically after validation and the full
+Merge Smoke gate. See the [release evidence](https://github.com/aindaco1/pool/blob/main/docs/release-evidence/v1.2.22.md)
+for verification, deployment, and recovery details.
+
+- Consolidate the pending media branches and process the remaining image
+  backlog: 78 new responsive WebP sizes and 1,056,560 fewer source-image bytes.
+- Validate image-only output, preserve decoded source content and JPEG metadata,
+  enforce derivative size/dimension/timing checks, and publish only the exact
+  tested child of current main. Concurrent creator saves cause a fresh run.
+- Refresh Pages explicitly after automatic publication, remove temporary
+  branches, and retain reports and a recoverable patch in workflow artifacts.
+- Detect pending uploads by source hash and missing sizes, including uploads
+  followed by later content saves. Preserve intentional size skips and stop
+  the generated manifest from counting itself as a source reference.
+- Keep homepage decorative backgrounds within a 640px responsive ceiling and
+  let lazy card images use their rendered width, with a grid-aware fallback.
+- Start launch-reminder Turnstile verification on form intent instead of page
+  load or resize; retain token enforcement and retry failed script loads.
+- Clarify that the previously unassigned admin-account issue was resolved and
+  included in v1.2.21; campaign access rules are unchanged.
+
 ## v1.2.21 - 2026-09-27
 
 Maintenance rollup of the work committed since v1.2.20, plus validated local

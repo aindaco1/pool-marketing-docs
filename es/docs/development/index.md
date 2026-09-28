@@ -45,6 +45,7 @@ Esta sección es la base de operaciones adecuada cuando abre su primer PR, asign
 | --- | --- |
 |Guarde una campaña, comparta una vista previa protegida o publique cambios|[Panel: Guardar y publicar](/es/docs/operations/admin-dashboard/#guardar-y-publicar)|
 |Recuperar ediciones de campaña locales del navegador|[Panel: Borrador de recuperación](/es/docs/operations/admin-dashboard/#recuperar-un-borrador-perdido-del-navegador)|
+|Ejecute o recupere la optimización automática de imágenes|[Rendimiento: Optimización de medios](/es/docs/operations/performance/#optimización-de-medios)|
 |Comprender la confirmación y recuperación del pago|[Procesador de pagos: finalización del pago](/es/docs/operations/payment-processor/#4-finalización-y-webhook)|
 |Configurar destinatarios de informes, cancelaciones y reintentos programados|[Correo electrónico: Informes del corredor de campaña](/es/docs/operations/email-system/#informes-para-responsables-de-campaña)|
 |Ejecute la evaluación del mensaje de apoyo de asesoramiento|[Prueba: Asesor Jev Pilot](/es/docs/operations/testing/#piloto-orientativo-de-jev)|

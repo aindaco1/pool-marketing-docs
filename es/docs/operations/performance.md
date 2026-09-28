@@ -98,7 +98,8 @@ Barandillas actuales:
 
 - Las barras de progreso y las posiciones de los marcadores representan clases de utilidad estáticas de ancho/izquierda en la salida de Jekyll para que no comiencen colapsadas mientras se carga JavaScript.
 - Las imágenes principales de la campaña se emiten con precarga y alta prioridad de recuperación donde el diseño conoce el activo LCP probable.
-- Los fondos de las tarjetas de campaña de la página de inicio utilizan fuentes WebP responsivas generadas, carga diferida y decodificación asíncrona en lugar de transferir PNG de tamaño completo con entusiasmo.
+- las imágenes de las tarjetas de campaña de la página de inicio utilizan un tamaño de imagen diferido nativo con un respaldo que tiene en cuenta la cuadrícula; Los fondos decorativos con un 10 % de opacidad utilizan WebP responsivos con un límite de 640 px, mientras que las imágenes de tarjetas significativas conservan todo el rango de responsividad.
+- la verificación del recordatorio de lanzamiento se carga en el foco del formulario, la interacción del puntero o la entrada, y el envío aún requiere un token Turnstile válido; La carga de la página y el cambio de tamaño de la ventana gráfica no inician un desafío.
 - Los videos de los héroes de la campaña de YouTube muestran primero un póster local o una fachada de reproducción y cargan el iframe de YouTube solo después de la intención de reproducción.
 - Los scripts comunes usan `defer` o carga dinámica diferida en lugar de etiquetas de script que bloquean el analizador.
 - los layouts completos del documento desactivan la detección móvil automática de teléfono/fecha/dirección/correo para que iOS no rediseñe de forma inesperada la copia operativa o el texto de campaña
@@ -319,6 +320,14 @@ Las cargas del panel preservan el origen. El trabajador valida las cargas y las 
 
 El contenido de la campaña, el contenido del diario y las cargas de imágenes de correo electrónico Blast comparten la misma ruta de carga de medios de la campaña. Por lo tanto, las imágenes explosivas no agregan ningún nuevo sistema de optimización del lado del trabajador ni estado KV: se confirman bajo `assets/images/campaigns/<slug>/`, el flujo de trabajo de medios existente se ejecuta con `scope=changed` y la ruta final `/assets/...` alojada en el sitio se utiliza en la carga útil del correo electrónico. Los bloques de video explosivos siguen siendo enlaces/botones de proveedores para YouTube o Vimeo en lugar de reproductores integrados, lo que mantiene el HTML del correo electrónico pequeño y compatible con el cliente.
 
+El flujo publica automáticamente las imágenes optimizadas. Comprime los originales sin pérdidas, genera variantes WebP adaptables más pequeñas y reconstruye el manifiesto del repositorio. `scope=changed` detecta hashes de archivos fuente nuevos o modificados y variantes faltantes en todo el árbol de archivos, por lo que guardar el proyecto después de una carga no puede ocultarla. Las omisiones registradas siguen siendo válidas mientras no cambie el hash del original. `scope=all` vuelve a procesar todas las imágenes fuente. El manifiesto generado nunca se cuenta a sí mismo como una referencia a medios.
+
+Cada ejecución comprueba que los cambios incluyan solo imágenes y el manifiesto, conserven los píxeles, las dimensiones y la duración de los fotogramas originales, y produzcan variantes más pequeñas que su fuente y con las dimensiones previstas. A continuación, un commit candidato temporal pasa por **Merge Smoke**, incluidas todas las comprobaciones previas a la fusión y las cuatro auditorías de dependencias. Solo ese commit probado puede incorporarse a `main` mediante un avance rápido. Si otros cambios de campaña o configuración hacen avanzar `main` durante la validación, el flujo comienza de nuevo desde los archivos actuales; no aplica un rebase al resultado probado. Las ejecuciones desde ramas de desarrollo validan candidatos sin publicarlos.
+
+Después de publicar, el flujo inicia explícitamente **Refresh Production Pages**, porque los pushes realizados con el token de Actions no activan los flujos asociados a un push. Las ramas candidatas temporales se eliminan tanto si la ejecución tiene éxito como si falla; los informes y un parche recuperable se conservan en los artefactos de la ejecución durante 14 días. Si falla una comprobación, `main` queda intacto. Vuelva a intentarlo con `scope=changed`; el historial de Git permite revertir una optimización publicada. No se necesitan pull requests de bots, credenciales nuevas, cambios de permisos del repositorio ni un despliegue del Worker.
+
+La publicación automática se limita a las imágenes. Las cargas de video conservan los originales y actualizan el manifiesto. La transcodificación y la modificación de referencias a videos siguen disponibles mediante el comando local indicado a continuación y requieren la revisión habitual antes de la fusión.
+
 Utilice la canalización de medios del repositorio para los medios de origen:
 
 ```bash
@@ -342,7 +351,7 @@ Para regresiones implementadas con muchos medios, ejecute manualmente el flujo d
 
 Si PageSpeed ​​marca imágenes de campaña de gran tamaño que ya fluyen a través de `responsive-image.html`, primero confirme si existen los derivados correspondientes de `-320.webp`, `-480.webp`, `-640.webp`, `-960.webp` y `-1600.webp`. Produzca derivados faltantes con `npm run media:optimize` localmente o con el flujo de trabajo usando `scope=all`, no con ediciones de imágenes manuales únicas.
 
-El canal de medios:
+El comando de los medios locales (incluido el trabajo en video revisado):
 
 - comprime imágenes cuando el resultado optimizado es más pequeño
 - genera variantes WebP responsivas en `320w`, `480w`, `640w`, `960w` y `1600w` para plantillas de imágenes públicas cuando la imagen de origen es más grande que esa variante
