@@ -16,7 +16,7 @@ developer documentation. This page is generated from the same manifest the
 sync script uses for validation, link rewriting, navigation metadata, and
 output paths.
 
-Imported from Pool revision [`7adcaf2438de`](https://github.com/aindaco1/pool/commit/7adcaf2438de42da142f6d08e83a915f1e20c925).
+Imported from Pool revision [`1f7a95ba03ce`](https://github.com/aindaco1/pool/commit/1f7a95ba03ce1290c5769874de806dc3551c4f86).
 
 The [Development index](/docs/development/) follows the ownership and task
 paths in Pool's [documentation index](https://github.com/aindaco1/pool/blob/main/docs/README.md).

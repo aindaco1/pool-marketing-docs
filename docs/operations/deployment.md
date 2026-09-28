@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-September 6, 2026
+September 27, 2026
 
 This guide owns first-time production wiring and the site/Worker release
 workflow. Use [Podman](/docs/operations/podman-local-dev/) for local containers,
@@ -83,7 +83,9 @@ Set the matching `ADMIN_BROADCAST_SECRET` or `ADMIN_SETTLEMENT_SECRET` in Cloudf
 The workflow also needs GitHub Pages deployment permissions. Keep `pages: write` and `id-token: write` explicit on the Pages deploy job if you copy or refactor `.github/workflows/deploy.yml`.
 
 Dashboard uploads request the separate **Optimize dashboard media** workflow.
-Its optimization pull requests preserve source files; the workflow does not
+It validates image-only output, runs the reusable Merge Smoke gate, and
+automatically fast-forwards the tested commit onto current main. It then
+explicitly dispatches Pages and removes its temporary branch. It does not
 deploy Worker code. See [Performance](/docs/operations/performance/#media-optimization) and
 [Dashboard Media](/docs/operations/admin-dashboard/#media) for the media pipeline.
 

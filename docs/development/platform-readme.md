@@ -13,7 +13,7 @@ September 27, 2026
 
 **Open-source crowdfunding platform starter**
 
-The current release is **v1.2.21**. Changes after that tag are recorded under
+The current release is **v1.2.22**. Changes after that tag are recorded under
 **Unreleased** in the [Changelog](/docs/reference/changelog/); prospective work belongs in the
 [Roadmap](/docs/reference/roadmap/).
 

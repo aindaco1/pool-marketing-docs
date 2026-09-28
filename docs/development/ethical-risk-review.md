@@ -106,6 +106,7 @@ Treat these as release blockers until explicitly resolved:
 - Public sharing, SEO, and embeds: start from [SEO.md](/docs/operations/seo/) and [EMBEDS.md](/docs/development/campaign-embeds/). Public previews are truthful, state-aware, and never leak protected-preview or tokenized data.
 - Accessibility and localization: start from [ACCESSIBILITY.md](/docs/operations/accessibility/) and [I18N.md](/docs/development/internationalization/). Review who is left out when copy, controls, or evidence only work in one language, viewport, input mode, or ability profile.
 - Performance and prefetching: start from [PERFORMANCE.md](/docs/operations/performance/). Speculative loading stays public-only and does not pressure user action or background private flows.
+- Image publication automation: limit output to validated images and rebuildable metadata, preserve source appearance and animation, require the full merge gate, and never overwrite concurrent creator edits. Keep a recoverable patch and remove temporary branches; see [Performance](/docs/operations/performance/#media-optimization).
 - Backups, exports, and restore paths: document data classes, PII minimization, retention, restore order, and duplicate-send/duplicate-charge risks before adding new backup behavior.
 
 ## Maintenance Habits
