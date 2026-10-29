@@ -9,9 +9,116 @@ render_with_liquid: false
 
 ## Last Updated
 
-September 27, 2026
+October 28, 2026
 
-## Unreleased
+## 1.2.26 — 2026-10-28
+
+- Preserve tax estimate coverage and data provenance in public quotes and stored checkout details so the existing estimate labels remain visible.
+
+## v1.2.25 - 2026-10-28
+
+- Share checkout validation and postal/local-tax references with Store while preserving Pool card setup and later settlement.
+- Keep address/email fields and scroll position stable during edits, with automatic payment preparation and a single payment-area reveal.
+- Load Stripe earlier, wait for usable payment fields before enabling submission, and avoid serial preview waits.
+- Align shipping choices and amounts on desktop and mobile; refresh tax and shipping totals after destination changes.
+
+## v1.2.24 - 2026-10-21
+
+- Isolate Pool pending email jobs and queue scheduling from other products sharing
+  KV, preserving receipt identities and delivery evidence during recovery.
+
+- Reuse the saved Stripe customer across browser/webhook checkout completion and
+  reject incomplete payment identities before pledge persistence. Repair missing
+  customer links from verified existing attachments without changing pledge totals.
+- Re-read settlement batches under the campaign lock, reject duplicate order IDs,
+  exclude paid/cancelled pledges, and queue card-update emails for batch failures.
+
+- Adopt Platform 0.44.0 with shared retryable Stripe loading, identity-safe media
+  selection and patched-Node bootstrap. Preserve checkout and editor policy.
+- Preserve paired browser-draft revisions and snapshots through the shared recovery helper.
+- Skip diary broadcasts for source-only and explicitly marked maintenance deployments.
+- Retain the patched runtime/tooling trust baseline for the eMudhra incident.
+
+- Update Vite development tooling to 8.3.4 to resolve launch-editor security
+  advisories blocking the full dependency gate.
+
+- Keep conflicting campaign browser drafts tied to their original revision and
+  content baseline across edits and reloads. Prevent Save or Preview from
+  silently overwriting a newer shared working copy; show localized conflict
+  guidance while preserving browser recovery data.
+
+- Render saved campaign and progress backgrounds in protected campaign previews,
+  including support-item bars, with the same decorative styling as public pages.
+
+- Follow replacement deployments when GitHub cancels a pending duplicate, so
+  campaign Publish does not falsely report a failed build. Distinguish genuine
+  cancellation from failure and skip Pages builds for draft-only saves.
+
+- Preserve wrapped YAML descriptions and following reward tiers during campaign
+  Save and Publish. Reject incomplete source reads, retain edits on failure, and
+  show specific validation messages. Restore sunder tiers from its intact draft.
+
+- Link Diary emails to stable individual entries, opening the correct phase in
+  localized campaign pages. Render nested Markdown emphasis in bounded email excerpts.
+- Bring Store-style save/publish progress to campaign editing: sticky actions,
+  upload counts, elapsed time, deployment phases, and explicit failure/retry state.
+  Production publishes track the exact saved revision before reporting Live.
+
+- Preserve paragraph breaks when pasting into existing text inside a dashboard
+  Text block, including Google Docs updates with adjacent paragraphs.
+
+- Preserve mixed normal, bold, and italic text pasted from Google Docs into the
+  dashboard editor by honoring normal font weights on clipboard wrappers.
+
+- Add Post-Production between Production and Fulfillment in the dashboard's
+  Diary phase selector, with English and Spanish labels.
+
+- Fix image and audio uploads above 2 MB being rejected by the GitHub transport.
+  Honor the existing 8 MiB image, 25 MiB audio, and 512 KiB logo limits throughout
+  the upload path; retain the separate 100 MB video transport.
+
+- Fix on-site pledge checkout blocking supporters when Stripe already has their
+  email. Keep new checkout emails editable, skip unchanged-email updates in
+  checkout and card-update flows, and retain hosted checkout email prefilling.
+- Update the Worker development-tooling Sharp override to 0.35.5 to resolve
+  GHSA-wq5f-xc86-pv6w in its bundled librsvg dependency.
+
+- Use the main YouTube thumbnail for campaign hero posters in the dashboard,
+  protected preview, and published page, with a lower-resolution thumbnail fallback.
+  Detect YouTube's small missing-image placeholder so all three surfaces fall back.
+
+- Play YouTube videos in place within protected campaign previews, matching
+  the published project's video position and size through scrolling and resizing,
+  with working thumbnail fallback and keyboard activation. Preserve the campaign sandbox, strict script CSP, and
+  token privacy; load the player only after Play.
+
+- Adopt Platform 0.43.1 / Release Core 0.5.1 and update development tooling
+  to `smol-toml` 1.9.0 and `source-map-js` 1.2.2 to resolve dependency audit findings.
+
+## v1.2.23 - 2026-10-04
+
+- Let admins remove images from every upload field, preserving empty fields,
+  descriptions, and collection entries through Save, Preview, and Publish.
+  Clearing a staged or in-flight replacement prevents it from restoring the image.
+  Scalar and block editors reuse the admin-shell 0.13.0 removal control.
+- Adopt dust-wave-platform 0.43.0 media frame-hash normalization to accept
+  lossless PNG optimization when equivalent aspect ratios have different notation.
+- Make the physical-shipping browser fixture independent of tax-provider settings,
+  wait for preview layout and cart fixtures to settle, and use Jekyll for direct
+  browser tests to avoid dropped asset connections.
+- Pair Vitest 5.0.2 with its coverage provider and group future updates; align
+  Playwright 1.63.0 with its container. Update the other reviewed development
+  tools and the Ruby setup action.
+- Publish the recovered, validated optimization backlog: 192 image changes
+  plus the rebuilt manifest, preserving decoded source content.
+- Allow 45 minutes for native image repair after the 37-source backlog took
+  29m54s while preserving all validation and publication gates.
+
+- Refresh the English and Spanish creator checklists for campaign-wide Save,
+  protected Preview, Publish, media handling, add-on availability, pledge
+  confirmation, and campaign reports through v1.2.22.
+- Update the root and Worker development-tooling Undici overrides to 7.29.1
+  to resolve GHSA-3wwx-pv8p-q78v and keep full dependency audits passing.
 
 ## v1.2.22 - 2026-09-27
 

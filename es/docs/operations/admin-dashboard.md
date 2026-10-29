@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-27 de septiembre de 2026
+28 de octubre de 2026
 
 Este documento es la referencia del operador y la fuente de verdad para la edición, informes, análisis, enlaces de marketing, complementos y administración de usuarios de campañas basadas en paneles privados de The Pool.
 
@@ -325,9 +325,11 @@ El trabajador deriva el slug del título, escribe `_campaigns/<slug>.md` a trav�
 
 Los botones **Guardar**, **Vista previa** y **Publicar** se aplican a la campaña seleccionada en las nueve subpestañas de creación. **Guardar borrador** sigue siendo la copia de seguridad local del navegador del editor de contenido. Guardar localmente no borra el botón Guardar principal.
 
-Save escribe una copia de trabajo respaldada por Git para proyectos no publicados y ya públicos. Carga contenido preparado y medios del diario antes de confirmar la configuración/contenido combinado de la campaña. Los activos cargados utilizan nuevas rutas; Guardar nunca cambia las páginas en vivo, los precios, el pago o los medios en vivo existentes. Los guardados fallidos conservan los cambios del editor. Los archivos borrador se excluyen de la salida de Jekyll y se incluyen en las copias de seguridad del repositorio; su repositorio y acceso a los activos sigue el modelo de fuente/medios existente.
+Save escribe una copia de trabajo respaldada por Git para proyectos no publicados y ya públicos. Carga contenido preparado y medios del diario antes de confirmar la configuración/contenido combinado de la campaña. Los activos cargados utilizan nuevas rutas; Guardar nunca cambia las páginas en vivo, los precios, el pago o los medios en vivo existentes. Los guardados fallidos conservan los cambios del editor. La carga de campaña acepta descripciones YAML de texto sin formato empaquetadas y rechaza análisis incompletos antes de cualquier escritura. Las fallas de nivel destacado y de fuente ilegible identifican el problema en la barra de acciones y al mismo tiempo conservan las ediciones. Los archivos borrador se excluyen de la salida de Jekyll y se incluyen en las copias de seguridad del repositorio; su repositorio y acceso a los activos sigue el modelo de fuente/medios existente.
 
 Publicar primero guarda las ediciones actuales y luego promociona la copia guardada utilizando el permiso de editor de campaña existente. La publicación requiere un título, fechas ordenadas válidas y un objetivo positivo. Limpia las banderas ocultas; la recaudación de fondos todavía sigue las fechas. Los conflictos de fuente pública detienen la publicación y preservan la copia de trabajo. Las campañas existentes utilizan su copia publicada hasta el primer guardado; no es necesaria una migración masiva.
+
+La barra de acciones de la campaña permanece visible mientras se desplaza. Guardar/Publicar informa los recuentos de carga de medios, Guardado, Implementación y En vivo con un indicador de actividad indeterminado y tiempo transcurrido. Guardar solo finaliza en Guardado y deja la campaña activa sin cambios. Publicar en producción sigue el commit guardado a través del flujo de trabajo de Pages y muestra Live solo después de que la ejecución sea exitosa. Si se reemplaza una ejecución pendiente, el seguimiento sigue al reemplazo de la misma revisión guardada; un breve retraso en el listado GitHub permanece en estado de espera. Una cancelación sin reemplazo se informa por separado de un error de compilación. Las comprobaciones de implementación fallidas o no disponibles conservan la copia guardada, exponen un vínculo de ejecución cuando se conoce y dejan Publicar disponible para volver a intentarlo. Las nuevas ediciones realizadas durante un guardado siguen marcadas como pendientes. La publicación local está etiquetada como local y nunca afirma ser una implementación de producción.
 
 ### Vista previa protegida
 
@@ -344,6 +346,10 @@ Vista previa de publicación:
 - registra un evento de auditoría administrativa
 
 Vista previa de páginas en vivo en `/campaigns/:slug/preview/` y equivalentes localizados. Se generan shells estáticos genéricos para cada slug de campaña, incluidas las fuentes marcadas como `published: false` que Jekyll excluye de su colección de campañas públicas. Una campaña recién creada necesita que se creen sus páginas iniciales para finalizar; La vista previa posterior publica la reutilización de ese shell sin esperar otra compilación. El shell no incluye el título de la campaña ni el borrador del contenido. El Worker protegido lee la copia de trabajo guardada cuando está presente; de ​​lo contrario, la campaña canónica. Obtiene una vista previa completa de la página de la campaña de solo lectura a través de Worker con la sesión de administrador actual o un token de revisor válido, carga la hoja de estilo de la campaña y el kit de fuentes, permite incrustaciones de reproductores multimedia aprobadas y deshabilita los controles de aporte. El shell de vista previa estática es `noindex,nofollow,noarchive`, no utiliza metadatos sociales, elimina el token de vista previa de la barra de direcciones después de la carga y permanece fuera de la salida del mapa del sitio público y de la elegibilidad de captación previa pública.
+
+Los controles de YouTube Play en la vista previa protegida de la sección principal, el contenido y el diario se reproducen en su lugar, en la misma posición y tamaño que la miniatura del video de la campaña. El proyecto circundante sigue siendo utilizable durante la reproducción. Los reproductores se mantienen alineados a través del desplazamiento y los cambios de diseño responsivos, se cargan solo al pulsar Reproducir y envían solo el origen del sitio como referencia. Las miniaturas de YouTube de alta resolución que faltan vuelven a la miniatura estándar. Las miniaturas de edición del panel continúan abriendo enlaces de videos externos.
+
+La vista previa de página completa muestra el **fondo de campaña** guardado detrás de la página y el **fondo de progreso** detrás de la barra de financiación y las barras de elementos de soporte, utilizando los estilos de imágenes decorativas de la página publicada. Al borrar cualquiera de las configuraciones, se elimina de la siguiente vista previa guardada. Las URL de imágenes cargadas aún necesitan su implementación normal de activos estáticos antes de que otro navegador pueda cargarlas.
 
 ### Configuración de campaña
 
@@ -377,6 +383,8 @@ La advertencia de abandono de página del navegador permanece activa para las ed
 La clave y el formato del borrador del navegador existente siguen siendo compatibles. La carga nunca lo reescribe. Antes de que el nuevo editor sobrescriba por primera vez un borrador de contenido existente, almacena una copia de recuperación exacta en la clave original más `:recovery-v1`. Las copias de recuperación no se eliminan automáticamente. El almacenamiento ilegible y los cambios de otra pestaña evitan la sobrescritura.
 
 Los borradores locales pertenecen al origen exacto del sitio, al perfil del navegador y al idioma del editor. No están sincronizados con otro navegador o dispositivo y no son copias de seguridad del servidor. Un borrador no publicado conserva su revisión base, por lo que los cambios en el servidor de otro autor no se pueden sobrescribir silenciosamente. Si solo cambiaron los indicadores de vista previa y el contenido del servidor aún coincide con la línea base original del borrador, se utiliza la revisión actual del servidor. Un conflicto que involucra contenido modificado requiere comparar el borrador conservado con la campaña actual antes de volver a aplicar las ediciones; Recargar repetidamente no descarta el borrador ni evita el conflicto.
+
+La revisión del borrador y la línea base del contenido original permanecen juntas después de un conflicto, incluso después de escribir más, guardar el borrador en el navegador, cargar otro contenido o actualizar la página. Una copia de trabajo guardada requiere que la revisión original coincida; El contenido coincidente por sí solo no autoriza a reemplazar una revisión de copia de trabajo diferente. Los borradores de navegador más antiguos con una revisión obsoleta o faltante se conservan y no pueden sobrescribir esa copia de trabajo compartida. El editor identifica el conflicto durante la carga y Guardar o Vista previa no supera la verificación de revisión del servidor existente hasta que el contenido se compara y se vuelve a aplicar al proyecto actual. La excepción de metadatos de vista previa del mismo contenido se aplica solo antes de que exista una copia de trabajo.
 
 Los bloques de vídeo subidos pueden incluir una imagen de póster explícita. Cuando no se establece ningún póster, el panel y la página de la campaña pública generan un póster en el navegador a partir del primer cuadro del video mientras mantienen el video reproducible cargado de forma diferida hasta que el usuario presiona reproducir.
 
@@ -430,6 +438,8 @@ Los elementos continuos definen las necesidades de soporte posteriores a la camp
 ### Entradas del diario
 
 Las entradas del diario son actualizaciones de la campaña ordenadas primero por las más recientes. Cada entrada incluye título, fecha/hora, fase y su propio editor de contenido WYSIWYG. El contenido del diario utiliza el mismo modelo de bloque de contenido que la pestaña Contenido de la campaña.
+
+El selector de fases ofrece Lanzamiento, Recaudación de fondos, Producción, Postproducción y Cumplimiento, en ese orden. La posproducción se guarda como `post-production`, coincidiendo con el diario público existente y la fase de vista previa protegida. Las entradas existentes con otros valores de fase conservan su selección.
 
 ### Decisiones
 
@@ -623,6 +633,10 @@ Las imágenes y los videos cargados a través del panel se validan antes de la p
 - Audio de la campaña: `assets/audio/campaigns/<campaign-slug>/`
 - Plataforma/vídeos predeterminados: `assets/videos/defaults/`
 
+**Eliminar imagen** utiliza el control compartido `@dustwave/admin-shell/editor-media`. Borra la referencia de la imagen y cualquier reemplazo por etapas conservando al mismo tiempo el campo, los títulos, las descripciones y las entradas de la colección. Está disponible para imágenes de marca, imágenes y fondos de campaña, niveles, complementos, opciones de decisión, imágenes de contenido/diario/Blast, elementos de galería y carteles de vídeo. Guarde la campaña o publique la configuración de la plataforma para conservar el campo vacío. Una respuesta de carga tardía no puede restaurar una imagen eliminada. El control borra la referencia sin eliminar los archivos del repositorio. Las políticas de limpieza de publicaciones del servidor existentes aún se aplican: la publicación de contenido/diario heredada puede eliminar recursos propiedad de la campaña no utilizados, mientras que las referencias de proyectos guardados protegen esos archivos. Las reglas públicas de reserva existentes todavía se aplican a la marca y la selección de héroes. Las imágenes de contenido vacías y los espacios de la galería se omiten en la salida de vista previa publicada y protegida.
+
+Se aplican límites de carga por archivo: las imágenes aceptan PNG, JPEG, WebP o GIF de hasta 8 MiB (8,388,608 bytes); El audio acepta MP3, M4A, WAV, OGG, AAC o WebM hasta 25 MiB (26,214,400 bytes). El cargador de logotipos dedicado acepta PNG, JPEG o WebP hasta 512 KiB (524,288 bytes). El panel etiqueta estos límites binarios como MB/KB. Cada límite se aplica tanto durante la validación como al escribir el archivo en GitHub. El vídeo utiliza el límite decimal de 100 MB que aparece a continuación.
+
 Medios de campaña recomendados:
 
 - Imagen principal: cuadrada, alrededor de 1000x1000px
@@ -723,6 +737,8 @@ Los puntos finales de lectura del panel se basan en índices `campaign-pledges:{
 ### Representación y comentarios del editor compartido
 
 El panel y la vista previa de Worker utilizan el códec del editor de plataforma anclado para Markdown en línea, incluido el texto en cursiva anidado dentro del texto en negrita. The Pool conserva la representación del bloque de campaña y la validación de URL. El filtro público Ruby tiene una prueba de paridad para énfasis anidado. Los mixins de Shared Design Core brindan contención de control del editor, ajuste de nombres de archivos largos, apilamiento de panel abierto, espaciado y medios de vista previa receptivos.
+
+Al pegar texto enriquecido se respetan los pesos de fuente explícitos, incluido el contenedor de peso normal `<b>` de Google Docs, por lo que solo el texto marcado como negrita en la fuente se vuelve negrita. Los bloques de texto conservan el énfasis en línea, las listas y los enlaces admitidos; El desinfectante en pasta elimina las fuentes externas, los colores y el HTML inseguro. Para pegar dentro de un párrafo existente o texto de énfasis se utiliza el bloque de texto adjunto, lo que preserva los límites del párrafo mediante Guardar y vuelve a abrir el editor.
 
 Las cargas de imágenes mantienen una vista previa local de pestañas codificada por la ruta del repositorio devuelta. Las imágenes principales y los bloques del editor permanecen visibles antes de que el nuevo activo llegue al sitio público, incluso después de guardar el proyecto. Las vistas previas móviles en zona protegida reciben miniaturas de imágenes delimitadas. Las cargas útiles para guardar/publicar contienen únicamente rutas de repositorio canónicas; Las URL de objetos y las miniaturas de datos nunca se guardan como contenido de la campaña. Cerrar sesión borra estas vistas previas. Al recargar se pierde el caché local, por lo que los activos no publicados aún necesitan la implementación estática normal antes de que sus rutas públicas puedan cargarse en otra pestaña.
 

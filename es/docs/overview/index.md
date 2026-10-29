@@ -9,13 +9,13 @@ lang: es
 
 ## Última actualización
 
-9 de junio de 2026
+28 de octubre de 2026
 
 Utilice esta sección para comprender qué es The Pool, qué promete públicamente y cómo está estructurada la plataforma antes de profundizar en los detalles de implementación.
 
 ## Lea estos primero
 
-- [Acerca de The Pool](/es/docs/overview/about-the-pool/) para la explicación pública, la experiencia de los patrocinadores, las herramientas para creadores, la arquitectura, el modelo de alojamiento y el contexto de despliegue.
+- [Acerca de The Pool](/es/docs/overview/about-the-pool/) para aportes de todo o nada, pago editable, estimaciones de impuestos, ahorro y publicación de creadores y acceso privado para patrocinadores.
 - [Términos y pautas creativas](/es/docs/overview/terms-and-guidelines/) para conocer las expectativas de políticas, manejo de pagos, cumplimiento, reembolsos y lenguaje de privacidad.
 
 ## Cuándo abandonar esta sección

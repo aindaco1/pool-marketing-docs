@@ -26,7 +26,7 @@ ui:
 home:
   eyebrow: Open-source crowdfunding for creative work
   title: Run your own all-or-nothing crowdfunding site.
-  subtitle: "The Pool is <strong>free, open-source crowdfunding software</strong> for films, albums, tools, events, and other creative work. Supporters pledge without making accounts; Stripe saves the card and charges it only after a campaign reaches its goal."
+  subtitle: "The Pool is <strong>free, open-source crowdfunding software</strong> for films, albums, tools, events, and other creative work. Supporters pledge without creating accounts. Stripe saves their payment method; campaign charges happen only after a funded campaign ends."
   points:
     free: "<strong>Free</strong> to use, copy, and rebrand."
     low_cost: "Designed around <strong>GitHub Pages, Cloudflare, and Resend</strong>, with budget-friendly dynamic usage."
@@ -72,23 +72,23 @@ home:
   platform_intro: ""
   platform_cards:
     checkout_title: Pledge checkout that protects the goal
-    checkout_body: "Supporters build a cart on your site. A small Cloudflare backend recalculates totals from trusted campaign data, then Stripe saves the payment method. <strong>One checkout can include several campaigns, and each campaign is charged only if it succeeds.</strong>"
-    checkout_link: Review the pledge worker
+    checkout_body: "Contact and address fields stay editable while payment loads. Tax and shipping refresh when the destination changes. <strong>Each campaign in a shared checkout becomes a separate pledge, charged only after it ends successfully.</strong>"
+    checkout_link: "Review checkout and payments"
     funding_title: Campaign timing and outcomes
     funding_body: "The Pool handles <strong>upcoming, live, and finished campaigns</strong>, deadline timing in your timezone, launch reminder signups, stretch goals, and batched charges after a successful campaign closes."
     funding_link: Read about The Pool
     merch_title: Rewards, add-ons, tax, and shipping
-    merch_body: "Offer reward tiers, campaign add-ons, platform merch, inventory limits, optional platform tips, configurable tax providers, USPS quotes, and fallback shipping rates."
+    merch_body: "Offer reward tiers, add-ons, inventory limits, optional tips, USPS quotes, and fallback shipping rates. Tax estimates show when local coverage may be missing."
     merch_link: See merch and add-ons
     community_title: Supporter follow-up
-    community_body: "Backers manage pledges from <strong>email magic links</strong>. Campaigns can publish diary updates, announcements, supporter votes, share links, and email blasts."
+    community_body: "Backers manage pledges through <strong>secure email links</strong>. Diary emails link to the individual update. Delivery retries preserve saved pledges, and campaign updates include an unsubscribe option."
     community_link: Explore campaign workflows
     customization_title: Admin tools for the team
-    customization_body: "The private dashboard covers campaign setup, protected previews, content, media, users, reports, analytics, saved referral links, QR codes, and embed snippets."
-    customization_link: Open customization docs
-    operations_title: Launch-ready basics
-    operations_body: "The project is built for launch: fast static pages, responsive media, delayed video embeds, SEO checks, accessibility coverage, security hardening, locale audits, and automated browser tests."
-    operations_link: Review operations docs
+    customization_body: "<strong>Save a working copy, share a protected preview, then publish.</strong> The dashboard tracks deployment, preserves conflicting drafts, and manages media, users, reports, analytics, and marketing links."
+    customization_link: "Explore the admin dashboard"
+    operations_title: "Operations and recovery"
+    operations_body: "Responsive media, accessibility checks, security tests, and automated browser coverage accompany encrypted backup workflows, archive verification, and documented recovery procedures."
+    operations_link: "Review backup and recovery"
 support:
   eyebrow: Support The Pool
   title: Support The Pool

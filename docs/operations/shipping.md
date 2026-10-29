@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-September 6, 2026
+October 28, 2026
 
 This document describes The Pool's current Worker-first shipping flow,
 fork-facing config surface, USPS integration boundary, and the rule tree shared
@@ -29,6 +29,11 @@ smoke helper, and automated regressions for cart, checkout, and Manage Pledge.
 - a shared preset catalog for common physical items
 
 For The Pool, the fallback rate is **$3.00**.
+
+Cart and checkout keep all summary prices in a right-aligned column. On desktop,
+the compact delivery selector sits between the shipping label and amount; on
+phones it sits below the label. Option labels show any upgrade surcharge; the
+separate amount shows the full shipping cost included in the estimated total.
 
 ## System Properties
 

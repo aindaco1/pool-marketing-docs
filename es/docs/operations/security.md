@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-27 de septiembre de 2026
+28 de octubre de 2026
 
 Este documento cubre la arquitectura de seguridad, los riesgos conocidos, las medidas de refuerzo aplicadas, las compensaciones aceptadas y los procedimientos de prueba de penetración para la plataforma de financiación colectiva The Pool. Los límites de copia de seguridad cifrada, el estado de límite de velocidad/sesión en cuarentena, el manejo fuera del dispositivo y las aprobaciones de restauración de producción se definen en [BACKUP_RESTORE.md](/es/docs/operations/backup-restore/).
 
@@ -73,7 +73,7 @@ Este documento cubre la arquitectura de seguridad, los riesgos conocidos, las me
 |`abandoned-cart-health:v1`|Aportes|Contadores de salud de resultados/cola de recordatorio de pago agregado|**Bajo** - agregado operativo|
 |`supporter-email-retry:{orderId}`|Aportes|Carga útil de reintento de correo electrónico de confirmación de colaborador en cola|**Medio**: carga útil de correo electrónico de apoyo|
 |`supporter-email-retry-queue:v1`|Aportes|Reintento de correo electrónico del colaborador inactivo/pendiente y marcador de siguiente intento|**Bajo** - estado operativo|
-|`email-outbox:v1:{hash}`|Aportes|Carga útil del proveedor y destinatario congelados mientras la entrega está pendiente; TTL de 30 días|**Alto**: contenido de correo electrónico transitorio + PII|
+|`pool:email-outbox:v1:{hash}`|Aportes|Carga útil del proveedor y destinatario congelados mientras la entrega está pendiente; TTL de 30 días|**Alto**: contenido de correo electrónico transitorio + PII|
 |`email-delivery:v1:{hash}`|Aportes|ID de proveedor mínimo, hash de contenido, categoría, estado, tiempo; TTL de 400 días|**Bajo** - evidencia de entrega|
 |`email-suppression:v1:{emailHash}`|Aportes|Supresión permanente de rebote/queja/proveedor con hash; TTL de 400 días|**Medio**: metadatos de consentimiento/capacidad de entrega|
 |`campaign-email-suppression:v1:{slug}:{emailHash}`|Aportes|Supresión de actualizaciones de campañas con un solo clic mediante hash|**Medio**: metadatos de consentimiento|
@@ -157,6 +157,7 @@ Las vistas previas protegidas son superficies de revisión privadas para campañ
 
 - Los shells de vista previa estática se encuentran en `/campaigns/:slug/preview/` y equivalentes localizados para cada slug de campaña, por lo que los enlaces de vista previa no aceleran la reconstrucción del sitio estático. Utilizan `noindex,nofollow,noarchive`, comportamiento de referencia de origen estricto para compatibilidad con medios integrados, sin metadatos sociales públicos ni JSON-LD público.
 - El shell es genérico y no incorpora el título de la campaña, los datos de carga útil ni los datos de acceso previo en el momento de la compilación. Obtiene una carga útil de vista previa de la página de campaña completa no-store de `/admin/campaign-preview/:slug`, con controles de aporte de solo lectura.
+- El HTML de la campaña permanece en un entorno limitado opaco sin `allow-same-origin`. Una secuencia de comandos de vista previa externa maneja la reserva de miniaturas y solicita la reproducción de YouTube a través de `postMessage`. El shell acepta mensajes solo desde su cuadro de vista previa actual y solo para ID de video presentes en la carga útil autorizada; construye una URL de inserción fija de `youtube-nocookie.com` en una capa propiedad del shell alineada con la video tragamonedas original. La capa recorta a los jugadores en el marco de la campaña, valida la geometría finita y acepta solo los ID de ranura asignados a la carga útil autorizada actual. Los mensajes de desplazamiento y cambio de tamaño reubican a los reproductores existentes sin recargarlos. El acceso de recarga elimina a todos los jugadores y borra los espacios aceptados. El reproductor utiliza `strict-origin-when-cross-origin`, después de que el token de vista previa se elimina de la URL de la página. Esto no relaja el script CSP ni otorga acceso HTML de campaña al elemento principal ni a su almacenamiento.
 - Los administradores autenticados pueden recuperar la carga útil solo a través de la sesión de administrador existente, las protecciones CSRF/de origen cuando correspondan y las comprobaciones del alcance de la función/campaña.
 - Los revisores explícitos utilizan tokens `t` firmados según el tipo de token, el slug de campaña, el correo electrónico del revisor y el vencimiento. Worker también compara el correo electrónico con la lista de permitidos de 24 horas de KV antes de devolver una carga útil de vista previa.
 - Las solicitudes de publicación de vista previa llevan una revisión base GitHub cuando esté disponible. Las publicaciones obsoletas devuelven un conflicto en lugar de sobrescribir los cambios de otro usuario.

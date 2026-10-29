@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-September 27, 2026
+October 28, 2026
 
 The Pool sends transactional and campaign-support email through Resend from the Cloudflare Worker. Templates live in `worker/src/email.js`, shared localized copy lives in `_data/i18n/*.yml`, and scheduling / audience selection lives mostly in `worker/src/index.js`.
 
@@ -212,8 +212,8 @@ Includes:
 
 Sent when new campaign diary entries are broadcast.
 
-- Uses a plain-text excerpt generated from the diary content.
-- Links back to the campaign diary.
+- Parses the diary Markdown before truncating the excerpt to 200 visible characters. Bold, italic, and underline survive in HTML; plain-text email remains readable without formatting markers. Raw HTML and unsafe links remain inert.
+- Links to `#diary-entry-<id>` on the localized campaign page. Opening the link selects the containing phase and scrolls to that entry. Legacy entries without IDs retain phase links.
 - Tracks sent entries in KV so the same diary entry is not broadcast repeatedly.
 - Updating existing diary metadata does not send a new email when the entry ID is stable.
 
@@ -333,7 +333,7 @@ Current behavior:
 
 ## Delivery And Retry
 
-Production sends use `email-outbox:v1:*` records. The canonical
+Production sends use `pool:email-outbox:v1:*` records. The canonical
 `email.outbox_enabled` setting mirrors to `EMAIL_OUTBOX_ENABLED`; keep it enabled
 for production delivery. Test mode can use immediate fixture sends unless the
 outbox is explicitly enabled. Persistence happens before the Resend side
@@ -345,6 +345,19 @@ effect, and the minute scheduler drains bounded batches. Each job:
 - respects `Retry-After`, quota responses, and bounded exponential delay
 - refuses blind retry after an ambiguous response outlives Resend's 24-hour idempotency window
 - expires transient payload data after 30 days and retains only minimal `email-delivery:v1:*` evidence for 400 days
+
+The pending-job prefix and `pool:email-outbox-queue:v1` marker are Pool-specific,
+including when another product shares the PLEDGES namespace. Pool never drains
+the legacy unqualified queue. Existing job IDs, provider idempotency keys, and
+`email-delivery:v1:*` evidence remain stable across this storage-key change.
+
+For an upgrade with pending legacy jobs, inspect only verified Pool job IDs and
+check delivery evidence plus Resend before moving them. Preserve the complete
+job record (including its frozen payload and attempt history), copy it to the
+Pool prefix, verify the copy, then remove that exact legacy key. Rebuild the
+Pool queue marker from those jobs. Do not scan-and-adopt another product's jobs,
+reset attempt history, recreate accepted messages, or change the shared legacy
+queue marker. Keep private recovery evidence outside the repository.
 
 `sendPreparedResendEmail` is the central provider helper. It:
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Offline checks for source ownership and localized documentation links."""
+import re
 import tempfile
 import unittest
 from pathlib import Path
@@ -9,6 +10,25 @@ import build_spanish_docs as docs
 
 
 class SpanishDocsTest(unittest.TestCase):
+    def test_reviewed_copy_overrides_stale_machine_cache(self):
+        source = next(text for text in docs.REVIEWED_TRANSLATIONS if text.startswith("Each run uses the existing Pool"))
+        with patch.object(docs, "cache", {source: "destinatario de edad"}), patch.object(docs, "request_translation", side_effect=AssertionError("Network call")):
+            translated = docs.translate_text(source)
+        self.assertIn("destinatario age", translated)
+        self.assertNotIn("destinatario de edad", translated)
+
+    def test_reviewed_copy_preserves_inline_code(self):
+        for source, translated in docs.REVIEWED_TRANSLATIONS.items():
+            for code in re.findall(r"`[^`]+`", source):
+                with self.subTest(source=source[:80], code=code):
+                    self.assertIn(code, translated)
+
+    def test_reviewed_wrapped_list_keeps_nested_items_and_code_separate(self):
+        source = "- Preserve the saved\n  payment identity.\n  - Nested item\n\n```text\n- Preserve the saved\n  payment identity.\n```\n"
+        expected = "- Conservar la identidad de pago guardada.\n  - Nested item\n\n```text\n- Preserve the saved\n  payment identity.\n```\n"
+        with patch.object(docs, "REVIEWED_TRANSLATIONS", {"Preserve the saved payment identity.": "Conservar la identidad de pago guardada."}), patch.object(docs, "cache", {"Nested item": "Nested item"}), patch.object(docs, "request_translation", side_effect=AssertionError("Network call")):
+            self.assertEqual(expected, docs.translate_body(source))
+
     def test_curated_policy_requires_the_selected_source(self):
         with tempfile.TemporaryDirectory() as directory:
             with patch.object(docs, "POOL_ROOT", Path(directory)):

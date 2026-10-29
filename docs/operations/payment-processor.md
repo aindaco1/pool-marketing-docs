@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-September 27, 2026
+October 28, 2026
 
 The Pool uses Stripe as its payment processor, with the Cloudflare Worker as the canonical checkout, pledge, webhook, and settlement boundary. The public site can collect cart intent, but the Worker rebuilds the money shape, creates Stripe sessions, persists pledges, and later charges saved payment methods only when an all-or-nothing campaign succeeds.
 
@@ -233,6 +233,16 @@ The Worker creates a Stripe Checkout Session in `setup` mode. The normal path re
 
 If custom checkout is unavailable because the publishable key is missing, the Worker falls back to a hosted Stripe Checkout URL instead of failing the supporter.
 
+New custom pledge sessions leave `customer_email` unset so the on-site contact
+field can supply and correct the email through Stripe.js before confirmation.
+The browser supplies its draft email as the payment UI opens so Stripe Link
+can recognize returning users before they choose a payment method.
+Hosted fallback sessions still receive `customer_email`. The shared browser
+helper reads Stripe's current session and skips `updateEmail` when the address
+already matches; Stripe locks emails preset at creation, including existing
+customers used for card updates. A different address still goes through Stripe
+validation, and provider errors remain visible.
+
 The Stripe session metadata includes order and integrity context such as:
 
 - `orderId`
@@ -263,6 +273,13 @@ Stripe sends `checkout.session.completed`. The Worker:
 12. Marks the Stripe event processed only after persistence succeeds.
 
 This makes duplicate webhooks safe and transient failures retryable.
+
+Browser completion and webhook completion use the same customer-creation and
+payment-method attachment idempotency keys. When a saved payment method already
+belongs to a Stripe customer, that attachment is reused. If Stripe cannot confirm
+the customer attachment, completion fails retryably before pledge persistence;
+it never saves an active pledge with a missing payment identity.
+
 
 The custom checkout sidecar also has a guarded recovery path:
 
@@ -336,6 +353,9 @@ Current behavior:
 - `SETTLEMENT_COORDINATOR` locks one campaign at a time.
 - `settlement-job:{slug}` tracks batched progress.
 - Each batch processes a bounded set of pledge order IDs.
+- Batch order IDs must be distinct. Pledges are re-read under the campaign lock;
+  already-charged and cancelled pledges are excluded before grouping.
+
 - Active uncharged pledges are grouped by supporter email within the campaign.
 - The most recent saved payment method for the supporter/campaign group is used.
 - The Worker creates one off-session Stripe PaymentIntent per supporter/campaign group.
@@ -355,6 +375,26 @@ POST /admin/settle/:slug
 ```
 
 Use `ADMIN_SETTLEMENT_SECRET` for settlement automation when configured. It is narrower than `ADMIN_SECRET`.
+
+### Repairing a missing customer link
+
+`POST /admin/backfill-customers/:slug` requires admin authorization and shares the
+campaign settlement lock. It repairs only active, uncharged pledges with a saved
+payment method and no customer ID. It preserves the rest of each pledge record.
+
+For an investigated set, pass `orderIds` (1–5 IDs from that campaign),
+`existingOnly: true`, and `dryRun: true`. The response lists the customer already
+attached to each saved payment method in Stripe. Dry runs never create customers,
+attach methods, or charge payments. If the attachment is missing, the result
+contains an error requiring investigation. Repeat with `dryRun: false` to save
+only those verified links. `existingOnly: true` prevents customer creation during
+the repair; omitting it allows creation for a genuinely unattached payment method.
+
+Before settlement, reconcile each selected order against Stripe payments and
+persisted settlement groups, including any separate paid orders for the same
+email. Preview the exact order list with `/admin/settle-batch` and `dryRun: true`,
+then submit the same list. Repair does not itself charge or send emails. Normal
+settlement queues receipts on success or a card-update email on payment failure.
 
 ## Data Model
 
@@ -595,3 +635,53 @@ For processor behavior, prefer Stripe test mode and the Stripe CLI over hand-bui
 - [DASHBOARD.md](/docs/operations/admin-dashboard/)
 - [EMAIL.md](/docs/operations/email-system/)
 - [worker/README.md](/docs/operations/worker/)
+
+
+## Editable inline checkout and shared helpers
+
+Custom checkout keeps contact and address inputs mounted while preparing payment.
+Complete details trigger preparation after a short pause. Payment fields appear
+below those inputs and scroll into the drawer once per checkout visit, without
+moving keyboard focus; subsequent edits preserve scroll position. US ZIP/state
+conflicts appear once beside the fields, and city corrections remain optional.
+Incomplete email/ZIP edits never prepare payment. Editing prepared details
+invalidates the old preparation, waits for release, then prepares the new details.
+Shipping/tax previews run alongside payment preparation, with identical pending
+preview requests shared. They do not block the replacement payment fields;
+confirmation stays disabled while preview totals are updating. The Worker still
+calculates canonical totals before creating each setup session.
+The sidecar mounts Payment Elements before awaiting Stripe session actions, so
+their downloads/rendering overlap session loading. If session loading fails, the
+sidecar unmounts those elements before the existing release/retry path runs.
+Payment readiness also requires the Payment Element's `ready` event and completed
+contact synchronization. A returned mount call alone does not enable Save. The
+drawer shows the existing localized loading message while Stripe renders; an
+element `loaderror` uses the reservation-release/retry path. Events from obsolete
+setups are ignored. Store notifications do not restart an in-progress mount just
+because its container is still empty.
+
+Opening the cart immediately loads Stripe.js, initializes the configured public
+key, and warms the Checkout SDK with a pending client-secret promise. Checkout
+route entry also warms it when a restored flow bypasses cart opening. No server
+session or speculative Payment Element is created by warmup. A valid canonical
+setup consumes that preparation once and supplies its secret; later sessions get
+fresh preparations. An unused warmup contains no customer details and can serve a
+later visit in the same page. SDK initialization failures remain retryable.
+Platform site-shell shares script loading and SDK instance reuse per key/locale;
+Pool retains Checkout preparation, Elements, sessions and confirmation. Local test builds
+must use the same test publishable key as their Worker in `_config.local.yml`.
+Stripe asset downloads can still delay rendering on a cold or slow connection.
+Late lookup/preparation responses cannot replace current input. Provider failures
+remain visible and offer an explicit retry rather than an automatic retry loop.
+
+Platform site-shell owns email/ZIP readiness, debouncing, stale lookup rejection,
+detail signatures and first-reveal scrolling. Platform tax-core owns postal/local
+rate references; design-core supplies mobile inputs at least 16px. Each consumer
+owns its form markup, localized messages, routes, canonical totals and recovery.
+
+Pool continues to use Stripe Checkout Sessions in setup mode and confirms the
+pledge only after card setup succeeds. Preparing/repreparing does not charge or
+confirm a pledge. Confirmation recovery remains read-only/idempotent; campaign
+settlement and reservation policy stay in Pool. Store's PaymentIntent flow is
+not used. A failed reservation release blocks a replacement setup and can be
+retried from the same form.

@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-27 de septiembre de 2026
+28 de octubre de 2026
 
 Este es el runbook del operador canónico para el estado propiedad de The Pool que no se puede recrear mediante una implementación normal. Cubre el historial de Git, Cloudflare KV, metadatos del proveedor, pedidos de restauración, retención y evidencia de recuperación. Nunca trata los valores secretos como contenido de respaldo.
 
@@ -232,3 +232,24 @@ Registre el hash de recepción de instantáneas, la confirmación de origen, el 
 ## Copias de trabajo de campaña
 
 El paquete de recuperación del repositorio incluye `_campaign_drafts/` con las fuentes de la campaña publicadas. Restaure ambos antes de reabrir la edición. El acceso a la vista previa sigue siendo información de KV de corta duración y no se restaura. Una copia de trabajo guardada contiene su base de creación pública; Después de una restauración divergente, Publish informa un conflicto de revisión en lugar de reemplazar el contenido público restaurado. Al archivar una campaña se conserva su copia de trabajo y se tienen en cuenta los borradores de referencias de los medios. Los borradores de contenido local del navegador y las copias de `:recovery-v1` permanecen separados y requieren recuperación en el navegador/perfil original; consulte [Recuperación del panel](/es/docs/operations/admin-dashboard/#recuperar-un-borrador-perdido-del-navegador).
+
+## Verificar el archivo R2 actual sin restaurar
+
+Ejecuta **Verify Recovery Archive** manualmente desde `main`. El entorno `production-recovery` conserva sus restricciones de revisión y de ramas. El trabajo utiliza las credenciales de R2 y la identidad de recuperación configuradas para listar y descargar la instantánea cifrada más reciente, comprobar que su antigüedad no supera cuatro horas, verificar su tamaño y SHA-256, descifrarla y validar todas las sumas de verificación internas. No restaura registros, escribe en R2, modifica la programación del simulacro ni envía mensajes.
+
+La herramienta compartida de auditoría se fija a un commit inmutable de Platform, independiente de la revisión usada por la aplicación. Los archivos ausentes, obsoletos, dañados, indescifrables o incompletos hacen fallar la ejecución. Solo se conservan recuentos y estados sin datos sensibles como artefacto; se eliminan los archivos temporales de claves y texto sin cifrar. Esto verifica el archivo con la clave configurada, pero no verifica la custodia independiente de claves, la política de bloqueo del bucket, la cobertura histórica de retención ni el comportamiento de restauración de la aplicación.
+
+
+## Copias de producción cada cuatro horas
+
+**Capture Production Backup** se ejecuta cada cuatro horas, en el minuto 37 UTC, y también puede iniciarse manualmente desde `main`. `BACKUP_SCHEDULE_ENABLED=true` habilita la captura programada. El entorno `production-backup` solo admite `main` y no exige revisión por ejecución, para que las capturas automáticas no queden esperando la aprobación de restauración. Se conservan el revisor de `production-recovery` y la configuración desactivada del simulacro trimestral de restauración.
+
+Cada ejecución utiliza la herramienta de instantáneas de Pool para capturar el historial y la configuración de Git, además de todos los valores KV autorizados por el inventario como datos canónicos o de control. Cifra con el destinatario age existente, verifica localmente el descifrado, todas las sumas de verificación y la cobertura de datos, y sube la copia a un prefijo nuevo y único del archivo R2. Publica el comprobante al final y después descarga y verifica de nuevo ese mismo archivo. No escribe en producción, restaura datos, modifica pagos, envía notificaciones ni elimina archivos antiguos. La captura de KV en vivo no es una instantánea transaccional de base de datos; durante la recuperación sigue siendo necesario el procedimiento de restauración y conciliación.
+
+Solo se conserva `backup-verification.json`, sin datos sensibles, como artefacto de GitHub durante 90 días. El archivo cifrado permanece en R2 bajo el bloqueo existente de 400 días; los archivos temporales privados de identidad y texto sin cifrar se eliminan tanto al completar como al fallar. Un fallo de captura o verificación hace fallar la ejecución de Actions. Los operadores deben mantener activadas las notificaciones de fallos de GitHub Actions. Las tareas programadas pueden retrasarse y no garantizan un intervalo máximo de pérdida de datos: revisa la fecha registrada en la instantánea e investiga ejecuciones fallidas o ausentes. La programación UTC mantiene el intervalo durante los cambios de horario de verano.
+
+El flujo de trabajo de captura utiliza la credencial de origen Cloudflare existente del repositorio para operaciones de lectura y cinco secretos de entorno: `RECOVERY_AGE_IDENTITY`, `RECOVERY_ENCRYPTION_RECIPIENT`, `RECOVERY_ARCHIVE_URI`, `AWS_ACCESS_KEY_ID` y `AWS_SECRET_ACCESS_KEY`. No se necesita ningún inicio de sesión de administrador ni credencial Stripe.
+
+Para la configuración inicial o la rotación, crea el entorno `production-backup` limitado a `main`, lee su clave pública de entorno de GitHub y configura las variables del repositorio `BACKUP_ENV_PUBLIC_KEY` y `BACKUP_ENV_KEY_ID`. Inicia **Provision Backup Credentials** mediante la aprobación existente de `production-recovery`. Instala los cinco valores cifrados con la API de secretos de entorno de GitHub solo después de comprobar el identificador de la clave de destino contra una nueva lectura de la clave pública. Solo GitHub puede descifrar estos sobres LibSodium; no contienen secretos en texto sin cifrar. Elimina el artefacto de transferencia después de instalarlo. Ejecuta una captura manual y verifica su resultado antes de activar la programación. Se utilizan los destinos R2 y las identidades existentes; la custodia independiente de claves y otros destinos de respaldo quedan fuera del alcance aprobado por el operador.
+
+Los comandos locales para crear, cifrar y descifrar archivos tienen un tiempo límite de cinco minutos para admitir paquetes de repositorio más grandes; las lecturas de proveedores conservan sus límites más breves. El ejecutor compartido informa las fases de captura, subida y verificación y categorías de fallo fijas, sin registrar la salida de error del proveedor ni los valores capturados. Una ejecución fallida no habilita la programación ni cuenta como punto de recuperación verificado.

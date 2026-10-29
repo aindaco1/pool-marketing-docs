@@ -9,13 +9,15 @@ render_with_liquid: false
 
 ## Last Updated
 
-September 6, 2026
+October 28, 2026
 
 **The Pool** is an open-source crowdfunding platform for independent film and creative projects. It gives small teams a focused place to raise money, offer rewards, communicate with supporters, and manage fulfillment without requiring every supporter to create an account.
 
 ## All-or-nothing pledges
 
 When you support a campaign, Stripe securely saves your payment method, but you are **not charged when you make the pledge**. The campaign must reach its goal by its deadline. If it does not, your card is not charged.
+
+Checkout keeps your contact and address fields available while payment fields load. Changing your email or destination refreshes payment setup and the tax and shipping summary. Preparing those fields does not confirm a pledge or charge your card; you still need to complete the final confirmation.
 
 Before a campaign ends, you can use the secure link in your confirmation email to review, change, or cancel your pledge, even if the campaign has already reached its goal. Once the deadline passes, changes and cancellation through that link close. If one checkout includes several campaigns, each campaign remains a separate pledge and is settled separately.
 
@@ -37,7 +39,9 @@ Reward tiers, direct campaign support, custom campaign amounts, and campaign add
 
 The Pool does not deduct a platform commission from campaign funding. Supporters can choose an optional platform tip during checkout to help operate the service. Stripe processing fees and other campaign expenses may still apply.
 
-Prices are in U.S. dollars. New add-on selections use current product and variant prices. When you edit a pledge, an existing add-on keeps its saved unit price if you keep the same product and variant, even when you change the quantity. Tax and shipping may remain estimates until enough destination information is available.
+Prices are in U.S. dollars. New add-on selections use current product and variant prices. When you edit a pledge, an existing add-on keeps its saved unit price if you keep the same product and variant, even when you change the quantity.
+
+Tax and shipping update as you enter your destination. Tax may remain an estimate even with a complete address: bundled U.S. ZIP-based rates have partial coverage, and a state-only fallback may omit local taxes. Checkout labels those estimates. Known U.S. ZIP/state conflicts must be corrected before continuing; suggested city names are optional and do not verify street-level deliverability. Campaign settlement uses the saved pledge amount.
 
 ## Physical rewards and store policies
 
@@ -52,6 +56,8 @@ When a campaign explicitly enables a focused product page for its featured physi
 Campaign teams can configure all-or-nothing funding, digital and physical reward tiers, campaign add-ons, production phases, stretch goals, supporter decisions, diary updates, protected previews, campaign embeds, and late support when appropriate.
 
 A private, role-scoped dashboard supports campaign content, rewards, reports, supporters, fulfillment, analytics, marketing links, and authorized users. Sensitive pricing and totals are verified by the server rather than trusted from the browser.
+
+Teams can save a shared working copy, review it through a protected preview, then publish it explicitly. Saving does not change the public campaign. The dashboard tracks publication through deployment and reports Live only when the saved revision is deployed. Browser-local drafts remain separate recovery copies, and conflicting edits must be resolved before replacing a newer shared working copy.
 
 ## Privacy, access, and safety
 

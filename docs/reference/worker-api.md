@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-September 27, 2026
+October 28, 2026
 
 This is the endpoint reference for contributors and operators integrating with
 the Pool Worker. It consolidates the route examples previously spread across
@@ -45,6 +45,8 @@ return the updated working-copy status and reject stale revisions with HTTP 409
 `campaign_revision_conflict`. The local repo helper implements the same revision
 precondition with serialized atomic file replacement.
 
+Production publish also returns `repositoryMode` and `deployment: { commitSha, requestedAt, triggered }`. The Pages dispatch receives the immutable saved revision. `GET /admin/campaigns/deployment?campaignSlug=<slug>&commitSha=<40-character-sha>&requestedAt=<timestamp>&runId=<optional-id>` requires read access to that campaign and returns private/no-store workflow status and build/deploy phases. Tracking reads GitHub only; it never retries a publication or sends email. A missing run remains requested, and a mismatched commit/workflow is rejected. Local publication returns no production tracking coordinates.
+
 Protected preview publishing accepts optional `workingRevision` and
 `preserveLinks: true` from the current dashboard. A stale working revision fails;
 active links retain their original token and expiry while new invitations are
@@ -71,6 +73,20 @@ and post-deploy setup. A dry run or enqueue response is not provider delivery
 or payment acceptance.
 
 ## Routes
+
+### POST /address/check
+
+Check optional `billing` and `shipping` objects containing `country`,
+`postalCode`, `state`, and `city`. Known US ZIPs return `checked`, `postalCode`,
+`states`, `stateMismatch`, and an optional `suggestedCity`; unknown/international
+addresses return `{ "checked": false, "stateMismatch": false }`. A city suggestion
+is advisory. This is not street/deliverability validation.
+
+Requires a trusted storefront Origin, the standard JSON body-size limit, and
+the existing tax rate limit. Responses are private/no-store. The lookup does
+not persist addresses or call a third party. Canonical tax, shipping and checkout
+requests independently reject known ZIP/state conflicts; this feedback endpoint
+cannot authorize payment.
 
 ### POST /checkout-intent/start
 Canonicalize the first-party cart payload and create a Stripe setup-mode Checkout Session for a new pledge.
@@ -101,6 +117,15 @@ The Worker rebuilds tier, bundle add-on, custom-support, shipping, and subtotal 
 When a pledge qualifies for shipping upgrades, the Worker also persists the selected limited delivery option (`standard`, `signature_required`, or `adult_signature_required`) so the cart, Manage Pledge, stored pledge total, and supporter emails stay aligned.
 
 Limited-tier reservations and claims are serialized through a per-campaign Durable Object coordinator before the KV inventory snapshot is updated, so concurrent checkout starts, retries, modifications, and webhook completions cannot oversell scarce rewards.
+
+### POST /checkout-intent/abandon
+
+Body: `{ "orderId": "pool-intent-..." }`.
+Releases pending scarce-inventory reservations before editing or leaving checkout.
+The expiring quote remains available for an already-completed Stripe setup to be
+reconciled. Success and validation/rate-limit responses use the configured site
+CORS origin and `private, no-store, max-age=0`, including local and fork origins.
+The browser waits for successful release before preparing replacement payment fields.
 
 ### POST /checkout-intent/complete
 
@@ -295,7 +320,8 @@ The private `/admin/` and `/es/admin/` shells use cookie-backed Worker routes in
 - `POST /admin/settings/preview` validates settings changes without publishing
 - `POST /admin/settings/logo-upload`, `POST /admin/settings/image-upload`, `POST /admin/settings/audio-upload`, and `POST /admin/settings/video-upload` stage dashboard uploads through the same GitHub-backed publish path as their owning settings/content fields; image/video uploads request the **Optimize dashboard media** workflow with `scope=changed` after commit, while native image optimization and video transcoding still run in the repository media pipeline rather than inside the Worker
   - Video uploads accept a raw binary body with `Content-Type: video/mp4`, `video/webm`, or `video/quicktime`. Query parameters carry `filename`, `size` (exact bytes), `kind`, `campaignSlug`, and optional `collection`, `fieldPath`, `filenameBase`, `replaceGithubPath`, and `replaceSha`. The limit is 100,000,000 file bytes; metadata is limited to 8,192 URL-query characters. Session and CSRF authorization precede reading video bytes. The Worker verifies the actual streamed length against `size` and, when present, `Content-Length`, then streams base64 JSON to GitHub with a ten-minute deadline and a bounded response. Invalid/truncated streams cannot complete the GitHub JSON document; redirects and automatic write retries are prohibited. Success retains the existing path/SHA/processing response shape and reports the exact byte count.
-  - Legacy JSON/base64 video requests remain supported within a 12 MiB request-body limit for older tabs. Full-size uploads require the binary format; deploy the Worker before refreshing Pages. Other media endpoints keep their existing JSON contracts and limits.
+  - Images, audio, and logos use JSON/base64 requests. File limits are 8 MiB, 25 MiB, and 512 KiB respectively, including the GitHub write; request-body limits are 12 MiB, 36 MiB, and 1 MiB to accommodate encoding and metadata. Oversized bodies return `413`; a decoded file above its media limit returns `400` before any provider write. General GitHub text operations retain their separate default bound.
+  - Legacy JSON/base64 video requests remain supported within a 12 MiB request-body limit for older tabs. Full-size uploads require the binary format; deploy the Worker before refreshing Pages.
 - `POST /admin/settings/publish` validates and publishes platform settings, platform add-ons, campaign variables, and campaign structured data through GitHub-backed commits
 - The browser remembers dashboard tab/subtab context locally across reloads; this restoration does not call a Worker route and does not write KV or GitHub state
 - `POST /admin/users` saves dashboard-managed admin users directly to `admin-users:v1` in Worker KV and emails newly created users sign-in instructions when Resend is configured

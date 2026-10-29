@@ -8,13 +8,13 @@ has_children: true
 
 ## Last Updated
 
-June 9, 2026
+October 28, 2026
 
 Use this section to understand what The Pool is, what it promises publicly, and how the platform is framed before you dive into implementation details.
 
 ## Read These First
 
-- [About The Pool](/docs/overview/about-the-pool/) for the public explanation, supporter experience, creator tools, architecture, hosting model, and deployment context.
+- [About The Pool](/docs/overview/about-the-pool/) for all-or-nothing pledges, editable checkout, tax estimates, creator saving and publishing, and private supporter access.
 - [Terms & Creative Guidelines](/docs/overview/terms-and-guidelines/) for policy expectations, payment handling, fulfillment, refunds, and privacy language.
 
 ## When To Leave This Section

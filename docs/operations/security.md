@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-September 27, 2026
+October 28, 2026
 
 This document covers the security architecture, known risks, applied hardening measures, accepted tradeoffs, and penetration testing procedures for The Pool crowdfunding platform. Encrypted backup boundaries, quarantined session/rate-limit state, off-device handling, and production restore approvals are defined in [BACKUP_RESTORE.md](/docs/operations/backup-restore/).
 
@@ -72,7 +72,7 @@ Use this alongside [ETHICAL_RISK.md](/docs/development/ethical-risk-review/) whe
 | `abandoned-cart-health:v1` | PLEDGES | Aggregate checkout reminder queue/outcome health counters | **Low** - operational aggregate |
 | `supporter-email-retry:{orderId}` | PLEDGES | Queued supporter confirmation email retry payload | **Medium** - supporter email payload |
 | `supporter-email-retry-queue:v1` | PLEDGES | Supporter email retry idle/pending and next-attempt marker | **Low** - operational state |
-| `email-outbox:v1:{hash}` | PLEDGES | Frozen provider payload and recipient while delivery is pending; 30-day TTL | **High** - transient email content + PII |
+| `pool:email-outbox:v1:{hash}` | PLEDGES | Frozen provider payload and recipient while delivery is pending; 30-day TTL | **High** - transient email content + PII |
 | `email-delivery:v1:{hash}` | PLEDGES | Minimal provider ID, content hash, category, status, timing; 400-day TTL | **Low** - delivery evidence |
 | `email-suppression:v1:{emailHash}` | PLEDGES | Hashed permanent-bounce/complaint/provider suppression; 400-day TTL | **Medium** - consent/deliverability metadata |
 | `campaign-email-suppression:v1:{slug}:{emailHash}` | PLEDGES | Hashed one-click campaign update suppression | **Medium** - consent metadata |
@@ -156,6 +156,7 @@ Protected previews are private review surfaces for editable campaigns, not publi
 
 - Static preview shells live under `/campaigns/:slug/preview/` and localized equivalents for every campaign slug so preview links do not race a static-site rebuild. They use `noindex,nofollow,noarchive`, strict-origin referrer behavior for embedded media compatibility, no public social metadata, and no public JSON-LD.
 - The shell is generic and does not embed campaign title, payload data, or preview access data at build time. It fetches a no-store full campaign page preview payload from `/admin/campaign-preview/:slug`, with pledge controls rendered read-only.
+- Campaign HTML stays in an opaque sandbox without `allow-same-origin`. An external first-party preview script handles thumbnail fallback and requests YouTube playback through `postMessage`. The shell accepts messages only from its current preview frame and only for video IDs present in the authorized payload; it constructs a fixed `youtube-nocookie.com` embed URL in a shell-owned layer aligned with the original video slot. The layer clips players to the campaign frame, validates finite geometry, and accepts only slot IDs assigned to the current authorized payload. Scroll and resize messages reposition existing players without reloading them. Reloading access removes all players and clears the accepted slots. The player uses `strict-origin-when-cross-origin`, after the preview token is removed from the page URL. This does not relax script CSP or grant campaign HTML access to the parent or its storage.
 - Authenticated admins can fetch the payload only through the existing admin session, CSRF/origin protections where applicable, and role/campaign scope checks.
 - Explicit reviewers use signed `t` tokens scoped to token type, campaign slug, reviewer email, and expiry. The Worker also checks the email against the 24-hour KV allowlist before returning a preview payload.
 - Preview publish requests carry a GitHub base revision when available. Stale publishes return a conflict instead of overwriting another user's changes.

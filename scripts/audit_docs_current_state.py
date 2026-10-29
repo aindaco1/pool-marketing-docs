@@ -96,14 +96,14 @@ def add_pattern_errors(
                 errors.append(f"{relative(path)}:{line}: {label}")
 
 
-def audit_roadmap(path: Path, contract: str, errors: list[str]) -> None:
+def audit_roadmap(path: Path, planned_work_heading: str, errors: list[str]) -> None:
     if not path.exists():
         errors.append(f"{relative(path)} is missing")
         return
 
     body = path.read_text(errors="replace")
-    if contract not in body:
-        errors.append(f"{relative(path)}: missing prospective-work contract")
+    if planned_work_heading not in body.splitlines():
+        errors.append(f"{relative(path)}: missing planned-work section")
     if re.search(r"^- \[x\]", body, re.I | re.M):
         errors.append(f"{relative(path)}: contains completed checklist work")
 
@@ -131,12 +131,12 @@ def main() -> int:
     )
     audit_roadmap(
         DOCS / "reference" / "roadmap.md",
-        "This document contains prospective work only.",
+        "## Prospective Product Work",
         errors,
     )
     audit_roadmap(
         SPANISH_DOCS / "reference" / "roadmap.md",
-        "Este documento contiene únicamente trabajo prospectivo.",
+        "## Trabajo de producto propuesto",
         errors,
     )
     audit_tree_parity(errors)

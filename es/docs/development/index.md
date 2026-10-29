@@ -9,7 +9,7 @@ lang: es
 
 ## Última actualización
 
-27 de septiembre de 2026
+28 de octubre de 2026
 
 El flujo de contribución, las notas de arquitectura, los problemas de implementación y los puntos de extensión orientados hacia la bifurcación se encuentran aquí.
 
@@ -47,6 +47,9 @@ Esta sección es la base de operaciones adecuada cuando abre su primer PR, asign
 |Recuperar ediciones de campaña locales del navegador|[Panel: Borrador de recuperación](/es/docs/operations/admin-dashboard/#recuperar-un-borrador-perdido-del-navegador)|
 |Ejecute o recupere la optimización automática de imágenes|[Rendimiento: Optimización de medios](/es/docs/operations/performance/#optimización-de-medios)|
 |Comprender la confirmación y recuperación del pago|[Procesador de pagos: finalización del pago](/es/docs/operations/payment-processor/#4-finalización-y-webhook)|
+|Mantenga el proceso de pago editable y ayudas de preparación compartidas|[Procesador de pagos: Pago en línea editable](/es/docs/operations/payment-processor/#pago-integrado-editable-y-funciones-compartidas)|
+|Revisar la coherencia postal, la cobertura fiscal parcial y las actualizaciones de datos compartidos.|[Calculadora de impuestos](/es/docs/operations/tax-calculator/)|
+|Configure instantáneas cifradas y verifique los archivos de recuperación|[Copia de seguridad, restauración y recuperación](/es/docs/operations/backup-restore/)|
 |Configurar destinatarios de informes, cancelaciones y reintentos programados|[Correo electrónico: Informes del corredor de campaña](/es/docs/operations/email-system/#informes-para-responsables-de-campaña)|
 |Ejecute la evaluación del mensaje de apoyo de asesoramiento|[Prueba: Asesor Jev Pilot](/es/docs/operations/testing/#piloto-orientativo-de-jev)|
 |Limpie los archivos generados mientras preserva el estado local y la evidencia.|[Contribuyendo: Limpieza del espacio de trabajo local](/es/docs/development/contributing/#limpieza-del-espacio-de-trabajo-local)|

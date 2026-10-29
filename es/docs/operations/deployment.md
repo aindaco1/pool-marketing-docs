@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-27 de septiembre de 2026
+28 de octubre de 2026
 
 Esta guía contiene el cableado de producción por primera vez y el flujo de trabajo de lanzamiento del sitio/Worker. Utilice [Podman](/es/docs/operations/podman-local-dev/) para contenedores locales, [Contributing](/es/docs/development/contributing/) para desarrollo y [Merge Smoke](/es/docs/operations/merge-smoke-checklist/) para la aprobación del operador.
 
@@ -41,6 +41,17 @@ Las versiones de Worker utilizan el flujo de trabajo de acciones **Implementar p
 - el Cloudflare Worker de `worker/wrangler.toml`
 
 Las ejecuciones rutinarias de **Actualizar páginas de producción**, incluidas las actualizaciones programadas del estado de la campaña, no implementan Worker. El respaldo manual exclusivo de Worker desde la raíz del repositorio es `npm run deploy:worker`.
+
+Para las versiones de mantenimiento, establezca la entrada booleana `skip_diary_check` en `true` al enviar cualquiera de los flujos de trabajo de implementación. Esto publica la revisión seleccionada sin invocar la verificación del diario posterior a la implementación ni las transmisiones de sus patrocinadores. Por ejemplo:
+
+```bash
+gh workflow run deploy-production.yml --ref main \
+  -f ref=REVIEWED_COMMIT_SHA -f reason=maintenance -f skip_diary_check=true
+```
+
+Los pushes automáticos a `main` solo ejecutan la comprobación del diario cuando cambia el contenido publicado en `_campaigns/` entre los commits exactos anterior y posterior al push. Las herramientas, el código y los borradores guardados no la activan por sí solos. Si el checkout tiene historial limitado, la comparación obtiene el commit exacto que falta; si no puede establecer la comparación, la compilación falla. Las actualizaciones programadas y las ejecuciones manuales o de campaña ordinarias conservan la comprobación del diario; la opción manual para omitirla vale `false` por defecto. Omitirla en mantenimiento no detiene las comprobaciones programadas posteriores ni otros procesos de notificación existentes.
+
+La publicación de campaña envía **Actualizar páginas de producción** con la confirmación guardada en su entrada opcional `ref`. Ambos trabajos utilizan esa revisión; el título de la ejecución lo registra como `Deploy <sha>` para que el progreso del panel pueda rastrear la compilación correcta incluso cuando la rama avanza. Si GitHub cancela un duplicado pendiente, el seguimiento sigue un reemplazo para la misma revisión inmutable y permite hasta 30 segundos para que aparezca en la lista de ejecución. Las ejecuciones para una revisión diferente nunca cuentan como éxito de publicación. Los envíos de solo borrador en `_campaign_drafts/` no inician la compilación de páginas. La credencial Worker GitHub necesita acceso de lectura de acciones, así como su acceso de envío/escritura existente. Consulte [Dashboard](/es/docs/operations/admin-dashboard/) para conocer el comportamiento guardado, implementado y en vivo.
 
 La compilación de páginas ejecuta Jekyll primero, luego `npm run assets:minify` contra el CSS/JavaScript `_site/assets` generado y las copias generadas de los scripts del navegador Site Shell anclados antes de cargar el artefacto. Las raíces seleccionadas son explícitas y seguras para el recorrido; Los archivos fuente permanecen legibles en el repositorio. Cloudflare todavía maneja la compresión gzip/Brotli/Zstandard en el borde, por lo que Cloudflare Auto Minify permanece deshabilitado.
 

@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-27 de septiembre de 2026
+28 de octubre de 2026
 
 Esta es la referencia del punto final para contribuyentes y operadores que se integran con The Pool Worker. Consolida los ejemplos de ruta previamente distribuidos en las guías de arquitectura y componentes. Los controladores en [`worker/src/index.js`](https://github.com/aindaco1/pool/blob/main/worker/src/index.js) y [`worker/src/routes/`](https://github.com/aindaco1/pool/tree/main/worker/src/routes) tienen autoridad; Esta es una guía de las rutas de integración documentadas, no un inventario generado de cada controlador.
 
@@ -22,6 +22,8 @@ Esta es la referencia del punto final para contribuyentes y operadores que se in
 
 Publish acepta el slug y la revisión guardada, verifica que los campos de creación públicos aún coincidan con la base de la copia de trabajo y promueve solo los campos de creación en el `_campaigns/<slug>.md` actual. Conserva los campos de tiempo de ejecución/liquidación, establece `published: true`, `preview_only: false` y `visibility: public` y solicita una reconstrucción. Se requieren título, fechas válidas ordenadas y un objetivo positivo. Ambas acciones devuelven el estado de la copia de trabajo actualizada y rechazan las revisiones obsoletas con HTTP 409 `campaign_revision_conflict`. El asistente de repositorio local implementa la misma condición previa de revisión con el reemplazo de archivos atómicos serializados.
 
+La publicación de producción también devuelve `repositoryMode` y `deployment: { commitSha, requestedAt, triggered }`. El envío de Pages recibe la revisión guardada inmutable. `GET /admin/campaigns/deployment?campaignSlug=<slug>&commitSha=<40-character-sha>&requestedAt=<timestamp>&runId=<optional-id>` requiere acceso de lectura a esa campaña y devuelve el estado del flujo de trabajo privado/no-store y las fases de construcción/implementación. El seguimiento lee únicamente GitHub; nunca vuelve a intentar una publicación ni envía un correo electrónico. Se sigue solicitando una ejecución faltante y se rechaza una confirmación/flujo de trabajo que no coincide. La publicación local no arroja coordenadas de seguimiento de producción.
+
 La publicación de vista previa protegida acepta `workingRevision` y `preserveLinks: true` opcionales del panel actual. Una revisión obsoleta falla; Los enlaces activos conservan su token original y caducan mientras se agregan nuevas invitaciones dentro del límite de revisor existente. La vista previa lee la última copia de trabajo guardada. Los puntos finales de publicación de configuración/contenido heredados siguen siendo compatibles con paneles de control antiguos abiertos; una edición pública a través de esas rutas provoca que un borrador en conflicto falle en lugar de sobrescribirse.
 
 
@@ -32,6 +34,12 @@ Las rutas del panel del navegador utilizan sesiones con alcance de roles y compr
 [El Procesador de pagos](/es/docs/operations/payment-processor/) posee procedimientos de pago, liquidación, conciliación y recuperación. [Email](/es/docs/operations/email-system/) es propietario de la configuración, entrega, consentimiento y supresión del proveedor. [Dashboard](/es/docs/operations/admin-dashboard/) posee el flujo de trabajo operativo del navegador. [Deployment](/es/docs/operations/deployment/) posee acciones y configuración posterior a la implementación. Un ensayo o una respuesta en cola no constituye una entrega del proveedor ni una aceptación de pago.
 
 ## Rutas
+
+### POST /address/check
+
+Comprueba los objetos opcionales `billing` y `shipping`, con los campos `country`, `postalCode`, `state` y `city`. Para códigos postales conocidos de Estados Unidos, devuelve `checked`, `postalCode`, `states`, `stateMismatch` y, opcionalmente, `suggestedCity`. Para direcciones desconocidas o internacionales devuelve `{ "checked": false, "stateMismatch": false }`. La sugerencia de ciudad es orientativa. No verifica la calle ni la posibilidad de entrega.
+
+Requiere un origen de tienda autorizado y aplica el límite estándar de tamaño del cuerpo JSON y el límite de frecuencia de las consultas fiscales. Las respuestas son `private/no-store`. La consulta no almacena direcciones ni contacta con terceros. Las solicitudes canónicas de impuestos, envío y pago rechazan por separado los conflictos conocidos entre código postal y estado; este endpoint informativo no autoriza pagos.
 
 ### POST /checkout-intent/start
 Canonicalice la carga útil del carrito propio y cree una sesión de pago en modo de configuración de Stripe para una nueva contribución.
@@ -62,6 +70,10 @@ El trabajador reconstruye el nivel, el complemento del paquete, el soporte perso
 Cuando un aporte califica para mejoras de envío, el Trabajador también mantiene la opción de entrega limitada seleccionada (`standard`, `signature_required` o `adult_signature_required`) para que el carrito, la Gestión del aporte, el total del aporte almacenado y los correos electrónicos de los patrocinadores permanezcan alineados.
 
 Las reservas y los reclamos de nivel limitado se serializan a través de un coordinador de objetos duraderos por campaña antes de que se actualice la instantánea del inventario de KV, por lo que los inicios, reintentos, modificaciones y finalizaciones de webhooks simultáneos no pueden sobrevender las escasas recompensas.
+
+### POST /checkout-intent/abandon
+
+Cuerpo: `{ "orderId": "pool-intent-..." }`. Libera las reservas pendientes de inventario limitado antes de editar o abandonar el proceso de pago. La cotización temporal sigue disponible para conciliar una configuración de Stripe ya completada. Las respuestas de éxito, validación y límite de frecuencia usan el origen CORS configurado y `private, no-store, max-age=0`, incluidos los orígenes locales y de proyectos derivados. El navegador espera la liberación correcta antes de preparar nuevos campos de pago.
 
 ### POST /checkout-intent/complete
 
@@ -250,7 +262,8 @@ Los shells privados `/admin/` y `/es/admin/` utilizan rutas de trabajo respaldad
 - `POST /admin/settings/preview` valida los cambios de configuración sin publicar
 - Cargas de paneles de escenario `POST /admin/settings/logo-upload`, `POST /admin/settings/image-upload`, `POST /admin/settings/audio-upload` y `POST /admin/settings/video-upload` a través de la misma ruta de publicación respaldada por GitHub que sus propios campos de configuración/contenido; Las cargas de imágenes/videos solicitan el flujo de trabajo **Optimizar medios del panel** con `scope=changed` después de la confirmación, mientras que la optimización de imágenes nativas y la transcodificación de video aún se ejecutan en la canalización de medios del repositorio en lugar de dentro del Worker.
   - Las cargas de videos aceptan un cuerpo binario sin formato con `Content-Type: video/mp4`, `video/webm` o `video/quicktime`. Los parámetros de consulta contienen `filename`, `size` (bytes exactos), `kind`, `campaignSlug` y `collection`, `fieldPath`, `filenameBase`, `replaceGithubPath` y `replaceSha` opcionales. El límite es 100.000.000 de bytes de archivo; Los metadatos están limitados a 8192 caracteres de consulta URL. La autorización de sesión y CSRF precede a la lectura de bytes de vídeo. Worker verifica la duración real de la transmisión con `size` y, cuando está presente, `Content-Length`, luego transmite JSON base64 a GitHub con un plazo de diez minutos y una respuesta limitada. Las secuencias no válidas/truncadas no pueden completar el documento JSON GitHub; Están prohibidos los redireccionamientos y los reintentos de escritura automática. Success conserva la forma de ruta/SHA/respuesta de procesamiento existente e informa el recuento de bytes exacto.
-  - Las solicitudes de vídeo JSON/base64 heredadas siguen admitidas dentro de un límite de cuerpo de solicitud de 12 MiB para pestañas más antiguas. Las cargas en tamaño completo requieren el formato binario; implemente Worker antes de actualizar Pages. Otros puntos finales de medios mantienen sus límites y contratos JSON existentes.
+  - Las imágenes, el audio y los logotipos usan solicitudes JSON/base64. Los límites por archivo son 8 MiB, 25 MiB y 512 KiB, respectivamente, incluida la escritura en GitHub; los límites del cuerpo de la solicitud son 12 MiB, 36 MiB y 1 MiB para admitir la codificación y los metadatos. Un cuerpo demasiado grande devuelve `413`; un archivo decodificado que supera su límite devuelve `400` antes de escribir en cualquier proveedor. Las operaciones generales de texto de GitHub conservan su límite independiente.
+  - Las solicitudes antiguas de vídeo en JSON/base64 siguen admitidas para pestañas anteriores, con un límite de 12 MiB para el cuerpo. Las cargas de tamaño completo requieren el formato binario; despliega el Worker antes de actualizar Pages.
 - `POST /admin/settings/publish` valida y publica configuraciones de plataforma, complementos de plataforma, variables de campaña y datos estructurados de campaña a través de confirmaciones respaldadas por GitHub.
 - El navegador recuerda el contexto de la pestaña/subpestaña del panel de control localmente durante las recargas; esta restauración no llama a una ruta de trabajo y no escribe el estado de KV o GitHub
 - `POST /admin/users` guarda los usuarios administradores administrados por el panel directamente en `admin-users:v1` en Worker KV y envía por correo electrónico las instrucciones de inicio de sesión de los usuarios recién creados cuando se configura Resend

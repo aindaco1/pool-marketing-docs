@@ -8,7 +8,7 @@ description: Frequently asked questions and a recommended reading path for The P
 
 ## Last Updated
 
-September 6, 2026
+October 28, 2026
 
 This page is the **fastest way to get oriented** before you dive into the full docs.
 
@@ -22,21 +22,45 @@ For the full public framing, read [About The Pool](/docs/overview/about-the-pool
 
 ### How does all-or-nothing pledging work?
 
-Supporters make pledges during a campaign window, but cards are **only charged if the campaign reaches its goal**. If the goal is not met, the campaign closes without collecting funds.
+Supporters save a payment method through Stripe during a campaign window. Cards are **charged only after a funded campaign reaches its deadline**. If the goal is not met, the campaign closes without collecting funds. A checkout containing several campaigns creates separate campaign pledges, which settle separately.
 
 That supporter-facing explanation lives in [About The Pool](/docs/overview/about-the-pool/), and the implementation details live in [Architecture](/docs/development/architecture/).
 
 ### Do supporters need an account?
 
-No. The Pool is intentionally **account-light**. Supporters manage pledges through secure email magic links instead of usernames and passwords.
+No. Supporters manage pledges through secure email links instead of usernames and passwords.
 
 If you want the technical version of that flow, start with [Architecture](/docs/development/architecture/) and then [Worker API](/docs/reference/worker-api/).
 
 ### How do magic links work?
 
-After a pledge is created, the Worker sends the supporter a **scoped token link** that lets them view, modify, or cancel that pledge without a traditional account system. The browser never becomes the source of truth for pledge state.
+After a pledge is created, the Worker sends the supporter a **scoped token link** for that pledge. Supporters can modify or cancel while the campaign is open, including after it reaches its goal. Those changes close at the deadline. A delayed confirmation email does not undo a saved pledge; contact the campaign's support address before submitting another pledge if the result is unclear.
 
 Read [About The Pool](/docs/overview/about-the-pool/) for the plain-language explanation and [Architecture](/docs/development/architecture/) plus [Security Guide](/docs/operations/security/) for the engineering model.
+
+### What happens when I edit checkout details?
+
+Contact and address fields stay available while payment fields load. Complete details prepare payment automatically after a short pause. Editing the email or destination refreshes payment setup, tax, and shipping without replacing the form. Preparing payment does not confirm a pledge or charge a card; the supporter must still complete confirmation.
+
+See [Payment Processor](/docs/operations/payment-processor/#editable-inline-checkout-and-shared-helpers) for readiness, reservation release, and retry behavior.
+
+### Are tax and shipping amounts always exact?
+
+The Worker calculates the checkout totals. Tax depends on the configured provider and available destination data. Bundled U.S. ZIP rates have partial coverage and remain estimates; a state-only fallback can omit local taxes even with a complete address. Known ZIP/state conflicts must be corrected, while suggested city names are optional. Shipping uses the configured carrier quote or fallback rules.
+
+See [Tax Calculator](/docs/operations/tax-calculator/), [Shipping](/docs/operations/shipping/), and [Terms & Creative Guidelines](/docs/overview/terms-and-guidelines/). Refreshing reference data does not reprice already confirmed pledges.
+
+### Does saving a campaign publish it?
+
+No. **Save** stores a shared working copy; **Preview** lets authorized reviewers inspect it; **Publish** releases it to the public site. The dashboard follows deployment of the saved revision before reporting Live. Browser-local drafts are separate recovery copies. Conflicting edits remain available for comparison instead of overwriting a newer working copy.
+
+Read [Saving and Publishing](/docs/operations/admin-dashboard/#saving-and-publishing) and [Draft Recovery](/docs/operations/admin-dashboard/#recover-a-missing-browser-draft).
+
+### How are pledges and email protected during recovery?
+
+Pledge records and email delivery have separate lifecycles. Pool queues its own messages for retry without rolling back saved pledges when delivery fails. Campaign diary emails link to individual entries, and campaign updates include an unsubscribe option.
+
+Operators can configure encrypted production snapshots every four hours, verify the remote archive, and follow a documented restore and Stripe-reconciliation process. A successful backup check does not establish that a restore has been tested. See [Email System](/docs/operations/email-system/) and [Backup, Restore, and Recovery](/docs/operations/backup-restore/).
 
 ### Who is The Pool for?
 
@@ -46,7 +70,7 @@ The public context is in [About The Pool](/docs/overview/about-the-pool/), and t
 
 ### How is it built?
 
-The Pool combines [Jekyll](https://jekyllrb.com/), [Cloudflare Workers](https://workers.cloudflare.com/), [Stripe](https://stripe.com/), [Podman](https://podman.io/), and [GitHub Pages](https://pages.github.com/) into a stack that stays **relatively simple to reason about** while still supporting real pledge flows.
+Jekyll builds the public site for GitHub Pages. A Cloudflare Worker owns checkout totals, pledge storage, administration, and settlement; Stripe saves payment methods and processes charges, and Resend delivers email. Podman supports local development. Pinned Dust Wave Platform packages supply shared checkout, postal/tax, media, and other helpers while Pool owns campaign and pledge rules.
 
 Start with [About The Pool](/docs/overview/about-the-pool/) and [Architecture](/docs/development/architecture/) for the system map.
 

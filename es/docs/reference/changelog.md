@@ -10,9 +10,72 @@ lang: es
 
 ## Última actualización
 
-27 de septiembre de 2026
+28 de octubre de 2026
 
-## Inédito
+## 1.2.26 — 2026-10-28
+
+- Se conservan la cobertura y la procedencia de las estimaciones fiscales en las cotizaciones públicas y los datos de pago almacenados, para mantener visibles las etiquetas de estimación.
+
+## v1.2.25 - 2026-10-28
+
+- Se comparte con Store la validación del proceso de pago y las referencias postales y fiscales locales, conservando la configuración de tarjeta y la liquidación posterior propias de Pool.
+- Los campos de dirección y correo y la posición de desplazamiento permanecen estables al editar, con preparación automática del pago y un único desplazamiento inicial hacia los campos de pago.
+- Stripe se carga antes; el envío espera a que los campos de pago estén utilizables y evita esperar las consultas preliminares de forma secuencial.
+- Las opciones y los importes de envío se alinean en escritorio y móvil; los totales de impuestos y envío se actualizan cuando cambia el destino.
+
+## v1.2.24 - 2026-10-21
+
+- Los trabajos de correo pendientes y la programación de la cola de Pool se separan de los de otros productos que comparten KV, conservando la identidad de los recibos y la evidencia de entrega durante la recuperación.
+
+- Se reutiliza el cliente guardado de Stripe al completar el pago desde el navegador o el webhook, y se rechazan identidades de pago incompletas antes de guardar el aporte. Los vínculos de cliente ausentes se reparan a partir de vinculaciones existentes verificadas, sin cambiar los totales.
+- Los lotes de liquidación se releen bajo el bloqueo de campaña; se rechazan pedidos duplicados, se excluyen aportes cobrados o cancelados y se encolan correos para actualizar la tarjeta cuando falla un lote.
+
+- Se adopta Platform 0.44.0, con carga compartida y reintentable de Stripe, selección de medios que conserva su identidad e inicio con una versión corregida de Node. Se mantiene la política de pago y del editor.
+- Las revisiones de borradores del navegador y sus instantáneas se conservan emparejadas mediante la utilidad compartida de recuperación.
+- Se omiten los envíos del diario en despliegues que solo cambian código y en despliegues de mantenimiento marcados explícitamente.
+- Se conserva la base de confianza de herramientas y entornos de ejecución corregidos para el incidente de eMudhra.
+
+- Las herramientas de desarrollo de Vite se actualizan a 8.3.4 para resolver los avisos de seguridad de launch-editor que bloqueaban la comprobación completa de dependencias.
+
+- Los borradores de campaña en conflicto conservan su revisión y contenido base originales durante las ediciones y recargas. Guardar y Vista previa no sobrescriben una copia compartida más reciente; muestran orientación localizada y conservan los datos de recuperación del navegador.
+
+- Las vistas previas protegidas muestran los fondos guardados de campaña y progreso, incluidas las barras de elementos de apoyo, con los mismos estilos decorativos que las páginas públicas.
+
+- El seguimiento continúa con el despliegue sustituto cuando GitHub cancela un duplicado pendiente, evitando informar de un fallo de compilación inexistente. Se distinguen las cancelaciones reales de los fallos y se omiten las compilaciones de Pages cuando solo se guardan borradores.
+
+- Guardar y Publicar conservan las descripciones YAML distribuidas en varias líneas y los niveles de recompensa siguientes. Se rechazan lecturas incompletas, se conservan las ediciones al fallar y se muestran errores específicos. Los niveles de sunder se restauran desde su borrador intacto.
+
+- Los correos del diario enlazan a entradas individuales estables y abren la fase correcta en las páginas localizadas. Los extractos de correo conservan el énfasis Markdown anidado dentro del límite de longitud.
+- La edición de campañas incorpora el progreso de guardado y publicación de Store: acciones visibles al desplazarse, recuentos de cargas, tiempo transcurrido, fases de despliegue y estados explícitos de fallo y reintento. En producción se sigue la revisión exacta guardada antes de indicar que está en línea.
+
+- Se conservan los saltos de párrafo al pegar dentro de texto existente en un bloque Texto del panel, incluidas actualizaciones de Google Docs con párrafos consecutivos.
+
+- Se conserva la combinación de texto normal, negrita y cursiva pegada desde Google Docs, respetando los pesos de fuente normales de los contenedores del portapapeles.
+
+- Se añade Posproducción entre Producción y Entrega en el selector de fases del diario del panel, con etiquetas en inglés y español.
+
+- Se corrige el rechazo de imágenes y audio de más de 2 MB por el transporte de GitHub. Toda la carga respeta los límites existentes de 8 MiB para imágenes, 25 MiB para audio y 512 KiB para logotipos; el vídeo conserva su transporte separado de 100 MB.
+
+- Se corrige el bloqueo del proceso de aportes cuando Stripe ya conoce el correo del patrocinador. Los correos nuevos siguen siendo editables, se omiten actualizaciones sin cambios en los flujos de pago y actualización de tarjeta y se conserva el correo precargado en el pago alojado.
+- La versión forzada de Sharp para las herramientas de desarrollo del Worker se actualiza a 0.35.5 para resolver GHSA-wq5f-xc86-pv6w en la dependencia librsvg incluida.
+
+- El panel, la vista previa protegida y la página publicada usan la miniatura principal de YouTube como póster, con una alternativa de menor resolución. Las tres superficies detectan el pequeño marcador de imagen ausente de YouTube y usan la alternativa.
+
+- Los vídeos de YouTube se reproducen dentro de las vistas previas protegidas, manteniendo la posición y el tamaño del vídeo publicado al desplazar o redimensionar. Funcionan la miniatura alternativa y la activación por teclado. Se conservan el sandbox, la CSP estricta para scripts y la privacidad del token; el reproductor solo se carga al pulsar Reproducir.
+
+- Se adoptan Platform 0.43.1 y Release Core 0.5.1, y se actualizan las herramientas a `smol-toml` 1.9.0 y `source-map-js` 1.2.2 para resolver los hallazgos de la auditoría de dependencias.
+
+## v1.2.23 - 2026-10-04
+
+- Los administradores pueden quitar imágenes de todos los campos de carga, conservando campos vacíos, descripciones y elementos de colecciones al Guardar, previsualizar y Publicar. Quitar un reemplazo preparado o en curso impide que restaure la imagen. Los editores de campos y bloques reutilizan el control de eliminación de admin-shell 0.13.0.
+- Se adopta la normalización de hashes de fotogramas de dust-wave-platform 0.43.0 para aceptar optimizaciones PNG sin pérdida cuando relaciones de aspecto equivalentes usan notaciones distintas.
+- La configuración de prueba de envíos físicos ya no depende del proveedor fiscal. Las pruebas esperan a que se estabilicen la vista previa y el carrito, y usan Jekyll en las ejecuciones directas de navegador para evitar cortes de conexión de recursos.
+- Vitest 5.0.2 se empareja con su proveedor de cobertura y se agrupan sus futuras actualizaciones. Playwright 1.63.0 se alinea con su contenedor. También se actualizan las otras herramientas revisadas y la acción de configuración de Ruby.
+- Se publican las optimizaciones recuperadas y validadas: 192 cambios de imagen y el manifiesto regenerado, conservando el contenido decodificado de las fuentes.
+- Se permiten 45 minutos para la reparación nativa de imágenes después de que el lote pendiente de 37 fuentes tardara 29m54s, conservando todas las comprobaciones de validación y publicación.
+
+- Se actualizan las listas de creadores en inglés y español para guardar la campaña completa, compartir vistas previas protegidas, publicar, gestionar medios y disponibilidad de complementos, confirmar aportes y consultar informes hasta v1.2.22.
+- Las versiones forzadas de Undici en las herramientas de la raíz y del Worker se actualizan a 7.29.1 para resolver GHSA-3wwx-pv8p-q78v y mantener aprobadas las auditorías completas de dependencias.
 
 ## v1.2.22 - 2026-09-27
 

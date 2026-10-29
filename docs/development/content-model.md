@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-September 27, 2026
+October 28, 2026
 
 Use this reference when changing campaign Markdown, schema validation, or the
 campaign editor. Routine authoring belongs in the [dashboard](/docs/operations/admin-dashboard/);
@@ -38,7 +38,6 @@ goal_amount: 25000
 goal_deadline: 2025-12-20  # Campaign ends at 11:59:59 PM in the platform timezone
 charged: false
 # pledged_amount not needed - live-stats.js fetches from KV and enables late support dynamically
-hero_image: /assets/images/hero.jpg
 short_blurb: "Brief description"
 long_content:
   - type: text
@@ -91,17 +90,26 @@ runtime resolution and scheduling.
 
 ### Media Fields
 
+Image references may be empty, including image blocks, gallery items, and video posters. The dashboard retains the editable field and its description or caption after removal; public and protected preview rendering omits empty images.
+
 Image alt text is optional. Missing descriptions remain an accessibility
 recommendation and do not prevent saving or publishing. Decorative state is
 explicit; leaving a description empty does not mark the image decorative.
 
-- **`hero_image`** (required): Square/vertical image for home page card previews
+- **`hero_image`** (optional): Square/vertical image for home page card previews
 - **`hero_image_wide`** (optional): Wide image for campaign detail page (falls back to `hero_image`)
-- **`hero_video`** (optional): Uploaded MP4, WebM, or MOV path, or supported video-provider URL, for campaign detail (local video uses `hero_image_wide` or `hero_image` as its poster)
+- **`hero_video`** (optional): Uploaded MP4, WebM, or MOV path, or supported video-provider URL, for campaign detail (local video uses `hero_image_wide` or `hero_image` as its poster; YouTube uses the video's main thumbnail in the dashboard, protected preview, and published page)
 - **`creator_image`** (optional): Square image for creator (48px circle in sidebar)
+- **`campaign_background`** (optional): Decorative background behind the campaign page, also shown in the full-page protected preview
+- **`progress_background`** (optional): Decorative image behind campaign funding and support-item progress bars, also shown in the full-page protected preview
 - **Tier `image`** (optional): Wide image shown above tier name
 
 **Video requirements:** WebM is preferred for uploaded campaign videos, with 16:9 and max 1920x1080 recommended. The admin dashboard accepts hero video uploads up to 100 MB or YouTube/Vimeo URLs, and previews existing video files or embeds through the same content-security policy as the public campaign page. Public hero and content videos declare the MIME type matching the file extension; playback still requires browser-supported codecs. Local content video blocks may specify an optional `poster`; when omitted, public/admin editor views generate a transient poster from the video's first frame and keep the playable video lazy-loaded until play.
+
+YouTube posters request `maxresdefault.jpg`, falling back to `hqdefault.jpg`
+when the high-resolution thumbnail is unavailable. Both use the video's main
+YouTube thumbnail, including creator-selected artwork, rather than a numbered
+video still. Content and diary preview facades use the same thumbnail selection.
 
 **Dashboard upload paths:** The dashboard writes uploaded assets into the current static asset model:
 
@@ -302,7 +310,7 @@ diary:
     body: "Simple text without rich content."
 ```
 
-**Email broadcasts:** When diary entries are added and deployed, the GitHub Action triggers `/admin/diary/check` which sends update emails to all campaign supporters. The automatic check sends only entries that have not been broadcast before. Diary entries use stable `id` values for broadcast tracking; the dashboard preserves existing IDs, and the Worker derives title-based IDs for newly added entries. Legacy date markers are still recognized so edits to older entries do not resend. The email excerpt is auto-extracted from text blocks (first 200 chars, markdown stripped).
+**Email broadcasts:** When diary entries are added and deployed, the GitHub Action triggers `/admin/diary/check` which sends update emails to all campaign supporters. The automatic check sends only entries that have not been broadcast before. Diary entries use stable `id` values for broadcast tracking; the dashboard preserves existing IDs, and the Worker derives title-based IDs for newly added entries. Legacy date markers are still recognized so edits to older entries do not resend. The email excerpt is auto-extracted from text and quote blocks, parses Markdown emphasis, and truncates to 200 visible characters without cutting formatting tags. Stable IDs also identify entry permalinks (`#diary-entry-<id>`); preserve IDs when editing so existing links and broadcast tracking remain valid.
 
 See [Email](/docs/operations/email-system/) for broadcast delivery and suppression, and
 [Deployment](/docs/operations/deployment/#post-deploy-diary-check) for matching Action/Worker

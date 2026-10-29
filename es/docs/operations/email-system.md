@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-27 de septiembre de 2026
+28 de octubre de 2026
 
 The Pool envía correo electrónico transaccional y de soporte de campaña a través de Resend desde Cloudflare Worker. Las plantillas se encuentran en `worker/src/email.js`, la copia localizada compartida se encuentra en `_data/i18n/*.yml` y la programación/selección de audiencia se encuentra principalmente en `worker/src/index.js`.
 
@@ -213,8 +213,8 @@ Incluye:
 
 Se envía cuando se difunden nuevas entradas del diario de campaña.
 
-- Utiliza un extracto de texto sin formato generado a partir del contenido del diario.
-- Enlaces al diario de campaña.
+- Analiza el diario Markdown antes de truncar el extracto a 200 caracteres visibles. La negrita, la cursiva y el subrayado sobreviven en HTML; El correo electrónico de texto plano sigue siendo legible sin marcadores de formato. El HTML sin formato y los enlaces inseguros permanecen inertes.
+- Enlaces a `#diary-entry-<id>` en la página de la campaña localizada. Al abrir el enlace se selecciona la fase que lo contiene y se desplaza hasta esa entrada. Las entradas heredadas sin ID conservan los enlaces de fase.
 - Realiza un seguimiento de las entradas enviadas en KV para que la misma entrada del diario no se transmita repetidamente.
 - La actualización de los metadatos del diario existente no envía un nuevo correo electrónico cuando el ID de entrada es estable.
 
@@ -312,7 +312,7 @@ Los informes conservan sus identidades basadas en la carga útil y el comportami
 
 ## Entrega y reintento
 
-Los envíos de producción utilizan registros `email-outbox:v1:*`. La configuración canónica `email.outbox_enabled` se refleja en `EMAIL_OUTBOX_ENABLED`; manténgalo habilitado para la entrega de producción. El modo de prueba puede utilizar envíos inmediatos de dispositivos a menos que la bandeja de salida esté habilitada explícitamente. La persistencia ocurre antes del efecto secundario Resend y el programador de minutos drena lotes limitados. Cada trabajo:
+Los envíos de producción utilizan registros `pool:email-outbox:v1:*`. La configuración canónica `email.outbox_enabled` se refleja en `EMAIL_OUTBOX_ENABLED`; manténgalo habilitado para la entrega de producción. El modo de prueba puede utilizar envíos inmediatos de dispositivos a menos que la bandeja de salida esté habilitada explícitamente. La persistencia ocurre antes del efecto secundario Resend y el programador de minutos drena lotes limitados. Cada trabajo:
 
 - tiene un ID de trabajo determinista The Pool y Resend `Idempotency-Key`
 - se procesa una vez, congela la carga útil exacta del proveedor y registra un hash de contenido
@@ -320,6 +320,10 @@ Los envíos de producción utilizan registros `email-outbox:v1:*`. La configurac
 - respeta `Retry-After`, respuestas de cuota y retraso exponencial acotado
 - rechaza el reintento ciego después de que una respuesta ambigua sobreviva la ventana de idempotencia de 24 horas de Resend
 - caduca los datos de carga útil transitoria después de 30 días y conserva solo evidencia mínima `email-delivery:v1:*` durante 400 días
+
+El prefijo de trabajo pendiente y el marcador `pool:email-outbox-queue:v1` son específicos de The Pool, incluso cuando otro producto comparte el espacio de nombres PLEDGES. The Pool nunca drena la cola no calificada heredada. Los ID de trabajo existentes, las claves de idempotencia del proveedor y la evidencia `email-delivery:v1:*` permanecen estables durante este cambio de clave de almacenamiento.
+
+Para una actualización con trabajos heredados pendientes, inspeccione solo los ID de trabajo The Pool verificados y verifique la evidencia de entrega más Resend antes de moverlos. Conserve el registro de trabajo completo (incluida su carga útil congelada y su historial de intentos), cópielo al prefijo The Pool, verifique la copia y luego elimine esa clave heredada exacta. Reconstruya el marcador de cola The Pool a partir de esos trabajos. No escanee y adopte los trabajos de otro producto, no restablezca el historial de intentos, no vuelva a crear mensajes aceptados ni cambie el marcador de cola heredado compartido. Mantenga las pruebas de recuperación privadas fuera del repositorio.
 
 `sendPreparedResendEmail` es el asistente del proveedor central. Él:
 

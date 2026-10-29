@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-September 27, 2026
+October 28, 2026
 
 The Pool is a static-first crowdfunding platform with a Cloudflare Worker for mutations, live reads, and admin operations. Performance work preserves that shape: public pages are fast from static HTML, heavy application code loads only when a user needs it, and speculative work stays conservative enough that it never makes checkout, admin, or supporter flows less reliable.
 
@@ -308,7 +308,7 @@ Current guardrails:
 - launch reminder dispatch uses `launch-reminder-dispatch-queue:v1` so idle scheduled ticks do not list `launch-reminder-dispatch:*`
 - abandoned-checkout reminders use `abandoned-cart-queue:v1` so idle scheduled ticks do not list `abandoned-cart:*`; signed resume links use separate short-lived `abandoned-cart-resume:{orderId}` records created only after successful reminder sends
 - supporter confirmation email retry uses `supporter-email-retry-queue:v1` so retry polling skips `supporter-email-retry:*` scans while idle or before the next attempt is due
-- the shared email outbox uses `email-outbox-queue:v1` so the minute scheduler lists `email-outbox:v1:*` only while work is pending or during the hourly compatibility recheck
+- the shared email outbox uses `pool:email-outbox-queue:v1` so the minute scheduler lists `pool:email-outbox:v1:*` only while work is pending or during the hourly compatibility recheck
 - idle queue-state markers expire hourly, which keeps compatibility with manually inserted jobs without returning to minute-level namespace polling
 
 Under normal no-queue traffic, expect roughly `72-100` KV list requests over 24 hours. Active launch reminder batches, due abandoned-checkout reminders, due legacy supporter retries, and pending shared email jobs still list their bounded queue prefixes when actual work exists.
@@ -321,7 +321,7 @@ Campaign Content, diary content, and Blast email image uploads share the same ca
 
 The workflow publishes image optimization automatically. It compresses source images losslessly, creates smaller responsive WebP sizes, and rebuilds the repository manifest. `scope=changed` finds new or changed source hashes and missing derivatives across the asset tree, so a subsequent project Save cannot hide an upload. Recorded skips remain valid while the source hash is unchanged. `scope=all` reprocesses all source images. The generated manifest never counts itself as a media reference.
 
-Each run validates that changes contain only image files and the manifest, preserve source pixels/dimensions/frame timing, and keep derivatives smaller than their source with the expected dimensions. A temporary candidate commit then runs the existing **Merge Smoke** workflow, including the full premerge gate and four dependency audits. Only that tested commit can fast-forward `main`. If campaign or configuration work advances `main` during validation, the workflow starts again from current sources rather than rebasing tested output. Feature-branch dispatches validate candidates without publishing them.
+Each run validates that changes contain only image files and the manifest, preserve source pixels/dimensions/frame timing, and keep derivatives smaller than their source with the expected dimensions. FFmpeg sample aspect ratios are reduced to equivalent fractions through `@dustwave/media-core/frame-hash` before comparison: PNG density metadata such as `11811/11811` is equivalent to `1/1`. Pixel hashes, dimensions, timing, frame count, and genuinely different aspect ratios must still match. A temporary candidate commit then runs the existing **Merge Smoke** workflow, including the full premerge gate and four dependency audits. Only that tested commit can fast-forward `main`. If campaign or configuration work advances `main` during validation, the workflow starts again from current sources rather than rebasing tested output. Feature-branch dispatches validate candidates without publishing them.
 
 After publication, the workflow explicitly requests **Refresh Production Pages** because Actions-token pushes do not trigger push workflows. Temporary candidate branches are deleted on success or failure; optimizer reports and a recoverable patch remain in the run artifacts for 14 days. A failed gate leaves `main` unchanged. Retry with `scope=changed`; Git history supports reverting a published optimization. No bot pull requests, new credentials, repository permission changes, or Worker deployment are needed.
 

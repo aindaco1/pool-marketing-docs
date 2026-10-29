@@ -9,13 +9,13 @@ lang: es
 
 ## Última actualización
 
-27 de septiembre de 2026
+28 de octubre de 2026
 
 Esta sección cubre el panel de administración, el trabajador de aporte, las opciones de tiempo de ejecución local, los controles de calidad y las reglas operativas que protegen el comportamiento de pago y cumplimiento.
 
 ## Tiempo de ejecución local y servicios
 
-- [Panel de administración](/es/docs/operations/admin-dashboard/) para guardar campañas, vistas previas protegidas, publicación, recuperación de borradores, informes, carga de medios y administración de usuarios.
+- [Panel de administración](/es/docs/operations/admin-dashboard/) para guardar campañas, vistas previas protegidas, progreso de implementación, recuperación de borradores conflictivos, informes, carga de medios y administración de usuarios.
 - [Pledge Worker](/es/docs/operations/worker/) para el punto de entrada de desarrollo Worker y enlaces a sus guías propias.
 - [Procesador de pagos](/es/docs/operations/payment-processor/) para configuración de Stripe, pago canónico, recuperación de confirmación, webhooks, liquidación y conciliación.
 - [Sistema de correo electrónico](/es/docs/operations/email-system/) para configuración del remitente, comportamiento del correo electrónico transaccional y de campaña, suscripciones a informes, programación, entrega y reintentos.
@@ -34,8 +34,8 @@ Esta sección cubre el panel de administración, el trabajador de aporte, las op
 
 ## Barandillas de Comercio y Plataforma
 
-- [Copia de seguridad, restauración y recuperación](/es/docs/operations/backup-restore/) para preparación de instantáneas, retención, orden de restauración, conciliación Stripe y evidencia de recuperación.
+- [Copia de seguridad, restauración y recuperación](/es/docs/operations/backup-restore/) para instantáneas cifradas de cuatro horas, verificación remota de archivos, retención, orden de restauración, conciliación Stripe y evidencia de recuperación.
 - [Shipping](/es/docs/operations/shipping/) para el modelo de envío centrado en el trabajador, el límite de integración de USPS y la política alternativa.
-- [Calculadora de impuestos](/es/docs/operations/tax-calculator/) para modos de proveedor, configuración reflejada, cotizaciones canónicas Worker, solución de problemas y verificación.
+- [Calculadora de impuestos](/es/docs/operations/tax-calculator/) para modos de proveedores, coherencia postal/estado, cobertura parcial de tarifas locales, metadatos de estimación, actualizaciones de datos compartidos y cotizaciones canónicas Worker.
 - [Accesibilidad](/es/docs/operations/accessibility/) para prioridades actuales, superficies críticas, cobertura y comprobaciones manuales.
 - [SEO](/es/docs/operations/seo/) para reglas de indexación, metadatos, datos estructurados y expectativas de validación.

@@ -22,6 +22,7 @@ ROOT = Path(__file__).resolve().parent.parent
 SOURCE_DIR = ROOT / "docs"
 TARGET_DIR = ROOT / "es" / "docs"
 POOL_ROOT = Path(os.environ.get("POOL_SOURCE", ROOT.parent / "pool")).expanduser().resolve()
+REVIEWED_TRANSLATIONS = loads((ROOT / "scripts/reviewed_spanish_docs.json").read_text())
 
 CURATED_SPANISH_SOURCES = {
     Path("overview/about-the-pool.md"): Path("es/about.md"),
@@ -95,6 +96,7 @@ TITLE_OVERRIDES = {
     "Local Test Data": "Datos de prueba locales",
     "Start Local Dev": "Iniciar desarrollo local",
     "4. Completion And Webhook": "4. Finalización y webhook",
+    "Editable inline checkout and shared helpers": "Pago integrado editable y funciones compartidas",
 }
 
 BODY_OVERRIDES = {
@@ -150,6 +152,7 @@ ANCHOR_OVERRIDES = {
     "#local-test-data": "#datos-de-prueba-locales",
     "#start-local-dev": "#iniciar-desarrollo-local",
     "#4-completion-and-webhook": "#4-finalización-y-webhook",
+    "#editable-inline-checkout-and-shared-helpers": "#pago-integrado-editable-y-funciones-compartidas",
 }
 
 CACHE_DIR = ROOT / ".translation-cache"
@@ -462,6 +465,10 @@ def translate_texts(texts: list[str]) -> list[str]:
             translated[index] = SECTION_TITLES[stripped]
             continue
 
+        if stripped in REVIEWED_TRANSLATIONS:
+            translated[index] = REVIEWED_TRANSLATIONS[stripped]
+            continue
+
         with cache_lock:
             cached = cache.get(stripped)
         if cached is not None:
@@ -579,6 +586,33 @@ def translate_line(line: str) -> str:
     return rewrite_docs_links(translate_text(line))
 
 
+def join_reviewed_list_items(body: str) -> list[str]:
+    """Keep reviewed, wrapped list items together without changing other lists."""
+    source = body.splitlines()
+    result: list[str] = []
+    index = 0
+    fence = ""
+    while index < len(source):
+        line = source[index]
+        stripped = line.lstrip()
+        if stripped.startswith(("```", "~~~")):
+            marker = stripped[:3]
+            fence = "" if fence == marker else (fence or marker)
+        match = re.match(r"^(\s*(?:[-*+]|\d+\.)\s+)(\S.*)$", line) if not fence else None
+        if match:
+            end = index + 1
+            while end < len(source) and re.match(r"^\s+\S", source[end]) and not re.match(r"^\s*(?:[-*+] |\d+\. |```|~~~|[|<>])", source[end]):
+                end += 1
+            joined = " ".join([match.group(2)] + [value.strip() for value in source[index + 1:end]])
+            if joined in REVIEWED_TRANSLATIONS:
+                result.append(match.group(1) + joined)
+                index = end
+                continue
+        result.append(line)
+        index += 1
+    return result
+
+
 def unwrap_prose(body: str) -> str:
     """Translate wrapped Markdown paragraphs as sentences, preserving structure."""
     lines: list[str] = []
@@ -590,7 +624,7 @@ def unwrap_prose(body: str) -> str:
             lines.append(" ".join(paragraph))
             paragraph.clear()
 
-    for line in body.splitlines():
+    for line in join_reviewed_list_items(body):
         stripped = line.lstrip()
         if stripped.startswith(("```", "~~~")):
             flush()

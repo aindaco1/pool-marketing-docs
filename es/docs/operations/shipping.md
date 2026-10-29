@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-6 de septiembre de 2026
+28 de octubre de 2026
 
 Este documento describe el flujo de envío actual de The Pool, la superficie de configuración orientada hacia la bifurcación, el límite de integración de USPS y el árbol de reglas compartido por carrito, pago, gestión de aporte, informes y correos electrónicos.
 
@@ -27,6 +27,8 @@ El flujo de trabajo local incluye verificación de credenciales USPS en vivo, un
 - un catálogo preestablecido compartido para artículos físicos comunes
 
 Para The Pool, la tarifa alternativa es **$3,00**.
+
+El carrito y el proceso de pago mantienen todos los precios resumidos en una columna alineada a la derecha. En el escritorio, el selector de entrega compacto se encuentra entre la etiqueta de envío y el monto; en los teléfonos se encuentra debajo de la etiqueta. Las etiquetas de las opciones muestran cualquier recargo por actualización; el monto separado muestra el costo total de envío incluido en el total estimado.
 
 ## Propiedades del sistema
 

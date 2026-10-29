@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-September 27, 2026
+October 28, 2026
 
 This guide owns first-time production wiring and the site/Worker release
 workflow. Use [Podman](/docs/operations/podman-local-dev/) for local containers,
@@ -55,6 +55,32 @@ reproduce the same immutable revision. That workflow deploys both:
 Routine **Refresh Production Pages** runs, including scheduled campaign-state
 refreshes, do not deploy the Worker. The manual Worker-only fallback from the
 repository root is `npm run deploy:worker`.
+
+For maintenance releases, set the boolean `skip_diary_check` input to `true`
+when dispatching either deployment workflow. This publishes the selected
+revision without invoking the post-deploy diary check or its supporter
+broadcasts. For example:
+
+```bash
+gh workflow run deploy-production.yml --ref main \
+  -f ref=REVIEWED_COMMIT_SHA -f reason=maintenance -f skip_diary_check=true
+```
+
+Automatic main-branch Pages pushes invoke the diary check only when published
+content under `_campaigns/` changed between the push's exact before and after
+commits. Tooling, application code and saved drafts alone do not trigger it.
+The comparison fetches an exact missing commit when a checkout is shallow and
+fails the build if that comparison cannot be established. Scheduled refreshes
+and ordinary manual/campaign dispatches retain the diary check; the manual
+skip input defaults to `false`. A maintenance skip does not pause later
+scheduled diary checks or other existing notification processing.
+
+Campaign publishing dispatches **Refresh Production Pages** with the saved
+commit in its optional `ref` input. Both jobs use that revision; the run title
+records it as `Deploy <sha>` so dashboard progress can track the correct build
+even when the branch advances. If GitHub cancels a pending duplicate, tracking follows a replacement for the same immutable revision and allows up to 30 seconds for it to appear in the run list. Runs for a different revision never count as publication success. Draft-only pushes under `_campaign_drafts/` do not start a Pages build. The Worker GitHub credential needs Actions read
+access as well as its existing dispatch/write access. See
+[Dashboard](/docs/operations/admin-dashboard/) for Saved, Deploying, and Live behavior.
 
 The Pages build runs Jekyll first, then `npm run assets:minify` against generated `_site/assets` CSS/JavaScript and the generated copies of the pinned Site Shell browser scripts before uploading the artifact. The selected roots are explicit and traversal-safe; source files stay readable in the repository. Cloudflare still handles gzip/Brotli/Zstandard compression at the edge, so Cloudflare Auto Minify stays disabled.
 

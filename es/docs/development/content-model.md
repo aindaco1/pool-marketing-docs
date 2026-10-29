@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-27 de septiembre de 2026
+28 de octubre de 2026
 
 Utilice esta referencia cuando cambie el Markdown de la campaña, la validación del esquema o el editor de la campaña. La creación de rutina pertenece al [dashboard](/es/docs/operations/admin-dashboard/); los creadores pueden utilizar la [lista de verificación de lanzamiento](https://github.com/aindaco1/pool/blob/main/creator-campaign-checklist.md). Conserve los ID de campaña, nivel, producto, variante, diario y decisión existentes. La fuente del repositorio y la validación de Worker siguen siendo autorizadas.
 
@@ -31,7 +31,6 @@ goal_amount: 25000
 goal_deadline: 2025-12-20  # Campaign ends at 11:59:59 PM in the platform timezone
 charged: false
 # pledged_amount not needed - live-stats.js fetches from KV and enables late support dynamically
-hero_image: /assets/images/hero.jpg
 short_blurb: "Brief description"
 long_content:
   - type: text
@@ -78,15 +77,21 @@ Los usuarios de campaña asignados reciben informes de forma predeterminada. `ru
 
 ### Campos multimedia
 
+Las referencias de imágenes pueden estar vacías, incluidos bloques de imágenes, elementos de galería y carteles de vídeo. El panel conserva el campo editable y su descripción o título después de la eliminación; La representación de vista previa pública y protegida omite imágenes vacías.
+
 El texto alternativo de la imagen es opcional. Las descripciones que faltan siguen siendo una recomendación de accesibilidad y no impiden guardar o publicar. El estado decorativo es explícito; dejar una descripción vacía no marca la imagen como decorativa.
 
-- **`hero_image`** (obligatorio): Imagen cuadrada/vertical para vistas previas de tarjetas de la página de inicio
+- **`hero_image`** (opcional): Imagen cuadrada/vertical para vistas previas de tarjetas de la página de inicio
 - **`hero_image_wide`** (opcional): Imagen ancha para la página de detalles de la campaña (vuelve a `hero_image`)
-- **`hero_video`** (opcional): ruta MP4, WebM o MOV cargada, o URL de proveedor de video compatible, para obtener detalles de la campaña (el video local usa `hero_image_wide` o `hero_image` como póster)
+- **`hero_video`** (opcional): ruta MP4, WebM o MOV cargada, o URL de proveedor de video compatible, para obtener detalles de la campaña (el video local usa `hero_image_wide` o `hero_image` como póster; YouTube usa la miniatura principal del video en el panel, la vista previa protegida y la página publicada)
 - **`creator_image`** (opcional): imagen cuadrada para el creador (círculo de 48 píxeles en la barra lateral)
+- **`campaign_background`** (opcional): fondo decorativo detrás de la página de la campaña, que también se muestra en la vista previa protegida de página completa.
+- **`progress_background`** (opcional): imagen decorativa detrás de las barras de progreso de los elementos de apoyo y financiación de la campaña, que también se muestra en la vista previa protegida de página completa.
 - **Nivel `image`** (opcional): Imagen ancha mostrada encima del nombre del nivel
 
 **Requisitos de video:** Se prefiere WebM para los videos de campaña cargados; se recomienda 16:9 y un máximo de 1920 x 1080. El panel de administración acepta cargas de videos destacados de hasta 100 MB o URL de YouTube/Vimeo, y obtiene una vista previa de archivos de video existentes o incrustaciones a través de la misma política de seguridad de contenido que la página de campaña pública. Los vídeos de contenido y héroes públicos declaran el tipo MIME que coincide con la extensión del archivo; la reproducción aún requiere códecs compatibles con el navegador. Los bloques de vídeo de contenido local pueden especificar un `poster` opcional; cuando se omiten, las vistas del editor público/administrador generan un póster transitorio desde el primer fotograma del vídeo y mantienen el vídeo reproducible cargado de forma diferida hasta su reproducción.
+
+Los pósteres principales de YouTube solicitan `maxresdefault.jpg` y recurren a `hqdefault.jpg` cuando la miniatura de alta resolución no está disponible. Ambos usan la miniatura principal del vídeo, incluida la imagen elegida por su creador, en lugar de un fotograma numerado. Las vistas previas de vídeos del contenido y del diario usan la misma selección de miniaturas.
 
 **Rutas de carga del panel:** El panel escribe los recursos cargados en el modelo de activos estáticos actual:
 
@@ -268,7 +273,7 @@ diary:
     body: "Simple text without rich content."
 ```
 
-**Difusiones por correo electrónico:** Cuando se agregan e implementan entradas del diario, la acción de GitHub activa `/admin/diary/check`, que envía correos electrónicos de actualización a todos los patrocinadores de la campaña. La verificación automática envía sólo las entradas que no se han difundido antes. Las entradas del diario utilizan valores `id` estables para el seguimiento de transmisiones; el panel conserva las identificaciones existentes y el trabajador deriva las identificaciones basadas en títulos para las entradas recién agregadas. Los marcadores de fechas heredados aún se reconocen, por lo que las ediciones de entradas más antiguas no se reenvían. El extracto del correo electrónico se extrae automáticamente de los bloques de texto (primeros 200 caracteres, sin rebajas).
+**Difusiones por correo electrónico:** Cuando se agregan e implementan entradas del diario, la acción GitHub activa `/admin/diary/check`, que envía correos electrónicos de actualización a todos los patrocinadores de la campaña. La verificación automática envía sólo las entradas que no se han difundido antes. Las entradas del diario utilizan valores `id` estables para el seguimiento de transmisiones; el panel conserva las identificaciones existentes y Worker deriva identificaciones basadas en títulos para las entradas recién agregadas. Los marcadores de fechas heredados aún se reconocen, por lo que las ediciones de entradas más antiguas no se reenvían. El extracto del correo electrónico se extrae automáticamente de los bloques de texto y comillas, analiza el énfasis de Markdown y se trunca a 200 caracteres visibles sin cortar las etiquetas de formato. Los ID estables también identifican enlaces permanentes de entrada (`#diary-entry-<id>`); conserve las ID al editar para que los enlaces existentes y el seguimiento de transmisiones sigan siendo válidos.
 
 Consulte [Email](/es/docs/operations/email-system/) para la entrega y supresión de transmisiones, y [Deployment](/es/docs/operations/deployment/#comprobación-del-diario-posterior-a-la-implementación) para obtener credenciales de acción/Worker coincidentes y solución de problemas de reglas perimetrales.
 

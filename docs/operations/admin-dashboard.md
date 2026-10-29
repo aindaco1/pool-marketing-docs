@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-September 27, 2026
+October 28, 2026
 
 This document is the operator reference and source of truth for The Pool's
 private dashboard-based campaign editing, reporting, analytics, marketing
@@ -337,9 +337,11 @@ The Worker derives the slug from the title, writes `_campaigns/<slug>.md` throug
 
 The **Save**, **Preview**, and **Publish** buttons apply to the selected campaign across all nine authoring subtabs. **Save draft** remains the Content editor’s browser-local backup. Saving locally does not clear the main Save button.
 
-Save writes one Git-backed working copy for both unpublished and already-public projects. It uploads staged Content and Diary media before committing the combined campaign settings/content. Uploaded assets use new paths; Save never changes live pages, prices, checkout, or existing live media. Failed saves retain editor changes. Draft files are excluded from Jekyll output and are included in repository backups; their repository and asset access follows the existing source/media model.
+Save writes one Git-backed working copy for both unpublished and already-public projects. It uploads staged Content and Diary media before committing the combined campaign settings/content. Uploaded assets use new paths; Save never changes live pages, prices, checkout, or existing live media. Failed saves retain editor changes. Campaign loading accepts wrapped plain-text YAML descriptions and rejects incomplete parses before any write. Featured-tier and unreadable-source failures identify the issue in the action bar while preserving edits. Draft files are excluded from Jekyll output and are included in repository backups; their repository and asset access follows the existing source/media model.
 
 Publish first saves current edits, then promotes the saved copy using the existing campaign-editor permission. Publication requires a title, valid ordered dates, and a positive goal. It clears the hidden flags; fundraising still follows dates. Public-source conflicts stop publication and preserve the working copy. Existing campaigns use their published copy until the first Save; no bulk migration is necessary.
+
+The campaign action bar stays visible while scrolling. Save/Publish reports media upload counts, Saved, Deploying, and Live with an indeterminate activity indicator and elapsed time. Save alone finishes at Saved and leaves the live campaign unchanged. Production Publish tracks the saved commit through the Pages workflow and shows Live only after that run succeeds. If a pending run is replaced, tracking follows the replacement for the same saved revision; a brief GitHub listing delay remains in the waiting state. A cancellation with no replacement is reported separately from a build failure. Failed or unavailable deployment checks preserve the saved copy, expose a run link when known, and leave Publish available to retry. New edits made during a save remain dirty. Local publication is labeled local and never claims a production deployment.
 
 ### Protected Preview
 
@@ -356,6 +358,20 @@ Preview publication:
 - records an admin audit event
 
 Preview pages live at `/campaigns/:slug/preview/` and localized equivalents. Generic static shells are generated for every campaign slug, including sources marked `published: false` that Jekyll excludes from its public campaign collection. A newly created campaign needs its initial Pages build to finish; later preview publishes reuse that shell without waiting for another build. The shell does not embed the campaign title or draft content. The protected Worker reads the saved working copy when present, otherwise the canonical campaign. It fetches a full read-only campaign page preview through the Worker with either the current admin session or a valid reviewer token, loads the campaign stylesheet and font kit, permits approved media-player embeds, and disables pledge controls. The static preview shell is `noindex,nofollow,noarchive`, uses no social metadata, strips the preview token from the address bar after load, and remains outside public sitemap output and public prefetch eligibility.
+
+YouTube Play controls in the protected preview's hero, content, and diary play
+in place, at the same position and size as the campaign's video thumbnail.
+The surrounding project remains usable during playback. Players stay aligned
+through scrolling and responsive layout changes, load only after Play, and send
+only the site origin as their referrer. Missing high-resolution YouTube thumbnails fall
+back to the standard thumbnail. The dashboard's editing thumbnails continue
+to open external video links.
+
+The full-page preview renders the saved **Campaign background** behind the page
+and **Progress background** behind the funding bar and support-item bars, using
+the published page's decorative-image styles. Clearing either setting removes
+it from the next saved preview. Uploaded image URLs still need their normal
+static asset deployment before another browser can load them.
 
 ### Campaign Settings
 
@@ -393,6 +409,16 @@ The browser’s leave-page warning remains active for edits not saved to the pro
 The existing browser draft key and format remain compatible. Loading never rewrites it. Before the new editor first overwrites an existing Content draft, it stores an exact recovery copy at the original key plus `:recovery-v1`. Recovery copies are not automatically deleted. Unreadable storage and changes from another tab prevent overwrite.
 
 Local drafts belong to the exact site origin, browser profile, and editor language. They are not synchronized to another browser or device and are not server backups. An unpublished draft retains its base revision so another author's server changes cannot be silently overwritten. If only preview flags changed and the server content still matches the draft's original baseline, the current server revision is used. A conflict involving changed content requires comparing the preserved draft with the current campaign before reapplying edits; repeatedly reloading does not discard the draft or bypass the conflict.
+
+The draft's revision and original content baseline stay together after a conflict,
+including after further typing, browser Save draft, another content load, or a
+page refresh. A saved working copy requires the original revision to match;
+matching content alone does not authorize replacing a different working-copy
+revision. Older browser drafts with a stale or missing revision remain preserved
+and cannot overwrite that shared working copy. The editor identifies the conflict
+on load, and Save or Preview fails the existing server revision check until the
+content is compared and reapplied to the current project. The same-content
+preview-metadata exception applies only before a working copy exists.
 
 Uploaded video blocks can include an explicit poster image. When no poster is set, the dashboard and public campaign page generate an in-browser poster from the video's first frame while keeping the playable video itself lazy-loaded until the user presses play.
 
@@ -450,6 +476,8 @@ Ongoing items define post-campaign or ongoing support needs shown by the campaig
 ### Diary Entries
 
 Diary entries are campaign updates sorted newest first. Each entry includes title, date/time, phase, and its own WYSIWYG content editor. Diary content uses the same content block model as the campaign Content tab.
+
+The phase selector offers Launch, Fundraising, Production, Post-Production, and Fulfillment, in that order. Post-Production saves as `post-production`, matching the existing public diary and protected-preview phase. Existing entries with other phase values retain their selection.
 
 ### Decisions
 
@@ -655,6 +683,15 @@ Images and videos uploaded through the dashboard are validated before persistenc
 - Campaign audio: `assets/audio/campaigns/<campaign-slug>/`
 - Platform/default videos: `assets/videos/defaults/`
 
+**Remove image** uses the shared `@dustwave/admin-shell/editor-media` control. It clears the image reference and any staged replacement while preserving the field, captions, descriptions, and collection entries. It is available for brand images, campaign images and backgrounds, tiers, add-ons, decision options, Content/Diary/Blast images, gallery items, and video posters. Save the campaign or publish platform settings to persist the empty field. A late upload response cannot restore a removed image. The control clears the reference without deleting repository files. Existing server publication cleanup policies still apply: legacy Content/Diary publication can remove unused campaign-owned assets, while saved-project references protect those files. Existing public fallback rules still apply to branding and hero selection. Empty content images and gallery slots are omitted from published and protected preview output.
+
+Upload limits apply per file: images accept PNG, JPEG, WebP, or GIF up to
+8 MiB (8,388,608 bytes); audio accepts MP3, M4A, WAV, OGG, AAC, or WebM up to
+25 MiB (26,214,400 bytes). The dedicated logo uploader accepts PNG, JPEG, or
+WebP up to 512 KiB (524,288 bytes). The dashboard labels these binary limits
+as MB/KB. Each limit is enforced both during validation and when writing the
+file to GitHub. Video uses the decimal 100 MB limit below.
+
 Recommended campaign media:
 
 - Hero image: square, around 1000x1000px
@@ -764,6 +801,13 @@ Markdown, including italic text nested inside bold text. Pool retains campaign
 block rendering and URL validation. The public Ruby filter has a parity test for
 nested emphasis. Shared Design Core mixins provide editor control containment,
 long-filename wrapping, open-panel stacking, spacing, and responsive preview media.
+
+Pasting rich text honors explicit font weights, including Google Docs' normal-weight
+`<b>` wrapper, so only text marked as bold in the source becomes bold. Text blocks preserve
+supported inline emphasis, lists, and links; external fonts, colors, and unsafe HTML
+are stripped by the paste sanitizer.
+Pasting inside existing paragraph or emphasis text uses the enclosing Text block,
+preserving paragraph boundaries through Save and reopening the editor.
 
 Image uploads keep a tab-local preview keyed by the returned repository path.
 Hero images and editor blocks stay visible before the new asset reaches the public

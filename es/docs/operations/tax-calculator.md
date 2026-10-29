@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-27 de septiembre de 2026
+28 de octubre de 2026
 
 Este documento cubre el modelo actual de cálculo de impuestos en The Pool, incluyendo selección de proveedor, configuración para forks, comportamiento del navegador, endpoints del Worker y las verificaciones que conviene correr antes de publicar cambios relacionados con impuestos.
 
@@ -219,3 +219,16 @@ Controlar:
 - [PODMAN.md](/es/docs/operations/podman-local-dev/)
 - [ARQUITECTURA.md](/es/docs/development/architecture/)
 - [trabajador/README.md](/es/docs/operations/worker/)
+
+
+## Datos compartidos de tarifas locales y postales de EE. UU.
+
+Platform tax-core 0.4.0 proporciona comprobaciones de coherencia entre código postal y estado, sugerencias opcionales de ciudad y una instantánea conservadora de tasas por código postal de OpenSalesTax. Los modos `offline_rules` y `nm_grt` fuera de Nuevo México consultan esa instantánea antes de usar el respaldo regional existente. Nuevo México conserva su proveedor por dirección; Pool sigue definiendo las políticas de tasa fija, ZIP.TAX de pago y destinos internacionales.
+
+Todas las cotizaciones locales incluidas son estimaciones. Si la cobertura local falta, es ambigua o ha vencido, se conserva la tasa estatal y se indica que pueden faltar impuestos locales, incluso cuando la tasa es cero. La cobertura por código postal es parcial: no determina la tributación por dirección, las obligaciones fiscales por presencia en una jurisdicción ni la exactitud de todas las tasas locales del país. [Platform tax-core](https://github.com/aindaco1/pool/blob/main/shared/dust-wave-platform/packages/tax-core/README.md) documenta las fuentes, exclusiones, licencias y caducidad de los datos a los 90 días. Los detalles fiscales del aporte conservan los metadatos de estimación, cobertura y versión de la fuente. Los aportes ya confirmados y el comportamiento de liquidación no cambian.
+
+`POST /address/check` usa únicamente país, código postal, estado y ciudad. Sus respuestas son privadas y no se almacenan en caché; comprueba el origen y limita la frecuencia de solicitudes. Los conflictos conocidos entre código postal y estado bloquean las cotizaciones canónicas y el proceso de pago. Las sugerencias de ciudad son opcionales; no se añaden restricciones de coherencia para direcciones desconocidas o internacionales. La consulta no conserva datos de clientes. Los archivos de referencia se incluyen en el Worker y se excluyen del sitio estático.
+
+Genera candidatos de actualización en Platform mediante su flujo de revisión semanal o, desde Pool, con `node scripts/update-open-us-tax.mjs --output=/absolute/candidate.json`. Este comando requiere una ruta de salida explícita. Revisa la procedencia, cobertura y fechas de vigencia; prueba Platform y ambos consumidores antes de cambiar sus revisiones fijadas. Revierte el adaptador del consumidor y su revisión conjuntamente. El proceso de pago no actualiza fuentes, fusiona cambios ni despliega automáticamente.
+
+Los metadatos de estimación fiscal (`estimated`, `coverage`, `dataVersion` y `sourceUpdatedAt`) se conservan en la respuesta del Worker y tras la normalización de los datos almacenados. Las pruebas de regresión de cotizaciones públicas cubren tanto las referencias locales por código postal como el respaldo exclusivamente estatal.

@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-27 de septiembre de 2026
+28 de octubre de 2026
 
 Esta guía está destinada a los contribuyentes que rastrean cómo encajan el sitio de The Pool, Worker, los proveedores y el estado del repositorio. Los contratos de punto final se encuentran en [Worker API](/es/docs/reference/worker-api/); Las operaciones del proveedor se encuentran en los runbooks vinculados.
 
@@ -31,7 +31,7 @@ El navegador propone el estado. Worker resuelve la campaña/catálogo actual, va
 
 ### Fundamentos compartidos
 
-Pin de gitlinks inmutables Plataforma Dust Wave y Plantilla Dust Wave Jekyll. Los suministros de la plataforma caracterizaron Worker, administración, navegador, diseño, construcción, lanzamiento, envío, impuestos, inventario, medios, prueba y mecánica de video de producto local. La plantilla Jekyll proporciona archivos de actualización de origen vinculados al manifiesto cuyas copias en tiempo de ejecución permanecen registradas en The Pool. Ninguna dependencia sigue una rama en movimiento en el momento de la compilación.
+Los gitlinks inmutables fijan la plataforma Dust Wave 0.46.0 (`68b9b3073e0f4dc167dc638f56003f6bfcf49f8e`) y la plantilla Dust Wave Jekyll. Site Shell 0.6.0 proporciona utilidades de pago, Tax Core 0.4.0 proporciona referencias postales/de tarifas locales y Design Core 0.3.1 proporciona dimensionamiento de entrada móvil. Los suministros de la plataforma caracterizaron Worker, administración, navegador, diseño, construcción, lanzamiento, envío, impuestos, inventario, medios, pruebas y mecánicas de videos de productos locales. La plantilla Jekyll proporciona archivos de actualización de origen vinculados al manifiesto cuyas copias en tiempo de ejecución permanecen registradas en The Pool. Ninguna dependencia sigue una rama en movimiento en el momento de la compilación.
 
 The Pool posee modelos de campaña y aporte, rutas, políticas de almacenamiento, contenido, localización, credenciales, decisiones de proveedores, implementación y reversión. La plantilla Jekyll está excluida de la compilación pública y Worker nunca la importa. Consulte [Testing](/es/docs/operations/testing/) para ver las comprobaciones de deriva de plantilla y pin.
 

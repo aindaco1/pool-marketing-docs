@@ -9,13 +9,13 @@ render_with_liquid: false
 
 ## Last Updated
 
-September 27, 2026
+October 28, 2026
 
 **Open-source crowdfunding platform starter**
 
-The current release is **v1.2.22**. Changes after that tag are recorded under
-**Unreleased** in the [Changelog](/docs/reference/changelog/); prospective work belongs in the
-[Roadmap](/docs/reference/roadmap/).
+The current release is **v1.2.26**. See the [Changelog](/docs/reference/changelog/) for release
+history and [release evidence](https://github.com/aindaco1/pool/tree/main/docs/release-evidence) for validation records.
+Prospective work belongs in the [Roadmap](/docs/reference/roadmap/).
 
 The Pool combines a static Jekyll site, a first-party browser cart, and a
 Cloudflare Worker for all-or-nothing creative crowdfunding. Supporters save a

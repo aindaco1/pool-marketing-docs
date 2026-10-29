@@ -14,7 +14,7 @@
       <div class="hero__grid">
         <div class="hero__intro">
           <h1 id="home-title" data-i18n="home.title">Run your own all-or-nothing crowdfunding site.</h1>
-          <p class="hero__lede" data-i18n-html="home.subtitle">The Pool is <strong>free, open-source crowdfunding software</strong> for films, albums, tools, events, and other creative work. Supporters pledge without making accounts; Stripe saves the card and charges it only after a campaign reaches its goal.</p>
+          <p class="hero__lede" data-i18n-html="home.subtitle">The Pool is <strong>free, open-source crowdfunding software</strong> for films, albums, tools, events, and other creative work. Supporters pledge without creating accounts. Stripe saves their payment method; campaign charges happen only after a funded campaign ends.</p>
         </div>
 
         <div class="hero__media" aria-label="Product demo">
@@ -95,8 +95,8 @@
       <div class="stack-grid">
         <article class="feature-card">
           <h3 data-i18n="home.platform_cards.checkout_title">Pledge checkout that protects the goal</h3>
-          <p data-i18n-html="home.platform_cards.checkout_body">Supporters build a cart on your site. A small Cloudflare backend recalculates totals from trusted campaign data, then Stripe saves the payment method. <strong>One checkout can include several campaigns, and each campaign is charged only if it succeeds.</strong></p>
-          <a href="{{ '/docs/operations/worker/' | relative_url }}" data-i18n="home.platform_cards.checkout_link">Review the pledge worker</a>
+          <p data-i18n-html="home.platform_cards.checkout_body">Contact and address fields stay editable while payment loads. Tax and shipping refresh when the destination changes. <strong>Each campaign in a shared checkout becomes a separate pledge, charged only after it ends successfully.</strong></p>
+          <a href="{{ '/docs/operations/payment-processor/' | relative_url }}" data-i18n="home.platform_cards.checkout_link">Review checkout and payments</a>
         </article>
         <article class="feature-card">
           <h3 data-i18n="home.platform_cards.funding_title">Campaign timing and outcomes</h3>
@@ -105,23 +105,23 @@
         </article>
         <article class="feature-card">
           <h3 data-i18n="home.platform_cards.merch_title">Rewards, add-ons, tax, and shipping</h3>
-          <p data-i18n-html="home.platform_cards.merch_body">Offer reward tiers, campaign add-ons, platform merch, inventory limits, optional platform tips, configurable tax providers, USPS quotes, and fallback shipping rates.</p>
+          <p data-i18n-html="home.platform_cards.merch_body">Offer reward tiers, add-ons, inventory limits, optional tips, USPS quotes, and fallback shipping rates. Tax estimates show when local coverage may be missing.</p>
           <a href="{{ '/docs/development/add-on-products/' | relative_url }}" data-i18n="home.platform_cards.merch_link">See merch and add-ons</a>
         </article>
         <article class="feature-card">
           <h3 data-i18n="home.platform_cards.community_title">Supporter follow-up</h3>
-          <p data-i18n-html="home.platform_cards.community_body">Backers manage pledges from <strong>email magic links</strong>. Campaigns can publish diary updates, announcements, supporter votes, share links, and email blasts.</p>
+          <p data-i18n-html="home.platform_cards.community_body">Backers manage pledges through <strong>secure email links</strong>. Diary emails link to the individual update. Delivery retries preserve saved pledges, and campaign updates include an unsubscribe option.</p>
           <a href="{{ '/docs/development/architecture/' | relative_url }}" data-i18n="home.platform_cards.community_link">Explore campaign workflows</a>
         </article>
         <article class="feature-card">
           <h3 data-i18n="home.platform_cards.customization_title">Admin tools for the team</h3>
-          <p data-i18n-html="home.platform_cards.customization_body">The private dashboard covers campaign setup, protected previews, content, media, users, reports, analytics, saved referral links, QR codes, and embed snippets.</p>
-          <a href="{{ '/docs/development/customization-guide/' | relative_url }}" data-i18n="home.platform_cards.customization_link">Open customization docs</a>
+          <p data-i18n-html="home.platform_cards.customization_body"><strong>Save a working copy, share a protected preview, then publish.</strong> The dashboard tracks deployment, preserves conflicting drafts, and manages media, users, reports, analytics, and marketing links.</p>
+          <a href="{{ '/docs/operations/admin-dashboard/' | relative_url }}" data-i18n="home.platform_cards.customization_link">Explore the admin dashboard</a>
         </article>
         <article class="feature-card">
-          <h3 data-i18n="home.platform_cards.operations_title">Launch-ready basics</h3>
-          <p data-i18n-html="home.platform_cards.operations_body">The project is built for launch: fast static pages, responsive media, delayed video embeds, SEO checks, accessibility coverage, security hardening, locale audits, and automated browser tests.</p>
-          <a href="{{ '/docs/operations/security/' | relative_url }}" data-i18n="home.platform_cards.operations_link">Review operations docs</a>
+          <h3 data-i18n="home.platform_cards.operations_title">Operations and recovery</h3>
+          <p data-i18n-html="home.platform_cards.operations_body">Responsive media, accessibility checks, security tests, and automated browser coverage accompany encrypted backup workflows, archive verification, and documented recovery procedures.</p>
+          <a href="{{ '/docs/operations/backup-restore/' | relative_url }}" data-i18n="home.platform_cards.operations_link">Review backup and recovery</a>
         </article>
       </div>
     </section>

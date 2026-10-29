@@ -14,9 +14,9 @@ pages:
 nav:
   home: Inicio
   search: Buscar
-  docs: Documentación para desarrolladores
-  repo: Repositorio en GitHub
-  support: Apoyar a The Pool
+  docs: Documentación
+  repo: GitHub
+  support: Apoyar
 
 ui:
   skip_to_content: Saltar al contenido principal
@@ -26,7 +26,7 @@ ui:
 home:
   eyebrow: Crowdfunding de código abierto para proyectos creativos
   title: Lanza tu propio sitio de crowdfunding todo o nada.
-  subtitle: "The Pool es <strong>software gratuito y de código abierto para crowdfunding</strong> de películas, álbumes, herramientas, eventos y otros proyectos creativos. Los supporters pledgean sin crear cuentas; Stripe guarda la tarjeta y solo la cobra si la campaña llega a su meta."
+  subtitle: "The Pool es <strong>software gratuito y de código abierto para crowdfunding</strong> de películas, álbumes, herramientas, eventos y otros proyectos creativos. Quienes apoyan una campaña pueden aportar sin crear una cuenta. Stripe guarda su método de pago; los cobros solo se realizan después de que termine una campaña que haya alcanzado su meta."
   points:
     free: "<strong>Gratis</strong> para usar, copiar y rebrandear."
     low_cost: "Diseñado alrededor de <strong>GitHub Pages, Cloudflare y Resend</strong>, con uso dinámico pensado para presupuestos pequeños."
@@ -72,23 +72,23 @@ home:
   platform_intro: ""
   platform_cards:
     checkout_title: Checkout que protege la meta
-    checkout_body: "Los supporters arman un carrito en tu sitio. Un backend pequeño en Cloudflare recalcula los totales desde datos confiables de campaña y Stripe guarda el método de pago. <strong>Un checkout puede incluir varias campañas, y cada campaña se cobra solo si tiene éxito.</strong>"
-    checkout_link: Revisar el worker de pledges
+    checkout_body: "Los campos de contacto y dirección siguen disponibles mientras se carga el pago. Los impuestos y el envío se actualizan al cambiar el destino. <strong>Cada campaña de un mismo proceso de pago se guarda como un aporte separado y solo se cobra cuando termina con éxito.</strong>"
+    checkout_link: "Revisar aportes y pagos"
     funding_title: Tiempos y resultados de campaña
     funding_body: "The Pool maneja <strong>campañas próximas, activas y finalizadas</strong>, deadlines en tu timezone, registros para recordatorios de lanzamiento, stretch goals y cobros por lotes después de una campaña exitosa."
     funding_link: Leer sobre The Pool
     merch_title: Rewards, add-ons, impuestos y envíos
-    merch_body: "Ofrece reward tiers, add-ons de campaña, merch de plataforma, límites de inventario, propinas opcionales, proveedores de impuestos configurables, cotizaciones USPS y tarifas fallback de envío."
+    merch_body: "Ofrece niveles de recompensa, complementos, límites de inventario, propinas opcionales, cotizaciones de USPS y tarifas de envío de respaldo. Las estimaciones de impuestos indican cuándo puede faltar cobertura local."
     merch_link: Ver merch y add-ons
     community_title: Seguimiento para supporters
-    community_body: "Los backers gestionan pledges desde <strong>links por email</strong>. Las campañas pueden publicar diary updates, announcements, votaciones de supporters, links para compartir y blasts por email."
+    community_body: "Los patrocinadores gestionan sus aportes mediante <strong>enlaces seguros por correo</strong>. Los correos del diario enlazan a la entrada concreta. Los reintentos de entrega conservan los aportes guardados y las actualizaciones de campaña permiten cancelar la suscripción."
     community_link: Explorar workflows de campaña
     customization_title: Admin para el equipo
-    customization_body: "El dashboard privado cubre setup de campañas, previews protegidos, contenido, media, usuarios, reportes, analytics, links de referral guardados, códigos QR y snippets de embed."
-    customization_link: Abrir documentación de personalización
-    operations_title: Bases listas para lanzar
-    operations_body: "El proyecto está preparado para lanzar: páginas estáticas rápidas, media responsiva, video diferido, checks SEO, cobertura de accesibilidad, hardening de seguridad, auditorías de locales y tests automáticos de navegador."
-    operations_link: Revisar documentación de operaciones
+    customization_body: "<strong>Guarda una copia de trabajo, comparte una vista previa protegida y después publica.</strong> El panel sigue el despliegue, conserva los borradores en conflicto y gestiona medios, usuarios, informes, análisis y enlaces de promoción."
+    customization_link: "Explorar el panel de administración"
+    operations_title: "Operaciones y recuperación"
+    operations_body: "Los medios adaptables, las comprobaciones de accesibilidad, las pruebas de seguridad y las pruebas automatizadas de navegador se acompañan de copias de seguridad cifradas, verificación de archivos y procedimientos de recuperación documentados."
+    operations_link: "Revisar copias de seguridad y recuperación"
 support:
   title: Apoya a The Pool
   eyebrow: Apoyo a Dust Wave

@@ -44,6 +44,20 @@ blocks. It reuses committed translations and an ignored local translation cache,
 uses the configured translation service for changed prose. About and Terms
 come from Pool's curated Spanish sources; missing sources fail explicitly.
 Review changed translations and code examples before publication.
+Keep reviewed technical wording in `scripts/reviewed_spanish_docs.json`, keyed
+by the exact English translation unit. These entries override cached or machine
+translations; retain inline code, links, and quantities from the source. Recheck
+an entry when its English source changes. About and Terms continue to use Pool's
+curated Spanish page sources.
+
+After importing, review the site-owned FAQ and section indexes, the homepage
+fallback text in `_layouts/homepage.html`, and both `_data/i18n` catalogs. The
+importer does not update these surfaces. Keep payment timing, estimate labels,
+and Save/Preview/Publish descriptions consistent with Pool's owning guides.
+Update About and Terms in Pool's English and curated Spanish sources before
+regenerating them here; preserve their policy anchors and use the same effective
+date in both languages. Record any uncommitted source changes alongside the
+baseline revision so the Source Map does not imply an exact committed snapshot.
 
 `POOL_DOCS=docs/ARCHITECTURE.md` selects English sources for a focused import;
 `POOL_TRANSLATION_FILES=development/architecture.md` selects Spanish pages.

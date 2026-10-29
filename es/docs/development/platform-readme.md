@@ -10,11 +10,11 @@ lang: es
 
 ## Última actualización
 
-27 de septiembre de 2026
+28 de octubre de 2026
 
 **Base de plataforma de crowdfunding de código abierto**
 
-La versión actual es **v1.2.22**. Los cambios posteriores a esa etiqueta se registran en **Inédito** en el [Changelog](/es/docs/reference/changelog/); El trabajo prospectivo pertenece al [Roadmap](/es/docs/reference/roadmap/).
+La versión actual es **v1.2.26**. Consulta el [registro de cambios](/es/docs/reference/changelog/) para el historial de versiones y la [evidencia de versiones](https://github.com/aindaco1/pool/tree/main/docs/release-evidence/) para los registros de validación. El trabajo futuro corresponde a la [hoja de ruta](/es/docs/reference/roadmap/).
 
 The Pool combina un sitio estático Jekyll, un carrito de navegador propio y un Cloudflare Worker para un crowdfunding creativo de todo o nada. Los patrocinadores guardan una tarjeta mediante un paso de pago Stripe en el sitio. Las campañas financiadas cobran después de su fecha límite; Las campañas fallidas no cobran. Un pago puede incluir varias campañas, cada una de las cuales persiste y se liquida como un aporte de campaña independiente.
 

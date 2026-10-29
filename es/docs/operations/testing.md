@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-27 de septiembre de 2026
+28 de octubre de 2026
 
 Esta guía cubre los conjuntos de pruebas automatizadas, la infraestructura de pruebas local y las rutas de verificación manual. La recuperación sintética semanal, los simulacros de vista previa protegida y la verificación posterior a la restauración están documentados en [BACKUP_RESTORE.md](/es/docs/operations/backup-restore/).
 
@@ -26,11 +26,15 @@ npm run jekyll-template:check
 
 Las dependencias raíz `esbuild` y `smol-toml` son pines exactos que coinciden con los manifiestos Platform Build Core y Release Core revisados. Actualícelos junto con la plataforma gitlink, no de forma independiente en un PR de dependencia de rutina. La prueba de pin comprueba tanto los manifiestos raíz como las entradas de la versión instalada en el archivo de bloqueo. Dependabot pospone sus actualizaciones de versión de rutina mientras mantiene las actualizaciones de seguridad elegibles. Una solución de seguridad aún requiere una actualización de plataforma compatible revisada; No debilite la prueba del pin para evitarlo. Continúe ejecutando ambas auditorías de dependencia descritas en [SECURITY.md](/es/docs/operations/security/#seguridad-de-dependencias-y-versiones).
 
-Las comprobaciones de regresión de la carga de vídeos de la campaña se ejecutan con:
+Las comprobaciones de regresión de carga de medios de campaña se ejecutan con:
 
 ```bash
 npx vitest run tests/unit/github-video-runtime.test.ts tests/unit/github-worker-runtime.test.ts tests/unit/admin-dashboard.test.ts
 ```
+
+Los casos de API de imagen/audio ejercen los límites de imagen informados de 2,3 MB, imagen exacta de 8 MiB y audio de 25 MiB, y rechazo de un byte antes de que el proveedor escriba. El conjunto de tiempo de ejecución GitHub Worker verifica las transferencias JSON que preservan bytes en ambos límites con un proveedor simulado. Los límites del logotipo siguen siendo 512 KiB. Estas comprobaciones no establecen que el proveedor en vivo acepte el archivo real de un creador.
+
+Los controles de vista previa protegida de YouTube están cubiertos por `npx playwright test tests/e2e/campaign-preview.spec.ts --project=chromium`. Los shells construidos en inglés/español se ejecutan con su CSP real y su sandbox opaco; Las respuestas de medios sintéticos verifican la reserva de miniaturas, la reproducción de clic/teclado, las referencias de solo origen, la posición/tamaño en línea a través de cambios de diseño y desplazamiento, la interacción continua del proyecto, el tamaño móvil, el rechazo de mensajes y la pérdida de acceso. Estas comprobaciones deterministas no establecen la reproducción del proveedor de YouTube para un vídeo de campaña en particular; verifique eso por separado en el navegador.
 
 El paquete de tiempo de ejecución de video transmite un archivo sintético exacto de 100.000.000 bytes a través de workd con un receptor GitHub simulado y verifica el hash completo del cuerpo codificado. También cubre límites de fragmentos, declaraciones de gran tamaño, transmisiones truncadas o demasiado largas y errores/redirecciones de proveedores. Las pruebas de API cubren el alcance de la campaña, CSRF, validación de metadatos y optimización solo después de una persistencia exitosa. El conjunto de navegador del panel verifica que el cargador héroe envíe bytes binarios. Estas comprobaciones no establecen la aceptación del borde GitHub o Cloudflare en vivo; después de la implementación, verifique un MP4 real cercano al límite a través del tablero y confirme su recurso de repositorio y su vista previa reproducible.
 
@@ -103,7 +107,9 @@ npm test                   # Run all tests
 
 `./scripts/test-e2e.sh --podman` es la ruta del navegador totalmente automatizada. Utilice `./scripts/test-checkout.sh --podman` cuando desee específicamente realizar el pago manualmente en un navegador real.
 
-La ruta de prueba local Worker prefiere el nodo 24, que coincide con las acciones GitHub. Ejecute `nvm use` desde la raíz del repositorio para seleccionar la línea base del Nodo 24.15 compatible. Los scripts del host recurren al Nodo 22.22.2 o posterior si una bifurcación lo tiene instalado; npm rechaza las versiones de nodos impares no admitidas, por lo que jsdom y el ejecutor de pruebas no se ejecutan silenciosamente fuera de sus rangos de motor declarados.
+La ruta de prueba local de Worker utiliza versiones de nodo parcheadas que coinciden con las acciones de GitHub. Ejecute `nvm install` y `nvm use` desde la raíz del repositorio para el nodo 24.22.1. Los lanzadores de host conservan un Nodo parcheado que ya está en PATH; de lo contrario, seleccionan una versión de NVM instalada al menos 22.23.4, 24.22.1 o 26.12.1 en esas líneas principales. Se detienen si no hay ninguno disponible, en lugar de reemplazar un tiempo de ejecución reparado con una versión anterior en caché. Las pruebas del selector incluyen ese caso de degradación, los límites exactos del parche fijo y las rutas que contienen espacios.
+
+Las compilaciones de contenedores Worker y Playwright copian el ejecutable verificado del Nodo 24.22.1; sus nuevas etiquetas de imagen omiten las imágenes locales antiguas y los puntos de entrada verifican el tiempo de ejecución antes de instalar dependencias. Se deben reiniciar los contenedores en ejecución existentes.
 
 Para la sección del navegador centrada en la accesibilidad, utilice:
 
@@ -286,7 +292,7 @@ Las fases del host heredan el `PATH` de la persona que llama, incluidas las herr
 ```bash
 npx vitest run tests/unit/premerge-toolchain.test.ts
 ```
-Ambos ayudantes de Jekyll fallan inmediatamente cuando falla su comando de compilación, por lo que la minificación y la validación de artefactos no pueden reutilizar accidentalmente la salida obsoleta de `_site`. Para ejecuciones de navegador sin cabeza, Playwright construye un `_site` estático y sirve esa salida con un servidor HTTP liviano en lugar de usar `jekyll serve`, lo que mantiene las comprobaciones automatizadas del navegador más cercanas al diseño real de los activos publicados.
+Ambos ayudantes de Jekyll fallan inmediatamente cuando falla su comando de compilación, por lo que la minificación y la validación de artefactos no pueden reutilizar accidentalmente la salida obsoleta de `_site`. Para ejecuciones directas del navegador sin cabeza, Playwright usa `jekyll serve --no-watch` con la misma configuración combinada. Esto construye el `_site` estático una vez y lo sirve a través del mismo servidor Jekyll que las rutas previas a la fusión y Podman. El servidor HTTP Python anterior restablecía intermitentemente las conexiones de activos durante solicitudes simultáneas del navegador.
 
 El repositorio utiliza de forma predeterminada la ruta de tiempo de ejecución/carro propio tanto en `_config.yml` como en `_config.local.yml`; la ruta del navegador no es compatible con el antiguo tiempo de ejecución del carrito alojado.
 
@@ -883,3 +889,14 @@ Esperado: devuelve `{ success: true }` y activa el flujo de trabajo de GitHub.
 ## Referencias de versiones y credenciales
 
 [Merge Smoke](/es/docs/operations/merge-smoke-checklist/) es propietario de la lista de verificación del operador y la plantilla de aprobación. [Implementación](/es/docs/operations/deployment/) posee el cableado de producción. [Security](/es/docs/operations/security/#lista-de-verificación-de-secretos) posee requisitos de credenciales de administrador/firma; Las credenciales del proveedor de pago, correo electrónico, impuestos y envío están cubiertas en sus runbooks dedicados. Registrar explícitamente las omisiones del proveedor; El éxito de la unidad local, el dispositivo o el navegador no es una aceptación externa.
+
+
+## Cobertura de regresión de pago compartida
+
+La plataforma `packages/site-shell/test/checkout-utils.test.js` caracteriza la preparación del correo electrónico/ZIP compartido, la espera tras las ediciones, las respuestas concurrentes A → B → A y la primera aparición de los campos de pago. Las pruebas de tax-core de Platform verifican los alias postales, la cobertura desconocida/obsoleta, la distribución de importes en enteros y la validación del actualizador. El consumidor `platform-pin.test.ts` comprueba la confirmación inmutable, las versiones de los paquetes y las fuentes consumidas.
+
+`checkout-edits.spec.ts` de The Pool cubre ediciones de facturación y envío en anchos de escritorio y móviles, correo electrónico válido → parcial → válido, cambios de código postal/estado, corrección de ciudad opcional, actualización de impuestos, respuestas de configuración obsoletas, fallas de liberación/montaje, desplazamiento solo en la primera aparición, tamaño de entrada y superposiciones de administrador de contraseñas. Los accesorios del SDK exponen únicamente la sesiones de Checkout en modo de configuración; nunca exponen las API PaymentIntent de Store. El conjunto de edición también envía solicitudes de liberación al controlador Worker real a través de un origen HTTP local separado para que se ejecute el CORS del navegador y verifique los montos de envío mostrados y los totales para los cambios de ZIP y opciones de entrega en ambos cajones. Las regresiones de vista previa lenta mantienen abiertas las respuestas de impuestos/envío después de una edición de ZIP/estado y verifican que los campos de pago de reemplazo se monten después de la liberación de la reserva, que las vistas previas pendientes idénticas compartan una solicitud y que la confirmación permanezca deshabilitada hasta que los totales mostrados terminen de actualizarse. Una respuesta fiscal retenida anterior también debe dejar intactos los totales y la preparación de pago de un código postal/estado más nuevo cuando finalmente llegue. La regresión del carrito `90210` → checkout `87048` retiene el evento renderizado de Stripe después de que regresa el montaje: Guardar debe permanecer deshabilitado con un mensaje de carga hasta que los campos sean visibles. La cobertura adicional verifica un contenedor vacío durante la inicialización, devoluciones de llamadas obsoletas listas para errores/preparadas, recuperación de errores de carga de elementos y reutilización de instancias Stripe separadas por clave e idioma. Los fixtures estándar de Stripe emiten explícitamente `ready`. La cobertura de acción de sesión retenida verifica que los campos de pago se puedan representar simultáneamente mientras Guardar permanece deshabilitado, y que una sesión anterior que finaliza después de una edición ZIP no puede reemplazar la interfaz de usuario de pago actual. Las pruebas unitarias de Sidecar verifican la limpieza tanto de los errores de sesión devueltos como de las promesas rechazadas al cargar acciones. Las pruebas Worker verifican CORS local/fork y el almacenamiento en caché privado en las respuestas de liberación de reservas. `campaign-checkout.spec.ts` conserva la confirmación explícita de configuración de la tarjeta, el correo electrónico modificado, el correo electrónico preestablecido, el resumen obsoleto y los contratos de reintento después de la recarga. Las pruebas Worker rechazan conflictos a través de solicitudes directas y preservan formas de contribución firmadas heredadas.
+
+### Cobertura de regresión temprana Stripe
+
+Las pruebas de Sidecar cubren la reutilización de instancias entre el calentamiento y el montaje del pago, la separación por clave pública/localización y los reintentos después de un calentamiento fallido. Las pruebas de plataforma caracterizan la carga simultánea, la eliminación de etiquetas fallidas y el desalojo de inicializadores fallidos. Las pruebas del navegador The Pool afirman la inicialización del SDK de Checkout antes de completar los detalles, cero solicitudes/elementos de configuración durante el calentamiento y un uso único del SDK preparado. Las ediciones ZIP, las acciones retrasadas y las devoluciones de llamadas obsoletas conservan sus garantías de preparación.

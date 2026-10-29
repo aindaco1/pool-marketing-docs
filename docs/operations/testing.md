@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-September 27, 2026
+October 28, 2026
 
 This guide covers the automated test suites, local test infrastructure, and manual verification paths. Weekly synthetic recovery, protected preview drills, and post-restore verification are documented in [BACKUP_RESTORE.md](/docs/operations/backup-restore/).
 
@@ -40,11 +40,25 @@ eligible. A security fix still requires a reviewed compatible Platform upgrade;
 do not weaken the pin test to bypass it. Continue running both dependency audits
 described in [SECURITY.md](/docs/operations/security/#dependency-and-release-security).
 
-Campaign video-upload regression checks run with:
+Campaign media-upload regression checks run with:
 
 ```bash
 npx vitest run tests/unit/github-video-runtime.test.ts tests/unit/github-worker-runtime.test.ts tests/unit/admin-dashboard.test.ts
 ```
+
+Image/audio API cases exercise the reported 2.3 MB image, exact 8 MiB image
+and 25 MiB audio limits, and one-byte-over rejection before provider writes.
+The GitHub Worker runtime suite verifies byte-preserving JSON transfers at
+both limits with a simulated provider. Logo limits remain 512 KiB. These
+checks do not establish live provider acceptance of a creator's actual file.
+
+Protected-preview YouTube controls are covered by
+`npx playwright test tests/e2e/campaign-preview.spec.ts --project=chromium`.
+The built English/Spanish shells run with their real CSP and opaque sandbox;
+synthetic media responses verify thumbnail fallback, click/keyboard playback,
+origin-only referrers, inline position/size through layout changes and scrolling,
+continued project interaction, mobile sizing, message rejection, and access loss. These deterministic checks do not establish YouTube provider
+playback for a particular campaign video; verify that separately in the browser.
 
 The video runtime suite streams an exact 100,000,000-byte synthetic file through
 workerd with a simulated GitHub receiver and checks the complete encoded-body
@@ -153,7 +167,17 @@ npm test                   # Run all tests
 
 `./scripts/test-e2e.sh --podman` is the fully automated browser path. Use `./scripts/test-checkout.sh --podman` when you specifically want to drive the checkout manually in a real browser.
 
-The local Worker test path prefers Node 24, matching GitHub Actions. Run `nvm use` from the repository root to select the supported Node 24.15 baseline. The host scripts fall back to Node 22.22.2 or newer if a fork has that installed; unsupported odd-numbered Node releases are rejected by npm so jsdom and the test runner do not silently run outside their declared engine ranges.
+The local Worker test path uses patched Node releases, matching GitHub Actions.
+Run `nvm install` and `nvm use` from the repository root for Node 24.22.1.
+Host launchers preserve a patched Node already on PATH; otherwise they select
+an installed NVM version at least 22.23.4, 24.22.1, or 26.12.1 on those major
+lines. They stop if none is available, rather than replacing a repaired runtime
+with an older cached version. The selector tests include that downgrade case,
+the exact fixed patch boundaries, and paths containing spaces.
+
+Worker and Playwright container builds copy the verified Node 24.22.1 executable;
+their new image tags bypass old local images, and entrypoints check the runtime
+before installing dependencies. Existing running containers must be restarted.
 
 For the accessibility-focused browser slice, use:
 
@@ -386,7 +410,7 @@ dispatch paths with a simulated login-shell path reset:
 npx vitest run tests/unit/premerge-toolchain.test.ts
 ```
 Both Jekyll helpers fail immediately when their build command fails, so minification and artifact validation cannot accidentally reuse stale `_site` output.
-For headless browser runs, Playwright builds a static `_site` and serves that output with a lightweight HTTP server instead of using `jekyll serve`, which keeps automated browser checks closer to the real published asset layout.
+For direct headless browser runs, Playwright uses `jekyll serve --no-watch` with the same combined configuration. This builds the static `_site` once and serves it through the same Jekyll server as the pre-merge and Podman paths. The prior Python HTTP server intermittently reset asset connections during concurrent browser requests.
 
 The repository defaults to the first-party cart/runtime path in both `_config.yml` and `_config.local.yml`; the browser path does not support the old hosted-cart runtime.
 
@@ -1009,3 +1033,49 @@ template. [Deployment](/docs/operations/deployment/) owns production wiring.
 requirements; payment, email, tax, and shipping provider credentials are covered
 in their dedicated runbooks. Record provider omissions explicitly; local unit,
 fixture, or browser success is not external acceptance.
+
+
+## Shared checkout regression coverage
+
+Platform `packages/site-shell/test/checkout-utils.test.js` characterizes shared
+email/ZIP readiness, debouncing, A → B → A response races and first-only reveal.
+Platform tax-core tests verify postal aliases, unknown/stale coverage, integer
+component allocation and updater validation. Consumer `platform-pin.test.ts`
+checks the immutable commit, package versions and consumed sources.
+
+Pool's `checkout-edits.spec.ts` covers billing and shipping edits at desktop
+and mobile widths, valid → partial → valid email, ZIP/state changes, optional
+city correction, tax refresh, stale setup responses, release/mount failures,
+first-only scroll, input sizing and password-manager overlays. SDK fixtures expose
+Checkout Session setup only; they never expose Store's PaymentIntent APIs.
+The edit suite also sends release requests to the real Worker handler through a
+separate local HTTP origin so browser CORS is exercised, and checks displayed
+shipping amounts and totals for ZIP and delivery-option changes in both drawers.
+Slow-preview regressions hold tax/shipping responses open after a ZIP/state edit
+and verify that replacement payment fields mount after reservation release, that
+identical pending previews share one request, and that confirmation stays disabled
+until displayed totals finish updating.
+An older held tax response must also leave a newer ZIP/state's totals and payment
+readiness intact when it eventually arrives.
+The cart `90210` → checkout `87048` regression holds Stripe's rendered event after
+mount returns: Save must remain disabled with a loading message until the fields
+are visible. Additional coverage checks an empty container during initialization,
+obsolete ready/error callbacks, element load-error recovery, and key/locale-safe
+Stripe instance reuse. Standard Stripe fixtures explicitly emit `ready`.
+Held session-action coverage verifies that payment fields can render concurrently
+while Save remains disabled, and that an old session finishing after a ZIP edit
+cannot replace the current payment UI. Sidecar unit tests verify cleanup for both
+returned session errors and rejected action-loading promises.
+Worker tests verify local/fork CORS and private caching on release responses.
+`campaign-checkout.spec.ts` retains explicit card-setup confirmation, changed-email,
+preset-email, stale-summary and retry-after-reload contracts. Worker tests reject
+conflicts through direct requests and preserve legacy signed contribution shapes.
+
+### Early Stripe regression coverage
+
+Sidecar tests cover instance reuse between warmup and payment mounting, separation
+by public key/locale, and retries after a failed warmup. Platform tests characterize
+concurrent loading, failed-tag removal and failed-initializer eviction.
+Pool browser tests assert Checkout SDK initialization before complete details,
+zero setup requests/Elements during warmup, and one-time use of the prepared SDK.
+ZIP edits, delayed actions and stale callbacks retain their readiness guarantees.

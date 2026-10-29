@@ -8,7 +8,7 @@ has_children: true
 
 ## Last Updated
 
-September 27, 2026
+October 28, 2026
 
 Contribution flow, architecture notes, implementation gotchas, and fork-facing extension points live here.
 
@@ -51,6 +51,9 @@ This section is the right home base when you are opening your first PR, mapping 
 | Recover browser-local campaign edits | [Dashboard: Draft Recovery](/docs/operations/admin-dashboard/#recover-a-missing-browser-draft) |
 | Run or recover automatic image optimization | [Performance: Media Optimization](/docs/operations/performance/#media-optimization) |
 | Understand checkout confirmation and recovery | [Payment Processor: Checkout Completion](/docs/operations/payment-processor/#4-completion-and-webhook) |
+| Maintain editable checkout and shared preparation helpers | [Payment Processor: Editable Inline Checkout](/docs/operations/payment-processor/#editable-inline-checkout-and-shared-helpers) |
+| Review postal consistency, partial tax coverage, and shared data updates | [Tax Calculator](/docs/operations/tax-calculator/) |
+| Configure encrypted snapshots and verify recovery archives | [Backup, Restore, and Recovery](/docs/operations/backup-restore/) |
 | Configure report recipients, opt-outs, and scheduled retries | [Email: Campaign Runner Reports](/docs/operations/email-system/#campaign-runner-reports) |
 | Run the advisory supporter-message evaluation | [Testing: Advisory Jev Pilot](/docs/operations/testing/#advisory-jev-pilot) |
 | Clean generated files while preserving local state and evidence | [Contributing: Local Workspace Cleanup](/docs/development/contributing/#local-workspace-cleanup) |

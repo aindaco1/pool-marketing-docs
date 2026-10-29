@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-27 de septiembre de 2026
+28 de octubre de 2026
 
 The Pool utiliza Stripe como procesador de pagos, con Cloudflare Worker como límite canónico de pago, aporte, webhook y liquidación. El sitio público puede recopilar la intención del carrito, pero Worker reconstruye la forma del dinero, crea sesiones Stripe, mantiene los aportes y luego cobra los métodos de pago guardados solo cuando una campaña de todo o nada tiene éxito.
 
@@ -234,6 +234,8 @@ El Worker crea una sesión de pago Stripe en modo `setup`. La ruta normal devuel
 
 Si el pago personalizado no está disponible porque falta la clave publicable, Worker recurre a una URL de pago Stripe alojada en lugar de fallarle al soporte.
 
+Las nuevas sesiones de aporte personalizadas dejan `customer_email` sin configurar para que el campo de contacto en el sitio pueda proporcionar y corregir el correo electrónico a través de Stripe.js antes de la confirmación. El navegador proporciona su borrador de correo electrónico cuando se abre la interfaz de usuario de pago para que Stripe Link pueda reconocer a los usuarios que regresan antes de que elijan un método de pago. Las sesiones de pago alojadas usadas como alternativa aún reciben `customer_email`. El asistente del navegador compartido lee la sesión actual de Stripe y omite `updateEmail` cuando la dirección ya coincide; Stripe bloquea los correos electrónicos preestablecidos en el momento de la creación, incluidos los clientes existentes utilizados para las actualizaciones de tarjetas. Una dirección diferente aún pasa por la validación Stripe y los errores del proveedor siguen siendo visibles.
+
 Los metadatos de la sesión Stripe incluyen un contexto de orden e integridad como:
 
 - `orderId`
@@ -264,6 +266,9 @@ Stripe envía `checkout.session.completed`. El Worker:
 12. Marca el evento Stripe procesado solo después de que la persistencia sea exitosa.
 
 Esto hace que los webhooks duplicados sean seguros y que los fallos transitorios se puedan volver a intentar.
+
+La finalización desde el navegador y desde el webhook utiliza las mismas claves de idempotencia para crear el cliente y vincular el método de pago. Si el método guardado ya pertenece a un cliente de Stripe, se reutiliza esa vinculación. Si Stripe no puede confirmarla, la finalización devuelve un error que permite reintentar antes de guardar el aporte; nunca se guarda un aporte activo sin una identidad de pago completa.
+
 
 El sidecar de pago personalizado también tiene una ruta de recuperación protegida:
 
@@ -311,6 +316,9 @@ Comportamiento actual:
 - `SETTLEMENT_COORDINATOR` bloquea una campaña a la vez.
 - `settlement-job:{slug}` realiza un seguimiento del progreso por lotes.
 - Cada lote procesa un conjunto limitado de ID de orden de aporte.
+- Los ID de los pedidos de lotes deben ser distintos. los aportes se releen bajo el candado de campaña;
+los aportes ya cobradas y canceladas se excluyen antes de la agrupación.
+
 - los aportes activos no cobradas se agrupan por correo electrónico de apoyo dentro de la campaña.
 - Se utiliza el método de pago guardado más reciente para el grupo de apoyo/campaña.
 - Worker crea un PaymentIntent Stripe fuera de sesión por grupo de apoyo/campaña.
@@ -330,6 +338,14 @@ POST /admin/settle/:slug
 ```
 
 Utilice `ADMIN_SETTLEMENT_SECRET` para la automatización de liquidación cuando esté configurado. Es más estrecho que `ADMIN_SECRET`.
+
+### Reparar un enlace de cliente perdido
+
+`POST /admin/backfill-customers/:slug` requiere autorización administrativa y comparte el bloqueo de liquidación de la campaña. Solo repara aportes activos, sin cobrar, que tienen un método de pago guardado pero carecen de identificador de cliente. Conserva el resto de cada registro de aporte.
+
+Para un conjunto ya investigado, envía `orderIds` (entre 1 y 5 identificadores de esa campaña), `existingOnly: true` y `dryRun: true`. La respuesta muestra el cliente ya vinculado a cada método de pago en Stripe. Una simulación no crea clientes, vincula métodos ni realiza cobros. Si falta la vinculación, devuelve un error que requiere investigación. Repite con `dryRun: false` para guardar únicamente los vínculos verificados. `existingOnly: true` impide crear clientes durante la reparación; si se omite, permite crearlos cuando el método de pago realmente no está vinculado.
+
+Antes de la liquidación, concilie cada pedido seleccionado con los pagos de Stripe y los grupos de liquidación persistentes, incluidos los pedidos pagados por separado para el mismo correo electrónico. Obtenga una vista previa de la lista de pedidos exacta con `/admin/settle-batch` y `dryRun: true`, luego envíe la misma lista. La reparación en sí no cobra ni envía correos electrónicos. La liquidación normal pone en cola los recibos en caso de éxito o un correo electrónico de actualización de la tarjeta en caso de error en el pago.
 
 ## Modelo de datos
 
@@ -563,3 +579,14 @@ Para el comportamiento del procesador, prefiera el modo de prueba Stripe y la CL
 - [PANEL.md](/es/docs/operations/admin-dashboard/)
 - [CORREO ELECTRÓNICO.md](/es/docs/operations/email-system/)
 - [trabajador/README.md](/es/docs/operations/worker/)
+
+
+## Pago integrado editable y funciones compartidas
+
+El proceso de pago integrado mantiene los campos de contacto y dirección montados mientras prepara el pago. Los datos completos activan la preparación tras una breve pausa. Los campos de pago aparecen debajo y se desplazan a la vista una sola vez por visita, sin mover el foco del teclado; las ediciones posteriores conservan la posición de desplazamiento. Los conflictos entre código postal y estado aparecen una sola vez junto a los campos, y las correcciones de ciudad son opcionales. Un correo o código postal incompleto nunca prepara el pago. Editar datos ya preparados invalida la preparación anterior, espera la liberación de las reservas y prepara los nuevos datos. Las consultas preliminares de impuestos y envío se ejecutan en paralelo y comparten solicitudes pendientes idénticas. No bloquean los nuevos campos de pago; la confirmación permanece desactivada mientras se actualizan los totales preliminares. El Worker calcula los totales canónicos antes de crear cada sesión de configuración. El componente de pago monta los Payment Elements antes de esperar las acciones de sesión de Stripe, solapando las descargas y el renderizado con la carga de sesión. Si esta falla, desmonta los elementos antes de iniciar la liberación y el reintento existentes. Para habilitar la confirmación también se requiere el evento `ready` del Payment Element y la sincronización completa del contacto. Una llamada de montaje completada no habilita por sí sola Guardar. El panel muestra el mensaje localizado de carga mientras Stripe renderiza; un evento `loaderror` activa la liberación de reservas y el reintento. Se ignoran los eventos de configuraciones obsoletas. Las notificaciones del almacén de estado no reinician un montaje en curso solo porque su contenedor siga vacío.
+
+Abrir el carrito carga Stripe.js inmediatamente, inicializa la clave pública configurada y precarga el SDK de Checkout con una promesa pendiente del secreto del cliente. Entrar directamente al proceso de pago también lo precarga cuando un flujo restaurado omite el carrito. Esta precarga no crea sesiones en el servidor ni Payment Elements especulativos. Una configuración canónica válida consume esa preparación una sola vez y proporciona su secreto; las sesiones posteriores reciben preparaciones nuevas. Una precarga sin usar no contiene datos del cliente y puede servir en una visita posterior dentro de la misma página. Los fallos de inicialización del SDK permiten reintentar. Platform site-shell comparte la carga de scripts y la reutilización de instancias del SDK por clave e idioma; Pool conserva la preparación de Checkout, los Elements, las sesiones y la confirmación. Las compilaciones locales de prueba deben usar en `_config.local.yml` la misma clave pública de prueba que su Worker. Las descargas de Stripe aún pueden retrasar el renderizado en una conexión lenta o sin caché. Las respuestas tardías de consulta o preparación no reemplazan los datos actuales. Los errores del proveedor siguen visibles y ofrecen un reintento explícito, sin bucles automáticos.
+
+Platform site-shell gestiona la validez del correo y código postal, la espera tras las ediciones, el rechazo de consultas obsoletas, las firmas de los datos y el desplazamiento inicial a los campos de pago. Platform tax-core mantiene las referencias postales y de tasas locales; design-core proporciona campos móviles con texto de al menos 16px. Cada consumidor conserva su formulario, mensajes localizados, rutas, totales canónicos y recuperación.
+
+Pool sigue usando sesiones de Stripe Checkout en modo de configuración y solo confirma el aporte cuando la configuración de la tarjeta se completa. Preparar o volver a preparar el pago no cobra ni confirma un aporte. La recuperación de confirmación conserva su comportamiento de solo lectura e idempotencia; la liquidación de campañas y las reservas siguen siendo responsabilidad de Pool. No se utiliza el flujo de PaymentIntent de Store. Si falla la liberación de una reserva, se bloquea una nueva preparación y se permite reintentar desde el mismo formulario.
