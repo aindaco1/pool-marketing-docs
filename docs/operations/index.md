@@ -8,13 +8,13 @@ has_children: true
 
 ## Last Updated
 
-October 28, 2026
+November 19, 2026
 
 This section covers the admin dashboard, pledge Worker, local runtime options, quality gates, and the operational rules that protect checkout and fulfillment behavior.
 
 ## Local Runtime And Services
 
-- [Admin Dashboard](/docs/operations/admin-dashboard/) for campaign saving, protected previews, deployment progress, conflicting-draft recovery, reports, media uploads, and user management.
+- [Admin Dashboard](/docs/operations/admin-dashboard/) for campaign saving, protected previews, deployment progress, conflicting-draft recovery, Stripe fee summaries and exports, media uploads, and user management.
 - [Pledge Worker](/docs/operations/worker/) for the Worker development entry point and links to its owning guides.
 - [Payment Processor](/docs/operations/payment-processor/) for Stripe setup, canonical checkout, confirmation recovery, webhooks, settlement, and reconciliation.
 - [Email System](/docs/operations/email-system/) for sender setup, transactional and campaign email behavior, report subscriptions, scheduling, delivery, and retries.
@@ -33,7 +33,7 @@ This section covers the admin dashboard, pledge Worker, local runtime options, q
 
 ## Commerce And Platform Guardrails
 
-- [Backup, Restore, and Recovery](/docs/operations/backup-restore/) for four-hour encrypted snapshots, remote archive verification, retention, restore order, Stripe reconciliation, and recovery evidence.
+- [Backup, Restore, and Recovery](/docs/operations/backup-restore/) for four-hour encrypted snapshots, verified off-device copies, reviewed retention plans, preview cleanup, restore order, Stripe reconciliation, and recovery evidence.
 - [Shipping](/docs/operations/shipping/) for the Worker-first shipping model, USPS integration boundary, and fallback policy.
 - [Tax Calculator](/docs/operations/tax-calculator/) for provider modes, ZIP/state consistency, partial local-rate coverage, estimate metadata, shared data updates, and Worker-canonical quotes.
 - [Accessibility](/docs/operations/accessibility/) for current priorities, critical surfaces, coverage, and manual checks.

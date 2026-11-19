@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-28 de octubre de 2026
+19 de noviembre de 2026
 
 Esta es la referencia del punto final para contribuyentes y operadores que se integran con The Pool Worker. Consolida los ejemplos de ruta previamente distribuidos en las guías de arquitectura y componentes. Los controladores en [`worker/src/index.js`](https://github.com/aindaco1/pool/blob/main/worker/src/index.js) y [`worker/src/routes/`](https://github.com/aindaco1/pool/tree/main/worker/src/routes) tienen autoridad; Esta es una guía de las rutas de integración documentadas, no un inventario generado de cada controlador.
 
@@ -375,7 +375,8 @@ Notas:
 - `reportType: "pledge"` es el informe diario de la campaña en vivo.
 - `reportType: "fulfillment"` es el informe único de envío/exportación posterior a la fecha límite
 - Los correos electrónicos de informes utilizan asuntos cortos, sin emojis y que priorizan la entregabilidad con el prefijo configurado más el tipo de informe y el título de la campaña.
-- Los correos electrónicos de aporte diario incluyen totales de campaña únicamente más una breve nota de impulso/entrenamiento en el cuerpo.
+- los correos diarios de aportes y las vistas previas de cada campaña incluyen totales exclusivos de la campaña, comisiones de Stripe asignadas y el monto después de comisiones con etiquetas explícitas de cifras reales o estimadas (consulta [Resumen diario de aportes](/es/docs/operations/admin-dashboard/#resumen-diario-de-aportes)); los correos también incluyen una breve nota sobre el avance o sugerencias
+- los CSV de aportes añaden la fuente de la comisión actual por aporte, la comisión total de Stripe, la parte de la campaña y el monto después de comisiones; el [contrato del resumen diario de aportes](/es/docs/operations/admin-dashboard/#resumen-diario-de-aportes) define su ubicación una sola vez por aporte en el registro
 - envíos de cumplimiento divididos por cumplimiento:
   - Los destinatarios de la campaña reciben solo las filas completadas por la campaña.
   - `platform.support_email` recibe un correo electrónico de cumplimiento de plataforma independiente cuando existen filas de plataforma

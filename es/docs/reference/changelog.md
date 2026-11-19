@@ -10,7 +10,19 @@ lang: es
 
 ## Última actualización
 
-28 de octubre de 2026
+19 de noviembre de 2026
+
+## Inédito
+
+- Adopta Platform 0.51.1: los plazos de las solicitudes a GitHub, proveedores de impuestos y USPS cubren los cuerpos de respuesta, y la limpieza de una instancia anterior del editor conserva la vinculación activa.
+- Usa el editor de bloques compartido para los controles y la composición, conservando el comportamiento de medios, recuperación de borradores, vista previa y publicación de Pool.
+- Detiene los reintentos automáticos de la cola de correo 23 horas después del primer envío posible al proveedor, incluidos los trabajos guardados por versiones anteriores del Worker. Conserva los resultados inciertos para conciliarlos.
+- Verifica las copias de seguridad en otro dispositivo contra la huella del archivo seleccionado. Valida los planes completos de retención y los destinos de limpieza de restauraciones de prueba antes de eliminar.
+- Conserva la evidencia de imágenes originales decodificadas, incluidos los tiempos y la orientación de WebP animado, durante la optimización. Las actualizaciones de Pages que solo publican medios omiten los envíos de diario.
+- Usa el resumen de campaña para las descripciones sociales cuando el primer bloque de texto renderizado tiene menos de 40 caracteres.
+- Monta las dependencias del Worker en las pruebas de navegador con Podman, vincula las imágenes a la versión fijada de Playwright y sirve una compilación fija de Jekyll en CI.
+
+- Incluye las comisiones de Stripe y el monto de la campaña después de comisiones en los resúmenes diarios por correo, sus vistas previas y las columnas CSV por aporte. Reutiliza Análisis, identifica las cifras reales o estimadas y cuenta las comisiones una sola vez en el historial.
 
 ## 1.2.26 — 2026-10-28
 

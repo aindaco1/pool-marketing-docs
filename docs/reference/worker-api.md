@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-October 28, 2026
+November 19, 2026
 
 This is the endpoint reference for contributors and operators integrating with
 the Pool Worker. It consolidates the route examples previously spread across
@@ -433,7 +433,8 @@ Notes:
 - `reportType: "pledge"` is the daily live-campaign ledger report
 - `reportType: "fulfillment"` is the one-time post-deadline shipment/export report
 - report emails use short, emoji-free, deliverability-first subjects with the configured prefix plus report kind and campaign title
-- daily pledge emails include campaign-only totals plus a short momentum/coaching note in the body
+- daily pledge emails and campaign-scoped previews include campaign-only totals, allocated Stripe fees and the campaign amount after fees with explicit actual/estimated labels (see [Daily pledge summary](/docs/operations/admin-dashboard/#daily-pledge-summary)); emails also include a short momentum/coaching note
+- pledge CSVs append current per-pledge fee source, whole Stripe fee, campaign fee share, and campaign amount after fees; the [daily pledge summary contract](/docs/operations/admin-dashboard/#daily-pledge-summary) defines the once-per-pledge ledger placement
 - fulfillment sends split by fulfiller:
   - campaign-runner recipients get only the campaign-fulfilled rows
   - `platform.support_email` gets a separate platform-fulfillment email when platform rows exist

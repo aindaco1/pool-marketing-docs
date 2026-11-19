@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-28 de octubre de 2026
+19 de noviembre de 2026
 
 Esta guía cubre los conjuntos de pruebas automatizadas, la infraestructura de pruebas local y las rutas de verificación manual. La recuperación sintética semanal, los simulacros de vista previa protegida y la verificación posterior a la restauración están documentados en [BACKUP_RESTORE.md](/es/docs/operations/backup-restore/).
 
@@ -25,6 +25,10 @@ npm run jekyll-template:check
 ```
 
 Las dependencias raíz `esbuild` y `smol-toml` son pines exactos que coinciden con los manifiestos Platform Build Core y Release Core revisados. Actualícelos junto con la plataforma gitlink, no de forma independiente en un PR de dependencia de rutina. La prueba de pin comprueba tanto los manifiestos raíz como las entradas de la versión instalada en el archivo de bloqueo. Dependabot pospone sus actualizaciones de versión de rutina mientras mantiene las actualizaciones de seguridad elegibles. Una solución de seguridad aún requiere una actualización de plataforma compatible revisada; No debilite la prueba del pin para evitarlo. Continúe ejecutando ambas auditorías de dependencia descritas en [SECURITY.md](/es/docs/operations/security/#seguridad-de-dependencias-y-versiones).
+
+La optimización de medios inicia Pages con `skip_diary_check=true` para que el mantenimiento de archivos no inicie correos de diario a suscriptores.
+
+La validación del optimizador usa FFmpeg para PNG/JPEG/GIF y Pillow con libwebp para WebP. El flujo de medios de Ubuntu instala `python3-pil` porque su FFmpeg no puede decodificar WebP animado. `node --test scripts/inspect-image.test.mjs` prueba la decodificación real estática y animada, la equivalencia de tiempos de GIF/WebP, los cambios de tiempos, los candidatos temporales y el rechazo de entradas dañadas antes de optimizar. Las ejecuciones locales requieren `python3` con soporte de Pillow/WebP además de las herramientas de medios existentes. La imagen de desarrollo instala el mismo paquete; reconstruye las imágenes existentes con `PODMAN_REBUILD=1 npm run media:optimize:check:podman` antes de la validación local. Cada fotograma animado se decodifica y compone; siguen aplicándose las comprobaciones de conservación del original y de tamaño, dimensiones, proporción y tiempos de las versiones derivadas.
 
 Las comprobaciones de regresión de carga de medios de campaña se ejecutan con:
 
@@ -148,6 +152,8 @@ Cada ejecución escribe un nuevo directorio `tmp/jev/<run>/` ignorado que contie
 Conserve `corpus.json`, `report.json` y `review.md` para las ejecuciones citadas en la evidencia de publicación. El directorio `site/` de la ejecución es una compilación desechable; la siguiente invocación crea una nueva. Siga [limpieza del espacio de trabajo](/es/docs/development/contributing/#limpieza-del-espacio-de-trabajo-local) para otras copias de salida y recuperación generadas.
 
 Dieciséis ejemplos de control emparejados miden pases falsos, fallos falsos y revisiones. Estas etiquetas creadas por ingenieros son diagnósticos, no calificaciones humanas independientes ni un conjunto de validación invisible. El margen de probabilidad de 0,10 es provisional, tomado del flujo de trabajo de CutNotes en lugar de calibrado para The Pool. Los vínculos cercanos, la incertidumbre y las versiones desconocidas de los modelos pasan a revisión. Un piloto completado puede contener fallas; no establece el español nativo, el diseño del navegador, Stripe, la entrega o la aceptación de la liberación. Las pruebas deterministas existentes conservan autoridad sobre el dinero y el acceso.
+
+Antes de proponer una comprobación obligatoria en CI, obtén evaluaciones de personas con dominio del inglés y del español, separa los ejemplos de calibración de los reservados para evaluación y mide la estabilidad en ejecuciones repetidas. Registra esa evidencia con el piloto; los controles actuales no demuestran esos criterios de aceptación.
 
 El piloto permanece fuera de las puertas `npm test`, premerge y CI. La salida 0 significa una vista previa explícita o una ejecución de asesoramiento completa, incluso cuando los hallazgos necesitan revisión; la salida 2 significa configuración, autenticación o evaluación incompleta. No hay reintentos, retrocesos de proveedores, compras ni recargas automáticas. Se permiten como máximo 100 preguntas. El límite de gasto estimado predeterminado es de 0,25 USD (`--max-estimated-usd=...`, máximo estricto de 1 USD). La reserva presupuesta 32.000 tokens de entrada por pregunta utilizando la [tasa de entrada TypeSafe](https://docs.typesafe.ai/models) con fecha de 0,042 dólares/millón (2026-09-22); Esta es una estimación, no un límite de facturación de Cloudflare. La [referencia del modelo Cloudflare](https://developers.cloudflare.com/ai/models/typesafe/jev/) dirige las comprobaciones de precios reales al panel de la cuenta. Los encabezados de solicitud desactivan el registro/caché de la puerta de enlace; no son una garantía de retención de proveedores.
 

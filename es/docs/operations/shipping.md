@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-28 de octubre de 2026
+19 de noviembre de 2026
 
 Este documento describe el flujo de envío actual de The Pool, la superficie de configuración orientada hacia la bifurcación, el límite de integración de USPS y el árbol de reglas compartido por carrito, pago, gestión de aporte, informes y correos electrónicos.
 
@@ -456,6 +456,8 @@ Nota operativa práctica para esta plataforma:
   - envío alternativo fijo cuando USPS no está disponible
 
 Esto mantiene la plataforma alineada con el modelo de cuotas de USPS sin convertir las cotizaciones de envío en un subsistema con muchos KV.
+
+El plazo de las solicitudes compartidas a USPS cubre la lectura del cuerpo de respuesta y la recepción de encabezados, tanto para autenticación como para cotizaciones. Un tiempo agotado activa la pausa temporal y la alternativa existentes; no cambia el importe de envío guardado en un aporte ya confirmado.
 
 Llame únicamente a USPS en momentos de alta intención:
 

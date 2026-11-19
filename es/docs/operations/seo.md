@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-6 de septiembre de 2026
+19 de noviembre de 2026
 
 Este documento describe el modelo SEO actual de The Pool en 2026. Es intencionalmente conservador: las páginas públicas se hacen más fáciles de rastrear y comprender, mientras que los flujos tokenizados y exclusivos para patrocinadores permanecen fuera de la intención del índice. La implementación está diseñada en torno a metadatos reales, páginas públicas reales y datos estructurados honestos en lugar de relleno de contenido o cebo de resultados enriquecidos.
 
@@ -235,7 +235,7 @@ Las horquillas se pueden personalizar de forma segura:
 - enlaces de perfil social de la organización
 - si el centro comunitario público sigue siendo indexable
 - Copia descriptiva de página y campaña que ya existe en el modelo de contenido.
-- entradas de vista previa de la campaña que ya existen en el modelo de contenido, como el título de la campaña, el primer bloque de texto de contenido extenso utilizado para las descripciones sociales, la categoría, el creador, una marca `funded: true` para los metadatos posteriores a la campaña exitosos antes de la liquidación y la imagen principal cuadrada utilizada dentro de las tarjetas compartidas generadas.
+- datos de vista previa de campaña que ya existen en el modelo de contenido, como el título, el primer bloque de texto largo usado para descripciones sociales (con el resumen como alternativa cuando el texto renderizado tiene menos de 40 caracteres), la categoría, el creador, una marca `funded: true` para metadatos de campañas exitosas antes de la liquidación y la imagen cuadrada de portada usada en las tarjetas para compartir
 
 El modelo actual no admite:
 

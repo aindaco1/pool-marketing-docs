@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-28 de octubre de 2026
+19 de noviembre de 2026
 
 **Base de plataforma de crowdfunding de código abierto**
 
@@ -23,6 +23,7 @@ The Pool combina un sitio estático Jekyll, un carrito de navegador propio y un 
 - Aportes sin cuentas y enlaces mágicos con alcance de pedido para administrar, cancelar o actualizar una tarjeta.
 - Precios, impuestos, envío, propinas de plataforma opcional e inventario de recompensas limitadas verificados por Worker.
 - Niveles físicos y digitales, complementos de campaña y plataforma, precios de variantes e informes de cumplimiento.
+- Resúmenes diarios de aportes y exportaciones CSV con comisiones de Stripe reales o estimadas y montos de campaña después de comisiones.
 - Cronogramas de campaña, objetivos ambiciosos, diarios de producción y decisiones exclusivas de los patrocinadores.
 - Un panel privado con alcance de roles para campañas, configuraciones, productos, informes, patrocinadores, análisis, marketing y usuarios.
 - [Guardar proyecto, vista previa protegida y publicación explícita](/es/docs/operations/admin-dashboard/#guardar-y-publicar) para campañas nuevas y revisiones no publicadas de campañas activas.

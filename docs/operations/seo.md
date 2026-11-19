@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-September 6, 2026
+November 19, 2026
 
 This document describes The Pool's current SEO model in 2026. It is intentionally conservative: public pages are made easier to crawl and understand, while supporter-only and tokenized flows stay out of index intent. The implementation is designed around real metadata, real public pages, and honest structured data rather than content padding or rich-result bait.
 
@@ -234,7 +234,7 @@ Forks can safely customize:
 - organization social-profile links
 - whether the public community hub remains indexable
 - page and campaign descriptive copy that already exists in the content model
-- campaign preview inputs that already exist in the content model, such as campaign title, the first long-content text block used for social descriptions, category, creator, a `funded: true` flag for successful post-campaign metadata before settlement, and the square hero image used inside generated share cards
+- campaign preview inputs that already exist in the content model, such as campaign title, the first long-content text block used for social descriptions (falling back to the synopsis when its rendered text is shorter than 40 characters), category, creator, a `funded: true` flag for successful post-campaign metadata before settlement, and the square hero image used inside generated share cards
 
 The current model does not support:
 

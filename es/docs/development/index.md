@@ -9,7 +9,7 @@ lang: es
 
 ## Última actualización
 
-28 de octubre de 2026
+19 de noviembre de 2026
 
 El flujo de contribución, las notas de arquitectura, los problemas de implementación y los puntos de extensión orientados hacia la bifurcación se encuentran aquí.
 
@@ -17,7 +17,7 @@ El flujo de contribución, las notas de arquitectura, los problemas de implement
 
 1. [Plataforma README](/es/docs/development/platform-readme/) para una breve introducción y un inicio rápido.
 2. [Contribuyendo](/es/docs/development/contributing/) para dependencias, configuración local, flujo de trabajo de contribución y convenciones de implementación.
-3. [Arquitectura](/es/docs/development/architecture/) para propiedad, almacenamiento, ciclo de vida de campaña y aporte, y el mapa de códigos.
+3. [Arquitectura](/es/docs/development/architecture/) para responsabilidades, componentes compartidos de Platform, almacenamiento, ciclo de vida de campañas y aportes, y mapa del código.
 4. [Modelo de contenido de campaña](/es/docs/development/content-model/) para campos, niveles, medios, entradas de diario y decisiones de campaña.
 5. [Worker API](/es/docs/reference/worker-api/) para contratos de terminales y ejemplos de solicitud/respuesta.
 6. [Implementación](/es/docs/operations/deployment/) para configuración inicial, credenciales y páginas separadas y flujos de lanzamiento de Worker.

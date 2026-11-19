@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-28 de octubre de 2026
+19 de noviembre de 2026
 
 Este documento es la referencia del operador y la fuente de verdad para la edición, informes, análisis, enlaces de marketing, complementos y administración de usuarios de campañas basadas en paneles privados de The Pool.
 
@@ -458,6 +458,25 @@ Tipos de informes admitidos:
 
 La interfaz de usuario del informe del navegador está orientada a la descarga. No necesita controles manuales de envío de correo electrónico ni de marcación como enviado.
 
+### Resumen diario de aportes
+
+Los correos diarios de aportes y las vistas previas de cada campaña muestran **Comisiones de Stripe (parte de la campaña)** y **Monto de la campaña después de las comisiones de Stripe**, junto con el total bruto comprometido y el avance hacia la meta. Usan el mismo cálculo financiero de los aportes actuales que Análisis. Las filas del historial no añaden otra comisión cuando se modifica un aporte.
+
+Se usan las comisiones de Stripe registradas para los aportes cobrados cuando están disponibles. Los aportes activos y los cobrados sin comisiones registradas usan la estimación existente para planificar: 2.9% + $0.30 por aporte. Los resúmenes identifican las cifras como **reales**, **estimadas** o **incluyen estimaciones**, y explican la tasa estimada cuando se usa. Los aportes cancelados no suman ingresos ni comisiones; los pagos fallidos no añaden una comisión estimada, pero su monto pendiente de campaña sigue incluido, igual que en Análisis.
+
+Cada comisión se distribuye proporcionalmente entre ingresos de campaña, ingresos de plataforma, impuestos y envío usando centavos enteros. El resumen solo muestra la parte de la campaña y el monto después de esa deducción; no garantiza un desembolso. Los complementos de campaña siguen siendo ingresos de campaña; los complementos de plataforma y las propinas no lo son. El avance bruto hacia la meta y las columnas existentes del registro CSV conservan su significado. Desactivar la opción existente de resumen estadístico oculta estas líneas junto con el resto del resumen. La vista previa de reportes no consulta Stripe, no completa datos financieros históricos ni escribe en KV. Consulta [Análisis](#analítica) para completar datos financieros históricos de Stripe.
+
+Los CSV adjuntos de aportes, las vistas previas y descargas del panel y las exportaciones por CLI añaden:
+
+|Columna|Significado|
+| --- | --- |
+|`current_stripe_fee_source`|`actual`, `estimated` o `not_applicable` cuando el aporte no tiene un cobro o una estimación aplicable|
+|`current_stripe_fee`|La comisión total de Stripe registrada o estimada para el aporte, en dólares|
+|`current_campaign_stripe_fee`|La parte de esa comisión asignada a la campaña, en dólares|
+|`current_campaign_amount_after_fees`|Los ingresos actuales de la campaña menos su parte de la comisión, en dólares|
+
+Son valores actuales por aporte, no montos de cambios históricos. Aparecen solo en la última fila exportada del registro de cada aporte; las filas anteriores dejan vacías las cuatro celdas. Un aporte sin historial usa su única fila. Por ello, sumar estas columnas cuenta cada aporte una vez y coincide con Análisis, incluidos los aportes modificados. Los cancelados muestran cero; los pagos fallidos muestran cero comisiones y conservan el monto pendiente de campaña. Las filas de historial, las marcas de tiempo y los CSV de preparación y entrega existentes no cambian.
+
 ### Informes de aporte de CLI
 
 Genere informes CSV de aportes de Cloudflare KV:
@@ -665,6 +684,10 @@ Los movimientos de archivos de campaña se realizan en el lado del repositorio p
 
 Vuelva a intentar el flujo de trabajo con `scope=changed` para procesar cargas pendientes o `scope=all` para reprocesar todas las imágenes de origen. El alcance modificado utiliza hashes de origen y tamaños faltantes en lugar de depender de la última confirmación. Ambos ámbitos preservan derivados omitidos intencionalmente que serían mayores que su fuente. `npm run media:manifest` reconstruye el índice sin procesar archivos binarios. Los comandos locales y el flujo de trabajo del vídeo revisado están documentados en [Performance](/es/docs/operations/performance/#optimización-de-medios).
 
+### Conservación de imágenes originales durante la optimización
+
+El optimizador y el validador de publicación usan la misma inspección de imágenes decodificadas. Una versión más pequeña reemplaza al original solo cuando coinciden los píxeles, las dimensiones, la orientación, la evidencia de proporción y los tiempos de animación. Las versiones que cambian esa evidencia se descartan con un motivo; el original sigue siendo la fuente de referencia y pueden generarse versiones adaptables. Se requieren FFmpeg y ffprobe para reemplazar originales. El validador de publicación sigue siendo una comprobación final independiente del cambio completo.
+
 Utilice texto alternativo significativo para imágenes que comuniquen contenido. Los fondos decorativos pueden utilizar texto alternativo vacío en las plantillas públicas.
 
 ## Barandillas de seguridad y accesibilidad
@@ -743,3 +766,7 @@ Al pegar texto enriquecido se respetan los pesos de fuente explícitos, incluido
 Las cargas de imágenes mantienen una vista previa local de pestañas codificada por la ruta del repositorio devuelta. Las imágenes principales y los bloques del editor permanecen visibles antes de que el nuevo activo llegue al sitio público, incluso después de guardar el proyecto. Las vistas previas móviles en zona protegida reciben miniaturas de imágenes delimitadas. Las cargas útiles para guardar/publicar contienen únicamente rutas de repositorio canónicas; Las URL de objetos y las miniaturas de datos nunca se guardan como contenido de la campaña. Cerrar sesión borra estas vistas previas. Al recargar se pierde el caché local, por lo que los activos no publicados aún necesitan la implementación estática normal antes de que sus rutas públicas puedan cargarse en otra pestaña.
 
 Las solicitudes fallidas utilizan los valores predeterminados de comentarios legibles en inglés/español de la plataforma, con los nombres de los campos de diario/campaña localizados de The Pool. Por ejemplo, `longContent[0].src` aparece como campo de origen en el bloque de contenido 1. Los motivos de validación conocidos generan un mensaje procesable; Los errores de proveedores desconocidos utilizan un respaldo de estado de solicitud localizado. Los diagnósticos originales permanecen en el `rawData` del error detectado para su depuración y no se muestran directamente. Los títulos escritos por el creador no están traducidos. La falta de texto alternativo sigue siendo un aviso de advertencia y no puede impedir Guardar o Publicar.
+
+### Responsabilidades del editor de bloques compartido
+
+El panel usa el editor `block-editor-browser` de Platform Admin Shell 0.15.1 para el modelo de bloques, la barra de herramientas, el orden, los cambios de tipo, la alineación, la inserción mediante barra diagonal y la gestión de eventos. El módulo fijado y el script clásico comparten una implementación. La limpieza de una instancia anterior del editor no puede desconectar una vinculación activa más reciente. El panel conserva sus controles de campos y medios, la política de URL y portapapeles, la proyección de datos, la vista previa y el flujo de guardado y publicación. Actualizar esta dependencia requiere las pruebas de caracterización del editor y la suite del panel en navegador; una reversión restaura conjuntamente el adaptador y el gitlink de Platform.

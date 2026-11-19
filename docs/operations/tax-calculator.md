@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-October 28, 2026
+November 19, 2026
 
 This document covers The Pool's current tax-calculation model, including
 provider selection, fork-facing configuration, browser behavior, Worker
@@ -36,6 +36,11 @@ The tax layer keeps one consistent answer across:
 Provider transport uses Cloudflare-compatible manual redirect mode and rejects
 3xx responses explicitly. This keeps live lookups usable in the Worker runtime
 without forwarding provider credentials or address queries to redirect targets.
+
+The shared provider deadline covers both response headers and body consumption,
+so a stalled body cannot leave a quote waiting indefinitely. Timeouts surface as
+`tax_provider_timeout`; Pool retains the provider-specific fallback and estimate
+policy described below. This does not add automatic retries or cache tax quotes.
 
 The Worker remains the source of truth. The browser can request previews, but
 persisted totals come from Worker-side calculation. The accepted first-party

@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-September 27, 2026
+November 19, 2026
 
 This guide covers the supported no-code customization surface for forks of The Pool.
 
@@ -599,7 +599,7 @@ Current behavior:
 - `email_subject_prefix` can be set to an empty string to disable the prefix entirely
 - when the prefix is omitted at runtime, the Worker falls back to `[platform.name]`
 - report subjects stay concise and deliverability-oriented: no emoji, short report labels, and a consistent prefix + report-kind + campaign-title pattern
-- daily pledge emails use a campaign-only summary with total pledges, new pledges in the previous 24 hours, pledged total, goal progress, and deadline countdown/passed time
+- daily pledge emails use a campaign-only summary with total pledges, new pledges in the previous 24 hours, pledged total, allocated Stripe fees, campaign amount after fees, goal progress, and deadline countdown/passed time; [Daily pledge summary](/docs/operations/admin-dashboard/#daily-pledge-summary) defines actual/estimated labels and allocation
 - fulfillment sends are split by fulfiller:
   - campaign-runner recipients receive only the campaign-fulfilled rows
   - `platform.support_email` receives a separate platform-fulfillment email when platform add-on rows exist

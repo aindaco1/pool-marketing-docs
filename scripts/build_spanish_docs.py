@@ -97,6 +97,7 @@ TITLE_OVERRIDES = {
     "Start Local Dev": "Iniciar desarrollo local",
     "4. Completion And Webhook": "4. Finalización y webhook",
     "Editable inline checkout and shared helpers": "Pago integrado editable y funciones compartidas",
+    "Daily Pledge Summary": "Resumen diario de aportes",
 }
 
 BODY_OVERRIDES = {
@@ -153,6 +154,11 @@ ANCHOR_OVERRIDES = {
     "#start-local-dev": "#iniciar-desarrollo-local",
     "#4-completion-and-webhook": "#4-finalización-y-webhook",
     "#editable-inline-checkout-and-shared-helpers": "#pago-integrado-editable-y-funciones-compartidas",
+    "#daily-pledge-summary": "#resumen-diario-de-aportes",
+    "#shared-us-postal-and-local-rate-data": "#datos-compartidos-de-tarifas-locales-y-postales-de-ee-uu",
+    "#manual-checks": "#comprobaciones-manuales",
+    "#support-matrix": "#matriz-de-soporte",
+    "#analytics": "#analítica",
 }
 
 CACHE_DIR = ROOT / ".translation-cache"

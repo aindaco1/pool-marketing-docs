@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-October 28, 2026
+November 19, 2026
 
 This guide is for contributors tracing how The Pool's site, Worker, providers,
 and repository state fit together. Endpoint contracts live in
@@ -35,9 +35,9 @@ of creating a second content catalog in KV. Save writes a working copy; Publish 
 
 ### Shared Foundations
 
-Immutable gitlinks pin Dust Wave Platform 0.46.0 (`68b9b3073e0f4dc167dc638f56003f6bfcf49f8e`)
-and Dust Wave Jekyll Template. Site Shell 0.6.0 supplies checkout utilities,
-Tax Core 0.4.0 supplies postal/local-rate references, and Design Core 0.3.1
+Immutable gitlinks pin Dust Wave Platform 0.51.1 (`d0b9e9595e2f57cbff26219db2bf78c26235d2f9`)
+and Dust Wave Jekyll Template. Admin Shell 0.15.1 supplies the shared block composer. Site Shell 0.6.1 supplies checkout utilities,
+Tax Core 0.4.1 supplies postal/local-rate references, and Design Core 0.3.1
 supplies mobile input sizing.
 Platform supplies characterized Worker, admin, browser, design, build, release,
 shipping, tax, inventory, media, test, and local product-video mechanics.

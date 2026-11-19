@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-October 28, 2026
+November 19, 2026
 
 This guide covers the automated test suites, local test infrastructure, and manual verification paths. Weekly synthetic recovery, protected preview drills, and post-restore verification are documented in [BACKUP_RESTORE.md](/docs/operations/backup-restore/).
 
@@ -39,6 +39,20 @@ Dependabot defers their routine version updates while keeping security updates
 eligible. A security fix still requires a reviewed compatible Platform upgrade;
 do not weaken the pin test to bypass it. Continue running both dependency audits
 described in [SECURITY.md](/docs/operations/security/#dependency-and-release-security).
+
+Media optimization dispatches Pages with `skip_diary_check=true` so asset
+maintenance does not initiate subscriber diary messages.
+
+Image optimizer validation uses FFmpeg for PNG/JPEG/GIF and Pillow with libwebp
+for WebP. The Ubuntu media workflow installs `python3-pil` because its FFmpeg
+cannot decode animated WebP. `node --test scripts/inspect-image.test.mjs` exercises
+real static/animated decoding, GIF/WebP timing parity, retiming, temporary
+candidates, and corrupt-input rejection before optimization. Local optimizer
+runs need `python3` with Pillow/WebP support as well as the existing media tools.
+The development image installs the same package; rebuild existing images with
+`PODMAN_REBUILD=1 npm run media:optimize:check:podman` before local validation.
+Every animated frame is decoded and composited; source-preservation and derivative
+size, dimensions, aspect-ratio, and timing gates still apply.
 
 Campaign media-upload regression checks run with:
 
@@ -247,6 +261,11 @@ from the CutNotes workflow rather than calibrated for Pool. Near ties, uncertain
 and unknown model versions become review. A completed pilot may contain failures;
 it does not establish native-Spanish, browser-layout, Stripe, delivery or release
 acceptance. Existing deterministic tests retain authority over money and access.
+
+Before proposing a CI gate, obtain fluent English/Spanish ratings, keep
+calibration examples separate from held-out examples, and measure repeated-run
+stability. Record that evidence with the pilot; the current controls do not
+establish those acceptance criteria.
 
 The pilot stays outside `npm test`, premerge and CI gates. Exit 0 means an explicit
 preview or a completed advisory run, even when findings need review; exit 2 means

@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-October 28, 2026
+November 19, 2026
 
 This guide owns first-time production wiring and the site/Worker release
 workflow. Use [Podman](/docs/operations/podman-local-dev/) for local containers,
@@ -74,6 +74,10 @@ fails the build if that comparison cannot be established. Scheduled refreshes
 and ordinary manual/campaign dispatches retain the diary check; the manual
 skip input defaults to `false`. A maintenance skip does not pause later
 scheduled diary checks or other existing notification processing.
+
+The image-optimization workflow explicitly dispatches its Pages refresh with
+`skip_diary_check=true`. Publishing optimized media therefore refreshes the site
+without initiating a diary broadcast.
 
 Campaign publishing dispatches **Refresh Production Pages** with the saved
 commit in its optional `ref` input. Both jobs use that revision; the run title

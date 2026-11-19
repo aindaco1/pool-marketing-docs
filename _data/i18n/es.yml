@@ -31,7 +31,7 @@ home:
     free: "<strong>Gratis</strong> para usar, copiar y rebrandear."
     low_cost: "Diseñado alrededor de <strong>GitHub Pages, Cloudflare y Resend</strong>, con uso dinámico pensado para presupuestos pequeños."
     no_account: "Los backers pueden pledgear y gestionar su apoyo <strong>sin crear una cuenta</strong>."
-    paid: "Soporta <strong>checkout multicampaña</strong>, rewards, add-ons, propinas y <strong>reportes de pledges y fulfillment</strong>."
+    paid: "Admite <strong>aportes a varias campañas en un mismo proceso</strong>, recompensas, complementos y reportes con <strong>comisiones de Stripe registradas o estimadas</strong>."
   download_cta: Descargar el código
   docs_cta: Explorar la documentación
   demo_cta: Demo
@@ -66,7 +66,7 @@ home:
     no_account_body: "Los backers pledgean, actualizan tarjetas, cambian pledges y abren páginas privadas mediante <strong>links seguros por email</strong>."
     no_account_link: Inspeccionar gestión de pledges
     crowd_title: Preparado para campañas reales
-    crowd_body: "Usa <strong>rewards, pledges personalizados, add-ons, recordatorios de lanzamiento, updates, votaciones, blasts a supporters</strong> y reportes de fulfillment."
+    crowd_body: "Ofrece <strong>recompensas, aportes personalizados, complementos, recordatorios de lanzamiento, actualizaciones, votaciones</strong> y reportes de preparación y entrega. Los resúmenes diarios de aportes distinguen las comisiones de Stripe registradas de las estimaciones."
     crowd_link: Explorar workflows de creadores
   platform_heading: Lo que incluye hoy
   platform_intro: ""
@@ -84,7 +84,7 @@ home:
     community_body: "Los patrocinadores gestionan sus aportes mediante <strong>enlaces seguros por correo</strong>. Los correos del diario enlazan a la entrada concreta. Los reintentos de entrega conservan los aportes guardados y las actualizaciones de campaña permiten cancelar la suscripción."
     community_link: Explorar workflows de campaña
     customization_title: Admin para el equipo
-    customization_body: "<strong>Guarda una copia de trabajo, comparte una vista previa protegida y después publica.</strong> El panel sigue el despliegue, conserva los borradores en conflicto y gestiona medios, usuarios, informes, análisis y enlaces de promoción."
+    customization_body: "<strong>Organiza bloques de contenido, guarda una copia de trabajo, comparte una vista previa protegida y después publica.</strong> El panel sigue el despliegue, conserva los borradores en conflicto y gestiona medios, usuarios, informes, análisis y enlaces de promoción."
     customization_link: "Explorar el panel de administración"
     operations_title: "Operaciones y recuperación"
     operations_body: "Los medios adaptables, las comprobaciones de accesibilidad, las pruebas de seguridad y las pruebas automatizadas de navegador se acompañan de copias de seguridad cifradas, verificación de archivos y procedimientos de recuperación documentados."

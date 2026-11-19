@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-28 de octubre de 2026
+19 de noviembre de 2026
 
 Este documento cubre el modelo actual de cálculo de impuestos en The Pool, incluyendo selección de proveedor, configuración para forks, comportamiento del navegador, endpoints del Worker y las verificaciones que conviene correr antes de publicar cambios relacionados con impuestos.
 
@@ -29,6 +29,8 @@ La capa impositiva mantiene una respuesta consistente en:
 - reportes y exportaciones
 
 El transporte del proveedor utiliza el modo de redireccionamiento manual compatible con Cloudflare y rechaza explícitamente las respuestas 3xx. Esto mantiene las búsquedas en vivo utilizables en el tiempo de ejecución de Worker sin reenviar credenciales de proveedor ni consultas de direcciones para redirigir objetivos.
+
+El plazo del proveedor compartido cubre tanto los encabezados como la lectura del cuerpo de respuesta, de modo que un cuerpo bloqueado no deje una cotización esperando indefinidamente. Los tiempos agotados se identifican como `tax_provider_timeout`; Pool conserva la política de estimaciones y alternativas de cada proveedor descrita abajo. Esto no añade reintentos automáticos ni almacena cotizaciones de impuestos en caché.
 
 El Worker sigue siendo la fuente de la verdad. El navegador puede solicitar vistas previas, pero los totales persistentes provienen del cálculo del lado Worker. La cotización de pago propia aceptada se verifica mediante hash al finalizar y se retienen sus totales. La finalización no vuelve a calcular los impuestos de la dirección enriquecida de Stripe después de la configuración de la tarjeta. Las nuevas cotizaciones utilizan el destino completo de facturación o impuestos de envío proporcionado.
 

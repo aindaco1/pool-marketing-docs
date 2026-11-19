@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-October 28, 2026
+November 19, 2026
 
 This document is the operator reference and source of truth for The Pool's
 private dashboard-based campaign editing, reporting, analytics, marketing
@@ -496,6 +496,46 @@ Supported report types:
 
 The browser report UI is download-oriented. It does not need manual email-send or mark-as-sent controls.
 
+### Daily Pledge Summary
+
+Daily pledge emails and campaign-scoped previews show **Stripe fees (campaign
+share)** and **Campaign amount after Stripe fees** alongside the gross pledged
+total and goal progress. They use the same current-pledge financial calculation
+as Analytics. History rows do not add another fee when a pledge is modified.
+
+Recorded Stripe fees are used for charged pledges when available. Active pledges
+and charged pledges without recorded fees use the existing planning estimate of
+2.9% + $0.30 per pledge. Summaries label these figures **actual**, **estimated**,
+or **includes estimates** and explain the estimated rate when used. Cancelled
+pledges contribute no revenue or fees; failed payments add no estimated fee,
+but their outstanding campaign amount remains included, as in Analytics.
+
+Each fee is allocated proportionally across campaign revenue, platform revenue,
+tax, and shipping using integer cents. The summary shows only the campaign
+share and the campaign amount after that deduction, not a guaranteed payout.
+Campaign add-ons remain campaign revenue; platform add-ons and tips do not.
+Gross goal progress and the existing CSV ledger columns retain their meanings.
+Disabling the existing stats-summary setting hides these lines along with the rest of the summary.
+Previewing reports does not retrieve Stripe data, backfill financials, or write
+to KV. See [Analytics](#analytics) for historical Stripe financial backfills.
+
+Pledge CSV attachments, dashboard previews/downloads, and CLI exports append:
+
+| Column | Meaning |
+| --- | --- |
+| `current_stripe_fee_source` | `actual`, `estimated`, or `not_applicable` when the pledge has no eligible charge/estimate |
+| `current_stripe_fee` | The pledge's entire recorded or estimated Stripe fee, in dollars |
+| `current_campaign_stripe_fee` | The campaign's allocated share of that fee, in dollars |
+| `current_campaign_amount_after_fees` | Current campaign revenue less its fee share, in dollars |
+
+These are current per-pledge snapshots, not historical change amounts. They
+appear only on the final exported ledger row for each pledge; earlier rows leave
+all four cells blank. A pledge without history uses its sole row. Summing these
+columns therefore counts each pledge once and matches Analytics, including
+modified pledges. Cancelled pledges show zero; failed payments show zero fees
+and retain the outstanding campaign amount. Existing history rows, timestamps,
+and fulfillment CSVs are unchanged.
+
 ### CLI Pledge Reports
 
 Generate CSV reports of pledges from Cloudflare KV:
@@ -725,6 +765,10 @@ Campaign archive moves are repository-side for the same reason. In local dev, th
 
 Retry the workflow with `scope=changed` to process pending uploads, or `scope=all` to reprocess all source images. Changed scope uses source hashes and missing sizes instead of relying on the latest commit. Both scopes preserve intentionally skipped derivatives that would be larger than their source. `npm run media:manifest` rebuilds the index without processing binaries. Local commands and the reviewed video workflow are documented in [Performance](/docs/operations/performance/#media-optimization).
 
+### Source image preservation during optimization
+
+The optimizer and release validator use the same decoded-image inspection. A smaller candidate replaces an original only when pixels, dimensions, orientation, aspect-ratio evidence, and animation timing match. Candidates that change that evidence are discarded with a skip reason; the original remains authoritative and responsive derivatives can still be generated. FFmpeg and ffprobe are required for source replacement. The release validator remains an independent final check of the complete patch.
+
 Use meaningful alt text for images that communicate content. Decorative backgrounds can use empty alt text in the public templates.
 
 ## Security And Accessibility Guardrails
@@ -824,3 +868,14 @@ actionable message; unknown provider errors use a localized request-status
 fallback. Original diagnostics remain on the caught error's `rawData` for debugging
 and are not displayed directly. Creator-authored titles are not translated.
 Missing alt text remains an advisory notice and cannot prevent Save or Publish.
+
+### Shared block editor ownership
+
+The dashboard uses Platform Admin Shell 0.15.1's `block-editor-browser` composer
+for the block model, toolbar, ordering, type changes, alignment, slash insertion
+and event routing. The pinned module and classic script share one implementation.
+An older editor cleanup cannot detach a newer active binding. The dashboard
+retains its field/media controls, URL and clipboard policy, data
+projection, preview, save and publish workflow. Upgrading this dependency requires
+the editor characterization tests and browser dashboard suite; rollback reverts
+the adapter and Platform gitlink together.

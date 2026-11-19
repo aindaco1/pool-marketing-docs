@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-28 de octubre de 2026
+19 de noviembre de 2026
 
 Este es el runbook del operador canónico para el estado propiedad de The Pool que no se puede recrear mediante una implementación normal. Cubre el historial de Git, Cloudflare KV, metadatos del proveedor, pedidos de restauración, retención y evidencia de recuperación. Nunca trata los valores secretos como contenido de respaldo.
 
@@ -92,30 +92,30 @@ No confirme directorios de instantáneas, archivos descifrados, manifiestos que 
 Copie una instantánea cifrada verificada en un destino montado por separado:
 
 ```bash
-POOL_BACKUP_AGE_IDENTITY=/secure/age-identity.txt \
-node scripts/pool-backup-offsite-copy.mjs \
-  --source=/secure/path/pool-backup \
+node scripts/pool-backup-offsite-copy.mjs --execute \
+  --snapshot=/secure/path/pool-backup \
   --destination=/Volumes/Recovery/Pool \
   --acknowledge=POOL_BACKUP_OFF_DEVICE_COPY
 ```
 
-De forma predeterminada, la copia solo se puede agregar, rechaza rutas inseguras, vuelve a verificar las sumas de verificación y verifica el descifrado. Se requiere un sistema de archivos diferente a menos que un operador elija explícitamente una excepción documentada.
+La copia solo añade archivos de forma predeterminada, rechaza rutas inseguras y comprueba la suma de verificación al releerlos. El comando escribe un comprobante de éxito solo cuando el archivo copiado coincide con el SHA-256 registrado al inicio de la ejecución. Si no coincide, elimina el nuevo directorio de la copia y su contenido parcial. Conserva intactas las copias preexistentes. Se requiere otro sistema de archivos salvo que la persona operadora elija expresamente una excepción documentada. Ejecuta `--verify-only --verify-decrypt` en el dispositivo de recuperación para verificar el descifrado.
 
 Obtenga una vista previa de las decisiones de retención antes de la poda:
 
 ```bash
-npm run backup:retention -- --root=/secure/path/pool-snapshots --dry-run
+npm run backup:retention -- --root=/secure/path/pool-snapshots --output=pool-retention.json
 ```
 
-Aplicar solo después de revisar el conjunto de conservación/eliminación:
+Revisa las listas de conservación y eliminación en `pool-retention.json` y verifica la copia en otro dispositivo. Aplica el plan revisado con el siguiente comando.
 
 ```bash
-npm run backup:retention -- \
-  --root=/secure/path/pool-snapshots \
-  --acknowledge=POOL_BACKUP_RETENTION_PRUNE
+npm run backup:retention -- --root=/secure/path/pool-snapshots \
+  --execute --plan=pool-retention.json --acknowledge=POOL_BACKUP_RETENTION_PRUNE
 ```
 
-La poda de retención funciona solo en directorios de instantáneas con suma de verificación válida en la raíz proporcionada y sigue la política de lanzamiento aprobada el 5/7/12.
+El planificador conserva la copia más reciente, las copias de versiones y las representativas diarias, semanales y mensuales configuradas. Omite comprobantes inválidos y entradas con enlaces simbólicos. El plan vincula el directorio y el SHA-256 de cada archivo verificado. Antes de la primera eliminación, el comando vuelve a comprobar cada archivo revisado y si cada candidato puede eliminarse según la política activa. Una raíz distinta, un archivo modificado o un candidato protegido recientemente hacen que se rechace todo el lote. Las copias descubiertas después permanecen intactas. Genera un plan nuevo tras un rechazo o al actualizar desde la versión 1.
+
+Usa una raíz real, sin enlaces simbólicos, fuera del repositorio. Ejecuta la eliminación cuando estén inactivos los otros procesos que modifican estas copias. El comando vuelve a comprobar cada destino antes de eliminarlo, pero un error posterior del sistema de archivos puede interrumpir un lote después de una eliminación.
 
 ### Archivo R2 configurado fuera de cuenta
 
@@ -162,6 +162,10 @@ node scripts/pool-restore.mjs \
   --cleanup-preview \
   --acknowledge-preview-cleanup=POOL_PREVIEW_RESTORE_CLEANUP
 ```
+
+La limpieza comprueba tanto `PLEDGES` como `VOTES` antes de la primera eliminación. Compara el valor actual y los metadatos de cada clave de la copia que está presente, omite las claves cuya ausencia se confirmó y conserva las no incluidas. Una discrepancia, una lectura incompleta o un error del proveedor en cualquiera de las vinculaciones hace que la limpieza falle sin borrar nada. Una segunda limpieza satisfactoria realiza cero eliminaciones.
+
+Mantén inactivos los procesos que escriben en vistas previas desde la comprobación inicial hasta la eliminación. Las vinculaciones versionadas `STORE_STATE` de Store y `PLEDGES` de Pool usan el mismo ID de espacio de nombres de vista previa. Coordina los simulacros entre ambos proyectos porque las lecturas y las eliminaciones son operaciones separadas del proveedor.
 
 El planificador de restauración valida las claves de aporte, los ID de pedidos, los estados, la propiedad de la campaña, las funciones de administrador, los correos electrónicos y los registros de votación. Las familias derivadas se convierten en acciones de reconstrucción. Se omiten las familias en cuarentena. La auditoría de administración y el historial de inicio de sesión con privacidad minimizada también se omiten a menos que un plan específico para incidentes agregue `--include-incident-evidence`. Durable Objects nunca se importan. El proveedor detiene las escrituras ante el primer error y la verificación lee los valores restaurados en lotes limitados.
 

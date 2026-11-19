@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-27 de septiembre de 2026
+19 de noviembre de 2026
 
 Este repositorio incluye una ruta de desarrollo local sin raíz respaldada por Podman para los dos servicios que normalmente crean la mayor rotación de configuración de host:
 
@@ -212,7 +212,11 @@ Esa suite enfocada es la verificación del navegador local preferida para cambio
 
 Para los comandos del lado del host que necesitan un sitio respaldado por Podman/Worker sin asumir persistencia de pila separada, use [`scripts/podman-stack-run.sh`](https://github.com/aindaco1/pool/blob/main/scripts/podman-stack-run.sh). `npm run test:security:podman` usa ese contenedor para iniciar la pila, ejecutar el paquete de seguridad y derribar la pila en una sola invocación.
 
-El contenedor Worker por defecto es `node:24-bookworm-slim`. Si la extracción de una imagen Podman local se detiene pero la imagen Playwright fijada en `Containerfile.playwright.dev` ya está almacenada en caché, el iniciador puede reutilizar esa base exacta del Nodo 24 para que el desarrollo aún coincida con el tiempo de ejecución del Nodo 24 de acciones GitHub. Utilice `nvm use` desde la raíz del repositorio para seleccionar la línea base del Nodo 24.15 compatible antes de ejecutar los comandos npm del lado del host.
+Playwright monta en modo de solo lectura el volumen de dependencias del Worker en ejecución porque las pruebas de navegador importan módulos del Worker. Si no encuentra ese volumen, falla antes de ejecutar las pruebas, en lugar de depender de `worker/node_modules` del host. La etiqueta de la imagen de navegador incluye la versión fijada de Playwright para que una actualización de herramientas no reutilice silenciosamente una imagen antigua en caché; el punto de entrada instala exactamente el archivo de bloqueo con `npm ci`.
+
+Cuando una pila nueva se inicia con `CI=1` o `CI=true`, Jekyll sirve una sola compilación con `--no-watch`, igual que el servidor de Playwright en el host. El desarrollo local normal conserva el sondeo de cambios de archivos. Una pila de desarrollo que ya está en ejecución conserva su modo original. Los presupuestos de rendimiento y las comprobaciones de navegador se aplican sin cambios en ambos modos.
+
+El contenedor del Worker usa `node:24-bookworm-slim` de forma predeterminada. Si una descarga de imagen local de Podman se atasca pero la imagen de Playwright fijada en `Containerfile.playwright.dev` ya está en caché, el lanzador puede reutilizar esa base exacta de Node 24 para que el desarrollo siga coincidiendo con Node 24 en GitHub Actions. Usa `nvm use` desde la raíz del repositorio para seleccionar la versión base compatible Node 24.22.1 antes de ejecutar comandos npm en el host.
 
 Para la ruta del navegador sin cabeza del lado del host, Playwright crea un `_site` estático limpio y lo sirve con un servidor HTTP liviano en lugar de depender de `jekyll serve`. Esto mantiene las regresiones del navegador más cercanas a la forma real de los activos publicados y evita cierta inestabilidad de WEBrick durante las ejecuciones paralelas.
 

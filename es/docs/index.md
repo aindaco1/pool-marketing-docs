@@ -9,7 +9,7 @@ lang: es
 
 ## Última actualización
 
-28 de octubre de 2026
+19 de noviembre de 2026
 
 Esta página es la **forma más rápida de orientarse** antes de sumergirse en los documentos completos.
 
@@ -57,11 +57,17 @@ No. **Guardar** almacena una copia de trabajo compartida; **Vista previa** permi
 
 Lea [Guardar y publicar](/es/docs/operations/admin-dashboard/#guardar-y-publicar) y [Recuperación de borrador](/es/docs/operations/admin-dashboard/#recuperar-un-borrador-perdido-del-navegador).
 
+### ¿Los reportes de campaña incluyen las comisiones de Stripe?
+
+Sí. Los correos diarios de aportes, las vistas previas de reportes y los CSV muestran la parte de las comisiones de Stripe que corresponde a la campaña y su monto después de descontarlas. Las comisiones registradas tienen prioridad; las estimaciones para planificar se identifican claramente. El avance bruto hacia la meta no cambia y el monto después de comisiones no garantiza un desembolso. Las cifras actuales de comisiones aparecen una sola vez por aporte en el registro CSV, aunque el aporte tenga varias filas de historial.
+
+Consulta [Resumen diario de aportes](/es/docs/operations/admin-dashboard/#resumen-diario-de-aportes) para conocer las reglas de estimación, asignación y exportación.
+
 ### ¿Cómo se protegen los aportes y el correo electrónico durante la recuperación?
 
-Los registros de aportes y la entrega de correos electrónicos tienen ciclos de vida separados. The Pool pone en cola sus propios mensajes para reintentarlos sin revertir los aportes guardados cuando falla la entrega. Los correos electrónicos del diario de campaña enlazan con entradas individuales y las actualizaciones de la campaña incluyen una opción para cancelar la suscripción.
+Los registros de aportes y la entrega de correo tienen ciclos de vida separados. Pool pone sus mensajes en cola sin revertir los aportes guardados cuando falla la entrega. Los reintentos automáticos se detienen 23 horas después del primer envío posible al proveedor; los resultados inciertos se conservan para conciliarlos. Los correos de diario enlazan a entradas individuales y las actualizaciones de campaña incluyen una opción para cancelar la suscripción.
 
-Los operadores pueden configurar instantáneas de producción cifradas cada cuatro horas, verificar el archivo remoto y seguir un proceso documentado de restauración y reconciliación Stripe. Una verificación de copia de seguridad exitosa no establece que se haya probado una restauración. Consulte [Sistema de correo electrónico](/es/docs/operations/email-system/) y [Copia de seguridad, restauración y recuperación](/es/docs/operations/backup-restore/).
+Las personas operadoras pueden configurar copias cifradas de producción cada cuatro horas, verificar el archivo remoto y seguir un proceso documentado de restauración y conciliación con Stripe. Las copias en otro dispositivo se comprueban contra la suma de verificación del archivo seleccionado. La eliminación por retención y la limpieza de vistas previas validan todo el conjunto revisado antes de borrar registros o copias. Una verificación de respaldo satisfactoria no demuestra que se haya probado una restauración. Consulta [Sistema de correo electrónico](/es/docs/operations/email-system/) y [Copias de seguridad, restauración y recuperación](/es/docs/operations/backup-restore/).
 
 ### ¿Para quién es The Pool?
 
@@ -71,7 +77,7 @@ El contexto público está en [Acerca de The Pool](/es/docs/overview/about-the-p
 
 ### ¿Cómo se construye?
 
-Jekyll genera el sitio público para GitHub Pages. Un Worker de Cloudflare gestiona los totales, el almacenamiento de aportes, la administración y la liquidación. Stripe guarda los métodos de pago y procesa los cobros, y Resend entrega el correo. Podman permite desarrollar en un entorno local. Los paquetes de Dust Wave Platform fijados a revisiones concretas proporcionan funciones compartidas de pago, referencias de códigos postales e impuestos, medios y otras utilidades; Pool conserva las reglas de campañas y aportes.
+Jekyll genera el sitio público para GitHub Pages. Un Worker de Cloudflare controla los totales del proceso de pago, el almacenamiento de aportes, la administración y la liquidación; Stripe guarda métodos de pago y procesa cobros, y Resend entrega el correo. Podman permite el desarrollo local. Los paquetes fijados de Dust Wave Platform aportan componentes compartidos para pagos, edición de bloques, referencias postales e impuestos, medios y otras funciones; Pool conserva las reglas de campañas y aportes.
 
 Comience con [Acerca de The Pool](/es/docs/overview/about-the-pool/) y [Arquitectura](/es/docs/development/architecture/) para el mapa del sistema.
 

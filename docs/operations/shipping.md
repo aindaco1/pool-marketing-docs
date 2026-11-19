@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-October 28, 2026
+November 19, 2026
 
 This document describes The Pool's current Worker-first shipping flow,
 fork-facing config surface, USPS integration boundary, and the rule tree shared
@@ -471,6 +471,11 @@ Practical operational note for this platform:
   - flat fallback shipping when USPS is unavailable
 
 That keeps the platform aligned with USPS's quota model without turning shipping quotes into a KV-heavy subsystem.
+
+The shared USPS request deadline covers reading the response body as well as
+receiving headers, for both authentication and rate requests. A timeout enters
+the existing cooldown and fallback path; it does not change the saved shipping
+amount on an already confirmed pledge.
 
 Only call USPS at high-intent moments:
 

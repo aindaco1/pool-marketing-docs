@@ -9,7 +9,7 @@ lang: es
 
 ## Última actualización
 
-6 de septiembre de 2026
+19 de noviembre de 2026
 
 Aquí se encuentra material de apoyo para el historial de lanzamientos, la planificación, la coordinación de los contribuyentes y las plantillas de procesos reutilizables.
 
@@ -18,7 +18,7 @@ Aquí se encuentra material de apoyo para el historial de lanzamientos, la plani
 - [Worker API](/es/docs/reference/worker-api/) para contratos de terminales y ejemplos de solicitud/respuesta.
 
 - [Changelog](/es/docs/reference/changelog/) para notas de la versión versionadas y cambios recientes en la plataforma.
-- [Roadmap](/es/docs/reference/roadmap/) solo para trabajos potenciales; El comportamiento actual se encuentra en las guías de práctica y el trabajo completado se encuentra en el registro de cambios.
+- [Hoja de ruta](/es/docs/reference/roadmap/) para las propuestas pendientes de impuestos e inventario entre canales, además de funciones que necesitan un caso de uso de campaña u operación.
 - [Plantilla de solicitud de extracción](/es/docs/reference/pull-request-template/) para la estructura de relaciones públicas predeterminada utilizada para documentar cambios y probar la cobertura.
 - [Fuente Map](/es/docs/reference/source-map/) para las fuentes canónicas The Pool detrás de cada página de documentación de marketing importada.
 

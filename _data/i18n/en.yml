@@ -31,7 +31,7 @@ home:
     free: "<strong>Free</strong> to use, copy, and rebrand."
     low_cost: "Designed around <strong>GitHub Pages, Cloudflare, and Resend</strong>, with budget-friendly dynamic usage."
     no_account: "Backers can pledge and manage support with <strong>no account required</strong>."
-    paid: "Supports <strong>multi-campaign checkout</strong>, rewards, add-ons, tips, and <strong>pledge and fulfillment reports</strong>."
+    paid: "Supports <strong>multi-campaign checkout</strong>, rewards, add-ons, and pledge reports with <strong>recorded or estimated Stripe fees</strong>."
   download_cta: Download the code
   docs_cta: Explore the docs
   demo_cta: Demo
@@ -66,7 +66,7 @@ home:
     no_account_body: "Backers pledge, update cards, change pledges, and open supporter-only pages through <strong>secure email links</strong>."
     no_account_link: Inspect pledge management
     crowd_title: Built for real campaigns
-    crowd_body: "Run <strong>rewards, custom pledges, add-ons, launch reminders, updates, votes, supporter blasts,</strong> and fulfillment reports."
+    crowd_body: "Run <strong>rewards, custom pledges, add-ons, launch reminders, updates, votes,</strong> and fulfillment reports. Daily pledge summaries distinguish recorded Stripe fees from estimates."
     crowd_link: Explore creator workflows
   platform_heading: What is included today
   platform_intro: ""
@@ -84,7 +84,7 @@ home:
     community_body: "Backers manage pledges through <strong>secure email links</strong>. Diary emails link to the individual update. Delivery retries preserve saved pledges, and campaign updates include an unsubscribe option."
     community_link: Explore campaign workflows
     customization_title: Admin tools for the team
-    customization_body: "<strong>Save a working copy, share a protected preview, then publish.</strong> The dashboard tracks deployment, preserves conflicting drafts, and manages media, users, reports, analytics, and marketing links."
+    customization_body: "<strong>Arrange content blocks, save a working copy, share a protected preview, then publish.</strong> The dashboard tracks deployment, preserves conflicting drafts, and manages media, users, reports, analytics, and marketing links."
     customization_link: "Explore the admin dashboard"
     operations_title: "Operations and recovery"
     operations_body: "Responsive media, accessibility checks, security tests, and automated browser coverage accompany encrypted backup workflows, archive verification, and documented recovery procedures."

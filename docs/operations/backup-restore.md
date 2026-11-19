@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-October 28, 2026
+November 19, 2026
 
 This is the canonical operator runbook for Pool-owned state that cannot be recreated by a normal deploy. It covers Git history, Cloudflare KV, provider metadata, restore ordering, retention, and recovery evidence. It never treats secret values as backup content.
 
@@ -91,30 +91,30 @@ Do not commit snapshot directories, decrypted archives, manifests containing cap
 Copy a verified encrypted snapshot to a separately mounted destination:
 
 ```bash
-POOL_BACKUP_AGE_IDENTITY=/secure/age-identity.txt \
-node scripts/pool-backup-offsite-copy.mjs \
-  --source=/secure/path/pool-backup \
+node scripts/pool-backup-offsite-copy.mjs --execute \
+  --snapshot=/secure/path/pool-backup \
   --destination=/Volumes/Recovery/Pool \
   --acknowledge=POOL_BACKUP_OFF_DEVICE_COPY
 ```
 
-The copy is append-only by default, rejects unsafe paths, rechecks checksums, and verifies decryption. A different filesystem is required unless an operator explicitly chooses a documented exception.
+The copy is append-only by default, rejects unsafe paths, and verifies checksum readback. The command writes a success receipt only when the copied archive matches the SHA-256 recorded at the start of execution. On a mismatch, it removes the new snapshot directory and its partial contents. It leaves any pre-existing snapshot untouched. A different filesystem is required unless an operator explicitly chooses a documented exception. Run `--verify-only --verify-decrypt` on the recovery device to verify decryption.
 
 Preview retention decisions before pruning:
 
 ```bash
-npm run backup:retention -- --root=/secure/path/pool-snapshots --dry-run
+npm run backup:retention -- --root=/secure/path/pool-snapshots --output=pool-retention.json
 ```
 
-Apply only after reviewing the keep/delete set:
+Review the keep and prune lists in `pool-retention.json` and verify the off-device copy. Apply the reviewed preview with the following command.
 
 ```bash
-npm run backup:retention -- \
-  --root=/secure/path/pool-snapshots \
-  --acknowledge=POOL_BACKUP_RETENTION_PRUNE
+npm run backup:retention -- --root=/secure/path/pool-snapshots \
+  --execute --plan=pool-retention.json --acknowledge=POOL_BACKUP_RETENTION_PRUNE
 ```
 
-Retention pruning operates only on checksum-valid snapshot directories under the supplied root and follows the approved 7/5/12/release policy.
+The planner keeps the newest snapshot, release snapshots, and the configured daily, weekly, and monthly representatives. It skips invalid receipts and symlinked entries. The preview binds the directory and each verified archive's SHA-256. Before the first deletion, the command rechecks every reviewed archive and each prune target's eligibility under the active policy. A different root, changed archive, or newly protected target rejects the entire batch. Newly discovered snapshots stay in place. Generate a fresh preview after a rejection or when upgrading from version 1.
+
+Use a real, non-symlinked root outside the repository. Run pruning while other processes that change these backups are idle. The command rechecks each target before removal, but a later filesystem error can interrupt a batch after a deletion.
 
 ### Configured off-account R2 archive
 
@@ -161,6 +161,10 @@ node scripts/pool-restore.mjs \
   --cleanup-preview \
   --acknowledge-preview-cleanup=POOL_PREVIEW_RESTORE_CLEANUP
 ```
+
+Cleanup checks both `PLEDGES` and `VOTES` before the first delete. It compares each present snapshot key's current value and metadata, skips confirmed absent keys, and preserves unlisted keys. A mismatch, incomplete read, or provider error in either binding fails the cleanup with zero deletes. A second successful cleanup issues zero deletes.
+
+Keep preview writers idle from preflight through deletion. The checked-in Store `STORE_STATE` and Pool `PLEDGES` bindings use the same preview namespace ID. Coordinate drills across both projects because the reads and deletes are separate provider operations.
 
 The restore planner validates pledge keys/order IDs/statuses/campaign ownership, admin roles/emails, and vote records. Derived families become rebuild actions. Quarantined families are skipped. Admin audit and privacy-minimized login history are also skipped unless an incident-specific plan adds `--include-incident-evidence`. Durable Objects are never imported. Provider writes stop on the first failure, and verification reads back restored values in bounded batches.
 

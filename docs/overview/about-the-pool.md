@@ -9,7 +9,7 @@ render_with_liquid: false
 
 ## Last Updated
 
-October 28, 2026
+November 19, 2026
 
 **The Pool** is an open-source crowdfunding platform for independent film and creative projects. It gives small teams a focused place to raise money, offer rewards, communicate with supporters, and manage fulfillment without requiring every supporter to create an account.
 
@@ -56,6 +56,10 @@ When a campaign explicitly enables a focused product page for its featured physi
 Campaign teams can configure all-or-nothing funding, digital and physical reward tiers, campaign add-ons, production phases, stretch goals, supporter decisions, diary updates, protected previews, campaign embeds, and late support when appropriate.
 
 A private, role-scoped dashboard supports campaign content, rewards, reports, supporters, fulfillment, analytics, marketing links, and authorized users. Sensitive pricing and totals are verified by the server rather than trusted from the browser.
+
+Creators can arrange text, images, galleries, and other content blocks in the dashboard. Uploaded images remain the source for responsive versions; optimization publishes a smaller replacement only after verifying that its visual content is preserved.
+
+Daily pledge summaries and CSV exports show the campaign's share of Stripe processing fees and its amount after those fees. Recorded fees are used when available, and estimates are labeled. Campaign goal progress remains the gross campaign contribution; an amount after fees is a planning figure, not a guaranteed payout.
 
 Teams can save a shared working copy, review it through a protected preview, then publish it explicitly. Saving does not change the public campaign. The dashboard tracks publication through deployment and reports Live only when the saved revision is deployed. Browser-local drafts remain separate recovery copies, and conflicting edits must be resolved before replacing a newer shared working copy.
 

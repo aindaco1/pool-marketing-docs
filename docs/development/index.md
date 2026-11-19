@@ -8,7 +8,7 @@ has_children: true
 
 ## Last Updated
 
-October 28, 2026
+November 19, 2026
 
 Contribution flow, architecture notes, implementation gotchas, and fork-facing extension points live here.
 
@@ -16,7 +16,7 @@ Contribution flow, architecture notes, implementation gotchas, and fork-facing e
 
 1. [Platform README](/docs/development/platform-readme/) for a short introduction and quick start.
 2. [Contributing](/docs/development/contributing/) for dependencies, local setup, contribution workflow, and implementation conventions.
-3. [Architecture](/docs/development/architecture/) for ownership, storage, campaign and pledge lifecycle, and the code map.
+3. [Architecture](/docs/development/architecture/) for ownership, shared Platform components, storage, campaign and pledge lifecycle, and the code map.
 4. [Campaign Content Model](/docs/development/content-model/) for campaign fields, tiers, media, diary entries, and decisions.
 5. [Worker API](/docs/reference/worker-api/) for endpoint contracts and request/response examples.
 6. [Deployment](/docs/operations/deployment/) for first-time setup, credentials, and separate Pages and Worker release flows.

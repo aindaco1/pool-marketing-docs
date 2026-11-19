@@ -8,7 +8,7 @@ description: Frequently asked questions and a recommended reading path for The P
 
 ## Last Updated
 
-October 28, 2026
+November 19, 2026
 
 This page is the **fastest way to get oriented** before you dive into the full docs.
 
@@ -56,11 +56,17 @@ No. **Save** stores a shared working copy; **Preview** lets authorized reviewers
 
 Read [Saving and Publishing](/docs/operations/admin-dashboard/#saving-and-publishing) and [Draft Recovery](/docs/operations/admin-dashboard/#recover-a-missing-browser-draft).
 
+### Do campaign reports include Stripe fees?
+
+Yes. Daily pledge emails, report previews, and pledge CSVs show the campaign's share of Stripe fees and its amount after those fees. Recorded fees take precedence; planning estimates are clearly labeled. Gross goal progress is unchanged, and the amount after fees is not a guaranteed payout. Current fee figures appear once per pledge in CSV ledger exports, even when that pledge has several history rows.
+
+See [Daily Pledge Summary](/docs/operations/admin-dashboard/#daily-pledge-summary) for the estimate, allocation, and export rules.
+
 ### How are pledges and email protected during recovery?
 
-Pledge records and email delivery have separate lifecycles. Pool queues its own messages for retry without rolling back saved pledges when delivery fails. Campaign diary emails link to individual entries, and campaign updates include an unsubscribe option.
+Pledge records and email delivery have separate lifecycles. Pool queues its own messages without rolling back saved pledges when delivery fails. Automatic retries stop 23 hours after the first possible provider send; uncertain outcomes are kept for reconciliation. Campaign diary emails link to individual entries, and campaign updates include an unsubscribe option.
 
-Operators can configure encrypted production snapshots every four hours, verify the remote archive, and follow a documented restore and Stripe-reconciliation process. A successful backup check does not establish that a restore has been tested. See [Email System](/docs/operations/email-system/) and [Backup, Restore, and Recovery](/docs/operations/backup-restore/).
+Operators can configure encrypted production snapshots every four hours, verify the remote archive, and follow a documented restore and Stripe-reconciliation process. Off-device copies are checked against the selected archive's checksum. Retention pruning and preview cleanup validate the complete reviewed set before deleting records or snapshots. A successful backup check does not establish that a restore has been tested. See [Email System](/docs/operations/email-system/) and [Backup, Restore, and Recovery](/docs/operations/backup-restore/).
 
 ### Who is The Pool for?
 
@@ -70,7 +76,7 @@ The public context is in [About The Pool](/docs/overview/about-the-pool/), and t
 
 ### How is it built?
 
-Jekyll builds the public site for GitHub Pages. A Cloudflare Worker owns checkout totals, pledge storage, administration, and settlement; Stripe saves payment methods and processes charges, and Resend delivers email. Podman supports local development. Pinned Dust Wave Platform packages supply shared checkout, postal/tax, media, and other helpers while Pool owns campaign and pledge rules.
+Jekyll builds the public site for GitHub Pages. A Cloudflare Worker owns checkout totals, pledge storage, administration, and settlement; Stripe saves payment methods and processes charges, and Resend delivers email. Podman supports local development. Pinned Dust Wave Platform packages supply shared checkout, block editing, postal/tax, media, and other helpers while Pool owns campaign and pledge rules.
 
 Start with [About The Pool](/docs/overview/about-the-pool/) and [Architecture](/docs/development/architecture/) for the system map.
 

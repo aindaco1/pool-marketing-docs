@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-27 de septiembre de 2026
+19 de noviembre de 2026
 
 Esta guía cubre la superficie de personalización sin código admitida para bifurcaciones de The Pool.
 
@@ -589,7 +589,7 @@ Comportamiento actual:
 - `email_subject_prefix` se puede configurar como una cadena vacía para desactivar el prefijo por completo
 - cuando el prefijo se omite en tiempo de ejecución, el trabajador vuelve a `[platform.name]`
 - Los temas de los informes son concisos y están orientados a la capacidad de entrega: sin emoji, etiquetas de informe cortas y un patrón consistente de prefijo + tipo de informe + título de campaña.
-- Los correos electrónicos de aportes diarias utilizan un resumen exclusivo de la campaña con los aportes totales, las nuevas aportes en las 24 horas anteriores, el total de los aportes, el progreso de los objetivos y la cuenta regresiva/tiempo transcurrido de la fecha límite.
+- los correos diarios de aportes usan un resumen exclusivo de la campaña con el número total de aportes, los nuevos aportes de las últimas 24 horas, el monto comprometido, las comisiones de Stripe asignadas, el monto de la campaña después de comisiones, el avance hacia la meta y el tiempo restante o transcurrido desde la fecha límite; [Resumen diario de aportes](/es/docs/operations/admin-dashboard/#resumen-diario-de-aportes) define las etiquetas de cifras reales y estimadas y su asignación
 - Los envíos de cumplimiento se dividen por cumplimiento:
   - Los destinatarios del corredor de campaña reciben solo las filas completadas por la campaña.
   - `platform.support_email` recibe un correo electrónico de cumplimiento de plataforma por separado cuando existen filas de complementos de plataforma

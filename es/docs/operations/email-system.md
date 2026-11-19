@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-28 de octubre de 2026
+19 de noviembre de 2026
 
 The Pool envía correo electrónico transaccional y de soporte de campaña a través de Resend desde Cloudflare Worker. Las plantillas se encuentran en `worker/src/email.js`, la copia localizada compartida se encuentra en `_data/i18n/*.yml` y la programación/selección de audiencia se encuentra principalmente en `worker/src/index.js`.
 
@@ -306,6 +306,7 @@ Las identidades utilizan campaña, audiencia y destinatario. Reintentando despu�
 La falla de escritura en cola o marcador enviado reutiliza la carga útil en cola. manual explícito
 Los informes conservan sus identidades basadas en la carga útil y el comportamiento `markAsSent`.
 - Los archivos adjuntos CSV son opcionales según la configuración.
+- Los resúmenes diarios de aportes incluyen la parte de las comisiones de Stripe que corresponde a la campaña y su monto después de comisiones, usando el [cálculo compartido de Análisis y las etiquetas de cifras reales o estimadas](/es/docs/operations/admin-dashboard/#resumen-diario-de-aportes).
 - Los destinatarios de la campaña reciben filas completadas por la campaña.
 - `platform.support_email` puede recibir filas separadas de cumplimiento de plataforma cuando los complementos de plataforma necesitan cumplimiento.
 - Las vistas previas/descargas de los informes del panel son de solo lectura y no envían correos electrónicos ni escriben marcadores de envío.
@@ -318,7 +319,8 @@ Los envíos de producción utilizan registros `pool:email-outbox:v1:*`. La confi
 - se procesa una vez, congela la carga útil exacta del proveedor y registra un hash de contenido
 - utiliza un contrato de arrendamiento de procesamiento para que el trabajo interrumpido pueda reanudarse
 - respeta `Retry-After`, respuestas de cuota y retraso exponencial acotado
-- rechaza el reintento ciego después de que una respuesta ambigua sobreviva la ventana de idempotencia de 24 horas de Resend
+- reintenta con la clave original y el contenido congelado solo antes de que transcurran 23 horas desde el primer envío posible al proveedor
+- al llegar a ese límite o después, no realiza más envíos y conserva la evidencia conocida del proveedor o registra un resultado ambiguo para conciliarlo. Volver a poner el mismo trabajo en cola no reinicia el plazo.
 - caduca los datos de carga útil transitoria después de 30 días y conserva solo evidencia mínima `email-delivery:v1:*` durante 400 días
 
 El prefijo de trabajo pendiente y el marcador `pool:email-outbox-queue:v1` son específicos de The Pool, incluso cuando otro producto comparte el espacio de nombres PLEDGES. The Pool nunca drena la cola no calificada heredada. Los ID de trabajo existentes, las claves de idempotencia del proveedor y la evidencia `email-delivery:v1:*` permanecen estables durante este cambio de clave de almacenamiento.

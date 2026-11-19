@@ -10,7 +10,7 @@ lang: es
 
 ## Última actualización
 
-28 de octubre de 2026
+19 de noviembre de 2026
 
 Esta guía contiene el cableado de producción por primera vez y el flujo de trabajo de lanzamiento del sitio/Worker. Utilice [Podman](/es/docs/operations/podman-local-dev/) para contenedores locales, [Contributing](/es/docs/development/contributing/) para desarrollo y [Merge Smoke](/es/docs/operations/merge-smoke-checklist/) para la aprobación del operador.
 
@@ -50,6 +50,8 @@ gh workflow run deploy-production.yml --ref main \
 ```
 
 Los pushes automáticos a `main` solo ejecutan la comprobación del diario cuando cambia el contenido publicado en `_campaigns/` entre los commits exactos anterior y posterior al push. Las herramientas, el código y los borradores guardados no la activan por sí solos. Si el checkout tiene historial limitado, la comparación obtiene el commit exacto que falta; si no puede establecer la comparación, la compilación falla. Las actualizaciones programadas y las ejecuciones manuales o de campaña ordinarias conservan la comprobación del diario; la opción manual para omitirla vale `false` por defecto. Omitirla en mantenimiento no detiene las comprobaciones programadas posteriores ni otros procesos de notificación existentes.
+
+El flujo de optimización de imágenes inicia expresamente la actualización de Pages con `skip_diary_check=true`. Así, publicar medios optimizados actualiza el sitio sin iniciar un envío del diario.
 
 La publicación de campaña envía **Actualizar páginas de producción** con la confirmación guardada en su entrada opcional `ref`. Ambos trabajos utilizan esa revisión; el título de la ejecución lo registra como `Deploy <sha>` para que el progreso del panel pueda rastrear la compilación correcta incluso cuando la rama avanza. Si GitHub cancela un duplicado pendiente, el seguimiento sigue un reemplazo para la misma revisión inmutable y permite hasta 30 segundos para que aparezca en la lista de ejecución. Las ejecuciones para una revisión diferente nunca cuentan como éxito de publicación. Los envíos de solo borrador en `_campaign_drafts/` no inician la compilación de páginas. La credencial Worker GitHub necesita acceso de lectura de acciones, así como su acceso de envío/escritura existente. Consulte [Dashboard](/es/docs/operations/admin-dashboard/) para conocer el comportamiento guardado, implementado y en vivo.
 
